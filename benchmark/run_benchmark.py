@@ -30,6 +30,7 @@ import csv
 import hashlib
 import json
 import os
+import random
 import re
 import shutil
 import subprocess
@@ -186,12 +187,16 @@ def build_coverage_targets(output_dir):
 
 
 def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
-                     uses_file=True, timeout_per_case=5):
+                     uses_file=True, timeout_per_case=5,
+                     max_cases=50000):
     """
     Run all test cases through the coverage binary and measure coverage.
 
     Uses a shell loop to batch-execute test cases, avoiding per-file
     subprocess fork overhead (~100x faster for thousands of test cases).
+
+    If there are more than max_cases test cases, a random sample is used
+    since coverage plateaus well before exhausting large corpora.
 
     Returns dict with: line_cov, branch_cov, crashes, total_cases
     """
@@ -207,12 +212,20 @@ def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
         return {"line_cov": 0.0, "branch_cov": 0.0, "crashes": 0, "total_cases": 0}
 
     test_files = [os.path.join(test_case_dir, f)
-                  for f in sorted(os.listdir(test_case_dir))
+                  for f in os.listdir(test_case_dir)
                   if os.path.isfile(os.path.join(test_case_dir, f))]
     total_cases = len(test_files)
 
     if total_cases == 0:
         return {"line_cov": 0.0, "branch_cov": 0.0, "crashes": 0, "total_cases": 0}
+
+    # Sample if too many test cases — coverage plateaus well before 50K
+    sampled = False
+    if total_cases > max_cases:
+        test_files = random.sample(test_files, max_cases)
+        sampled = True
+    else:
+        test_files.sort()
 
     # Batch execute: use a shell loop to run all test cases in one subprocess.
     # This avoids per-file Python subprocess fork overhead.
@@ -292,6 +305,8 @@ def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
         "branch_cov": branch_cov,
         "crashes": crashes,
         "total_cases": total_cases,
+        "sampled": sampled,
+        "sampled_cases": len(test_files) if sampled else total_cases,
     }
 
 
@@ -872,9 +887,12 @@ def main():
 
             cov_str = ""
             if enable_coverage and target in cov_binaries:
+                sample_note = ""
+                if cov_data.get("sampled"):
+                    sample_note = f" (sampled {cov_data['sampled_cases']}/{cov_data['total_cases']})"
                 cov_str = (f", line={cov_data['line_cov']:.1f}%, "
                            f"branch={cov_data['branch_cov']:.1f}%, "
-                           f"crashes={cov_data['crashes']}")
+                           f"crashes={cov_data['crashes']}{sample_note}")
             timeout_str = ""
             if result.get("timed_out"):
                 timeout_str = " [TIMEOUT]"
@@ -932,9 +950,12 @@ def main():
 
                 cov_str = ""
                 if enable_coverage and target in cov_binaries:
+                    sample_note = ""
+                    if cov_data.get("sampled"):
+                        sample_note = f" (sampled {cov_data['sampled_cases']}/{cov_data['total_cases']})"
                     cov_str = (f", line={cov_data['line_cov']:.1f}%, "
                                f"branch={cov_data['branch_cov']:.1f}%, "
-                               f"crashes={cov_data['crashes']}")
+                               f"crashes={cov_data['crashes']}{sample_note}")
                 timeout_str = ""
                 if result.get("timed_out"):
                     timeout_str = " [TIMEOUT]"
