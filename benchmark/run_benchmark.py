@@ -761,6 +761,8 @@ def main():
                              "With no args: auto-discover compiled targets in benchmark/public/bin/. "
                              "With args: name:binary_path:seed_dir "
                              "e.g., 'file:./benchmark/public/bin/lava/file:./benchmark/public/seeds/lava/file'.")
+    parser.add_argument("--no-public", action="store_true",
+                        help="Disable auto-discovery of public benchmarks")
     parser.add_argument("--no-coverage", action="store_true",
                         help="Skip coverage measurement (faster but less metrics)")
 
@@ -813,15 +815,15 @@ def main():
                     binaries[name] = path
                     break
 
-    # Add public benchmark targets (--public [name:binary:seeddir ...])
+    # Add public benchmark targets.
+    # Auto-discover from benchmark/public/bin/ unless --no-public is passed.
+    # Explicit --public specs override auto-discovery.
     public_targets = {}
     public_seed_dirs = {}
-    if args.public is not None:
-        print("\n  Adding public benchmark targets:")
+    if not args.no_public:
+        public_specs = list(args.public) if args.public is not None else []
 
-        public_specs = list(args.public)  # explicit specs from CLI
-
-        # If no explicit specs given, auto-discover from benchmark/public/bin/
+        # Auto-discover from benchmark/public/bin/ if no explicit specs
         if not public_specs:
             pub_bin_dir = PUBLIC_DIR / "bin"
             pub_seed_dir = PUBLIC_DIR / "seeds"
@@ -837,15 +839,9 @@ def main():
                                 public_specs.append(
                                     f"{bname}:{binary}:{seed_candidate}"
                                 )
-                if not public_specs:
-                    print("    No compiled public benchmarks found in:")
-                    print(f"      {pub_bin_dir}/")
-                    print("    Run first: ./compile_public_benchmarks.sh --all")
-            else:
-                print(f"    Public bin directory not found: {pub_bin_dir}")
-                print("    Run first:")
-                print("      ./setup_public_benchmarks.sh --lava")
-                print("      ./compile_public_benchmarks.sh --lava")
+
+        if public_specs:
+            print("\n  Adding public benchmark targets:")
 
         for spec in public_specs:
             parts = spec.split(":")
