@@ -169,6 +169,7 @@ def master_loop(global_comm, group_comm, args, peer_masters, is_root,
     new_hashes_for_sync = []
     last_sync_time = time.monotonic()
     SYNC_INTERVAL = 2.0  # seconds between sync rounds
+    pending_sends = []    # track isend requests to avoid GC
 
     imported_files = set()
 
@@ -199,8 +200,16 @@ def master_loop(global_comm, group_comm, args, peer_masters, is_root,
         return count
 
     def sync_hashes():
-        """Non-blocking hash sync between masters via global_comm."""
+        """Non-blocking hash sync between masters via global_comm.
+
+        Uses isend (non-blocking) for ALL inter-master sends to prevent
+        the classic MPI deadlock where two processes both block in send()
+        waiting for each other to recv().
+        """
         nonlocal new_hashes_for_sync, last_sync_time
+
+        # Clean up completed async sends
+        pending_sends[:] = [r for r in pending_sends if not r.Test()]
 
         now = time.monotonic()
         if now - last_sync_time < SYNC_INTERVAL:
@@ -222,33 +231,40 @@ def master_loop(global_comm, group_comm, args, peer_masters, is_root,
                             analyzed_hashes.add(h)
                             pending_queue.append(h)
                             novel.append(h)
-                    # Forward novel hashes to OTHER sub-masters
+                    # Forward novel hashes to OTHER sub-masters (async)
                     if novel:
                         for other in peer_masters:
                             if other != peer:
-                                global_comm.send(novel, dest=other,
-                                                 tag=TAG_HASH_BCAST)
+                                req = global_comm.isend(
+                                    novel, dest=other,
+                                    tag=TAG_HASH_BCAST)
+                                pending_sends.append(req)
 
-            # Broadcast root's own new discoveries to all sub-masters
+            # Broadcast root's own discoveries to all sub-masters (async)
             if new_hashes_for_sync:
                 for peer in peer_masters:
-                    global_comm.send(new_hashes_for_sync, dest=peer,
-                                     tag=TAG_HASH_BCAST)
+                    req = global_comm.isend(
+                        new_hashes_for_sync, dest=peer,
+                        tag=TAG_HASH_BCAST)
+                    pending_sends.append(req)
                 new_hashes_for_sync = []
         else:
-            # Sub-master: send accumulated hashes to root
-            if new_hashes_for_sync:
-                global_comm.send(new_hashes_for_sync, dest=0,
-                                 tag=TAG_HASH_SYNC)
-                new_hashes_for_sync = []
-
-            # Receive broadcasts from root
+            # Sub-master: receive broadcasts from root FIRST
+            # (receive before send to avoid deadlock pattern)
             while global_comm.iprobe(source=0, tag=TAG_HASH_BCAST):
                 incoming = global_comm.recv(source=0, tag=TAG_HASH_BCAST)
                 for h in incoming:
                     if h not in analyzed_hashes:
                         analyzed_hashes.add(h)
                         pending_queue.append(h)
+
+            # Then send accumulated hashes to root (async)
+            if new_hashes_for_sync:
+                req = global_comm.isend(
+                    new_hashes_for_sync, dest=0,
+                    tag=TAG_HASH_SYNC)
+                pending_sends.append(req)
+                new_hashes_for_sync = []
 
     # --- Main loop setup ---
     imported = import_inputs(args.input_dir)
@@ -368,19 +384,33 @@ def master_loop(global_comm, group_comm, args, peer_masters, is_root,
     # --- Aggregate statistics across masters ---
     if peer_masters:
         if not is_root:
-            # Sub-master: send stats to root
+            # Sub-master: drain any pending broadcasts so root's
+            # isends can complete, then send stats (blocking is safe
+            # here because root is in recv loop below).
+            while global_comm.iprobe(source=0, tag=TAG_HASH_BCAST):
+                global_comm.recv(source=0, tag=TAG_HASH_BCAST)
             global_comm.send({
                 "generated": total_generated,
                 "interesting": total_interesting,
                 "analyzed": len(analyzed_hashes),
             }, dest=0, tag=TAG_MASTER_STATS)
         else:
-            # Root: aggregate from all sub-masters
-            for _ in peer_masters:
-                stats = global_comm.recv(source=MPI.ANY_SOURCE,
-                                         tag=TAG_MASTER_STATS)
-                total_generated += stats["generated"]
-                total_interesting += stats["interesting"]
+            # Root: collect stats from all sub-masters.
+            # Use ANY_TAG to also drain late TAG_HASH_SYNC messages
+            # that may still be in flight — otherwise recv(MASTER_STATS)
+            # could deadlock if a sub-master's isend hasn't completed.
+            received_from = set()
+            while len(received_from) < len(peer_masters):
+                status = MPI.Status()
+                msg = global_comm.recv(source=MPI.ANY_SOURCE,
+                                       tag=MPI.ANY_TAG, status=status)
+                tag = status.Get_tag()
+                src = status.Get_source()
+                if tag == TAG_MASTER_STATS:
+                    total_generated += msg["generated"]
+                    total_interesting += msg["interesting"]
+                    received_from.add(src)
+                # TAG_HASH_SYNC: silently discard (shutting down)
 
     # --- Print final summary (root only) ---
     if is_root:
