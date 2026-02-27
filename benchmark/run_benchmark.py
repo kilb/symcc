@@ -188,15 +188,17 @@ def build_coverage_targets(output_dir):
 
 def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
                      uses_file=True, timeout_per_case=5,
-                     max_cases=50000):
+                     max_cases=200000):
     """
     Run all test cases through the coverage binary and measure coverage.
 
     Uses a shell loop to batch-execute test cases, avoiding per-file
     subprocess fork overhead (~100x faster for thousands of test cases).
 
-    If there are more than max_cases test cases, a random sample is used
-    since coverage plateaus well before exhausting large corpora.
+    If there are more than max_cases test cases, a stratified sample is used.
+    The default of 200K (up from 50K) ensures reliable coverage measurement
+    even for corpora with 1M+ test cases — a 50K sample at 1M files has
+    a ~95% chance of missing any single critical test case.
 
     Returns dict with: line_cov, branch_cov, crashes, total_cases
     """
@@ -219,14 +221,45 @@ def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
     if total_cases == 0:
         return {"line_cov": 0.0, "branch_cov": 0.0, "crashes": 0, "total_cases": 0}
 
-    # Sample if too many test cases — coverage plateaus well before 50K.
-    # Use deterministic stride-based sampling (not random) to ensure
-    # reproducible results and even coverage of the corpus.
+    # Sample if too many test cases.
+    # Use a two-pass stratified approach: first take every Nth file (stride),
+    # then also include the first and last few files from each 256-bucket
+    # (based on first byte of filename). This ensures rare "outlier" test
+    # cases that uniquely cover certain branches aren't missed by stride
+    # sampling alone, which is critical at >1M files.
     sampled = False
     if total_cases > max_cases:
         test_files.sort()
+        # Primary: stride-based sample
         stride = total_cases / max_cases
-        test_files = [test_files[int(i * stride)] for i in range(max_cases)]
+        stride_set = set()
+        stride_sample = []
+        for i in range(max_cases):
+            idx = int(i * stride)
+            stride_set.add(idx)
+            stride_sample.append(test_files[idx])
+
+        # Secondary: bucket boundary files (first+last per hex prefix bucket)
+        # This catches files that fall between stride gaps.
+        # Cost: at most 512 extra files — negligible.
+        bucket_extras = []
+        prev_prefix = None
+        for idx, fp in enumerate(test_files):
+            fname = os.path.basename(fp)
+            prefix = fname[:2] if len(fname) >= 2 else fname
+            if prefix != prev_prefix:
+                # First file of new bucket
+                if idx not in stride_set:
+                    bucket_extras.append(fp)
+                # Also add last file of previous bucket
+                if prev_prefix is not None and (idx - 1) not in stride_set:
+                    bucket_extras.append(test_files[idx - 1])
+                prev_prefix = prefix
+        # Last file of last bucket
+        if test_files and (len(test_files) - 1) not in stride_set:
+            bucket_extras.append(test_files[-1])
+
+        test_files = stride_sample + bucket_extras
         sampled = True
     else:
         test_files.sort()
