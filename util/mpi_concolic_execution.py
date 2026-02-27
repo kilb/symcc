@@ -133,24 +133,20 @@ def master(comm, args):
         return
 
     # Setup directories
-    work_dir = tempfile.mkdtemp(prefix="symcc_mpi_")
-    next_dir = os.path.join(work_dir, "next")
-    os.makedirs(next_dir, exist_ok=True)
-
     if args.output_dir:
         os.makedirs(args.output_dir, exist_ok=True)
     if args.failed_dir:
         os.makedirs(args.failed_dir, exist_ok=True)
 
     analyzed_hashes = set()   # SHA-256 hashes of inputs we already processed
-    pending_queue = []        # list of file paths waiting to be processed
-    active_workers = {}       # rank -> input_file being processed
+    pending_queue = []        # list of (hash, content_bytes) waiting to be processed
+    active_workers = {}       # rank -> hash string being processed
     generation = 0
     total_generated = 0
     total_interesting = 0
 
     def import_inputs(src_dir):
-        """Import new inputs from a directory."""
+        """Import new inputs from a directory, reading content into memory."""
         count = 0
         if not os.path.isdir(src_dir):
             return count
@@ -158,24 +154,13 @@ def master(comm, args):
             fpath = os.path.join(src_dir, fname)
             if not os.path.isfile(fpath):
                 continue
-            h = file_hash(fpath)
+            with open(fpath, "rb") as f:
+                content = f.read()
+            h = hashlib.sha256(content).hexdigest()
             if h not in analyzed_hashes:
-                dest = os.path.join(next_dir, h)
-                if not os.path.exists(dest):
-                    shutil.copy2(fpath, dest)
-                    pending_queue.append(dest)
-                    count += 1
+                pending_queue.append((h, content))
+                count += 1
         return count
-
-    def export_testcase(src_path):
-        """Copy a test case to the output directory if set."""
-        if args.output_dir:
-            copy_with_hash_name(src_path, args.output_dir)
-
-    def save_failed(src_path):
-        """Copy a failing test case to the failed directory if set."""
-        if args.failed_dir:
-            copy_with_hash_name(src_path, args.failed_dir)
 
     # Import initial inputs
     imported = import_inputs(args.input_dir)
@@ -207,9 +192,10 @@ def master(comm, args):
             comm.recv(source=MPI.ANY_SOURCE, tag=TAG_READY, status=status)
             worker_rank = status.Get_source()
 
-            input_file = pending_queue.pop(0)
-            comm.send(input_file, dest=worker_rank, tag=TAG_WORK)
-            active_workers[worker_rank] = input_file
+            item = pending_queue.pop(0)
+            # Send (hash, content) to worker — worker writes to local temp file
+            comm.send(item, dest=worker_rank, tag=TAG_WORK)
+            active_workers[worker_rank] = item[0]  # store hash
 
         # Check for results from workers
         while comm.iprobe(source=MPI.ANY_SOURCE, tag=TAG_RESULT):
@@ -220,56 +206,36 @@ def master(comm, args):
             new_tests = result.get("new_tests", [])
             retcode = result.get("retcode", 0)
             elapsed = result.get("elapsed", 0)
-            input_file = active_workers.pop(worker_rank, None)
+            input_hash = active_workers.pop(worker_rank, None)
 
             # Mark as analyzed
-            if input_file and os.path.exists(input_file):
-                h = file_hash(input_file)
-                analyzed_hashes.add(h)
+            if input_hash:
+                analyzed_hashes.add(input_hash)
 
             # Process new test cases
             num_new = 0
             for tc_data in new_tests:
                 total_generated += 1
-                tc_path = tc_data["path"]
                 tc_content = tc_data["content"]
 
-                # Write to next_dir
+                # Hash in memory — no disk I/O needed
                 h = hashlib.sha256(tc_content).hexdigest()
                 if h not in analyzed_hashes:
-                    dest = os.path.join(next_dir, h)
-                    if not os.path.exists(dest):
-                        with open(dest, "wb") as f:
+                    analyzed_hashes.add(h)
+                    pending_queue.append((h, tc_content))
+                    num_new += 1
+                    total_interesting += 1
+
+                    # Write to output dir only (skip next_dir to halve disk writes)
+                    if args.output_dir:
+                        out_dest = os.path.join(args.output_dir, h)
+                        with open(out_dest, "wb") as f:
                             f.write(tc_content)
-                        pending_queue.append(dest)
-                        num_new += 1
-                        total_interesting += 1
 
-                        # Export if output dir set
-                        if args.output_dir:
-                            out_dest = os.path.join(args.output_dir, h)
-                            if not os.path.exists(out_dest):
-                                with open(out_dest, "wb") as f:
-                                    f.write(tc_content)
-
-            # Save failed test cases
-            if retcode != 0 and input_file and os.path.exists(input_file):
-                save_failed(input_file)
-
-            if input_file:
-                input_name = os.path.basename(input_file)[:16]
-            else:
-                input_name = "unknown"
+            input_name = input_hash[:16] if input_hash else "unknown"
             print(f"[Master] Worker {worker_rank} finished {input_name}... "
                   f"in {elapsed:.1f}s: {len(new_tests)} generated, "
                   f"{num_new} new (ret={retcode})")
-
-            # Clean up the input file from next_dir
-            if input_file and os.path.exists(input_file):
-                try:
-                    os.unlink(input_file)
-                except OSError:
-                    pass
 
         # If no work pending and no active workers, check if we should stop
         if not pending_queue and not active_workers:
@@ -318,9 +284,6 @@ def master(comm, args):
     print(f"[Master] New interesting test cases: {total_interesting}")
     print(f"[Master] Workers used:             {num_workers}")
 
-    # Cleanup work directory
-    shutil.rmtree(work_dir, ignore_errors=True)
-
 
 def worker(comm, args):
     """
@@ -350,7 +313,12 @@ def worker(comm, args):
         if status.Get_tag() != TAG_WORK:
             continue
 
-        input_file = msg
+        input_hash, input_content = msg
+
+        # Write input content to a local temp file for SymCC
+        input_file = os.path.join(worker_dir, f"input_{input_hash}")
+        with open(input_file, "wb") as f:
+            f.write(input_content)
 
         # Create a unique output directory for this run
         run_output = os.path.join(worker_dir, f"run_{time.monotonic_ns()}")
@@ -387,8 +355,12 @@ def worker(comm, args):
                 "elapsed": 0,
             }
 
-        # Clean up run output directory
+        # Clean up run output directory and input file
         shutil.rmtree(run_output, ignore_errors=True)
+        try:
+            os.unlink(input_file)
+        except OSError:
+            pass
 
         # Send results to master
         comm.send(result, dest=0, tag=TAG_RESULT)

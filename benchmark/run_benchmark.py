@@ -219,10 +219,14 @@ def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
     if total_cases == 0:
         return {"line_cov": 0.0, "branch_cov": 0.0, "crashes": 0, "total_cases": 0}
 
-    # Sample if too many test cases — coverage plateaus well before 50K
+    # Sample if too many test cases — coverage plateaus well before 50K.
+    # Use deterministic stride-based sampling (not random) to ensure
+    # reproducible results and even coverage of the corpus.
     sampled = False
     if total_cases > max_cases:
-        test_files = random.sample(test_files, max_cases)
+        test_files.sort()
+        stride = total_cases / max_cases
+        test_files = [test_files[int(i * stride)] for i in range(max_cases)]
         sampled = True
     else:
         test_files.sort()
