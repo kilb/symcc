@@ -492,19 +492,28 @@ def run_mpi(binary, target_name, seed_dir, np, timeout, work_dir):
         wall_timeout_hit = True
     timed_out = hard_timeout or wall_timeout_hit
 
-    # Parse the MPI master's stdout for pre-dedup total_generated count
+    # Parse the MPI master's stdout for stats
     mpi_total_generated = None
     mpi_total_interesting = None
+    mpi_num_masters = None
+    mpi_num_workers = None
     if stdout:
         m = re.search(r"Total test cases generated:\s*(\d+)", stdout)
         if m:
             mpi_total_generated = int(m.group(1))
+        # "New interesting test cases" is the ground-truth file count
+        # from shared_dir (accurate even in multi-master mode).
         m = re.search(r"New interesting test cases:\s*(\d+)", stdout)
         if m:
             mpi_total_interesting = int(m.group(1))
+        m = re.search(r"Masters used:\s*(\d+)", stdout)
+        if m:
+            mpi_num_masters = int(m.group(1))
+        m = re.search(r"Workers used:\s*(\d+)", stdout)
+        if m:
+            mpi_num_workers = int(m.group(1))
 
     # Use MPI master's parsed stats when available (avoids expensive directory traversal).
-    # The master's "interesting" count equals unique test cases written to output_dir.
     if mpi_total_generated is not None:
         num_generated = mpi_total_generated
         num_unique = mpi_total_interesting if mpi_total_interesting is not None else len(get_unique_hashes(output_dir))
@@ -522,6 +531,8 @@ def run_mpi(binary, target_name, seed_dir, np, timeout, work_dir):
         "stderr": stderr[-500:] if stderr else "",
         "retcode": retcode,
         "timed_out": timed_out,
+        "num_masters": mpi_num_masters,
+        "num_workers": mpi_num_workers,
     }
 
 
@@ -592,6 +603,7 @@ def generate_report(results, output_dir):
                 avg_line_cov = sum(r.get("line_cov", 0) for r in rows) / len(rows)
                 avg_branch_cov = sum(r.get("branch_cov", 0) for r in rows) / len(rows)
                 total_crashes = sum(r.get("crashes", 0) for r in rows)
+                avg_workers = sum(r.get("num_workers", np_val - 1) for r in rows) / len(rows)
                 summaries.append({
                     "mode": mode,
                     "np": np_val,
@@ -601,6 +613,7 @@ def generate_report(results, output_dir):
                     "avg_line_cov": avg_line_cov,
                     "avg_branch_cov": avg_branch_cov,
                     "total_crashes": total_crashes,
+                    "avg_workers": avg_workers,
                     "rounds": len(rows),
                 })
 
@@ -631,7 +644,7 @@ def generate_report(results, output_dir):
             for s in summaries:
                 if serial_time and serial_time > 0 and s["mode"] != "serial":
                     speedup = serial_time / s["avg_time"] if s["avg_time"] > 0 else 0
-                    workers = s["np"] - 1  # subtract master
+                    workers = s.get("avg_workers") or (s["np"] - 1)
                     efficiency = (speedup / workers * 100) if workers > 0 else 0
                 else:
                     speedup = 1.0
@@ -977,7 +990,22 @@ def main():
             else:
                 actual_np = np_val
 
-            print(f"\n  [MPI np={actual_np} ({actual_np-1} workers)]")
+            # Predict master/worker layout (matches compute_roles() in MPI script)
+            wpm = 45  # workers_per_master default
+            num_avail = actual_np - 1
+            if num_avail <= wpm:
+                pred_masters, pred_workers = 1, num_avail
+            else:
+                nm = (num_avail + wpm - 1) // wpm
+                nm = min(nm, num_avail // 3)
+                nm = max(1, nm)
+                pred_masters, pred_workers = nm, actual_np - nm
+            if pred_masters > 1:
+                print(f"\n  [MPI np={actual_np} "
+                      f"({pred_masters} masters, {pred_workers} workers)]")
+            else:
+                print(f"\n  [MPI np={actual_np} ({pred_workers} workers)]")
+
             for r in range(args.rounds):
                 current_run += 1
                 work_dir = tempfile.mkdtemp(
@@ -1034,7 +1062,7 @@ def main():
                 if serial_count > 0:
                     serial_avg /= serial_count
                     speedup = serial_avg / result["wall_time"] if result["wall_time"] > 0 else 0
-                    workers = actual_np - 1
+                    workers = result.get("num_workers") or (actual_np - 1)
                     efficiency = (speedup / workers * 100) if workers > 0 else 0
                 else:
                     speedup = 1.0
@@ -1053,6 +1081,7 @@ def main():
                     "crashes": cov_data["crashes"],
                     "speedup": speedup,
                     "efficiency": efficiency,
+                    "num_workers": result.get("num_workers") or (actual_np - 1),
                 })
 
                 shutil.rmtree(work_dir, ignore_errors=True)

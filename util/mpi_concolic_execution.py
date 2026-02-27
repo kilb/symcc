@@ -7,8 +7,8 @@ Workers write results directly to a shared directory and communicate
 only hashes over MPI, minimizing serialization overhead.
 
 Architecture auto-selection based on process count:
-  np <= 65:  1 master  + (np-1) workers          (single-master)
-  np > 65:   M masters + (np-M) workers           (multi-master)
+  np <= 46:  1 master  + (np-1) workers          (single-master)
+  np > 46:   M masters + (np-M) workers           (multi-master)
              where M = ceil((np-1) / workers_per_master)
 
 In multi-master mode, each master manages its own worker group via a
@@ -49,7 +49,7 @@ TAG_HASH_BCAST = 11  # Root -> Sub-masters: merged hash updates
 TAG_MASTER_STATS = 12  # Sub-masters -> Root: final statistics
 
 
-def compute_roles(comm_size, workers_per_master=60):
+def compute_roles(comm_size, workers_per_master=45):
     """Auto-compute master/worker role assignment.
 
     Returns:
@@ -140,7 +140,7 @@ def run_symcc(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
 
 
 def master_loop(global_comm, group_comm, args, peer_masters, is_root,
-                shared_dir):
+                shared_dir, master_ranks, worker_groups):
     """
     Master process main loop.
 
@@ -414,14 +414,31 @@ def master_loop(global_comm, group_comm, args, peer_masters, is_root,
 
     # --- Print final summary (root only) ---
     if is_root:
+        # Count actual unique files in shared_dir (ground truth).
+        # In multi-master mode, `total_interesting` is the sum of per-master
+        # counts which double-counts hashes discovered independently by
+        # multiple masters before sync propagation. The file count is the
+        # true unique count since all test cases use content-addressable
+        # naming (filename = SHA-256 hash, idempotent writes).
+        actual_unique = 0
+        try:
+            for fname in os.listdir(shared_dir):
+                if os.path.isfile(os.path.join(shared_dir, fname)):
+                    actual_unique += 1
+        except OSError:
+            actual_unique = total_interesting  # fallback
+
+        total_masters = len(peer_masters) + 1
+        total_workers_all = sum(
+            len(worker_groups[m]) for m in master_ranks
+        ) if peer_masters else num_workers
+
         print(f"\n[Master] === Final Statistics ===")
-        print(f"[Master] Total inputs analyzed:    {len(analyzed_hashes)}")
-        print(f"[Master] Total test cases generated: {total_generated}")
-        print(f"[Master] New interesting test cases: {total_interesting}")
-        if peer_masters:
-            print(f"[Master] Masters used:             "
-                  f"{len(peer_masters) + 1}")
-        print(f"[Master] Workers used:             {num_workers}")
+        print(f"[Master] Total inputs analyzed:      {len(analyzed_hashes)}")
+        print(f"[Master] Total test cases generated:  {total_generated}")
+        print(f"[Master] New interesting test cases:  {actual_unique}")
+        print(f"[Master] Masters used:               {total_masters}")
+        print(f"[Master] Workers used:               {total_workers_all}")
 
 
 def worker_loop(group_comm, args, shared_dir):
@@ -559,9 +576,9 @@ def parse_args():
         help="Total wall-clock time limit in seconds (0=unlimited, default: 0)",
     )
     parser.add_argument(
-        "--workers-per-master", type=int, default=60,
-        help="Target workers per master for auto-scaling (default: 60). "
-             "With 160 processes and default 60, creates 3 masters.",
+        "--workers-per-master", type=int, default=45,
+        help="Target workers per master for auto-scaling (default: 45). "
+             "With 160 processes and default 45, creates 4 masters.",
     )
     parser.add_argument(
         "target", nargs=argparse.REMAINDER,
@@ -647,7 +664,8 @@ def main():
     if rank in master_set:
         is_root = (rank == 0)
         peer_masters = [m for m in master_ranks if m != rank]
-        master_loop(comm, group_comm, args, peer_masters, is_root, shared_dir)
+        master_loop(comm, group_comm, args, peer_masters, is_root, shared_dir,
+                    master_ranks, worker_groups)
     else:
         worker_loop(group_comm, args, shared_dir)
 
