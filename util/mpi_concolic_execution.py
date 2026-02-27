@@ -2,28 +2,27 @@
 """
 MPI-parallel concolic execution driver for SymCC.
 
-Uses a Master-Worker pattern to distribute test inputs across multiple
-MPI processes, each running SymCC independently.
+Uses a Master-Worker pattern with automatic multi-master scaling.
+Workers write results directly to a shared directory and communicate
+only hashes over MPI, minimizing serialization overhead.
+
+Architecture auto-selection based on process count:
+  np <= 65:  1 master  + (np-1) workers          (single-master)
+  np > 65:   M masters + (np-M) workers           (multi-master)
+             where M = ceil((np-1) / workers_per_master)
+
+In multi-master mode, each master manages its own worker group via a
+MPI sub-communicator (comm.Split). Masters periodically synchronize
+discovered hashes so all groups explore the same frontier.
 
 Usage:
     mpirun -np <N> python3 mpi_concolic_execution.py \
-        -i INPUT_DIR [-o OUTPUT_DIR] [-f FAILED_DIR] [-t TIMEOUT] -- TARGET [ARGS...]
-
-The master process (rank 0) manages the input queue and deduplicates
-generated test cases. Worker processes (ranks 1..N-1) each run SymCC on
-assigned inputs and return newly generated test cases.
-
-TARGET may contain '@@', which is replaced with the path of the current
-input file. If '@@' is absent, the input is fed via stdin.
+        -i INPUT_DIR [-o OUTPUT_DIR] [-t TIMEOUT] -- TARGET [ARGS...]
 
 Requirements:
     - mpi4py  (pip install mpi4py)
     - An MPI implementation (OpenMPI, MPICH, etc.)
     - SymCC-instrumented target binary
-
-Example:
-    mpirun -np 8 python3 mpi_concolic_execution.py \
-        -i ./seeds -o ./corpus -t 90 -- ./target_symcc @@
 """
 
 import argparse
@@ -38,12 +37,50 @@ from collections import deque
 
 from mpi4py import MPI
 
-# MPI message tags
-TAG_WORK = 1       # Master -> Worker: here is an input to process
-TAG_RESULT = 2     # Worker -> Master: here are the generated test cases
-TAG_STOP = 3       # Master -> Worker: no more work, shut down
-TAG_READY = 4      # Worker -> Master: I'm ready for work
+# MPI message tags — group communicator (master <-> workers)
+TAG_WORK = 1       # Master -> Worker: hash string of input to process
+TAG_RESULT = 2     # Worker -> Master: dict with new hashes
+TAG_STOP = 3       # Master -> Worker: shut down
+TAG_READY = 4      # Worker -> Master: ready for work
 
+# MPI message tags — global communicator (master <-> master)
+TAG_HASH_SYNC = 10   # Sub-master -> Root: batch of new hashes
+TAG_HASH_BCAST = 11  # Root -> Sub-masters: merged hash updates
+TAG_MASTER_STATS = 12  # Sub-masters -> Root: final statistics
+
+
+def compute_roles(comm_size, workers_per_master=60):
+    """Auto-compute master/worker role assignment.
+
+    Returns:
+        master_ranks: sorted list of ranks acting as masters
+        worker_groups: dict mapping master_rank -> [worker_ranks]
+    """
+    if comm_size <= 2:
+        return [0], {0: list(range(1, comm_size))}
+
+    num_avail = comm_size - 1  # rank 0 is always a master
+
+    if num_avail <= workers_per_master:
+        # Single master suffices
+        return [0], {0: list(range(1, comm_size))}
+
+    # Multiple masters needed
+    num_masters = (num_avail + workers_per_master - 1) // workers_per_master
+    # Each master needs at least 3 workers to be worthwhile
+    num_masters = min(num_masters, num_avail // 3)
+    num_masters = max(1, num_masters)
+
+    master_ranks = list(range(num_masters))
+    worker_ranks = list(range(num_masters, comm_size))
+
+    # Round-robin assignment for even distribution
+    groups = {m: [] for m in master_ranks}
+    for i, w in enumerate(worker_ranks):
+        m = master_ranks[i % num_masters]
+        groups[m].append(w)
+
+    return master_ranks, groups
 
 
 def run_symcc(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
@@ -51,13 +88,8 @@ def run_symcc(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
     """
     Run the SymCC-instrumented target on the given input.
 
-    Args:
-        base_env: Optional pre-built env dict to reuse (avoids os.environ.copy()
-                  on every call). SYMCC_OUTPUT_DIR and SYMCC_INPUT_FILE are
-                  updated in-place per invocation.
-
     Returns:
-        (list_of_new_testcases, return_code, elapsed_seconds)
+        (list_of_new_testcase_paths, return_code, elapsed_seconds)
     """
     os.makedirs(output_dir, exist_ok=True)
 
@@ -97,7 +129,6 @@ def run_symcc(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
 
     elapsed = time.monotonic() - start
 
-    # Collect generated test cases
     new_tests = []
     if os.path.isdir(output_dir):
         for fname in os.listdir(output_dir):
@@ -108,66 +139,41 @@ def run_symcc(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
     return new_tests, retcode, elapsed
 
 
-def master(comm, args):
+def master_loop(global_comm, group_comm, args, peer_masters, is_root,
+                shared_dir):
     """
-    Master process (rank 0).
+    Master process main loop.
 
-    Manages the input queue, distributes work to workers, collects and
-    deduplicates results.
+    Uses group_comm for worker communication (isolated per group via
+    comm.Split) and global_comm for inter-master hash synchronization.
+
+    Workers write test cases directly to shared_dir/{hash}. MPI messages
+    carry only hash strings (~64 bytes each), not file contents.
     """
-    size = comm.Get_size()
-    num_workers = size - 1
+    rank = global_comm.Get_rank()
+    num_workers = group_comm.Get_size() - 1  # subtract self
 
     if num_workers == 0:
-        print("Error: need at least 2 MPI processes (1 master + 1 worker).",
-              file=sys.stderr)
-        # Send stop to self (won't happen, but for safety)
+        print(f"[Master {rank}] Error: no workers assigned.", file=sys.stderr)
         return
 
-    # Setup directories
-    spool_dir = tempfile.mkdtemp(prefix="symcc_mpi_spool_")
-    if args.output_dir:
-        os.makedirs(args.output_dir, exist_ok=True)
-    if args.failed_dir:
-        os.makedirs(args.failed_dir, exist_ok=True)
+    os.makedirs(shared_dir, exist_ok=True)
 
-    analyzed_hashes = set()   # SHA-256 hashes of inputs we already processed
-    pending_queue = deque()   # deque of (hash, content_bytes) waiting to be processed
-    active_workers = {}       # rank -> hash string being processed
+    analyzed_hashes = set()   # all hashes we've ever seen (queued or processed)
+    pending_queue = deque()   # deque of hash strings
+    active_workers = {}       # group_rank -> hash being processed
     total_generated = 0
     total_interesting = 0
-    # Memory management: spill pending queue items to disk when queue is large
-    QUEUE_MEM_LIMIT = 10000   # keep at most this many items in memory
 
-    def enqueue(h, content):
-        """Add item to pending queue, spilling to disk if queue is large."""
-        if len(pending_queue) < QUEUE_MEM_LIMIT:
-            pending_queue.append((h, content))
-        else:
-            # Spill to spool dir — store content on disk, queue only the hash
-            spool_path = os.path.join(spool_dir, h)
-            with open(spool_path, "wb") as f:
-                f.write(content)
-            pending_queue.append((h, None))  # None = spilled to disk
+    # Multi-master hash sync state
+    new_hashes_for_sync = []
+    last_sync_time = time.monotonic()
+    SYNC_INTERVAL = 2.0  # seconds between sync rounds
 
-    def dequeue():
-        """Pop from pending queue, reloading from disk if spilled."""
-        h, content = pending_queue.popleft()
-        if content is None:
-            # Reload from spool
-            spool_path = os.path.join(spool_dir, h)
-            with open(spool_path, "rb") as f:
-                content = f.read()
-            try:
-                os.unlink(spool_path)
-            except OSError:
-                pass
-        return h, content
-
-    imported_files = set()  # track filenames already imported
+    imported_files = set()
 
     def import_inputs(src_dir):
-        """Import new inputs from a directory, reading content into memory."""
+        """Import seed files: write to shared_dir/{hash}, enqueue hash."""
         count = 0
         if not os.path.isdir(src_dir):
             return count
@@ -182,102 +188,163 @@ def master(comm, args):
                 content = f.read()
             h = hashlib.sha256(content).hexdigest()
             if h not in analyzed_hashes:
-                enqueue(h, content)
+                analyzed_hashes.add(h)
+                # Write to shared dir so any worker can read it
+                dest = os.path.join(shared_dir, h)
+                if not os.path.exists(dest):
+                    with open(dest, "wb") as f:
+                        f.write(content)
+                pending_queue.append(h)
                 count += 1
         return count
 
-    # Import initial inputs
+    def sync_hashes():
+        """Non-blocking hash sync between masters via global_comm."""
+        nonlocal new_hashes_for_sync, last_sync_time
+
+        now = time.monotonic()
+        if now - last_sync_time < SYNC_INTERVAL:
+            return
+        last_sync_time = now
+
+        if not peer_masters:
+            return
+
+        if is_root:
+            # Receive new hashes from sub-masters
+            for peer in peer_masters:
+                while global_comm.iprobe(source=peer, tag=TAG_HASH_SYNC):
+                    incoming = global_comm.recv(source=peer,
+                                               tag=TAG_HASH_SYNC)
+                    novel = []
+                    for h in incoming:
+                        if h not in analyzed_hashes:
+                            analyzed_hashes.add(h)
+                            pending_queue.append(h)
+                            novel.append(h)
+                    # Forward novel hashes to OTHER sub-masters
+                    if novel:
+                        for other in peer_masters:
+                            if other != peer:
+                                global_comm.send(novel, dest=other,
+                                                 tag=TAG_HASH_BCAST)
+
+            # Broadcast root's own new discoveries to all sub-masters
+            if new_hashes_for_sync:
+                for peer in peer_masters:
+                    global_comm.send(new_hashes_for_sync, dest=peer,
+                                     tag=TAG_HASH_BCAST)
+                new_hashes_for_sync = []
+        else:
+            # Sub-master: send accumulated hashes to root
+            if new_hashes_for_sync:
+                global_comm.send(new_hashes_for_sync, dest=0,
+                                 tag=TAG_HASH_SYNC)
+                new_hashes_for_sync = []
+
+            # Receive broadcasts from root
+            while global_comm.iprobe(source=0, tag=TAG_HASH_BCAST):
+                incoming = global_comm.recv(source=0, tag=TAG_HASH_BCAST)
+                for h in incoming:
+                    if h not in analyzed_hashes:
+                        analyzed_hashes.add(h)
+                        pending_queue.append(h)
+
+    # --- Main loop setup ---
     imported = import_inputs(args.input_dir)
-    print(f"[Master] Imported {imported} initial inputs from {args.input_dir}")
-    print(f"[Master] Using {num_workers} worker processes")
+    if is_root:
+        total_masters = len(peer_masters) + 1
+        print(f"[Master] Imported {imported} initial inputs from "
+              f"{args.input_dir}")
+        print(f"[Master] Using {total_masters} master(s), "
+              f"{num_workers} workers in this group")
 
     idle_rounds = 0
-    max_idle_secs = args.max_idle
-    max_idle_rounds = max(1, max_idle_secs // 5)
+    max_idle_rounds = max(1, args.max_idle // 5)
     wall_start = time.monotonic()
     wall_timeout = args.wall_timeout
 
     while True:
         # Check wall-clock time limit
         if wall_timeout > 0 and (time.monotonic() - wall_start) >= wall_timeout:
-            print(f"[Master] Wall-clock timeout ({wall_timeout}s) reached. "
-                  f"Shutting down.")
+            if is_root:
+                print(f"[Master] Wall-clock timeout ({wall_timeout}s) reached. "
+                      f"Shutting down.")
             break
 
-        # Try to import new inputs (from external source)
+        # Multi-master hash sync
+        sync_hashes()
+
+        # Try to import new inputs (from external source like AFL)
         import_inputs(args.input_dir)
 
-        # Distribute work to idle workers (skip if nearing wall timeout)
+        # Distribute work to idle workers via group_comm
         wall_remaining = (wall_timeout - (time.monotonic() - wall_start)
                           if wall_timeout > 0 else float("inf"))
         while (pending_queue and wall_remaining > args.timeout + 5
-               and comm.iprobe(source=MPI.ANY_SOURCE, tag=TAG_READY)):
+               and group_comm.iprobe(source=MPI.ANY_SOURCE, tag=TAG_READY)):
             status = MPI.Status()
-            comm.recv(source=MPI.ANY_SOURCE, tag=TAG_READY, status=status)
-            worker_rank = status.Get_source()
+            group_comm.recv(source=MPI.ANY_SOURCE, tag=TAG_READY,
+                            status=status)
+            worker_group_rank = status.Get_source()
 
-            item = dequeue()
-            # Send (hash, content) to worker — worker writes to local temp file
-            comm.send(item, dest=worker_rank, tag=TAG_WORK)
-            active_workers[worker_rank] = item[0]  # store hash
+            h = pending_queue.popleft()
+            # Send only the hash — worker reads content from shared_dir
+            group_comm.send(h, dest=worker_group_rank, tag=TAG_WORK)
+            active_workers[worker_group_rank] = h
 
-        # Check for results from workers
-        while comm.iprobe(source=MPI.ANY_SOURCE, tag=TAG_RESULT):
+        # Collect results from workers
+        while group_comm.iprobe(source=MPI.ANY_SOURCE, tag=TAG_RESULT):
             status = MPI.Status()
-            result = comm.recv(source=MPI.ANY_SOURCE, tag=TAG_RESULT, status=status)
-            worker_rank = status.Get_source()
+            result = group_comm.recv(source=MPI.ANY_SOURCE, tag=TAG_RESULT,
+                                     status=status)
+            worker_group_rank = status.Get_source()
 
-            new_tests = result.get("new_tests", [])
+            new_hashes = result.get("new_hashes", [])
             retcode = result.get("retcode", 0)
             elapsed = result.get("elapsed", 0)
-            input_hash = active_workers.pop(worker_rank, None)
+            num_gen = result.get("num_generated", len(new_hashes))
+            input_hash = active_workers.pop(worker_group_rank, None)
 
-            # Mark as analyzed
-            if input_hash:
-                analyzed_hashes.add(input_hash)
-
-            # Process new test cases
+            total_generated += num_gen
             num_new = 0
-            for tc_data in new_tests:
-                total_generated += 1
-                tc_content = tc_data["content"]
-
-                # Use pre-computed hash from worker (avoids rehashing on master)
-                h = tc_data.get("hash") or hashlib.sha256(tc_content).hexdigest()
+            for h in new_hashes:
                 if h not in analyzed_hashes:
                     analyzed_hashes.add(h)
-                    enqueue(h, tc_content)
+                    pending_queue.append(h)
+                    new_hashes_for_sync.append(h)
                     num_new += 1
                     total_interesting += 1
 
-                    # Write to output dir only (skip next_dir to halve disk writes)
-                    if args.output_dir:
-                        out_dest = os.path.join(args.output_dir, h)
-                        with open(out_dest, "wb") as f:
-                            f.write(tc_content)
-
             input_name = input_hash[:16] if input_hash else "unknown"
-            print(f"[Master] Worker {worker_rank} finished {input_name}... "
-                  f"in {elapsed:.1f}s: {len(new_tests)} generated, "
+            print(f"[Master {rank}] Worker g{worker_group_rank} finished "
+                  f"{input_name}... in {elapsed:.1f}s: {num_gen} generated, "
                   f"{num_new} new (ret={retcode})")
 
-        # If no work pending and no active workers, check if we should stop
+        # Check termination
         if not pending_queue and not active_workers:
-            # Try importing one more time
             newly_imported = import_inputs(args.input_dir)
             if newly_imported > 0:
                 idle_rounds = 0
                 continue
 
+            # Check if hash sync might bring new work
+            if peer_masters:
+                sync_hashes()
+                if pending_queue:
+                    idle_rounds = 0
+                    continue
+
             idle_rounds += 1
             if idle_rounds >= max_idle_rounds:
-                print(f"[Master] No more inputs after {max_idle_rounds * 5}s. "
-                      f"Shutting down.")
+                if is_root:
+                    print(f"[Master] No more inputs after "
+                          f"{max_idle_rounds * 5}s. Shutting down.")
                 break
 
             if idle_rounds == 1 or idle_rounds % 6 == 0:
-                print(f"[Master] Waiting for new inputs... "
-                      f"(total: {total_generated} generated, "
+                print(f"[Master {rank}] Waiting for inputs... "
+                      f"({total_generated} generated, "
                       f"{total_interesting} interesting, "
                       f"{len(analyzed_hashes)} analyzed)")
             time.sleep(5)
@@ -285,58 +352,76 @@ def master(comm, args):
         else:
             idle_rounds = 0
 
-        # Small sleep to avoid busy-waiting
         time.sleep(0.05)
 
-    # Send stop signal to all workers
-    print(f"[Master] Sending stop signals to {num_workers} workers...")
-    for rank in range(1, size):
-        # Drain any pending READY messages first
-        while comm.iprobe(source=rank, tag=TAG_READY):
-            comm.recv(source=rank, tag=TAG_READY)
-        comm.send(None, dest=rank, tag=TAG_STOP)
+    # --- Shutdown: stop all workers in this group ---
+    group_size = group_comm.Get_size()
+    for w_rank in range(1, group_size):
+        while group_comm.iprobe(source=w_rank, tag=TAG_READY):
+            group_comm.recv(source=w_rank, tag=TAG_READY)
+        group_comm.send(None, dest=w_rank, tag=TAG_STOP)
 
-    # Drain any remaining results
-    for rank in range(1, size):
-        while comm.iprobe(source=rank, tag=TAG_RESULT):
-            comm.recv(source=rank, tag=TAG_RESULT)
+    for w_rank in range(1, group_size):
+        while group_comm.iprobe(source=w_rank, tag=TAG_RESULT):
+            group_comm.recv(source=w_rank, tag=TAG_RESULT)
 
-    # Summary
-    print(f"\n[Master] === Final Statistics ===")
-    print(f"[Master] Total inputs analyzed:    {len(analyzed_hashes)}")
-    print(f"[Master] Total test cases generated: {total_generated}")
-    print(f"[Master] New interesting test cases: {total_interesting}")
-    print(f"[Master] Workers used:             {num_workers}")
+    # --- Aggregate statistics across masters ---
+    if peer_masters:
+        if not is_root:
+            # Sub-master: send stats to root
+            global_comm.send({
+                "generated": total_generated,
+                "interesting": total_interesting,
+                "analyzed": len(analyzed_hashes),
+            }, dest=0, tag=TAG_MASTER_STATS)
+        else:
+            # Root: aggregate from all sub-masters
+            for _ in peer_masters:
+                stats = global_comm.recv(source=MPI.ANY_SOURCE,
+                                         tag=TAG_MASTER_STATS)
+                total_generated += stats["generated"]
+                total_interesting += stats["interesting"]
 
-    # Cleanup spool directory
-    shutil.rmtree(spool_dir, ignore_errors=True)
+    # --- Print final summary (root only) ---
+    if is_root:
+        print(f"\n[Master] === Final Statistics ===")
+        print(f"[Master] Total inputs analyzed:    {len(analyzed_hashes)}")
+        print(f"[Master] Total test cases generated: {total_generated}")
+        print(f"[Master] New interesting test cases: {total_interesting}")
+        if peer_masters:
+            print(f"[Master] Masters used:             "
+                  f"{len(peer_masters) + 1}")
+        print(f"[Master] Workers used:             {num_workers}")
 
 
-def worker(comm, args):
+def worker_loop(group_comm, args, shared_dir):
     """
-    Worker process (ranks 1..N-1).
+    Worker process main loop.
 
-    Receives input files from master, runs SymCC, and returns results.
+    Reads input from shared_dir/{hash}, runs SymCC, writes outputs
+    directly to shared_dir/{hash}, sends only hashes to master.
     """
-    rank = comm.Get_rank()
+    group_rank = group_comm.Get_rank()
+    global_rank = MPI.COMM_WORLD.Get_rank()
+    MASTER = 0  # master is always rank 0 in group_comm
+
     target_cmd = args.target
     use_stdin = "@@" not in target_cmd
     timeout_sec = args.timeout
 
-    # Create a persistent temp directory for this worker
-    worker_dir = tempfile.mkdtemp(prefix=f"symcc_worker_{rank}_")
+    worker_dir = tempfile.mkdtemp(prefix=f"symcc_worker_{global_rank}_")
 
-    # Build env dict once and reuse across all runs (avoids os.environ.copy() per run)
+    # Build env dict once and reuse
     worker_env = os.environ.copy()
     worker_env["SYMCC_ENABLE_LINEARIZATION"] = "1"
 
     while True:
-        # Signal readiness
-        comm.send(rank, dest=0, tag=TAG_READY)
+        # Signal readiness to our master (in group_comm)
+        group_comm.send(group_rank, dest=MASTER, tag=TAG_READY)
 
-        # Wait for work or stop signal
+        # Wait for work or stop
         status = MPI.Status()
-        msg = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
+        msg = group_comm.recv(source=MASTER, tag=MPI.ANY_TAG, status=status)
 
         if status.Get_tag() == TAG_STOP:
             break
@@ -344,14 +429,22 @@ def worker(comm, args):
         if status.Get_tag() != TAG_WORK:
             continue
 
-        input_hash, input_content = msg
+        input_hash = msg  # just a hash string
 
-        # Write input content to a local temp file for SymCC
+        # Read input from shared dir
+        shared_path = os.path.join(shared_dir, input_hash)
         input_file = os.path.join(worker_dir, f"input_{input_hash}")
-        with open(input_file, "wb") as f:
-            f.write(input_content)
+        try:
+            shutil.copy2(shared_path, input_file)
+        except (IOError, OSError) as e:
+            print(f"[Worker {global_rank}] Cannot read {input_hash}: {e}",
+                  file=sys.stderr)
+            group_comm.send({
+                "new_hashes": [], "retcode": -1,
+                "elapsed": 0, "num_generated": 0,
+            }, dest=MASTER, tag=TAG_RESULT)
+            continue
 
-        # Create a unique output directory for this run
         run_output = os.path.join(worker_dir, f"run_{time.monotonic_ns()}")
 
         try:
@@ -360,47 +453,47 @@ def worker(comm, args):
                 base_env=worker_env
             )
 
-            # Read test case contents and pre-compute hashes to send back.
-            # Computing hashes on the worker side offloads CPU from the
-            # single-threaded master, which is the throughput bottleneck.
-            test_data = []
+            # Hash each output, write to shared_dir, collect hashes
+            new_hashes = []
             for tc in new_tests:
                 try:
                     with open(tc, "rb") as f:
                         content = f.read()
-                    test_data.append({
-                        "path": os.path.basename(tc),
-                        "content": content,
-                        "hash": hashlib.sha256(content).hexdigest(),
-                    })
+                    h = hashlib.sha256(content).hexdigest()
+                    new_hashes.append(h)
+                    # Idempotent write: same hash = same content
+                    dest = os.path.join(shared_dir, h)
+                    if not os.path.exists(dest):
+                        with open(dest, "wb") as f:
+                            f.write(content)
                 except (IOError, OSError):
                     pass
 
             result = {
-                "new_tests": test_data,
+                "new_hashes": new_hashes,
                 "retcode": retcode,
                 "elapsed": elapsed,
+                "num_generated": len(new_tests),
             }
 
         except Exception as e:
-            print(f"[Worker {rank}] Error: {e}", file=sys.stderr)
+            print(f"[Worker {global_rank}] Error: {e}", file=sys.stderr)
             result = {
-                "new_tests": [],
-                "retcode": -1,
-                "elapsed": 0,
+                "new_hashes": [], "retcode": -1,
+                "elapsed": 0, "num_generated": 0,
             }
 
-        # Clean up run output directory and input file
+        # Clean up run artifacts
         shutil.rmtree(run_output, ignore_errors=True)
         try:
             os.unlink(input_file)
         except OSError:
             pass
 
-        # Send results to master
-        comm.send(result, dest=0, tag=TAG_RESULT)
+        # Send only hashes back (~64B each, not file content)
+        group_comm.send(result, dest=MASTER, tag=TAG_RESULT)
 
-    # Cleanup
+    # Final cleanup
     shutil.rmtree(worker_dir, ignore_errors=True)
 
 
@@ -408,7 +501,8 @@ def parse_args():
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(
         description="MPI-parallel concolic execution with SymCC",
-        usage="mpirun -np <N> python3 %(prog)s -i INPUT_DIR [options] -- TARGET [ARGS...]",
+        usage="mpirun -np <N> python3 %(prog)s -i INPUT_DIR [options] "
+              "-- TARGET [ARGS...]",
     )
     parser.add_argument(
         "-i", "--input-dir", required=True,
@@ -435,6 +529,11 @@ def parse_args():
         help="Total wall-clock time limit in seconds (0=unlimited, default: 0)",
     )
     parser.add_argument(
+        "--workers-per-master", type=int, default=60,
+        help="Target workers per master for auto-scaling (default: 60). "
+             "With 160 processes and default 60, creates 3 masters.",
+    )
+    parser.add_argument(
         "target", nargs=argparse.REMAINDER,
         help="Target command (after '--')",
     )
@@ -454,22 +553,80 @@ def parse_args():
 def main():
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
+    size = comm.Get_size()
 
     args = parse_args()
 
+    # --- Auto-compute role assignment ---
+    master_ranks, worker_groups = compute_roles(
+        size, args.workers_per_master
+    )
+    master_set = set(master_ranks)
+
+    # Find each process's group master
+    my_master_rank = None
+    if rank in master_set:
+        my_master_rank = rank
+    else:
+        for m, workers in worker_groups.items():
+            if rank in workers:
+                my_master_rank = m
+                break
+
+    # Create isolated group communicator: each master + its workers.
+    # Within group_comm, the master has rank 0 (lowest global rank in group).
+    # This prevents cross-group message interference.
+    group_comm = comm.Split(my_master_rank, rank)
+
+    # Determine shared directory (all ranks must agree on the path)
+    if args.output_dir:
+        shared_dir = os.path.abspath(args.output_dir)
+    else:
+        # Create temp dir on rank 0 and broadcast to all
+        if rank == 0:
+            shared_dir = tempfile.mkdtemp(prefix="symcc_shared_")
+        else:
+            shared_dir = None
+        shared_dir = comm.bcast(shared_dir, root=0)
+
+    os.makedirs(shared_dir, exist_ok=True)
+
+    # Print configuration (root only)
     if rank == 0:
         print(f"SymCC MPI Parallel Concolic Execution")
-        print(f"  Processes: {comm.Get_size()} (1 master + {comm.Get_size()-1} workers)")
-        print(f"  Input dir: {args.input_dir}")
-        print(f"  Output dir: {args.output_dir or '(none)'}")
-        print(f"  Target: {' '.join(args.target)}")
-        print(f"  Timeout: {args.timeout}s per execution")
+        print(f"  Processes:     {size}")
+        num_masters = len(master_ranks)
+        if num_masters == 1:
+            print(f"  Mode:          single-master "
+                  f"({size - 1} workers)")
+        else:
+            print(f"  Mode:          multi-master "
+                  f"({num_masters} masters, auto-scaled at "
+                  f"{args.workers_per_master} workers/master)")
+            for m in master_ranks:
+                print(f"    Master {m}: {len(worker_groups[m])} workers")
+        print(f"  Shared dir:    {shared_dir}")
+        print(f"  Input dir:     {args.input_dir}")
+        print(f"  Target:        {' '.join(args.target)}")
+        print(f"  Timeout:       {args.timeout}s per execution")
         if args.wall_timeout > 0:
-            print(f"  Wall timeout: {args.wall_timeout}s total")
+            print(f"  Wall timeout:  {args.wall_timeout}s total")
         print()
-        master(comm, args)
+
+    # --- Run ---
+    if rank in master_set:
+        is_root = (rank == 0)
+        peer_masters = [m for m in master_ranks if m != rank]
+        master_loop(comm, group_comm, args, peer_masters, is_root, shared_dir)
     else:
-        worker(comm, args)
+        worker_loop(group_comm, args, shared_dir)
+
+    # --- Cleanup ---
+    group_comm.Free()
+    comm.Barrier()
+
+    if rank == 0 and not args.output_dir:
+        shutil.rmtree(shared_dir, ignore_errors=True)
 
     MPI.Finalize()
 
