@@ -34,7 +34,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from pathlib import Path
+from collections import deque
 
 from mpi4py import MPI
 
@@ -44,23 +44,6 @@ TAG_RESULT = 2     # Worker -> Master: here are the generated test cases
 TAG_STOP = 3       # Master -> Worker: no more work, shut down
 TAG_READY = 4      # Worker -> Master: I'm ready for work
 
-
-def file_hash(path):
-    """Return the SHA-256 hash of a file's contents."""
-    h = hashlib.sha256()
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(8192), b""):
-            h.update(chunk)
-    return h.hexdigest()
-
-
-def copy_with_hash_name(src, dest_dir):
-    """Copy src to dest_dir, renaming it by its SHA-256 hash. Returns the new path."""
-    h = file_hash(src)
-    dest = os.path.join(dest_dir, h)
-    if not os.path.exists(dest):
-        shutil.copy2(src, dest)
-    return dest
 
 
 def run_symcc(target_cmd, input_file, output_dir, timeout_sec, use_stdin):
@@ -133,17 +116,46 @@ def master(comm, args):
         return
 
     # Setup directories
+    spool_dir = tempfile.mkdtemp(prefix="symcc_mpi_spool_")
     if args.output_dir:
         os.makedirs(args.output_dir, exist_ok=True)
     if args.failed_dir:
         os.makedirs(args.failed_dir, exist_ok=True)
 
     analyzed_hashes = set()   # SHA-256 hashes of inputs we already processed
-    pending_queue = []        # list of (hash, content_bytes) waiting to be processed
+    pending_queue = deque()   # deque of (hash, content_bytes) waiting to be processed
     active_workers = {}       # rank -> hash string being processed
-    generation = 0
     total_generated = 0
     total_interesting = 0
+    # Memory management: spill pending queue items to disk when queue is large
+    QUEUE_MEM_LIMIT = 10000   # keep at most this many items in memory
+
+    def enqueue(h, content):
+        """Add item to pending queue, spilling to disk if queue is large."""
+        if len(pending_queue) < QUEUE_MEM_LIMIT:
+            pending_queue.append((h, content))
+        else:
+            # Spill to spool dir — store content on disk, queue only the hash
+            spool_path = os.path.join(spool_dir, h)
+            with open(spool_path, "wb") as f:
+                f.write(content)
+            pending_queue.append((h, None))  # None = spilled to disk
+
+    def dequeue():
+        """Pop from pending queue, reloading from disk if spilled."""
+        h, content = pending_queue.popleft()
+        if content is None:
+            # Reload from spool
+            spool_path = os.path.join(spool_dir, h)
+            with open(spool_path, "rb") as f:
+                content = f.read()
+            try:
+                os.unlink(spool_path)
+            except OSError:
+                pass
+        return h, content
+
+    imported_files = set()  # track filenames already imported
 
     def import_inputs(src_dir):
         """Import new inputs from a directory, reading content into memory."""
@@ -151,14 +163,17 @@ def master(comm, args):
         if not os.path.isdir(src_dir):
             return count
         for fname in sorted(os.listdir(src_dir)):
+            if fname in imported_files:
+                continue
             fpath = os.path.join(src_dir, fname)
             if not os.path.isfile(fpath):
                 continue
+            imported_files.add(fname)
             with open(fpath, "rb") as f:
                 content = f.read()
             h = hashlib.sha256(content).hexdigest()
             if h not in analyzed_hashes:
-                pending_queue.append((h, content))
+                enqueue(h, content)
                 count += 1
         return count
 
@@ -192,7 +207,7 @@ def master(comm, args):
             comm.recv(source=MPI.ANY_SOURCE, tag=TAG_READY, status=status)
             worker_rank = status.Get_source()
 
-            item = pending_queue.pop(0)
+            item = dequeue()
             # Send (hash, content) to worker — worker writes to local temp file
             comm.send(item, dest=worker_rank, tag=TAG_WORK)
             active_workers[worker_rank] = item[0]  # store hash
@@ -222,7 +237,7 @@ def master(comm, args):
                 h = hashlib.sha256(tc_content).hexdigest()
                 if h not in analyzed_hashes:
                     analyzed_hashes.add(h)
-                    pending_queue.append((h, tc_content))
+                    enqueue(h, tc_content)
                     num_new += 1
                     total_interesting += 1
 
@@ -283,6 +298,9 @@ def master(comm, args):
     print(f"[Master] Total test cases generated: {total_generated}")
     print(f"[Master] New interesting test cases: {total_interesting}")
     print(f"[Master] Workers used:             {num_workers}")
+
+    # Cleanup spool directory
+    shutil.rmtree(spool_dir, ignore_errors=True)
 
 
 def worker(comm, args):

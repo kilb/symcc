@@ -256,7 +256,8 @@ def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
 
     try:
         # Allow generous timeout: 2s per case (most finish in <10ms)
-        batch_timeout = max(60, total_cases * 2)
+        # Use len(test_files) not total_cases — test_files may be sampled down
+        batch_timeout = max(60, len(test_files) * 2)
         result = subprocess.run(
             ["bash", "-c", script],
             capture_output=True, text=True, timeout=batch_timeout
@@ -336,16 +337,26 @@ def count_output_files(directory):
 
 
 def get_unique_hashes(directory):
-    """Get set of unique file content hashes."""
+    """Get set of unique file content hashes.
+
+    Optimization: if filenames look like hex SHA-256 hashes (64 hex chars),
+    use the filename directly instead of re-reading and re-hashing file contents.
+    Both the serial script and MPI master use hash-based naming.
+    """
     hashes = set()
     if not os.path.isdir(directory):
         return hashes
+    hex64_re = re.compile(r'^[0-9a-f]{64}$')
     for f in os.listdir(directory):
         fpath = os.path.join(directory, f)
         if os.path.isfile(fpath):
-            with open(fpath, "rb") as fh:
-                h = hashlib.sha256(fh.read()).hexdigest()
-                hashes.add(h)
+            if hex64_re.match(f):
+                # Filename is the hash — skip expensive re-read
+                hashes.add(f)
+            else:
+                with open(fpath, "rb") as fh:
+                    h = hashlib.sha256(fh.read()).hexdigest()
+                    hashes.add(h)
     return hashes
 
 
