@@ -421,7 +421,12 @@ def run_mpi(binary, target_name, seed_dir, np, timeout, work_dir):
         retcode = -1
 
     elapsed = time.monotonic() - start
-    timed_out = (retcode == -1 and stderr == "TIMEOUT") or elapsed >= timeout + 25
+    # Detect timeout: outer kill, or MPI master hit its wall-timeout
+    hard_timeout = (retcode == -1 and stderr == "TIMEOUT") or elapsed >= timeout + 25
+    wall_timeout_hit = False
+    if stdout and "Wall-clock timeout" in stdout:
+        wall_timeout_hit = True
+    timed_out = hard_timeout or wall_timeout_hit
 
     # Parse the MPI master's stdout for pre-dedup total_generated count
     mpi_total_generated = None
