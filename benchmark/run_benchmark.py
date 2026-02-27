@@ -30,9 +30,9 @@ import csv
 import hashlib
 import json
 import os
-import random
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -315,15 +315,6 @@ def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
     }
 
 
-def get_seeds(target_name):
-    """Get seed files for a target."""
-    prefix = TARGETS[target_name][2]
-    seeds = []
-    for f in sorted(SEEDS_DIR.iterdir()):
-        if f.name.startswith(prefix) and f.is_file():
-            seeds.append(str(f))
-    return seeds
-
 
 def count_output_files(directory):
     """Count test case files in a directory."""
@@ -382,17 +373,27 @@ def run_serial(binary, target_name, seed_dir, timeout, work_dir):
             binary
         ]
 
-    # The serial script runs forever, so we use timeout
+    # The serial script runs forever, so we use timeout.
+    # Use start_new_session so we can kill the entire process group on timeout
+    # (otherwise SymCC children spawned by the shell script become orphans).
+    # Use DEVNULL instead of PIPE to avoid deadlock — we don't need the output,
+    # and PIPE with only wait() (no communicate()) deadlocks when the 64KB
+    # pipe buffer fills up.
     timed_out = False
     start = time.monotonic()
     try:
         proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            start_new_session=True
         )
         proc.wait(timeout=timeout)
         retcode = proc.returncode
     except subprocess.TimeoutExpired:
-        proc.kill()
+        # Kill the entire process group (shell + all children)
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except OSError:
+            proc.kill()
         proc.wait()
         retcode = -1
         timed_out = True
@@ -469,17 +470,20 @@ def run_mpi(binary, target_name, seed_dir, np, timeout, work_dir):
         if m:
             mpi_total_interesting = int(m.group(1))
 
-    unique = get_unique_hashes(output_dir)
-    # Use MPI master's pre-dedup count if available; otherwise fall back to file count
+    # Use MPI master's parsed stats when available (avoids expensive directory traversal).
+    # The master's "interesting" count equals unique test cases written to output_dir.
     if mpi_total_generated is not None:
         num_generated = mpi_total_generated
+        num_unique = mpi_total_interesting if mpi_total_interesting is not None else len(get_unique_hashes(output_dir))
     else:
+        unique = get_unique_hashes(output_dir)
         num_generated = count_output_files(output_dir)
+        num_unique = len(unique)
 
     return {
         "wall_time": elapsed,
         "generated": num_generated,
-        "unique": len(unique),
+        "unique": num_unique,
         "output_dir": output_dir,
         "stdout": stdout[-500:] if stdout else "",
         "stderr": stderr[-500:] if stderr else "",

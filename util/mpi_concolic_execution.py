@@ -46,18 +46,27 @@ TAG_READY = 4      # Worker -> Master: I'm ready for work
 
 
 
-def run_symcc(target_cmd, input_file, output_dir, timeout_sec, use_stdin):
+def run_symcc(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
+              base_env=None):
     """
     Run the SymCC-instrumented target on the given input.
+
+    Args:
+        base_env: Optional pre-built env dict to reuse (avoids os.environ.copy()
+                  on every call). SYMCC_OUTPUT_DIR and SYMCC_INPUT_FILE are
+                  updated in-place per invocation.
 
     Returns:
         (list_of_new_testcases, return_code, elapsed_seconds)
     """
     os.makedirs(output_dir, exist_ok=True)
 
-    env = os.environ.copy()
+    if base_env is None:
+        env = os.environ.copy()
+        env["SYMCC_ENABLE_LINEARIZATION"] = "1"
+    else:
+        env = base_env
     env["SYMCC_OUTPUT_DIR"] = output_dir
-    env["SYMCC_ENABLE_LINEARIZATION"] = "1"
 
     if use_stdin:
         cmd = ["timeout", "-k", "5", str(timeout_sec)] + target_cmd
@@ -233,8 +242,8 @@ def master(comm, args):
                 total_generated += 1
                 tc_content = tc_data["content"]
 
-                # Hash in memory — no disk I/O needed
-                h = hashlib.sha256(tc_content).hexdigest()
+                # Use pre-computed hash from worker (avoids rehashing on master)
+                h = tc_data.get("hash") or hashlib.sha256(tc_content).hexdigest()
                 if h not in analyzed_hashes:
                     analyzed_hashes.add(h)
                     enqueue(h, tc_content)
@@ -317,6 +326,10 @@ def worker(comm, args):
     # Create a persistent temp directory for this worker
     worker_dir = tempfile.mkdtemp(prefix=f"symcc_worker_{rank}_")
 
+    # Build env dict once and reuse across all runs (avoids os.environ.copy() per run)
+    worker_env = os.environ.copy()
+    worker_env["SYMCC_ENABLE_LINEARIZATION"] = "1"
+
     while True:
         # Signal readiness
         comm.send(rank, dest=0, tag=TAG_READY)
@@ -343,10 +356,13 @@ def worker(comm, args):
 
         try:
             new_tests, retcode, elapsed = run_symcc(
-                target_cmd, input_file, run_output, timeout_sec, use_stdin
+                target_cmd, input_file, run_output, timeout_sec, use_stdin,
+                base_env=worker_env
             )
 
-            # Read test case contents to send back to master
+            # Read test case contents and pre-compute hashes to send back.
+            # Computing hashes on the worker side offloads CPU from the
+            # single-threaded master, which is the throughput bottleneck.
             test_data = []
             for tc in new_tests:
                 try:
@@ -355,6 +371,7 @@ def worker(comm, args):
                     test_data.append({
                         "path": os.path.basename(tc),
                         "content": content,
+                        "hash": hashlib.sha256(content).hexdigest(),
                     })
                 except (IOError, OSError):
                     pass
