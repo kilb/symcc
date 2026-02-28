@@ -27,6 +27,23 @@ error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 CC="${CC:-gcc}"
 CXX="${CXX:-g++}"
 
+# Auto-detect SymCC if CC is still default gcc
+if [ "$CC" = "gcc" ]; then
+    SYMCC_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+    if [ -x "$SYMCC_ROOT/build/symcc" ]; then
+        CC="$SYMCC_ROOT/build/symcc"
+        CXX="$SYMCC_ROOT/build/sym++"
+        info "Auto-detected SymCC at $CC"
+    elif command -v symcc >/dev/null 2>&1; then
+        CC="symcc"
+        CXX="sym++"
+        info "Auto-detected SymCC in PATH"
+    else
+        warn "SymCC not found, using gcc (simulation mode only)"
+        warn "For real symbolic execution, build SymCC first or use: --compiler /path/to/symcc"
+    fi
+fi
+
 ############################################################
 # CGC cb-multios  (243 challenge binaries)
 # Source: https://github.com/trailofbits/cb-multios
@@ -131,7 +148,10 @@ build_lava() {
     local built=0
     local target_bins_dir="$lava_dir/target_bins"
 
-    # Build from tarballs
+    # Build from tarballs.
+    # Each target is built in a subshell so that a single build failure
+    # (e.g. blecho needing -m32 which SymCC doesn't support) does not
+    # abort the entire script via set -e.
     for tarball in "$target_bins_dir"/*.tar.gz; do
         if [ ! -f "$tarball" ]; then continue; fi
         local name=$(basename "$tarball" .tar.gz | sed 's/-[0-9].*//; s/-pre$//')
@@ -153,13 +173,24 @@ build_lava() {
 
         cd "$src_dir"
 
-        # Try to build
+        # Try to build. Temporarily disable set -e so a single target
+        # failure doesn't abort the entire script (e.g. blecho's -m32
+        # flag is incompatible with SymCC 64-bit).
         local bin_path=""
+        set +e
         case "$name" in
             file)
                 if [ -f configure ]; then
-                    CC="$CC" ./configure --quiet 2>/dev/null && make -j$(nproc) 2>/dev/null
+                    # Static libmagic: --disable-shared ensures libmagic code
+                    # is statically linked and SymCC-instrumented (otherwise
+                    # file links to system libmagic compiled with gcc = no
+                    # symbolic execution).
+                    CC="$CC" ./configure --quiet --disable-shared 2>/dev/null && make -j$(nproc) 2>/dev/null
                     bin_path="src/file"
+                    # Copy magic database alongside binary
+                    if [ -f "magic/magic.mgc" ]; then
+                        cp magic/magic.mgc "$BUILD_DIR/lava/magic.mgc"
+                    fi
                 fi
                 ;;
             jq)
@@ -218,6 +249,7 @@ build_lava() {
                 fi
                 ;;
         esac
+        set -e
 
         # Check if we got a binary
         if [ -n "$bin_path" ] && [ -f "$bin_path" ]; then

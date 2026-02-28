@@ -406,6 +406,13 @@ def run_serial(binary, target_name, seed_dir, timeout, work_dir):
             binary
         ]
 
+    # Set up environment: auto-detect magic.mgc for 'file' binary
+    env = None
+    magic_path = os.path.join(os.path.dirname(binary), "magic.mgc")
+    if os.path.isfile(magic_path):
+        env = os.environ.copy()
+        env["MAGIC"] = magic_path
+
     # The serial script runs forever, so we use timeout.
     # Use start_new_session so we can kill the entire process group on timeout
     # (otherwise SymCC children spawned by the shell script become orphans).
@@ -417,7 +424,7 @@ def run_serial(binary, target_name, seed_dir, timeout, work_dir):
     try:
         proc = subprocess.Popen(
             cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-            start_new_session=True
+            start_new_session=True, env=env
         )
         proc.wait(timeout=timeout)
         retcode = proc.returncode
@@ -472,10 +479,18 @@ def run_mpi(binary, target_name, seed_dir, np, timeout, work_dir):
     if uses_file:
         cmd.append("@@")
 
+    # Set up environment: auto-detect magic.mgc for 'file' binary
+    env = None
+    magic_path = os.path.join(os.path.dirname(binary), "magic.mgc")
+    if os.path.isfile(magic_path):
+        env = os.environ.copy()
+        env["MAGIC"] = magic_path
+
     start = time.monotonic()
     try:
         proc = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=timeout + 30
+            cmd, capture_output=True, text=True, timeout=timeout + 30,
+            env=env
         )
         stdout = proc.stdout
         stderr = proc.stderr
