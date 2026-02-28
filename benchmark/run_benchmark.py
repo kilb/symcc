@@ -62,6 +62,22 @@ TARGETS = {
 PUBLIC_DIR = SCRIPT_DIR / "public"
 
 
+MIN_SYMCC_SYMBOLS = 5  # threshold to consider a binary SymCC-instrumented
+
+
+def _has_symcc_instrumentation(binary_path):
+    """Check if a binary contains SymCC instrumentation symbols."""
+    try:
+        result = subprocess.run(
+            ["nm", binary_path], capture_output=True, text=True, timeout=10
+        )
+        count = sum(1 for line in result.stdout.splitlines()
+                    if "Sym" in line or "SYM" in line)
+        return count >= MIN_SYMCC_SYMBOLS
+    except Exception:
+        return True  # assume instrumented if we can't check
+
+
 def _resolve_path(p):
     """Resolve a path: try absolute, then relative to cwd, then relative to SCRIPT_DIR."""
     p = str(p)
@@ -885,8 +901,14 @@ def main():
                     for binary in sorted(suite_dir.iterdir()):
                         if binary.is_file() and os.access(str(binary), os.X_OK):
                             bname = binary.name
+                            # Skip non-ELF files (wrappers, data)
+                            if bname.endswith((".sh", ".mgc", ".txt")):
+                                continue
                             seed_candidate = pub_seed_dir / suite_dir.name / bname
                             if seed_candidate.is_dir():
+                                if not _has_symcc_instrumentation(str(binary)):
+                                    print(f"  Skipping {bname}: no SymCC instrumentation (gcc-compiled)")
+                                    continue
                                 public_specs.append(
                                     f"{bname}:{binary}:{seed_candidate}"
                                 )
