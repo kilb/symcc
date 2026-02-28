@@ -802,6 +802,8 @@ def main():
                              "With no args: auto-discover compiled targets in benchmark/public/bin/. "
                              "With args: name:binary_path:seed_dir "
                              "e.g., 'file:./benchmark/public/bin/lava/file:./benchmark/public/seeds/lava/file'.")
+    parser.add_argument("--no-default", action="store_true",
+                        help="Skip built-in benchmarks (maze, parser, etc.), run only public targets")
     parser.add_argument("--no-public", action="store_true",
                         help="Disable auto-discovery of public benchmarks")
     parser.add_argument("--no-coverage", action="store_true",
@@ -810,7 +812,12 @@ def main():
     args = parser.parse_args()
 
     np_list = [int(x) for x in args.np_list.split(",")]
-    target_names = args.targets.split(",") if args.targets else list(TARGETS.keys())
+    if args.targets:
+        target_names = args.targets.split(",")
+    elif args.no_default:
+        target_names = []  # will be populated by public auto-discovery
+    else:
+        target_names = list(TARGETS.keys())
 
     output_dir = os.path.abspath(args.output)
     bin_dir = os.path.join(output_dir, "bin")
@@ -828,7 +835,11 @@ def main():
     print()
 
     # Build step
-    if not args.skip_build:
+    binaries = {}
+    if args.no_default:
+        print("Step 1: Skipping built-in targets (--no-default)")
+        print("-" * 40)
+    elif not args.skip_build:
         print("Step 1: Compiling target programs")
         print("-" * 40)
 
@@ -848,7 +859,6 @@ def main():
                 args.simulation = True
     else:
         # Find existing binaries
-        binaries = {}
         for name in target_names:
             for suffix in ["_symcc", "_native"]:
                 path = os.path.join(bin_dir, f"{name}{suffix}")
