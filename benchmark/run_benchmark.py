@@ -439,6 +439,7 @@ def run_serial(binary, target_name, seed_dir, timeout, work_dir):
         "wall_time": elapsed,
         "generated": num_generated,
         "unique": len(unique),
+        "throughput": num_generated / elapsed if elapsed > 0 else 0,
         "output_dir": output_dir,
         "retcode": retcode,
         "timed_out": timed_out,
@@ -497,12 +498,13 @@ def run_mpi(binary, target_name, seed_dir, np, timeout, work_dir):
     mpi_total_interesting = None
     mpi_num_masters = None
     mpi_num_workers = None
+    mpi_throughput = None
     if stdout:
         m = re.search(r"Total test cases generated:\s*(\d+)", stdout)
         if m:
             mpi_total_generated = int(m.group(1))
         # "New interesting test cases" is the ground-truth file count
-        # from shared_dir (accurate even in multi-master mode).
+        # from shared_dir minus seeds (accurate even in multi-master mode).
         m = re.search(r"New interesting test cases:\s*(\d+)", stdout)
         if m:
             mpi_total_interesting = int(m.group(1))
@@ -512,6 +514,9 @@ def run_mpi(binary, target_name, seed_dir, np, timeout, work_dir):
         m = re.search(r"Workers used:\s*(\d+)", stdout)
         if m:
             mpi_num_workers = int(m.group(1))
+        m = re.search(r"Throughput:\s*([\d.]+)\s*tc/s", stdout)
+        if m:
+            mpi_throughput = float(m.group(1))
 
     # Use MPI master's parsed stats when available (avoids expensive directory traversal).
     if mpi_total_generated is not None:
@@ -533,6 +538,7 @@ def run_mpi(binary, target_name, seed_dir, np, timeout, work_dir):
         "timed_out": timed_out,
         "num_masters": mpi_num_masters,
         "num_workers": mpi_num_workers,
+        "throughput": mpi_throughput or (num_generated / elapsed if elapsed > 0 else 0),
     }
 
 
@@ -556,7 +562,7 @@ def generate_report(results, output_dir):
         writer = csv.writer(f)
         writer.writerow([
             "target", "mode", "np", "round",
-            "wall_time_sec", "generated", "unique",
+            "wall_time_sec", "generated", "unique", "throughput_tc_s",
             "line_cov_pct", "branch_cov_pct", "crashes",
             "speedup", "efficiency"
         ])
@@ -564,6 +570,7 @@ def generate_report(results, output_dir):
             writer.writerow([
                 row["target"], row["mode"], row["np"], row["round"],
                 f"{row['wall_time']:.2f}", row["generated"], row["unique"],
+                f"{row.get('throughput', 0.0):.2f}",
                 f"{row.get('line_cov', 0.0):.2f}",
                 f"{row.get('branch_cov', 0.0):.2f}",
                 row.get("crashes", 0),
@@ -604,12 +611,14 @@ def generate_report(results, output_dir):
                 avg_branch_cov = sum(r.get("branch_cov", 0) for r in rows) / len(rows)
                 total_crashes = sum(r.get("crashes", 0) for r in rows)
                 avg_workers = sum(r.get("num_workers", np_val - 1) for r in rows) / len(rows)
+                avg_throughput = sum(r.get("throughput", 0) for r in rows) / len(rows)
                 summaries.append({
                     "mode": mode,
                     "np": np_val,
                     "avg_time": avg_time,
                     "avg_generated": avg_gen,
                     "avg_unique": avg_uniq,
+                    "avg_throughput": avg_throughput,
                     "avg_line_cov": avg_line_cov,
                     "avg_branch_cov": avg_branch_cov,
                     "total_crashes": total_crashes,
@@ -617,11 +626,11 @@ def generate_report(results, output_dir):
                     "rounds": len(rows),
                 })
 
-            # Find serial baseline time
-            serial_time = None
+            # Find serial baseline throughput for speedup calculation
+            serial_throughput = None
             for s in summaries:
                 if s["mode"] == "serial":
-                    serial_time = s["avg_time"]
+                    serial_throughput = s["avg_throughput"]
                     break
 
             # Check if any coverage data is present
@@ -630,9 +639,9 @@ def generate_report(results, output_dir):
 
             # Table header
             hdr = (f"  {'Mode':<10} {'NP':>4} {'Avg Time':>12} "
-                   f"{'Generated':>10} {'Unique':>8} ")
+                   f"{'Generated':>10} {'Unique':>8} {'tc/s':>10} ")
             sep = (f"  {'─'*10} {'─'*4} {'─'*12} "
-                   f"{'─'*10} {'─'*8} ")
+                   f"{'─'*10} {'─'*8} {'─'*10} ")
             if has_cov:
                 hdr += f"{'LineCov':>8} {'BranchCov':>10} {'Crashes':>8} "
                 sep += f"{'─'*8} {'─'*10} {'─'*8} "
@@ -642,18 +651,27 @@ def generate_report(results, output_dir):
             f.write(sep)
 
             for s in summaries:
-                if serial_time and serial_time > 0 and s["mode"] != "serial":
-                    speedup = serial_time / s["avg_time"] if s["avg_time"] > 0 else 0
+                # Speedup = throughput ratio (tc/s of MPI vs serial).
+                # This is meaningful even when both configs hit the timeout,
+                # unlike wall-clock ratio which would always be ~1x.
+                if (serial_throughput and serial_throughput > 0
+                        and s["mode"] != "serial"):
+                    speedup = (s["avg_throughput"] / serial_throughput
+                               if serial_throughput > 0 else 0)
                     workers = s.get("avg_workers") or (s["np"] - 1)
                     efficiency = (speedup / workers * 100) if workers > 0 else 0
                 else:
                     speedup = 1.0
                     efficiency = 100.0
 
+                tp_str = (f"{s['avg_throughput']:>10.1f}"
+                          if s["avg_throughput"] >= 1
+                          else f"{s['avg_throughput']:>10.2f}")
+
                 line = (f"  {s['mode']:<10} {s['np']:>4} "
                         f"{format_time(s['avg_time']):>12} "
                         f"{s['avg_generated']:>10.1f} "
-                        f"{s['avg_unique']:>8.1f} ")
+                        f"{s['avg_unique']:>8.1f} {tp_str} ")
                 if has_cov:
                     line += (f"{s['avg_line_cov']:>7.1f}% "
                              f"{s['avg_branch_cov']:>9.1f}% "
@@ -674,17 +692,25 @@ def generate_report(results, output_dir):
                     f.write(f"  {label:>8} |{bar}| {cov:.1f}%\n")
                 f.write("\n")
 
-            # Speedup chart (ASCII)
-            f.write("  Speedup Chart:\n")
+            # Throughput Speedup chart (ASCII)
+            f.write("  Throughput Speedup Chart (tc/s ratio vs serial):\n")
+            max_speedup = 1.0
+            speedups = []
             for s in summaries:
-                if serial_time and serial_time > 0 and s["mode"] != "serial":
-                    speedup = serial_time / s["avg_time"] if s["avg_time"] > 0 else 0
+                if (serial_throughput and serial_throughput > 0
+                        and s["mode"] != "serial"):
+                    sp = (s["avg_throughput"] / serial_throughput
+                          if serial_throughput > 0 else 0)
                 else:
-                    speedup = 1.0
-                bar_len = int(speedup * 10)
-                label = f"  np={s['np']:>2}"
+                    sp = 1.0
+                speedups.append(sp)
+                max_speedup = max(max_speedup, sp)
+            scale = 40 / max_speedup if max_speedup > 0 else 1
+            for s, sp in zip(summaries, speedups):
+                bar_len = int(sp * scale)
+                label = f"  np={s['np']:>3}" if s["mode"] != "serial" else "  serial"
                 bar = "█" * bar_len + "░" * max(0, 40 - bar_len)
-                f.write(f"  {label} |{bar}| {speedup:.2f}x\n")
+                f.write(f"  {label} |{bar}| {sp:.1f}x\n")
             f.write("\n")
 
         # Overall summary
@@ -970,6 +996,7 @@ def main():
                 "wall_time": result["wall_time"],
                 "generated": result["generated"],
                 "unique": result["unique"],
+                "throughput": result.get("throughput", 0),
                 "line_cov": cov_data["line_cov"],
                 "branch_cov": cov_data["branch_cov"],
                 "crashes": cov_data["crashes"],
@@ -1048,18 +1075,26 @@ def main():
                     if err_lines:
                         print(f"      stderr: {err_lines[-1][:200]}")
 
-                # Compute speedup against serial baseline
-                serial_avg = 0
+                # Compute throughput speedup against serial baseline.
+                # Use throughput (tc/s) ratio instead of wall-clock ratio,
+                # because wall-clock speedup is meaningless when both
+                # configurations run until timeout (both ~5min → ~1x).
+                mpi_tp = result.get("throughput", 0)
+                serial_tp_sum = 0
                 serial_count = 0
                 for sr in all_results:
                     if sr["target"] == target and sr["mode"] == "serial":
-                        serial_avg += sr["wall_time"]
+                        serial_tp_sum += sr.get("throughput", 0)
                         serial_count += 1
-                if serial_count > 0:
-                    serial_avg /= serial_count
-                    speedup = serial_avg / result["wall_time"] if result["wall_time"] > 0 else 0
+                if serial_count > 0 and serial_tp_sum > 0:
+                    serial_tp_avg = serial_tp_sum / serial_count
+                    speedup = mpi_tp / serial_tp_avg if serial_tp_avg > 0 else 0
                     workers = result.get("num_workers") or (actual_np - 1)
                     efficiency = (speedup / workers * 100) if workers > 0 else 0
+                elif serial_count > 0:
+                    # Serial throughput is 0 — can't compute meaningful speedup
+                    speedup = 0.0
+                    efficiency = 0.0
                 else:
                     speedup = 1.0
                     efficiency = 100.0
@@ -1072,6 +1107,7 @@ def main():
                     "wall_time": result["wall_time"],
                     "generated": result["generated"],
                     "unique": result["unique"],
+                    "throughput": result.get("throughput", 0),
                     "line_cov": cov_data["line_cov"],
                     "branch_cov": cov_data["branch_cov"],
                     "crashes": cov_data["crashes"],

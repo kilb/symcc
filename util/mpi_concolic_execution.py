@@ -268,6 +268,7 @@ def master_loop(global_comm, group_comm, args, peer_masters, is_root,
 
     # --- Main loop setup ---
     imported = import_inputs(args.input_dir)
+    initial_seed_count = imported  # track for final stats
     if is_root:
         total_masters = len(peer_masters) + 1
         print(f"[Master] Imported {imported} initial inputs from "
@@ -420,23 +421,30 @@ def master_loop(global_comm, group_comm, args, peer_masters, is_root,
         # multiple masters before sync propagation. The file count is the
         # true unique count since all test cases use content-addressable
         # naming (filename = SHA-256 hash, idempotent writes).
-        actual_unique = 0
+        # Subtract initial seeds so the count reflects only NEW test cases.
+        actual_files = 0
         try:
             for fname in os.listdir(shared_dir):
                 if os.path.isfile(os.path.join(shared_dir, fname)):
-                    actual_unique += 1
+                    actual_files += 1
         except OSError:
-            actual_unique = total_interesting  # fallback
+            actual_files = total_interesting + initial_seed_count
+
+        actual_unique = max(0, actual_files - initial_seed_count)
 
         total_masters = len(peer_masters) + 1
         total_workers_all = sum(
             len(worker_groups[m]) for m in master_ranks
         ) if peer_masters else num_workers
 
+        wall_elapsed = time.monotonic() - wall_start
+        throughput = total_generated / wall_elapsed if wall_elapsed > 0 else 0
+
         print(f"\n[Master] === Final Statistics ===")
         print(f"[Master] Total inputs analyzed:      {len(analyzed_hashes)}")
         print(f"[Master] Total test cases generated:  {total_generated}")
         print(f"[Master] New interesting test cases:  {actual_unique}")
+        print(f"[Master] Throughput:                  {throughput:.1f} tc/s")
         print(f"[Master] Masters used:               {total_masters}")
         print(f"[Master] Workers used:               {total_workers_all}")
 
