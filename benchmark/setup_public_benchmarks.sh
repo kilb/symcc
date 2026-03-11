@@ -53,18 +53,24 @@ setup_lava_m() {
             rm -f lava_corpus.tar.xz
         fi
 
-        # Try 2: Wayback Machine mirror (try multiple timestamps)
+        # Try 2: Gitee mirror (community-maintained copy of the full corpus)
         if [ "$downloaded" = false ]; then
-            warn "  Direct download failed, trying Wayback Machine..."
+            warn "  Direct download failed, trying Gitee mirror..."
+            if git clone --depth 1 https://gitee.com/zeroaone/lava_corpus.git 2>/dev/null; then
+                downloaded=true
+                rm -rf lava_corpus/.git  # save space
+            fi
+        fi
+
+        # Try 3: Wayback Machine (try multiple timestamps)
+        if [ "$downloaded" = false ]; then
+            warn "  Gitee mirror failed, trying Wayback Machine..."
             local wb_urls=(
                 "https://web.archive.org/web/2024id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
                 "https://web.archive.org/web/2023id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
                 "https://web.archive.org/web/2022id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
-                "https://web.archive.org/web/2021id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
                 "https://web.archive.org/web/2020id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
-                "https://web.archive.org/web/2019id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
                 "https://web.archive.org/web/2018id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
-                "https://web.archive.org/web/2017id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
             )
             for wb_url in "${wb_urls[@]}"; do
                 info "  Trying: $wb_url"
@@ -77,29 +83,6 @@ setup_lava_m() {
             done
         fi
 
-        # Try 3: Extract from LAVA Docker image (pandare/lava has the corpus)
-        if [ "$downloaded" = false ] && command -v docker &>/dev/null; then
-            warn "  Wayback Machine failed, trying Docker extraction..."
-            info "  Pulling pandare/lava Docker image (this may take a while)..."
-            if docker pull pandare/lava 2>/dev/null; then
-                # The LAVA Docker image contains the corpus at /lava/target_injections
-                # We need to extract the pre-built LAVA-M corpus
-                local cid
-                cid=$(docker create pandare/lava 2>/dev/null) || true
-                if [ -n "$cid" ]; then
-                    # Try common paths where lava_corpus might be in the image
-                    docker cp "$cid:/lava" ./lava_docker_extract 2>/dev/null || true
-                    docker rm "$cid" 2>/dev/null || true
-                    if [ -d "lava_docker_extract" ]; then
-                        info "  Extracted LAVA data from Docker image"
-                        # The Docker image has the LAVA tool, not the pre-built corpus
-                        # We'll note this for the user
-                        rm -rf lava_docker_extract
-                    fi
-                fi
-            fi
-        fi
-
         if [ "$downloaded" = false ]; then
             error "Failed to download LAVA-M corpus."
             error ""
@@ -108,13 +91,12 @@ setup_lava_m() {
             error "  $dest/lava_corpus/LAVA-M/{base64,md5sum,uniq,who}/"
             error ""
             error "Options to obtain the corpus:"
-            error "  1. Check if the URL is back up later"
-            error "  2. Search the Wayback Machine: https://web.archive.org/web/*/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
+            error "  1. Git clone from Gitee: git clone https://gitee.com/zeroaone/lava_corpus.git"
+            error "  2. Check if the canonical URL is back up later"
             error "  3. Use the LAVA tool to regenerate: https://github.com/panda-re/lava"
             error "  4. Ask on GitHub: https://github.com/panda-re/lava/issues"
             error ""
-            error "Once downloaded, extract with: tar xf lava_corpus.tar.xz"
-            error "Then re-run this script."
+            error "Once obtained, re-run this script."
             return 1
         fi
     fi
