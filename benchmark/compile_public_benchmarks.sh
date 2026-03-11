@@ -191,10 +191,12 @@ build_lava() {
         cd "$src_dir"
         make clean 2>/dev/null || true
 
-        # Patch Makefiles: strip -m32 and replace hardcoded gcc with $CC.
+        # Patch Makefiles: strip -m32 and -static (SymCC runtime is a
+        # shared library), and replace hardcoded gcc with our compiler.
         find . -name Makefile -o -name '*.mk' | while read -r mf; do
             sed -i \
                 -e "s|-m32||g" \
+                -e "s|-static||g" \
                 -e "s|^\(CC\s*=\s*\)gcc|\1$CC|" \
                 -e "s|^\(CC\s*=\s*\)/usr[^ ]*/gcc|\1$CC|" \
                 "$mf"
@@ -204,12 +206,22 @@ build_lava() {
         local bin_path=""
         case "$name" in
             file)
-                # file uses autotools/libtool.  Re-configure for a clean
-                # 64-bit build with static libmagic (so SymCC instruments
-                # the library code, not just the thin CLI wrapper).
-                CC="$CC" CFLAGS="-O2" ./configure --quiet --disable-shared 2>/dev/null && \
-                    make -j$(nproc) 2>/dev/null
-                bin_path="$bin_rel"
+                # file uses autotools/libtool.  Re-configure from scratch
+                # with --disable-shared so libmagic is statically linked
+                # and SymCC-instrumented.
+                make distclean 2>/dev/null || true
+                if CC="$CC" CFLAGS="-O2" ./configure --quiet --disable-shared; then
+                    make -j$(nproc)
+                else
+                    warn "    file: configure failed, trying make with patched Makefile"
+                    make CC="$CC" -j$(nproc)
+                fi
+                # libtool: real binary is in .libs/
+                if [ -f "src/.libs/file" ]; then
+                    bin_path="src/.libs/file"
+                elif [ -f "src/file" ]; then
+                    bin_path="src/file"
+                fi
                 # Copy magic database alongside binary
                 if [ -f "magic/magic.mgc" ]; then
                     cp magic/magic.mgc "$BUILD_DIR/lava/magic.mgc"
@@ -218,7 +230,7 @@ build_lava() {
             *)
                 # All other LAVA-M targets use simple Makefiles.
                 # CC= on the command line overrides the Makefile variable.
-                make CC="$CC" -j$(nproc) 2>/dev/null
+                make CC="$CC" -j$(nproc)
                 bin_path="$bin_rel"
                 ;;
         esac
