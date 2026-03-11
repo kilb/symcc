@@ -185,8 +185,10 @@ build_lava() {
                     # is statically linked and SymCC-instrumented (otherwise
                     # file links to system libmagic compiled with gcc = no
                     # symbolic execution).
-                    CC="$CC" ./configure --quiet --disable-shared 2>/dev/null && make -j$(nproc) 2>/dev/null
-                    bin_path="src/file"
+                    CC="$CC" CFLAGS="-O2" ./configure --quiet --disable-shared 2>/dev/null && make -j$(nproc) 2>/dev/null
+                    # Use .libs/file (the real ELF binary), not src/file
+                    # (which is a libtool wrapper shell script).
+                    bin_path="src/.libs/file"
                     # Copy magic database alongside binary
                     if [ -f "magic/magic.mgc" ]; then
                         cp magic/magic.mgc "$BUILD_DIR/lava/magic.mgc"
