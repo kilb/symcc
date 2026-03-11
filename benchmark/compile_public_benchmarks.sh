@@ -139,26 +139,38 @@ build_lava() {
 
     local built=0
 
-    # LAVA-M target definitions: name, build_dir_name, binary_path
-    # Each build_* directory has a pre-extracted, pre-configured source
-    # tree with Makefiles.  We override CC and strip -m32.
-    #
-    # Target table:  target_name  subdir_inside_build_dir  binary_path
+    # LAVA-M target definitions: name, expected_binary_path
+    # Each build_<name>/ directory has a pre-extracted, pre-configured
+    # source tree.  We auto-discover the subdirectory inside build_*.
     local targets=(
-        "file:build_file/file-5.30:src/.libs/file"
-        "jq:build_jq/jq-1.6:src/jq"
-        "grep:build_grep/grep-3.1:src/grep"
-        "duktape:build_duktape/duktape-2.3.0:src/duk"
-        "libyaml:build_libyaml/libyaml:src/libyaml"
-        "blecho:build_blecho/blecho:blecho"
+        "file:src/.libs/file"
+        "jq:src/jq"
+        "grep:src/grep"
+        "duktape:src/duk"
+        "libyaml:src/libyaml"
+        "blecho:blecho"
     )
 
     for entry in "${targets[@]}"; do
-        IFS=: read -r name rel_dir bin_rel <<< "$entry"
-        local src_dir="$lava_m_dir/$rel_dir"
+        IFS=: read -r name bin_rel <<< "$entry"
 
-        if [ ! -d "$src_dir" ]; then
-            warn "  $name: source dir not found at $src_dir"
+        # Find the build directory: try build_<name>, then build_<name>_64
+        local build_parent=""
+        for candidate in "$lava_m_dir/build_${name}" "$lava_m_dir/build_${name}_64"; do
+            if [ -d "$candidate" ]; then
+                build_parent="$candidate"
+                break
+            fi
+        done
+        if [ -z "$build_parent" ]; then
+            warn "  $name: build directory not found (expected build_${name}/)"
+            continue
+        fi
+
+        # Auto-discover the source subdirectory (first child dir)
+        local src_dir=$(find "$build_parent" -mindepth 1 -maxdepth 1 -type d | head -1)
+        if [ -z "$src_dir" ]; then
+            warn "  $name: no source subdirectory in $build_parent"
             continue
         fi
 
