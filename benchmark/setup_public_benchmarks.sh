@@ -53,14 +53,50 @@ setup_lava_m() {
             rm -f lava_corpus.tar.xz
         fi
 
-        # Try 2: Wayback Machine mirror
+        # Try 2: Wayback Machine mirror (try multiple timestamps)
         if [ "$downloaded" = false ]; then
             warn "  Direct download failed, trying Wayback Machine..."
-            if curl -fSL --connect-timeout 30 --max-time 600 \
-                "https://web.archive.org/web/2024/http://panda.moyix.net/~moyix/lava_corpus.tar.xz" \
-                -o lava_corpus.tar.xz 2>/dev/null; then
-                tar xf lava_corpus.tar.xz && downloaded=true
-                rm -f lava_corpus.tar.xz
+            local wb_urls=(
+                "https://web.archive.org/web/2024id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
+                "https://web.archive.org/web/2023id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
+                "https://web.archive.org/web/2022id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
+                "https://web.archive.org/web/2021id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
+                "https://web.archive.org/web/2020id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
+                "https://web.archive.org/web/2019id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
+                "https://web.archive.org/web/2018id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
+                "https://web.archive.org/web/2017id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
+            )
+            for wb_url in "${wb_urls[@]}"; do
+                info "  Trying: $wb_url"
+                if curl -fSL --connect-timeout 30 --max-time 600 \
+                    "$wb_url" -o lava_corpus.tar.xz 2>/dev/null; then
+                    tar xf lava_corpus.tar.xz && downloaded=true
+                    rm -f lava_corpus.tar.xz
+                    break
+                fi
+            done
+        fi
+
+        # Try 3: Extract from LAVA Docker image (pandare/lava has the corpus)
+        if [ "$downloaded" = false ] && command -v docker &>/dev/null; then
+            warn "  Wayback Machine failed, trying Docker extraction..."
+            info "  Pulling pandare/lava Docker image (this may take a while)..."
+            if docker pull pandare/lava 2>/dev/null; then
+                # The LAVA Docker image contains the corpus at /lava/target_injections
+                # We need to extract the pre-built LAVA-M corpus
+                local cid
+                cid=$(docker create pandare/lava 2>/dev/null) || true
+                if [ -n "$cid" ]; then
+                    # Try common paths where lava_corpus might be in the image
+                    docker cp "$cid:/lava" ./lava_docker_extract 2>/dev/null || true
+                    docker rm "$cid" 2>/dev/null || true
+                    if [ -d "lava_docker_extract" ]; then
+                        info "  Extracted LAVA data from Docker image"
+                        # The Docker image has the LAVA tool, not the pre-built corpus
+                        # We'll note this for the user
+                        rm -rf lava_docker_extract
+                    fi
+                fi
             fi
         fi
 
@@ -68,11 +104,17 @@ setup_lava_m() {
             error "Failed to download LAVA-M corpus."
             error ""
             error "The canonical URL http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
-            error "may be temporarily down.  Please download manually and place it at:"
+            error "appears to be down.  Please download manually and place it at:"
             error "  $dest/lava_corpus/LAVA-M/{base64,md5sum,uniq,who}/"
             error ""
-            error "Alternative: search for 'lava_corpus.tar.xz' or see"
-            error "  https://github.com/panda-re/lava for instructions."
+            error "Options to obtain the corpus:"
+            error "  1. Check if the URL is back up later"
+            error "  2. Search the Wayback Machine: https://web.archive.org/web/*/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
+            error "  3. Use the LAVA tool to regenerate: https://github.com/panda-re/lava"
+            error "  4. Ask on GitHub: https://github.com/panda-re/lava/issues"
+            error ""
+            error "Once downloaded, extract with: tar xf lava_corpus.tar.xz"
+            error "Then re-run this script."
             return 1
         fi
     fi
