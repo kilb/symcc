@@ -122,171 +122,98 @@ build_cgc() {
 }
 
 ############################################################
-# LAVA-M targets  (file, jq, grep, duktape, libyaml)
-# Source: https://github.com/panda-re/lava
-# Pre-extracted source trees in public/lava-m/build_*
+# LAVA-M targets  (base64, md5sum, uniq, who)
+# Source: https://github.com/moyix/lava-m-corpus
+# GNU coreutils 8.24 with injected bugs
 ############################################################
 build_lava() {
-    # Find the LAVA-M directory.  The pre-extracted build_* source trees
-    # may live under public/lava-m/, public/lava/, or public/lava-m/lava/.
-    local lava_m_dir=""
-    for candidate in "$PUBLIC_DIR/lava-m" "$PUBLIC_DIR/lava" "$PUBLIC_DIR/lava-m/lava"; do
-        # Check for at least one build_* subdirectory
-        if ls "$candidate"/build_* 1>/dev/null 2>&1; then
-            lava_m_dir="$candidate"
+    # Locate the LAVA-M corpus (coreutils with injected bugs).
+    # Expected layout: public/lava-m/lava_corpus/LAVA-M/{base64,md5sum,uniq,who}/
+    local corpus_dir=""
+    for candidate in \
+        "$PUBLIC_DIR/lava-m/lava_corpus/LAVA-M" \
+        "$PUBLIC_DIR/lava-m/LAVA-M" \
+        "$PUBLIC_DIR/lava_corpus/LAVA-M"; do
+        if [ -d "$candidate/base64" ] || [ -d "$candidate/uniq" ]; then
+            corpus_dir="$candidate"
             break
         fi
     done
-    if [ -z "$lava_m_dir" ]; then
-        error "LAVA-M not found.  Expected build_* directories under one of:"
-        error "  $PUBLIC_DIR/lava-m/"
-        error "  $PUBLIC_DIR/lava/"
-        error "Run: ./setup_public_benchmarks.sh --lava"
+    if [ -z "$corpus_dir" ]; then
+        error "LAVA-M corpus not found (base64, md5sum, uniq, who)."
+        error "Run: ./setup_public_benchmarks.sh --lava-m"
         return 1
     fi
 
-    info "Building LAVA-M targets from $lava_m_dir with CC=$CC ..."
-    mkdir -p "$BUILD_DIR/lava" "$SEEDS_DIR/lava"
+    info "Building LAVA-M targets from $corpus_dir with CC=$CC ..."
+    mkdir -p "$BUILD_DIR/lava-m" "$SEEDS_DIR/lava-m"
 
     local built=0
 
-    # LAVA-M target definitions: name, expected_binary_path
-    # Each build_<name>/ directory has a pre-extracted, pre-configured
-    # source tree.  We auto-discover the subdirectory inside build_*.
-    local targets=(
-        "file:src/.libs/file"
-        "jq:src/jq"
-        "grep:src/grep"
-        "duktape:src/duk"
-        "libyaml:src/libyaml"
-    )
-
-    for entry in "${targets[@]}"; do
-        IFS=: read -r name bin_rel <<< "$entry"
-
-        # Find the build directory: try build_<name>, then build_<name>_64
-        local build_parent=""
-        for candidate in "$lava_m_dir/build_${name}" "$lava_m_dir/build_${name}_64"; do
-            if [ -d "$candidate" ]; then
-                build_parent="$candidate"
+    for prog in base64 md5sum uniq who; do
+        # Each program has its own coreutils-8.24-lava-safe source tree
+        local src_dir=""
+        for d in "$corpus_dir/$prog"/coreutils-*; do
+            if [ -d "$d" ]; then
+                src_dir="$d"
                 break
             fi
         done
-        if [ -z "$build_parent" ]; then
-            warn "  $name: build directory not found (expected build_${name}/)"
-            continue
-        fi
-
-        # Auto-discover the source subdirectory (first child dir)
-        local src_dir=$(find "$build_parent" -mindepth 1 -maxdepth 1 -type d | head -1)
         if [ -z "$src_dir" ]; then
-            warn "  $name: no source subdirectory in $build_parent"
+            warn "  $prog: source tree not found in $corpus_dir/$prog/"
             continue
         fi
 
-        info "  Building $name ..."
-
-        # Clean previous build artifacts
+        info "  Building $prog ..."
         cd "$src_dir"
-        make clean 2>/dev/null || true
-
-        # Patch Makefiles: strip -m32 and -static (SymCC runtime is a
-        # shared library), and replace hardcoded gcc with our compiler.
-        find . -name Makefile -o -name '*.mk' | while read -r mf; do
-            sed -i \
-                -e "s|-m32||g" \
-                -e "s|-static||g" \
-                -e "s|^\(CC\s*=\s*\)gcc|\1$CC|" \
-                -e "s|^\(CC\s*=\s*\)/usr[^ ]*/gcc|\1$CC|" \
-                "$mf"
-        done
 
         set +e
-        local bin_path=""
-        case "$name" in
-            file)
-                # file uses autotools/libtool.  Re-configure from scratch
-                # with --disable-shared so libmagic is statically linked
-                # and SymCC-instrumented.
-                make distclean 2>/dev/null || true
-                if CC="$CC" CFLAGS="-O2" ./configure --quiet --disable-shared; then
-                    make -j$(nproc)
-                else
-                    warn "    file: configure failed, trying make with patched Makefile"
-                    make CC="$CC" -j$(nproc)
-                fi
-                # libtool: real binary is in .libs/
-                if [ -f "src/.libs/file" ]; then
-                    bin_path="src/.libs/file"
-                elif [ -f "src/file" ]; then
-                    bin_path="src/file"
-                fi
-                # Copy magic database alongside binary
-                if [ -f "magic/magic.mgc" ]; then
-                    cp magic/magic.mgc "$BUILD_DIR/lava/magic.mgc"
-                fi
-                ;;
-            *)
-                # All other LAVA-M targets use simple Makefiles.
-                # CC= on the command line overrides the Makefile variable.
-                make CC="$CC" -j$(nproc)
-                bin_path="$bin_rel"
-                ;;
-        esac
-        set -e
-
-        # Check if we got a binary
-        if [ -n "$bin_path" ] && [ -f "$bin_path" ]; then
-            cp "$bin_path" "$BUILD_DIR/lava/${name}"
-            built=$((built + 1))
-            info "    -> $name built successfully"
-        else
-            # Fallback: search for an executable with the target name
-            local found=$(find . -maxdepth 3 -name "$name" -type f -executable 2>/dev/null | head -1)
-            if [ -z "$found" ]; then
-                found=$(find . -maxdepth 3 -name "duk" -type f -executable 2>/dev/null | head -1)
-            fi
-            if [ -n "$found" ]; then
-                cp "$found" "$BUILD_DIR/lava/${name}"
-                built=$((built + 1))
-                info "    -> $name built successfully (at $found)"
-            else
-                warn "    $name: no binary found"
-            fi
+        # coreutils uses autotools.  If already configured, clean and
+        # re-configure with our compiler.
+        if [ -f Makefile ]; then
+            make distclean 2>/dev/null || make clean 2>/dev/null || true
         fi
 
-        # Create seeds (target-specific where needed)
-        mkdir -p "$SEEDS_DIR/lava/$name"
-        case "$name" in
-            file)
-                # file: use ELF header and a text file as seeds
-                printf '\x7fELF\x02\x01\x01\x00' > "$SEEDS_DIR/lava/$name/seed_01"
-                head -c 56 /dev/urandom >> "$SEEDS_DIR/lava/$name/seed_01" 2>/dev/null
-                echo '#!/bin/sh' > "$SEEDS_DIR/lava/$name/seed_02"
-                printf '\x89PNG\r\n\x1a\n' > "$SEEDS_DIR/lava/$name/seed_03"
-                head -c 64 /dev/urandom >> "$SEEDS_DIR/lava/$name/seed_03" 2>/dev/null
-                ;;
-            jq)
-                echo '{"a":1,"b":[2,3]}' > "$SEEDS_DIR/lava/$name/seed_01"
-                echo '[1,2,3]' > "$SEEDS_DIR/lava/$name/seed_02"
-                echo '"hello"' > "$SEEDS_DIR/lava/$name/seed_03"
-                ;;
-            grep)
-                echo 'hello world' > "$SEEDS_DIR/lava/$name/seed_01"
-                printf 'line1\nline2\nline3\n' > "$SEEDS_DIR/lava/$name/seed_02"
-                head -c 128 /dev/urandom > "$SEEDS_DIR/lava/$name/seed_03" 2>/dev/null || true
-                ;;
-            *)
-                echo "test input" > "$SEEDS_DIR/lava/$name/seed_01"
-                printf 'AAAAAAAAAAAAAAAA' > "$SEEDS_DIR/lava/$name/seed_02"
-                head -c 128 /dev/urandom > "$SEEDS_DIR/lava/$name/seed_03" 2>/dev/null || true
-                ;;
-        esac
+        # Configure with SymCC
+        if [ -f configure ]; then
+            CC="$CC" CFLAGS="-O2" ./configure --quiet 2>&1 | tail -5
+        else
+            warn "    $prog: no configure script found"
+            set -e
+            cd "$SCRIPT_DIR"
+            continue
+        fi
+
+        # Build only the target program (not all of coreutils)
+        make -j$(nproc) -C src "$prog" 2>&1 | tail -5
+        set -e
+
+        # Check for binary
+        if [ -f "src/$prog" ]; then
+            cp "src/$prog" "$BUILD_DIR/lava-m/${prog}"
+            built=$((built + 1))
+            info "    -> $prog built successfully"
+        else
+            warn "    $prog: binary not found at src/$prog"
+        fi
+
+        # Copy seeds from the corpus (fuzzer_input/)
+        mkdir -p "$SEEDS_DIR/lava-m/$prog"
+        local seed_src="$corpus_dir/$prog/fuzzer_input"
+        if [ -d "$seed_src" ]; then
+            cp "$seed_src"/* "$SEEDS_DIR/lava-m/$prog/" 2>/dev/null || true
+            local nseed=$(ls "$SEEDS_DIR/lava-m/$prog" 2>/dev/null | wc -l)
+            info "    Seeds: $nseed files from corpus"
+        else
+            # Generate basic seeds
+            echo "test input data" > "$SEEDS_DIR/lava-m/$prog/seed_01"
+            printf 'AAAAAAAAAAAAAAAA' > "$SEEDS_DIR/lava-m/$prog/seed_02"
+        fi
 
         cd "$SCRIPT_DIR"
     done
 
-    info "LAVA: built $built targets"
+    info "LAVA-M: built $built / 4 targets"
 }
 
 ############################################################
@@ -452,7 +379,7 @@ usage() {
     echo "  --compiler CC   C compiler to use (default: gcc, or use 'symcc')"
     echo "  --all           Build all available benchmarks"
     echo "  --cgc           Build CGC cb-multios challenges"
-    echo "  --lava          Build LAVA-M target programs (from public/lava-m/)"
+    echo "  --lava          Build LAVA-M coreutils (base64, md5sum, uniq, who)"
     echo "  --google-fts    Build Google fuzzer-test-suite"
     echo ""
     echo "Output:"
