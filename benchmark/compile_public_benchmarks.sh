@@ -122,133 +122,81 @@ build_cgc() {
 }
 
 ############################################################
-# LAVA targets  (file, jq, grep, pcre2, etc.)
+# LAVA-M targets  (file, jq, grep, duktape, libyaml, blecho)
 # Source: https://github.com/panda-re/lava
-# Real programs with injectable bugs
+# Pre-extracted source trees in public/lava-m/build_*
 ############################################################
 build_lava() {
-    # Support both directory layouts:
-    #   public/lava/          (from: setup_public_benchmarks.sh --lava)
-    #   public/lava-m/lava/   (legacy layout)
-    local lava_dir=""
-    if [ -d "$PUBLIC_DIR/lava/target_bins" ]; then
-        lava_dir="$PUBLIC_DIR/lava"
-    elif [ -d "$PUBLIC_DIR/lava-m/lava/target_bins" ]; then
-        lava_dir="$PUBLIC_DIR/lava-m/lava"
-    else
-        error "LAVA not found. Expected at:"
-        error "  $PUBLIC_DIR/lava/            (run: ./setup_public_benchmarks.sh --lava)"
-        error "  $PUBLIC_DIR/lava-m/lava/     (run: cd $PUBLIC_DIR/lava-m && git clone --depth 1 https://github.com/panda-re/lava.git)"
+    local lava_m_dir="$PUBLIC_DIR/lava-m"
+    if [ ! -d "$lava_m_dir" ]; then
+        error "LAVA-M not found at $lava_m_dir"
+        error "Run: ./setup_public_benchmarks.sh --lava"
         return 1
     fi
 
-    info "Building LAVA targets from $lava_dir with CC=$CC ..."
+    info "Building LAVA-M targets from $lava_m_dir with CC=$CC ..."
     mkdir -p "$BUILD_DIR/lava" "$SEEDS_DIR/lava"
 
     local built=0
-    local target_bins_dir="$lava_dir/target_bins"
 
-    # Build from tarballs.
-    # Each target is built in a subshell so that a single build failure
-    # (e.g. blecho needing -m32 which SymCC doesn't support) does not
-    # abort the entire script via set -e.
-    for tarball in "$target_bins_dir"/*.tar.gz; do
-        if [ ! -f "$tarball" ]; then continue; fi
-        local name=$(basename "$tarball" .tar.gz | sed 's/-[0-9].*//; s/-pre$//')
-        info "  Extracting and building $name ..."
+    # LAVA-M target definitions: name, build_dir_name, binary_path
+    # Each build_* directory has a pre-extracted, pre-configured source
+    # tree with Makefiles.  We override CC and strip -m32.
+    #
+    # Target table:  target_name  subdir_inside_build_dir  binary_path
+    local targets=(
+        "file:build_file/file-5.30:src/.libs/file"
+        "jq:build_jq/jq-1.6:src/jq"
+        "grep:build_grep/grep-3.1:src/grep"
+        "duktape:build_duktape/duktape-2.3.0:src/duk"
+        "libyaml:build_libyaml/libyaml:src/libyaml"
+        "blecho:build_blecho/blecho:blecho"
+    )
 
-        local work="$lava_dir/build_$name"
-        rm -rf "$work"
-        mkdir -p "$work"
+    for entry in "${targets[@]}"; do
+        IFS=: read -r name rel_dir bin_rel <<< "$entry"
+        local src_dir="$lava_m_dir/$rel_dir"
 
-        # Extract
-        tar xzf "$tarball" -C "$work" 2>/dev/null || { warn "  Failed to extract $tarball"; continue; }
-
-        # Find the extracted directory
-        local src_dir=$(find "$work" -mindepth 1 -maxdepth 1 -type d | head -1)
-        if [ -z "$src_dir" ]; then
-            warn "  No source directory found for $name"
+        if [ ! -d "$src_dir" ]; then
+            warn "  $name: source dir not found at $src_dir"
             continue
         fi
 
-        cd "$src_dir"
+        info "  Building $name ..."
 
-        # Try to build. Temporarily disable set -e so a single target
-        # failure doesn't abort the entire script (e.g. blecho's -m32
-        # flag is incompatible with SymCC 64-bit).
-        local bin_path=""
+        # Clean previous build artifacts
+        cd "$src_dir"
+        make clean 2>/dev/null || true
+
+        # Patch Makefiles: strip -m32 and replace hardcoded gcc with $CC.
+        find . -name Makefile -o -name '*.mk' | while read -r mf; do
+            sed -i \
+                -e "s|-m32||g" \
+                -e "s|^\(CC\s*=\s*\)gcc|\1$CC|" \
+                -e "s|^\(CC\s*=\s*\)/usr[^ ]*/gcc|\1$CC|" \
+                "$mf"
+        done
+
         set +e
+        local bin_path=""
         case "$name" in
             file)
-                if [ -f configure ]; then
-                    # Static libmagic: --disable-shared ensures libmagic code
-                    # is statically linked and SymCC-instrumented (otherwise
-                    # file links to system libmagic compiled with gcc = no
-                    # symbolic execution).
-                    CC="$CC" CFLAGS="-O2" ./configure --quiet --disable-shared 2>/dev/null && make -j$(nproc) 2>/dev/null
-                    # Use .libs/file (the real ELF binary), not src/file
-                    # (which is a libtool wrapper shell script).
-                    bin_path="src/.libs/file"
-                    # Copy magic database alongside binary
-                    if [ -f "magic/magic.mgc" ]; then
-                        cp magic/magic.mgc "$BUILD_DIR/lava/magic.mgc"
-                    fi
-                fi
-                ;;
-            jq)
-                if [ -f configure ]; then
-                    CC="$CC" ./configure --quiet --disable-maintainer-mode 2>/dev/null && make -j$(nproc) 2>/dev/null
-                    bin_path="jq"
-                elif [ -f Makefile ]; then
-                    CC="$CC" make -j$(nproc) 2>/dev/null
-                    bin_path="jq"
-                fi
-                ;;
-            grep)
-                if [ -f configure ]; then
-                    CC="$CC" ./configure --quiet 2>/dev/null && make -j$(nproc) 2>/dev/null
-                    bin_path="src/grep"
-                fi
-                ;;
-            pcre2)
-                if [ -f configure ]; then
-                    CC="$CC" ./configure --quiet 2>/dev/null && make -j$(nproc) 2>/dev/null
-                    bin_path="pcre2grep"
-                elif [ -f CMakeLists.txt ]; then
-                    mkdir -p build && cd build
-                    CC="$CC" cmake .. 2>/dev/null && make -j$(nproc) 2>/dev/null
-                    bin_path="pcre2grep"
-                    cd ..
-                fi
-                ;;
-            duktape)
-                if [ -f Makefile ]; then
-                    CC="$CC" make -j$(nproc) 2>/dev/null
-                    bin_path="duk"
-                fi
-                ;;
-            libyaml)
-                if [ -f configure ]; then
-                    CC="$CC" ./configure --quiet 2>/dev/null && make -j$(nproc) 2>/dev/null
-                    bin_path="tests/run-parser"
-                elif [ -f CMakeLists.txt ]; then
-                    mkdir -p build && cd build
-                    CC="$CC" cmake .. 2>/dev/null && make -j$(nproc) 2>/dev/null
-                    bin_path="tests/run-parser"
-                    cd ..
+                # file uses autotools/libtool.  Re-configure for a clean
+                # 64-bit build with static libmagic (so SymCC instruments
+                # the library code, not just the thin CLI wrapper).
+                CC="$CC" CFLAGS="-O2" ./configure --quiet --disable-shared 2>/dev/null && \
+                    make -j$(nproc) 2>/dev/null
+                bin_path="$bin_rel"
+                # Copy magic database alongside binary
+                if [ -f "magic/magic.mgc" ]; then
+                    cp magic/magic.mgc "$BUILD_DIR/lava/magic.mgc"
                 fi
                 ;;
             *)
-                # Generic: try configure && make
-                if [ -f configure ]; then
-                    CC="$CC" ./configure --quiet 2>/dev/null && make -j$(nproc) 2>/dev/null
-                elif [ -f CMakeLists.txt ]; then
-                    mkdir -p build && cd build
-                    CC="$CC" cmake .. 2>/dev/null && make -j$(nproc) 2>/dev/null
-                    cd ..
-                elif [ -f Makefile ]; then
-                    CC="$CC" make -j$(nproc) 2>/dev/null
-                fi
+                # All other LAVA-M targets use simple Makefiles.
+                # CC= on the command line overrides the Makefile variable.
+                make CC="$CC" -j$(nproc) 2>/dev/null
+                bin_path="$bin_rel"
                 ;;
         esac
         set -e
@@ -259,12 +207,15 @@ build_lava() {
             built=$((built + 1))
             info "    -> $name built successfully"
         else
-            # Try to find any executable
+            # Fallback: search for an executable with the target name
             local found=$(find . -maxdepth 3 -name "$name" -type f -executable 2>/dev/null | head -1)
+            if [ -z "$found" ]; then
+                found=$(find . -maxdepth 3 -name "duk" -type f -executable 2>/dev/null | head -1)
+            fi
             if [ -n "$found" ]; then
                 cp "$found" "$BUILD_DIR/lava/${name}"
                 built=$((built + 1))
-                info "    -> $name built successfully"
+                info "    -> $name built successfully (at $found)"
             else
                 warn "    $name: no binary found"
             fi
@@ -273,19 +224,6 @@ build_lava() {
         # Create seeds (target-specific where needed)
         mkdir -p "$SEEDS_DIR/lava/$name"
         case "$name" in
-            toy)
-                # toy expects a binary format: magic(LAVA) + header + records
-                python3 -c "
-import struct
-magic = 0x4c415641  # 'LAVA'
-hdr = struct.pack('<IIHHI', magic, 0, 1, 0, 1234567890)
-entry = b'hello world\x00\x00\x00\x00\x00' + struct.pack('<If', 1, 3.14)
-open('$SEEDS_DIR/lava/$name/seed_01', 'wb').write(hdr + entry)
-hdr2 = struct.pack('<IIHHI', magic, 0, 2, 0, 9999)
-entry2 = b'second entry\x00\x00\x00\x00' + struct.pack('<II', 2, 42)
-open('$SEEDS_DIR/lava/$name/seed_02', 'wb').write(hdr2 + entry + entry2)
-" 2>/dev/null
-                ;;
             file)
                 # file: use ELF header and a text file as seeds
                 printf '\x7fELF\x02\x01\x01\x00' > "$SEEDS_DIR/lava/$name/seed_01"
@@ -293,6 +231,16 @@ open('$SEEDS_DIR/lava/$name/seed_02', 'wb').write(hdr2 + entry + entry2)
                 echo '#!/bin/sh' > "$SEEDS_DIR/lava/$name/seed_02"
                 printf '\x89PNG\r\n\x1a\n' > "$SEEDS_DIR/lava/$name/seed_03"
                 head -c 64 /dev/urandom >> "$SEEDS_DIR/lava/$name/seed_03" 2>/dev/null
+                ;;
+            jq)
+                echo '{"a":1,"b":[2,3]}' > "$SEEDS_DIR/lava/$name/seed_01"
+                echo '[1,2,3]' > "$SEEDS_DIR/lava/$name/seed_02"
+                echo '"hello"' > "$SEEDS_DIR/lava/$name/seed_03"
+                ;;
+            grep)
+                echo 'hello world' > "$SEEDS_DIR/lava/$name/seed_01"
+                printf 'line1\nline2\nline3\n' > "$SEEDS_DIR/lava/$name/seed_02"
+                head -c 128 /dev/urandom > "$SEEDS_DIR/lava/$name/seed_03" 2>/dev/null || true
                 ;;
             *)
                 echo "test input" > "$SEEDS_DIR/lava/$name/seed_01"
@@ -470,7 +418,7 @@ usage() {
     echo "  --compiler CC   C compiler to use (default: gcc, or use 'symcc')"
     echo "  --all           Build all available benchmarks"
     echo "  --cgc           Build CGC cb-multios challenges"
-    echo "  --lava          Build LAVA target programs"
+    echo "  --lava          Build LAVA-M target programs (from public/lava-m/)"
     echo "  --google-fts    Build Google fuzzer-test-suite"
     echo ""
     echo "Output:"
