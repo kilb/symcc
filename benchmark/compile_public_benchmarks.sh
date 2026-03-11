@@ -122,7 +122,7 @@ build_cgc() {
 }
 
 ############################################################
-# LAVA-M targets  (file, jq, grep, duktape, libyaml, blecho)
+# LAVA-M targets  (file, jq, grep, duktape, libyaml)
 # Source: https://github.com/panda-re/lava
 # Pre-extracted source trees in public/lava-m/build_*
 ############################################################
@@ -159,7 +159,6 @@ build_lava() {
         "grep:src/grep"
         "duktape:src/duk"
         "libyaml:src/libyaml"
-        "blecho:blecho"
     )
 
     for entry in "${targets[@]}"; do
