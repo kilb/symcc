@@ -168,13 +168,39 @@ build_lava() {
         cd "$src_dir"
 
         set +e
+
+        # Apply glibc >= 2.28 compatibility patch if needed.
+        # coreutils 8.24 uses internal glibc stdio symbols that were
+        # privatized in glibc 2.28.  See:
+        #   https://lists.gnu.org/archive/html/coreutils/2019-08/msg00011.html
+        if ! grep -q '_IO_EOF_SEEN' lib/freadahead.c 2>/dev/null; then
+            info "    Applying glibc compatibility patch..."
+            for f in lib/freadahead.c lib/freadptr.c lib/freadseek.c \
+                     lib/fseeko.c lib/fseterr.c; do
+                if [ -f "$f" ]; then
+                    sed -i 's/defined _IO_ftrylockfile/defined _IO_EOF_SEEN || defined _IO_ftrylockfile/' "$f"
+                fi
+            done
+            if [ -f lib/mountlist.c ] && ! grep -q 'sys/sysmacros.h' lib/mountlist.c; then
+                sed -i '/#include <stdint.h>/a #include <sys/sysmacros.h>' lib/mountlist.c
+            fi
+            if [ -f lib/stdio-impl.h ] && ! grep -q '_IO_IN_BACKUP' lib/stdio-impl.h; then
+                sed -i '/the same implementation of stdio/a \
+/* Glibc 2.28 made _IO_IN_BACKUP private. */\
+#if !defined _IO_IN_BACKUP \&\& defined _IO_EOF_SEEN\
+# define _IO_IN_BACKUP 0x100\
+#endif' lib/stdio-impl.h
+            fi
+        fi
+
         # coreutils uses autotools.  Clean and re-configure with our compiler.
         if [ -f Makefile ]; then
             make distclean 2>/dev/null || make clean 2>/dev/null || true
         fi
 
         if [ -f configure ]; then
-            CC="$CC" CFLAGS="-O2" ./configure --quiet 2>&1 | tail -5
+            CC="$CC" CFLAGS="-O2" FORCE_UNSAFE_CONFIGURE=1 \
+                ./configure --quiet 2>&1 | tail -5
         else
             warn "    $prog: no configure script found"
             set -e

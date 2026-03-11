@@ -40,21 +40,40 @@ setup_lava_m() {
     mkdir -p "$dest"
     cd "$dest"
 
-    # Try direct tarball download first (no authentication required)
+    # Download the LAVA-M corpus (101 MB tarball with 4 coreutils programs)
     if [ ! -d "lava_corpus" ]; then
+        local downloaded=false
+
+        # Try 1: Direct tarball from the canonical URL
         info "  Trying direct tarball download..."
-        if curl -fsSL "http://panda.moyix.net/~moyix/lava_corpus.tar.xz" -o lava_corpus.tar.xz 2>/dev/null; then
-            tar xf lava_corpus.tar.xz
+        if curl -fSL --connect-timeout 30 --max-time 600 \
+            "http://panda.moyix.net/~moyix/lava_corpus.tar.xz" \
+            -o lava_corpus.tar.xz 2>/dev/null; then
+            tar xf lava_corpus.tar.xz && downloaded=true
             rm -f lava_corpus.tar.xz
-        else
-            warn "  Direct download failed, trying git clone..."
-            GIT_TERMINAL_PROMPT=0 git clone --depth 1 https://github.com/panda-re/lava.git lava_corpus 2>/dev/null || {
-                error "Failed to download LAVA-M corpus."
-                error "Please download manually:"
-                error "  curl -L http://panda.moyix.net/~moyix/lava_corpus.tar.xz | tar xJ"
-                error "  mv lava_corpus $dest/lava_corpus"
-                return 1
-            }
+        fi
+
+        # Try 2: Wayback Machine mirror
+        if [ "$downloaded" = false ]; then
+            warn "  Direct download failed, trying Wayback Machine..."
+            if curl -fSL --connect-timeout 30 --max-time 600 \
+                "https://web.archive.org/web/2024/http://panda.moyix.net/~moyix/lava_corpus.tar.xz" \
+                -o lava_corpus.tar.xz 2>/dev/null; then
+                tar xf lava_corpus.tar.xz && downloaded=true
+                rm -f lava_corpus.tar.xz
+            fi
+        fi
+
+        if [ "$downloaded" = false ]; then
+            error "Failed to download LAVA-M corpus."
+            error ""
+            error "The canonical URL http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
+            error "may be temporarily down.  Please download manually and place it at:"
+            error "  $dest/lava_corpus/LAVA-M/{base64,md5sum,uniq,who}/"
+            error ""
+            error "Alternative: search for 'lava_corpus.tar.xz' or see"
+            error "  https://github.com/panda-re/lava for instructions."
+            return 1
         fi
     fi
 
