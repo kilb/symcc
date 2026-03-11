@@ -24,42 +24,14 @@ warn()  { echo -e "${YELLOW}[WARN]${NC} $*"; }
 error() { echo -e "${RED}[ERROR]${NC} $*"; }
 
 ############################################################
-# 1a. LAVA  (bug injection tool + target programs)
-#     Source: https://github.com/panda-re/lava
-#     Targets: file, jq, grep, pcre2, duktape, libyaml, etc.
-#     Contains target_bins/ with source tarballs
-############################################################
-setup_lava() {
-    local dest="$PUBLIC_DIR/lava"
-    if [ -d "$dest" ] && [ -d "$dest/target_bins" ]; then
-        info "LAVA already downloaded at $dest"
-        return
-    fi
-
-    info "Downloading LAVA (panda-re/lava)..."
-    cd "$PUBLIC_DIR"
-
-    git clone --depth 1 https://github.com/panda-re/lava.git 2>/dev/null || {
-        warn "Git clone failed, trying archive download..."
-        curl -sL https://github.com/panda-re/lava/archive/refs/heads/master.tar.gz | tar xz
-        mv lava-master lava
-    }
-
-    info "LAVA setup complete at $dest"
-    echo "  Target programs (source tarballs in target_bins/):"
-    ls "$dest/target_bins/"*.tar.gz 2>/dev/null | while read f; do echo "    $(basename "$f")"; done
-    echo "  To build: ./compile_public_benchmarks.sh --lava"
-}
-
-############################################################
-# 1b. LAVA-M  (coreutils with injected bugs)
-#     Source: https://github.com/moyix/lava-m-corpus
-#     4 programs: base64, md5sum, uniq, who
-#     Each has a seed input + known bug count
+# 1. LAVA-M  (coreutils with injected bugs)
+#    Source: http://panda.moyix.net/~moyix/lava_corpus.tar.xz
+#    4 programs: base64, md5sum, uniq, who
+#    Each has a seed input + known bug count
 ############################################################
 setup_lava_m() {
     local dest="$PUBLIC_DIR/lava-m"
-    if [ -d "$dest/lava_corpus" ]; then
+    if [ -d "$dest/lava_corpus" ] && [ -d "$dest/lava_corpus/LAVA-M" ]; then
         info "LAVA-M already downloaded at $dest"
         return
     fi
@@ -68,12 +40,66 @@ setup_lava_m() {
     mkdir -p "$dest"
     cd "$dest"
 
-    # Clone the LAVA-M corpus
-    git clone --depth 1 https://github.com/moyix/lava-m-corpus.git lava_corpus 2>/dev/null || {
-        warn "Git clone failed, trying archive download..."
-        curl -sL https://github.com/moyix/lava-m-corpus/archive/refs/heads/main.tar.gz | tar xz
-        mv lava-m-corpus-main lava_corpus
-    }
+    # Download the LAVA-M corpus (101 MB tarball with 4 coreutils programs)
+    if [ ! -d "lava_corpus" ]; then
+        local downloaded=false
+
+        # Try 1: Direct tarball from the canonical URL
+        info "  Trying direct tarball download..."
+        if curl -fSL --connect-timeout 30 --max-time 600 \
+            "http://panda.moyix.net/~moyix/lava_corpus.tar.xz" \
+            -o lava_corpus.tar.xz 2>/dev/null; then
+            tar xf lava_corpus.tar.xz && downloaded=true
+            rm -f lava_corpus.tar.xz
+        fi
+
+        # Try 2: Gitee mirror (community-maintained copy of the full corpus)
+        if [ "$downloaded" = false ]; then
+            warn "  Direct download failed, trying Gitee mirror..."
+            if git clone --depth 1 https://gitee.com/zeroaone/lava_corpus.git 2>/dev/null; then
+                downloaded=true
+                rm -rf lava_corpus/.git  # save space
+            fi
+        fi
+
+        # Try 3: Wayback Machine (try multiple timestamps)
+        if [ "$downloaded" = false ]; then
+            warn "  Gitee mirror failed, trying Wayback Machine..."
+            local wb_urls=(
+                "https://web.archive.org/web/2024id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
+                "https://web.archive.org/web/2023id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
+                "https://web.archive.org/web/2022id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
+                "https://web.archive.org/web/2020id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
+                "https://web.archive.org/web/2018id_/http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
+            )
+            for wb_url in "${wb_urls[@]}"; do
+                info "  Trying: $wb_url"
+                if curl -fSL --connect-timeout 30 --max-time 600 \
+                    "$wb_url" -o lava_corpus.tar.xz 2>/dev/null; then
+                    tar xf lava_corpus.tar.xz && downloaded=true
+                    rm -f lava_corpus.tar.xz
+                    break
+                fi
+            done
+        fi
+
+        if [ "$downloaded" = false ]; then
+            error "Failed to download LAVA-M corpus."
+            error ""
+            error "The canonical URL http://panda.moyix.net/~moyix/lava_corpus.tar.xz"
+            error "appears to be down.  Please download manually and place it at:"
+            error "  $dest/lava_corpus/LAVA-M/{base64,md5sum,uniq,who}/"
+            error ""
+            error "Options to obtain the corpus:"
+            error "  1. Git clone from Gitee: git clone https://gitee.com/zeroaone/lava_corpus.git"
+            error "  2. Check if the canonical URL is back up later"
+            error "  3. Use the LAVA tool to regenerate: https://github.com/panda-re/lava"
+            error "  4. Ask on GitHub: https://github.com/panda-re/lava/issues"
+            error ""
+            error "Once obtained, re-run this script."
+            return 1
+        fi
+    fi
 
     # Create build script
     cat > build_with_symcc.sh << 'BUILDEOF'
@@ -426,20 +452,19 @@ EOF
 ############################################################
 
 usage() {
-    echo "Usage: $0 [--all | --lava | --lava-m | --unibench | --symcc-paper | --fuzzbench | --magma]"
+    echo "Usage: $0 [--all | --lava-m | --unibench | --symcc-paper | --fuzzbench | --magma]"
     echo ""
     echo "Download and set up public benchmark suites for SymCC MPI benchmarking."
     echo ""
     echo "Options:"
     echo "  --all          Download all benchmarks"
-    echo "  --lava         LAVA: target programs (file, jq, grep, pcre2, duktape, etc.)"
     echo "  --lava-m       LAVA-M: 4 coreutils with injected bugs (base64, md5sum, uniq, who)"
     echo "  --unibench     UniBench: 20 real-world programs"
     echo "  --symcc-paper  Programs from the SymCC USENIX paper"
     echo "  --fuzzbench    Google FuzzBench framework"
     echo "  --magma        Magma ground-truth benchmark"
     echo ""
-    echo "Recommended for quick start: $0 --lava --symcc-paper"
+    echo "Recommended for quick start: $0 --lava-m --symcc-paper"
 }
 
 if [ $# -eq 0 ]; then
@@ -450,14 +475,12 @@ fi
 for arg in "$@"; do
     case "$arg" in
         --all)
-            setup_lava
             setup_lava_m
             setup_unibench
             setup_symcc_paper
             setup_fuzzbench
             setup_magma
             ;;
-        --lava)         setup_lava ;;
         --lava-m)       setup_lava_m ;;
         --unibench)     setup_unibench ;;
         --symcc-paper)  setup_symcc_paper ;;

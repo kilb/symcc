@@ -27,6 +27,23 @@ error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 CC="${CC:-gcc}"
 CXX="${CXX:-g++}"
 
+# Auto-detect SymCC if CC is still default gcc
+if [ "$CC" = "gcc" ]; then
+    SYMCC_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+    if [ -x "$SYMCC_ROOT/build/symcc" ]; then
+        CC="$SYMCC_ROOT/build/symcc"
+        CXX="$SYMCC_ROOT/build/sym++"
+        info "Auto-detected SymCC at $CC"
+    elif command -v symcc >/dev/null 2>&1; then
+        CC="symcc"
+        CXX="sym++"
+        info "Auto-detected SymCC in PATH"
+    else
+        warn "SymCC not found, using gcc (simulation mode only)"
+        warn "For real symbolic execution, build SymCC first or use: --compiler /path/to/symcc"
+    fi
+fi
+
 ############################################################
 # CGC cb-multios  (243 challenge binaries)
 # Source: https://github.com/trailofbits/cb-multios
@@ -105,216 +122,269 @@ build_cgc() {
 }
 
 ############################################################
-# LAVA targets  (file, jq, grep, pcre2, etc.)
-# Source: https://github.com/panda-re/lava
-# Real programs with injectable bugs
+# LAVA-M targets  (base64, md5sum, uniq, who)
+# Source: http://panda.moyix.net/~moyix/lava_corpus.tar.xz
+# GNU coreutils 8.24 with injected bugs
 ############################################################
 build_lava() {
-    # Support both directory layouts:
-    #   public/lava/          (from: setup_public_benchmarks.sh --lava)
-    #   public/lava-m/lava/   (legacy layout)
-    local lava_dir=""
-    if [ -d "$PUBLIC_DIR/lava/target_bins" ]; then
-        lava_dir="$PUBLIC_DIR/lava"
-    elif [ -d "$PUBLIC_DIR/lava-m/lava/target_bins" ]; then
-        lava_dir="$PUBLIC_DIR/lava-m/lava"
-    else
-        error "LAVA not found. Expected at:"
-        error "  $PUBLIC_DIR/lava/            (run: ./setup_public_benchmarks.sh --lava)"
-        error "  $PUBLIC_DIR/lava-m/lava/     (run: cd $PUBLIC_DIR/lava-m && git clone --depth 1 https://github.com/panda-re/lava.git)"
+    # Locate the LAVA-M corpus.
+    # Expected layout: .../LAVA-M/{base64,md5sum,uniq,who}/coreutils-8.24-lava-safe/
+    local corpus_dir=""
+    for candidate in \
+        "$PUBLIC_DIR/lava-m/lava_corpus/LAVA-M" \
+        "$PUBLIC_DIR/lava-m/LAVA-M" \
+        "$PUBLIC_DIR/lava_corpus/LAVA-M"; do
+        if [ -d "$candidate/base64" ] || [ -d "$candidate/uniq" ]; then
+            corpus_dir="$candidate"
+            break
+        fi
+    done
+    if [ -z "$corpus_dir" ]; then
+        error "LAVA-M corpus not found (base64, md5sum, uniq, who)."
+        error "Run: ./setup_public_benchmarks.sh --lava-m"
         return 1
     fi
 
-    info "Building LAVA targets from $lava_dir with CC=$CC ..."
-    mkdir -p "$BUILD_DIR/lava" "$SEEDS_DIR/lava"
+    info "Building LAVA-M targets from $corpus_dir with CC=$CC ..."
+    mkdir -p "$BUILD_DIR/lava-m" "$SEEDS_DIR/lava-m"
 
     local built=0
-    local target_bins_dir="$lava_dir/target_bins"
 
-    # Build from tarballs
-    for tarball in "$target_bins_dir"/*.tar.gz; do
-        if [ ! -f "$tarball" ]; then continue; fi
-        local name=$(basename "$tarball" .tar.gz | sed 's/-[0-9].*//; s/-pre$//')
-        info "  Extracting and building $name ..."
-
-        local work="$lava_dir/build_$name"
-        rm -rf "$work"
-        mkdir -p "$work"
-
-        # Extract
-        tar xzf "$tarball" -C "$work" 2>/dev/null || { warn "  Failed to extract $tarball"; continue; }
-
-        # Find the extracted directory
-        local src_dir=$(find "$work" -mindepth 1 -maxdepth 1 -type d | head -1)
+    for prog in base64 md5sum uniq who; do
+        # Each program has its own coreutils-8.24-lava-safe source tree
+        local src_dir=""
+        for d in "$corpus_dir/$prog"/coreutils-*; do
+            if [ -d "$d" ]; then
+                src_dir="$d"
+                break
+            fi
+        done
         if [ -z "$src_dir" ]; then
-            warn "  No source directory found for $name"
+            warn "  $prog: source tree not found in $corpus_dir/$prog/"
             continue
         fi
 
+        info "  Building $prog ..."
         cd "$src_dir"
 
-        # Try to build
-        local bin_path=""
-        case "$name" in
-            file)
-                if [ -f configure ]; then
-                    CC="$CC" ./configure --quiet 2>/dev/null && make -j$(nproc) 2>/dev/null
-                    bin_path="src/file"
-                fi
-                ;;
-            jq)
-                if [ -f configure ]; then
-                    CC="$CC" ./configure --quiet --disable-maintainer-mode 2>/dev/null && make -j$(nproc) 2>/dev/null
-                    bin_path="jq"
-                elif [ -f Makefile ]; then
-                    CC="$CC" make -j$(nproc) 2>/dev/null
-                    bin_path="jq"
-                fi
-                ;;
-            grep)
-                if [ -f configure ]; then
-                    CC="$CC" ./configure --quiet 2>/dev/null && make -j$(nproc) 2>/dev/null
-                    bin_path="src/grep"
-                fi
-                ;;
-            pcre2)
-                if [ -f configure ]; then
-                    CC="$CC" ./configure --quiet 2>/dev/null && make -j$(nproc) 2>/dev/null
-                    bin_path="pcre2grep"
-                elif [ -f CMakeLists.txt ]; then
-                    mkdir -p build && cd build
-                    CC="$CC" cmake .. 2>/dev/null && make -j$(nproc) 2>/dev/null
-                    bin_path="pcre2grep"
-                    cd ..
-                fi
-                ;;
-            duktape)
-                if [ -f Makefile ]; then
-                    CC="$CC" make -j$(nproc) 2>/dev/null
-                    bin_path="duk"
-                fi
-                ;;
-            libyaml)
-                if [ -f configure ]; then
-                    CC="$CC" ./configure --quiet 2>/dev/null && make -j$(nproc) 2>/dev/null
-                    bin_path="tests/run-parser"
-                elif [ -f CMakeLists.txt ]; then
-                    mkdir -p build && cd build
-                    CC="$CC" cmake .. 2>/dev/null && make -j$(nproc) 2>/dev/null
-                    bin_path="tests/run-parser"
-                    cd ..
-                fi
-                ;;
-            *)
-                # Generic: try configure && make
-                if [ -f configure ]; then
-                    CC="$CC" ./configure --quiet 2>/dev/null && make -j$(nproc) 2>/dev/null
-                elif [ -f CMakeLists.txt ]; then
-                    mkdir -p build && cd build
-                    CC="$CC" cmake .. 2>/dev/null && make -j$(nproc) 2>/dev/null
-                    cd ..
-                elif [ -f Makefile ]; then
-                    CC="$CC" make -j$(nproc) 2>/dev/null
-                fi
-                ;;
-        esac
+        set +e
 
-        # Check if we got a binary
-        if [ -n "$bin_path" ] && [ -f "$bin_path" ]; then
-            cp "$bin_path" "$BUILD_DIR/lava/${name}"
-            built=$((built + 1))
-            info "    -> $name built successfully"
-        else
-            # Try to find any executable
-            local found=$(find . -maxdepth 3 -name "$name" -type f -executable 2>/dev/null | head -1)
-            if [ -n "$found" ]; then
-                cp "$found" "$BUILD_DIR/lava/${name}"
-                built=$((built + 1))
-                info "    -> $name built successfully"
-            else
-                warn "    $name: no binary found"
+        # Apply glibc >= 2.28 compatibility patch if needed.
+        # coreutils 8.24 uses internal glibc stdio symbols that were
+        # privatized in glibc 2.28.  See:
+        #   https://lists.gnu.org/archive/html/coreutils/2019-08/msg00011.html
+        if ! grep -q '_IO_EOF_SEEN' lib/freadahead.c 2>/dev/null; then
+            info "    Applying glibc compatibility patch..."
+            for f in lib/freadahead.c lib/freadptr.c lib/freadseek.c \
+                     lib/fseeko.c lib/fseterr.c; do
+                if [ -f "$f" ]; then
+                    sed -i 's/defined _IO_ftrylockfile/defined _IO_EOF_SEEN || defined _IO_ftrylockfile/' "$f"
+                fi
+            done
+            if [ -f lib/mountlist.c ] && ! grep -q 'sys/sysmacros.h' lib/mountlist.c; then
+                sed -i '/#include <stdint.h>/a #include <sys/sysmacros.h>' lib/mountlist.c
+            fi
+            if [ -f lib/stdio-impl.h ] && ! grep -q '_IO_IN_BACKUP' lib/stdio-impl.h; then
+                sed -i '/the same implementation of stdio/a \
+/* Glibc 2.28 made _IO_IN_BACKUP private. */\
+#if !defined _IO_IN_BACKUP \&\& defined _IO_EOF_SEEN\
+# define _IO_IN_BACKUP 0x100\
+#endif' lib/stdio-impl.h
             fi
         fi
 
-        # Create seeds
-        mkdir -p "$SEEDS_DIR/lava/$name"
-        echo "test input" > "$SEEDS_DIR/lava/$name/seed_01"
-        printf 'AAAAAAAAAAAAAAAA' > "$SEEDS_DIR/lava/$name/seed_02"
-        head -c 128 /dev/urandom > "$SEEDS_DIR/lava/$name/seed_03" 2>/dev/null || true
+        # coreutils uses autotools.  Clean and re-configure with our compiler.
+        if [ -f Makefile ]; then
+            make distclean 2>/dev/null || make clean 2>/dev/null || true
+        fi
+
+        if [ -f configure ]; then
+            CC="$CC" CFLAGS="-O2" FORCE_UNSAFE_CONFIGURE=1 \
+                ./configure --quiet 2>&1 | tail -5
+        else
+            warn "    $prog: no configure script found"
+            set -e
+            cd "$SCRIPT_DIR"
+            continue
+        fi
+
+        # Build only the target program (not all of coreutils)
+        make -j$(nproc) -C src "$prog" 2>&1 | tail -5
+        set -e
+
+        # Check for binary
+        if [ -f "src/$prog" ]; then
+            cp "src/$prog" "$BUILD_DIR/lava-m/${prog}"
+            built=$((built + 1))
+            info "    -> $prog built successfully"
+        else
+            warn "    $prog: binary not found at src/$prog"
+        fi
+
+        # Copy seeds from the corpus (fuzzer_input/)
+        mkdir -p "$SEEDS_DIR/lava-m/$prog"
+        local seed_src="$corpus_dir/$prog/fuzzer_input"
+        if [ -d "$seed_src" ]; then
+            cp "$seed_src"/* "$SEEDS_DIR/lava-m/$prog/" 2>/dev/null || true
+            local nseed=$(ls "$SEEDS_DIR/lava-m/$prog" 2>/dev/null | wc -l)
+            info "    Seeds: $nseed files from corpus"
+        else
+            echo "test input data" > "$SEEDS_DIR/lava-m/$prog/seed_01"
+            printf 'AAAAAAAAAAAAAAAA' > "$SEEDS_DIR/lava-m/$prog/seed_02"
+        fi
 
         cd "$SCRIPT_DIR"
     done
 
-    info "LAVA: built $built targets"
+    info "LAVA-M: built $built / 4 targets"
 }
 
 ############################################################
-# Google fuzzer-test-suite
-# Source: https://github.com/google/fuzzer-test-suite
-# Real-world targets: freetype, libpng, openssl, etc.
-# These require downloading source from the internet
+# Google fuzzer-test-suite targets
+# Libraries built from source with SymCC for instrumentation,
+# with standalone file-reading harnesses.
+# Requires internet access to download source tarballs.
 ############################################################
 build_google_fts() {
-    local fts_dir="$PUBLIC_DIR/fuzzer-test-suite"
-    if [ ! -d "$fts_dir" ]; then
-        error "Google fuzzer-test-suite not found at $fts_dir"
-        error "Run: cd $PUBLIC_DIR && git clone --depth 1 https://github.com/google/fuzzer-test-suite.git"
-        return 1
-    fi
-
-    info "Building Google fuzzer-test-suite targets..."
-    info "  NOTE: These targets download source from the internet"
+    info "Building Google fuzzer-test-suite targets with CC=$CC ..."
     mkdir -p "$BUILD_DIR/google-fts" "$SEEDS_DIR/google-fts"
 
     local built=0
+    local work_dir="$PUBLIC_DIR/gfts_build"
+    mkdir -p "$work_dir"
 
-    # We build a subset of targets that are well-suited for SymCC
-    # These are standalone C programs that take file input
-    local targets=(
-        "libpng-1.2.56"
-        "libarchive-2017-01-04"
-        "c-ares-CVE-2016-5180"
-        "re2-2014-12-09"
-        "vorbis-2017-12-11"
-        "sqlite-2016-11-14"
-        "libxml2-v2.9.2"
-    )
-
-    for target in "${targets[@]}"; do
-        local target_dir="$fts_dir/$target"
-        if [ ! -d "$target_dir" ]; then
-            warn "  $target directory not found"
-            continue
+    # --- libpng ---
+    build_libpng() {
+        info "  Building libpng ..."
+        cd "$work_dir"
+        local tarball="libpng-1.2.56.tar.gz"
+        if [ ! -f "$tarball" ]; then
+            curl -sL "https://downloads.sourceforge.net/project/libpng/libpng12/older-releases/1.2.56/$tarball" -o "$tarball" || { warn "  Failed to download libpng"; return 1; }
         fi
+        rm -rf libpng-1.2.56
+        tar xf "$tarball"
+        cd libpng-1.2.56
+        CC="$CC" ./configure --quiet --disable-shared 2>/dev/null && make -j$(nproc) 2>/dev/null || { warn "  libpng: make failed"; return 1; }
 
-        info "  Building $target ..."
-        cd "$target_dir"
+        # Create standalone harness
+        cat > /tmp/png_read_fuzzer.c << 'HARNESS_EOF'
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include "png.h"
+struct BufState { const uint8_t *data; size_t bytes_left; };
+static void user_read_data(png_structp p, png_bytep d, png_size_t l) {
+    struct BufState *b = (struct BufState *)png_get_io_ptr(p);
+    if (l > b->bytes_left) png_error(p, "read error");
+    memcpy(d, b->data, l); b->bytes_left -= l; b->data += l;
+}
+int main(int argc, char *argv[]) {
+    if (argc != 2) return 1;
+    FILE *f = fopen(argv[1], "rb"); if (!f) return 1;
+    fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
+    if (sz <= 0 || sz > 10*1024*1024) { fclose(f); return 1; }
+    uint8_t *data = malloc(sz); fread(data, 1, sz, f); fclose(f);
+    if (sz < 8 || png_sig_cmp(data, 0, 8)) { free(data); return 0; }
+    png_structp pp = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    png_infop ip = png_create_info_struct(pp);
+    if (setjmp(png_jmpbuf(pp))) { png_destroy_read_struct(&pp, &ip, NULL); free(data); return 0; }
+    struct BufState bs = { data + 8, sz - 8 };
+    png_set_read_fn(pp, &bs, user_read_data); png_set_sig_bytes(pp, 8);
+    png_read_info(pp, ip);
+    png_uint_32 w, h; int bd, ct;
+    png_get_IHDR(pp, ip, &w, &h, &bd, &ct, NULL, NULL, NULL);
+    if (h * w > 1000000) { png_destroy_read_struct(&pp, &ip, NULL); free(data); return 0; }
+    int passes = png_set_interlace_handling(pp); png_start_read_image(pp);
+    png_bytep row = png_malloc(pp, png_get_rowbytes(pp, ip));
+    for (int p2 = 0; p2 < passes; p2++) for (png_uint_32 y = 0; y < h; y++) png_read_row(pp, row, NULL);
+    png_free(pp, row); png_destroy_read_struct(&pp, &ip, NULL); free(data); return 0;
+}
+HARNESS_EOF
+        "$CC" -O2 /tmp/png_read_fuzzer.c -I . .libs/libpng.a -lz -lm -o "$BUILD_DIR/google-fts/png_read_fuzzer" 2>/dev/null || { warn "  libpng harness link failed"; return 1; }
+        rm -f /tmp/png_read_fuzzer.c
 
-        # These build scripts expect specific env vars
-        export FUZZING_ENGINE="standalone"
-        export LIB_FUZZING_ENGINE=""
-        export EXECUTABLE_NAME_BASE="$BUILD_DIR/google-fts/$target"
-        export SRC="$target_dir/SRC"
-        export JOBS=$(nproc)
-
-        # Try to run the build script
-        if bash build.sh 2>/dev/null; then
-            if [ -f "$BUILD_DIR/google-fts/$target" ]; then
-                built=$((built + 1))
-                info "    -> $target built successfully"
-
-                # Copy seeds
-                if [ -d seeds ]; then
-                    mkdir -p "$SEEDS_DIR/google-fts/$target"
-                    cp seeds/* "$SEEDS_DIR/google-fts/$target/" 2>/dev/null || true
-                fi
-            fi
-        else
-            warn "    $target: build failed"
-        fi
-
+        # Create seeds (minimal valid PNGs)
+        mkdir -p "$SEEDS_DIR/google-fts/png_read_fuzzer"
+        python3 -c "
+import struct, zlib
+sig = b'\x89PNG\r\n\x1a\n'
+ihdr_data = struct.pack('>IIBBBBB', 1, 1, 8, 2, 0, 0, 0)
+ihdr_crc = struct.pack('>I', zlib.crc32(b'IHDR' + ihdr_data) & 0xFFFFFFFF)
+ihdr = struct.pack('>I', 13) + b'IHDR' + ihdr_data + ihdr_crc
+raw = b'\x00\xff\xff\xff'
+compressed = zlib.compress(raw)
+idat_crc = struct.pack('>I', zlib.crc32(b'IDAT' + compressed) & 0xFFFFFFFF)
+idat = struct.pack('>I', len(compressed)) + b'IDAT' + compressed + idat_crc
+iend_crc = struct.pack('>I', zlib.crc32(b'IEND') & 0xFFFFFFFF)
+iend = struct.pack('>I', 0) + b'IEND' + iend_crc
+open('$SEEDS_DIR/google-fts/png_read_fuzzer/seed_01.png', 'wb').write(sig + ihdr + idat + iend)
+# 2x2 RGBA
+ihdr2 = struct.pack('>IIBBBBB', 2, 2, 8, 6, 0, 0, 0)
+ihdr2_crc = struct.pack('>I', zlib.crc32(b'IHDR' + ihdr2) & 0xFFFFFFFF)
+ihdr2_chunk = struct.pack('>I', 13) + b'IHDR' + ihdr2 + ihdr2_crc
+raw2 = b'\x00' + b'\xff\x00\x00\xff' * 2 + b'\x00' + b'\x00\xff\x00\xff' * 2
+c2 = zlib.compress(raw2)
+idat2_crc = struct.pack('>I', zlib.crc32(b'IDAT' + c2) & 0xFFFFFFFF)
+idat2 = struct.pack('>I', len(c2)) + b'IDAT' + c2 + idat2_crc
+open('$SEEDS_DIR/google-fts/png_read_fuzzer/seed_02.png', 'wb').write(sig + ihdr2_chunk + idat2 + iend)
+" 2>/dev/null
+        info "    -> png_read_fuzzer built successfully"
+        built=$((built + 1))
         cd "$SCRIPT_DIR"
-    done
+    }
+
+    # --- libxml2 ---
+    build_libxml2() {
+        info "  Building libxml2 ..."
+        cd "$work_dir"
+        local tarball="libxml2-2.9.2.tar.gz"
+        if [ ! -f "$tarball" ]; then
+            curl -sL "https://github.com/GNOME/libxml2/archive/refs/tags/v2.9.2.tar.gz" -o "$tarball" || { warn "  Failed to download libxml2"; return 1; }
+        fi
+        rm -rf libxml2-2.9.2
+        tar xf "$tarball"
+        cd libxml2-2.9.2
+        autoreconf -fi 2>/dev/null
+        CC="$CC" ./configure --quiet --disable-shared --without-python --without-threads 2>/dev/null && make -j$(nproc) 2>/dev/null || { warn "  libxml2: make failed"; return 1; }
+
+        # Create standalone harness
+        cat > /tmp/xml_read_fuzzer.c << 'HARNESS_EOF'
+#include <stdio.h>
+#include <stdlib.h>
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+int main(int argc, char *argv[]) {
+    if (argc != 2) return 1;
+    FILE *f = fopen(argv[1], "rb"); if (!f) return 1;
+    fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
+    if (sz <= 0 || sz > 1024*1024) { fclose(f); return 1; }
+    char *data = malloc(sz); fread(data, 1, sz, f); fclose(f);
+    xmlInitParser();
+    xmlDocPtr doc = xmlReadMemory(data, sz, "input.xml", NULL,
+        XML_PARSE_NONET | XML_PARSE_RECOVER | XML_PARSE_NOERROR | XML_PARSE_NOWARNING);
+    if (doc) xmlFreeDoc(doc);
+    xmlCleanupParser(); free(data); return 0;
+}
+HARNESS_EOF
+        "$CC" -O2 /tmp/xml_read_fuzzer.c -I include .libs/libxml2.a -lz -llzma -lm -lpthread -o "$BUILD_DIR/google-fts/xml_read_fuzzer" 2>/dev/null || { warn "  libxml2 harness link failed"; return 1; }
+        rm -f /tmp/xml_read_fuzzer.c
+
+        # Create seeds
+        mkdir -p "$SEEDS_DIR/google-fts/xml_read_fuzzer"
+        echo '<?xml version="1.0"?><root><item>test</item></root>' > "$SEEDS_DIR/google-fts/xml_read_fuzzer/seed_01.xml"
+        echo '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE t [<!ENTITY f "bar">]><root a="v"><c>&f;</c></root>' > "$SEEDS_DIR/google-fts/xml_read_fuzzer/seed_02.xml"
+        echo '<html><head><title>t</title></head><body><p>hello</p></body></html>' > "$SEEDS_DIR/google-fts/xml_read_fuzzer/seed_03.xml"
+        info "    -> xml_read_fuzzer built successfully"
+        built=$((built + 1))
+        cd "$SCRIPT_DIR"
+    }
+
+    # Build each target (errors don't abort script)
+    set +e
+    build_libpng
+    build_libxml2
+    set -e
 
     info "Google FTS: built $built targets"
 }
@@ -332,7 +402,7 @@ usage() {
     echo "  --compiler CC   C compiler to use (default: gcc, or use 'symcc')"
     echo "  --all           Build all available benchmarks"
     echo "  --cgc           Build CGC cb-multios challenges"
-    echo "  --lava          Build LAVA target programs"
+    echo "  --lava          Build LAVA-M targets (base64, md5sum, uniq, who)"
     echo "  --google-fts    Build Google fuzzer-test-suite"
     echo ""
     echo "Output:"

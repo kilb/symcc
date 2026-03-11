@@ -32,6 +32,7 @@ import json
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -59,6 +60,22 @@ TARGETS = {
 # Format: name -> (binary_path_relative_to_public_dir, seed_dir, args_template)
 # These are populated at runtime via --public flag
 PUBLIC_DIR = SCRIPT_DIR / "public"
+
+
+MIN_SYMCC_SYMBOLS = 5  # threshold to consider a binary SymCC-instrumented
+
+
+def _has_symcc_instrumentation(binary_path):
+    """Check if a binary contains SymCC instrumentation symbols."""
+    try:
+        result = subprocess.run(
+            ["nm", binary_path], capture_output=True, text=True, timeout=10
+        )
+        count = sum(1 for line in result.stdout.splitlines()
+                    if "Sym" in line or "SYM" in line)
+        return count >= MIN_SYMCC_SYMBOLS
+    except Exception:
+        return True  # assume instrumented if we can't check
 
 
 def _resolve_path(p):
@@ -186,12 +203,18 @@ def build_coverage_targets(output_dir):
 
 
 def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
-                     uses_file=True, timeout_per_case=5):
+                     uses_file=True, timeout_per_case=5,
+                     max_cases=200000):
     """
     Run all test cases through the coverage binary and measure coverage.
 
     Uses a shell loop to batch-execute test cases, avoiding per-file
     subprocess fork overhead (~100x faster for thousands of test cases).
+
+    If there are more than max_cases test cases, a stratified sample is used.
+    The default of 200K (up from 50K) ensures reliable coverage measurement
+    even for corpora with 1M+ test cases — a 50K sample at 1M files has
+    a ~95% chance of missing any single critical test case.
 
     Returns dict with: line_cov, branch_cov, crashes, total_cases
     """
@@ -207,12 +230,55 @@ def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
         return {"line_cov": 0.0, "branch_cov": 0.0, "crashes": 0, "total_cases": 0}
 
     test_files = [os.path.join(test_case_dir, f)
-                  for f in sorted(os.listdir(test_case_dir))
+                  for f in os.listdir(test_case_dir)
                   if os.path.isfile(os.path.join(test_case_dir, f))]
     total_cases = len(test_files)
 
     if total_cases == 0:
         return {"line_cov": 0.0, "branch_cov": 0.0, "crashes": 0, "total_cases": 0}
+
+    # Sample if too many test cases.
+    # Use a two-pass stratified approach: first take every Nth file (stride),
+    # then also include the first and last few files from each 256-bucket
+    # (based on first byte of filename). This ensures rare "outlier" test
+    # cases that uniquely cover certain branches aren't missed by stride
+    # sampling alone, which is critical at >1M files.
+    sampled = False
+    if total_cases > max_cases:
+        test_files.sort()
+        # Primary: stride-based sample
+        stride = total_cases / max_cases
+        stride_set = set()
+        stride_sample = []
+        for i in range(max_cases):
+            idx = int(i * stride)
+            stride_set.add(idx)
+            stride_sample.append(test_files[idx])
+
+        # Secondary: bucket boundary files (first+last per hex prefix bucket)
+        # This catches files that fall between stride gaps.
+        # Cost: at most 512 extra files — negligible.
+        bucket_extras = []
+        prev_prefix = None
+        for idx, fp in enumerate(test_files):
+            fname = os.path.basename(fp)
+            prefix = fname[:2] if len(fname) >= 2 else fname
+            if prefix != prev_prefix:
+                # First file of new bucket
+                if idx not in stride_set:
+                    bucket_extras.append(fp)
+                # Also add last file of previous bucket
+                if prev_prefix is not None and (idx - 1) not in stride_set:
+                    bucket_extras.append(test_files[idx - 1])
+                prev_prefix = prefix
+        # Last file of last bucket
+        if test_files and (len(test_files) - 1) not in stride_set:
+            bucket_extras.append(test_files[-1])
+
+        test_files = stride_sample + bucket_extras
+        sampled = True
+    else:
+        test_files.sort()
 
     # Batch execute: use a shell loop to run all test cases in one subprocess.
     # This avoids per-file Python subprocess fork overhead.
@@ -239,7 +305,8 @@ def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
 
     try:
         # Allow generous timeout: 2s per case (most finish in <10ms)
-        batch_timeout = max(60, total_cases * 2)
+        # Use len(test_files) not total_cases — test_files may be sampled down
+        batch_timeout = max(60, len(test_files) * 2)
         result = subprocess.run(
             ["bash", "-c", script],
             capture_output=True, text=True, timeout=batch_timeout
@@ -292,17 +359,10 @@ def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
         "branch_cov": branch_cov,
         "crashes": crashes,
         "total_cases": total_cases,
+        "sampled": sampled,
+        "sampled_cases": len(test_files) if sampled else total_cases,
     }
 
-
-def get_seeds(target_name):
-    """Get seed files for a target."""
-    prefix = TARGETS[target_name][2]
-    seeds = []
-    for f in sorted(SEEDS_DIR.iterdir()):
-        if f.name.startswith(prefix) and f.is_file():
-            seeds.append(str(f))
-    return seeds
 
 
 def count_output_files(directory):
@@ -317,16 +377,26 @@ def count_output_files(directory):
 
 
 def get_unique_hashes(directory):
-    """Get set of unique file content hashes."""
+    """Get set of unique file content hashes.
+
+    Optimization: if filenames look like hex SHA-256 hashes (64 hex chars),
+    use the filename directly instead of re-reading and re-hashing file contents.
+    Both the serial script and MPI master use hash-based naming.
+    """
     hashes = set()
     if not os.path.isdir(directory):
         return hashes
+    hex64_re = re.compile(r'^[0-9a-f]{64}$')
     for f in os.listdir(directory):
         fpath = os.path.join(directory, f)
         if os.path.isfile(fpath):
-            with open(fpath, "rb") as fh:
-                h = hashlib.sha256(fh.read()).hexdigest()
-                hashes.add(h)
+            if hex64_re.match(f):
+                # Filename is the hash — skip expensive re-read
+                hashes.add(f)
+            else:
+                with open(fpath, "rb") as fh:
+                    h = hashlib.sha256(fh.read()).hexdigest()
+                    hashes.add(h)
     return hashes
 
 
@@ -352,17 +422,34 @@ def run_serial(binary, target_name, seed_dir, timeout, work_dir):
             binary
         ]
 
-    # The serial script runs forever, so we use timeout
+    # Set up environment: auto-detect magic.mgc for 'file' binary
+    env = None
+    magic_path = os.path.join(os.path.dirname(binary), "magic.mgc")
+    if os.path.isfile(magic_path):
+        env = os.environ.copy()
+        env["MAGIC"] = magic_path
+
+    # The serial script runs forever, so we use timeout.
+    # Use start_new_session so we can kill the entire process group on timeout
+    # (otherwise SymCC children spawned by the shell script become orphans).
+    # Use DEVNULL instead of PIPE to avoid deadlock — we don't need the output,
+    # and PIPE with only wait() (no communicate()) deadlocks when the 64KB
+    # pipe buffer fills up.
     timed_out = False
     start = time.monotonic()
     try:
         proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            start_new_session=True, env=env
         )
         proc.wait(timeout=timeout)
         retcode = proc.returncode
     except subprocess.TimeoutExpired:
-        proc.kill()
+        # Kill the entire process group (shell + all children)
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except OSError:
+            proc.kill()
         proc.wait()
         retcode = -1
         timed_out = True
@@ -375,6 +462,7 @@ def run_serial(binary, target_name, seed_dir, timeout, work_dir):
         "wall_time": elapsed,
         "generated": num_generated,
         "unique": len(unique),
+        "throughput": num_generated / elapsed if elapsed > 0 else 0,
         "output_dir": output_dir,
         "retcode": retcode,
         "timed_out": timed_out,
@@ -407,10 +495,18 @@ def run_mpi(binary, target_name, seed_dir, np, timeout, work_dir):
     if uses_file:
         cmd.append("@@")
 
+    # Set up environment: auto-detect magic.mgc for 'file' binary
+    env = None
+    magic_path = os.path.join(os.path.dirname(binary), "magic.mgc")
+    if os.path.isfile(magic_path):
+        env = os.environ.copy()
+        env["MAGIC"] = magic_path
+
     start = time.monotonic()
     try:
         proc = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=timeout + 30
+            cmd, capture_output=True, text=True, timeout=timeout + 30,
+            env=env
         )
         stdout = proc.stdout
         stderr = proc.stderr
@@ -421,35 +517,59 @@ def run_mpi(binary, target_name, seed_dir, np, timeout, work_dir):
         retcode = -1
 
     elapsed = time.monotonic() - start
-    timed_out = (retcode == -1 and stderr == "TIMEOUT") or elapsed >= timeout + 25
+    # Detect timeout: outer kill, or MPI master hit its wall-timeout
+    hard_timeout = (retcode == -1 and stderr == "TIMEOUT") or elapsed >= timeout + 25
+    wall_timeout_hit = False
+    if stdout and "Wall-clock timeout" in stdout:
+        wall_timeout_hit = True
+    timed_out = hard_timeout or wall_timeout_hit
 
-    # Parse the MPI master's stdout for pre-dedup total_generated count
+    # Parse the MPI master's stdout for stats
     mpi_total_generated = None
     mpi_total_interesting = None
+    mpi_num_masters = None
+    mpi_num_workers = None
+    mpi_throughput = None
     if stdout:
         m = re.search(r"Total test cases generated:\s*(\d+)", stdout)
         if m:
             mpi_total_generated = int(m.group(1))
+        # "New interesting test cases" is the ground-truth file count
+        # from shared_dir minus seeds (accurate even in multi-master mode).
         m = re.search(r"New interesting test cases:\s*(\d+)", stdout)
         if m:
             mpi_total_interesting = int(m.group(1))
+        m = re.search(r"Masters used:\s*(\d+)", stdout)
+        if m:
+            mpi_num_masters = int(m.group(1))
+        m = re.search(r"Workers used:\s*(\d+)", stdout)
+        if m:
+            mpi_num_workers = int(m.group(1))
+        m = re.search(r"Throughput:\s*([\d.]+)\s*tc/s", stdout)
+        if m:
+            mpi_throughput = float(m.group(1))
 
-    unique = get_unique_hashes(output_dir)
-    # Use MPI master's pre-dedup count if available; otherwise fall back to file count
+    # Use MPI master's parsed stats when available (avoids expensive directory traversal).
     if mpi_total_generated is not None:
         num_generated = mpi_total_generated
+        num_unique = mpi_total_interesting if mpi_total_interesting is not None else len(get_unique_hashes(output_dir))
     else:
+        unique = get_unique_hashes(output_dir)
         num_generated = count_output_files(output_dir)
+        num_unique = len(unique)
 
     return {
         "wall_time": elapsed,
         "generated": num_generated,
-        "unique": len(unique),
+        "unique": num_unique,
         "output_dir": output_dir,
         "stdout": stdout[-500:] if stdout else "",
         "stderr": stderr[-500:] if stderr else "",
         "retcode": retcode,
         "timed_out": timed_out,
+        "num_masters": mpi_num_masters,
+        "num_workers": mpi_num_workers,
+        "throughput": mpi_throughput or (num_generated / elapsed if elapsed > 0 else 0),
     }
 
 
@@ -473,7 +593,7 @@ def generate_report(results, output_dir):
         writer = csv.writer(f)
         writer.writerow([
             "target", "mode", "np", "round",
-            "wall_time_sec", "generated", "unique",
+            "wall_time_sec", "generated", "unique", "throughput_tc_s",
             "line_cov_pct", "branch_cov_pct", "crashes",
             "speedup", "efficiency"
         ])
@@ -481,6 +601,7 @@ def generate_report(results, output_dir):
             writer.writerow([
                 row["target"], row["mode"], row["np"], row["round"],
                 f"{row['wall_time']:.2f}", row["generated"], row["unique"],
+                f"{row.get('throughput', 0.0):.2f}",
                 f"{row.get('line_cov', 0.0):.2f}",
                 f"{row.get('branch_cov', 0.0):.2f}",
                 row.get("crashes", 0),
@@ -520,23 +641,27 @@ def generate_report(results, output_dir):
                 avg_line_cov = sum(r.get("line_cov", 0) for r in rows) / len(rows)
                 avg_branch_cov = sum(r.get("branch_cov", 0) for r in rows) / len(rows)
                 total_crashes = sum(r.get("crashes", 0) for r in rows)
+                avg_workers = sum(r.get("num_workers", np_val - 1) for r in rows) / len(rows)
+                avg_throughput = sum(r.get("throughput", 0) for r in rows) / len(rows)
                 summaries.append({
                     "mode": mode,
                     "np": np_val,
                     "avg_time": avg_time,
                     "avg_generated": avg_gen,
                     "avg_unique": avg_uniq,
+                    "avg_throughput": avg_throughput,
                     "avg_line_cov": avg_line_cov,
                     "avg_branch_cov": avg_branch_cov,
                     "total_crashes": total_crashes,
+                    "avg_workers": avg_workers,
                     "rounds": len(rows),
                 })
 
-            # Find serial baseline time
-            serial_time = None
+            # Find serial baseline throughput for speedup calculation
+            serial_throughput = None
             for s in summaries:
                 if s["mode"] == "serial":
-                    serial_time = s["avg_time"]
+                    serial_throughput = s["avg_throughput"]
                     break
 
             # Check if any coverage data is present
@@ -545,9 +670,9 @@ def generate_report(results, output_dir):
 
             # Table header
             hdr = (f"  {'Mode':<10} {'NP':>4} {'Avg Time':>12} "
-                   f"{'Generated':>10} {'Unique':>8} ")
+                   f"{'Generated':>10} {'Unique':>8} {'tc/s':>10} ")
             sep = (f"  {'─'*10} {'─'*4} {'─'*12} "
-                   f"{'─'*10} {'─'*8} ")
+                   f"{'─'*10} {'─'*8} {'─'*10} ")
             if has_cov:
                 hdr += f"{'LineCov':>8} {'BranchCov':>10} {'Crashes':>8} "
                 sep += f"{'─'*8} {'─'*10} {'─'*8} "
@@ -557,18 +682,27 @@ def generate_report(results, output_dir):
             f.write(sep)
 
             for s in summaries:
-                if serial_time and serial_time > 0 and s["mode"] != "serial":
-                    speedup = serial_time / s["avg_time"] if s["avg_time"] > 0 else 0
-                    workers = s["np"] - 1  # subtract master
+                # Speedup = throughput ratio (tc/s of MPI vs serial).
+                # This is meaningful even when both configs hit the timeout,
+                # unlike wall-clock ratio which would always be ~1x.
+                if (serial_throughput and serial_throughput > 0
+                        and s["mode"] != "serial"):
+                    speedup = (s["avg_throughput"] / serial_throughput
+                               if serial_throughput > 0 else 0)
+                    workers = s.get("avg_workers") or (s["np"] - 1)
                     efficiency = (speedup / workers * 100) if workers > 0 else 0
                 else:
                     speedup = 1.0
                     efficiency = 100.0
 
+                tp_str = (f"{s['avg_throughput']:>10.1f}"
+                          if s["avg_throughput"] >= 1
+                          else f"{s['avg_throughput']:>10.2f}")
+
                 line = (f"  {s['mode']:<10} {s['np']:>4} "
                         f"{format_time(s['avg_time']):>12} "
                         f"{s['avg_generated']:>10.1f} "
-                        f"{s['avg_unique']:>8.1f} ")
+                        f"{s['avg_unique']:>8.1f} {tp_str} ")
                 if has_cov:
                     line += (f"{s['avg_line_cov']:>7.1f}% "
                              f"{s['avg_branch_cov']:>9.1f}% "
@@ -589,17 +723,25 @@ def generate_report(results, output_dir):
                     f.write(f"  {label:>8} |{bar}| {cov:.1f}%\n")
                 f.write("\n")
 
-            # Speedup chart (ASCII)
-            f.write("  Speedup Chart:\n")
+            # Throughput Speedup chart (ASCII)
+            f.write("  Throughput Speedup Chart (tc/s ratio vs serial):\n")
+            max_speedup = 1.0
+            speedups = []
             for s in summaries:
-                if serial_time and serial_time > 0 and s["mode"] != "serial":
-                    speedup = serial_time / s["avg_time"] if s["avg_time"] > 0 else 0
+                if (serial_throughput and serial_throughput > 0
+                        and s["mode"] != "serial"):
+                    sp = (s["avg_throughput"] / serial_throughput
+                          if serial_throughput > 0 else 0)
                 else:
-                    speedup = 1.0
-                bar_len = int(speedup * 10)
-                label = f"  np={s['np']:>2}"
+                    sp = 1.0
+                speedups.append(sp)
+                max_speedup = max(max_speedup, sp)
+            scale = 40 / max_speedup if max_speedup > 0 else 1
+            for s, sp in zip(summaries, speedups):
+                bar_len = int(sp * scale)
+                label = f"  np={s['np']:>3}" if s["mode"] != "serial" else "  serial"
                 bar = "█" * bar_len + "░" * max(0, 40 - bar_len)
-                f.write(f"  {label} |{bar}| {speedup:.2f}x\n")
+                f.write(f"  {label} |{bar}| {sp:.1f}x\n")
             f.write("\n")
 
         # Overall summary
@@ -676,13 +818,22 @@ def main():
                              "With no args: auto-discover compiled targets in benchmark/public/bin/. "
                              "With args: name:binary_path:seed_dir "
                              "e.g., 'file:./benchmark/public/bin/lava/file:./benchmark/public/seeds/lava/file'.")
+    parser.add_argument("--no-default", action="store_true",
+                        help="Skip built-in benchmarks (maze, parser, etc.), run only public targets")
+    parser.add_argument("--no-public", action="store_true",
+                        help="Disable auto-discovery of public benchmarks")
     parser.add_argument("--no-coverage", action="store_true",
                         help="Skip coverage measurement (faster but less metrics)")
 
     args = parser.parse_args()
 
     np_list = [int(x) for x in args.np_list.split(",")]
-    target_names = args.targets.split(",") if args.targets else list(TARGETS.keys())
+    if args.targets:
+        target_names = args.targets.split(",")
+    elif args.no_default:
+        target_names = []  # will be populated by public auto-discovery
+    else:
+        target_names = list(TARGETS.keys())
 
     output_dir = os.path.abspath(args.output)
     bin_dir = os.path.join(output_dir, "bin")
@@ -700,7 +851,11 @@ def main():
     print()
 
     # Build step
-    if not args.skip_build:
+    binaries = {}
+    if args.no_default:
+        print("Step 1: Skipping built-in targets (--no-default)")
+        print("-" * 40)
+    elif not args.skip_build:
         print("Step 1: Compiling target programs")
         print("-" * 40)
 
@@ -720,7 +875,6 @@ def main():
                 args.simulation = True
     else:
         # Find existing binaries
-        binaries = {}
         for name in target_names:
             for suffix in ["_symcc", "_native"]:
                 path = os.path.join(bin_dir, f"{name}{suffix}")
@@ -728,15 +882,15 @@ def main():
                     binaries[name] = path
                     break
 
-    # Add public benchmark targets (--public [name:binary:seeddir ...])
+    # Add public benchmark targets.
+    # Auto-discover from benchmark/public/bin/ unless --no-public is passed.
+    # Explicit --public specs override auto-discovery.
     public_targets = {}
     public_seed_dirs = {}
-    if args.public is not None:
-        print("\n  Adding public benchmark targets:")
+    if not args.no_public:
+        public_specs = list(args.public) if args.public is not None else []
 
-        public_specs = list(args.public)  # explicit specs from CLI
-
-        # If no explicit specs given, auto-discover from benchmark/public/bin/
+        # Auto-discover from benchmark/public/bin/ if no explicit specs
         if not public_specs:
             pub_bin_dir = PUBLIC_DIR / "bin"
             pub_seed_dir = PUBLIC_DIR / "seeds"
@@ -747,20 +901,20 @@ def main():
                     for binary in sorted(suite_dir.iterdir()):
                         if binary.is_file() and os.access(str(binary), os.X_OK):
                             bname = binary.name
+                            # Skip non-ELF files (wrappers, data)
+                            if bname.endswith((".sh", ".mgc", ".txt")):
+                                continue
                             seed_candidate = pub_seed_dir / suite_dir.name / bname
                             if seed_candidate.is_dir():
+                                if not _has_symcc_instrumentation(str(binary)):
+                                    print(f"  Skipping {bname}: no SymCC instrumentation (gcc-compiled)")
+                                    continue
                                 public_specs.append(
                                     f"{bname}:{binary}:{seed_candidate}"
                                 )
-                if not public_specs:
-                    print("    No compiled public benchmarks found in:")
-                    print(f"      {pub_bin_dir}/")
-                    print("    Run first: ./compile_public_benchmarks.sh --all")
-            else:
-                print(f"    Public bin directory not found: {pub_bin_dir}")
-                print("    Run first:")
-                print("      ./setup_public_benchmarks.sh --lava")
-                print("      ./compile_public_benchmarks.sh --lava")
+
+        if public_specs:
+            print("\n  Adding public benchmark targets:")
 
         for spec in public_specs:
             parts = spec.split(":")
@@ -867,9 +1021,12 @@ def main():
 
             cov_str = ""
             if enable_coverage and target in cov_binaries:
+                sample_note = ""
+                if cov_data.get("sampled"):
+                    sample_note = f" (sampled {cov_data['sampled_cases']}/{cov_data['total_cases']})"
                 cov_str = (f", line={cov_data['line_cov']:.1f}%, "
                            f"branch={cov_data['branch_cov']:.1f}%, "
-                           f"crashes={cov_data['crashes']}")
+                           f"crashes={cov_data['crashes']}{sample_note}")
             timeout_str = ""
             if result.get("timed_out"):
                 timeout_str = " [TIMEOUT]"
@@ -886,6 +1043,7 @@ def main():
                 "wall_time": result["wall_time"],
                 "generated": result["generated"],
                 "unique": result["unique"],
+                "throughput": result.get("throughput", 0),
                 "line_cov": cov_data["line_cov"],
                 "branch_cov": cov_data["branch_cov"],
                 "crashes": cov_data["crashes"],
@@ -902,7 +1060,22 @@ def main():
             else:
                 actual_np = np_val
 
-            print(f"\n  [MPI np={actual_np} ({actual_np-1} workers)]")
+            # Predict master/worker layout (matches compute_roles() in MPI script)
+            wpm = 45  # workers_per_master default
+            num_avail = actual_np - 1
+            if num_avail <= wpm:
+                pred_masters, pred_workers = 1, num_avail
+            else:
+                nm = (num_avail + wpm - 1) // wpm
+                nm = min(nm, num_avail // 3)
+                nm = max(1, nm)
+                pred_masters, pred_workers = nm, actual_np - nm
+            if pred_masters > 1:
+                print(f"\n  [MPI np={actual_np} "
+                      f"({pred_masters} masters, {pred_workers} workers)]")
+            else:
+                print(f"\n  [MPI np={actual_np} ({pred_workers} workers)]")
+
             for r in range(args.rounds):
                 current_run += 1
                 work_dir = tempfile.mkdtemp(
@@ -927,9 +1100,12 @@ def main():
 
                 cov_str = ""
                 if enable_coverage and target in cov_binaries:
+                    sample_note = ""
+                    if cov_data.get("sampled"):
+                        sample_note = f" (sampled {cov_data['sampled_cases']}/{cov_data['total_cases']})"
                     cov_str = (f", line={cov_data['line_cov']:.1f}%, "
                                f"branch={cov_data['branch_cov']:.1f}%, "
-                               f"crashes={cov_data['crashes']}")
+                               f"crashes={cov_data['crashes']}{sample_note}")
                 timeout_str = ""
                 if result.get("timed_out"):
                     timeout_str = " [TIMEOUT]"
@@ -946,18 +1122,26 @@ def main():
                     if err_lines:
                         print(f"      stderr: {err_lines[-1][:200]}")
 
-                # Compute speedup against serial baseline
-                serial_avg = 0
+                # Compute throughput speedup against serial baseline.
+                # Use throughput (tc/s) ratio instead of wall-clock ratio,
+                # because wall-clock speedup is meaningless when both
+                # configurations run until timeout (both ~5min → ~1x).
+                mpi_tp = result.get("throughput", 0)
+                serial_tp_sum = 0
                 serial_count = 0
                 for sr in all_results:
                     if sr["target"] == target and sr["mode"] == "serial":
-                        serial_avg += sr["wall_time"]
+                        serial_tp_sum += sr.get("throughput", 0)
                         serial_count += 1
-                if serial_count > 0:
-                    serial_avg /= serial_count
-                    speedup = serial_avg / result["wall_time"] if result["wall_time"] > 0 else 0
-                    workers = actual_np - 1
+                if serial_count > 0 and serial_tp_sum > 0:
+                    serial_tp_avg = serial_tp_sum / serial_count
+                    speedup = mpi_tp / serial_tp_avg if serial_tp_avg > 0 else 0
+                    workers = result.get("num_workers") or (actual_np - 1)
                     efficiency = (speedup / workers * 100) if workers > 0 else 0
+                elif serial_count > 0:
+                    # Serial throughput is 0 — can't compute meaningful speedup
+                    speedup = 0.0
+                    efficiency = 0.0
                 else:
                     speedup = 1.0
                     efficiency = 100.0
@@ -970,11 +1154,13 @@ def main():
                     "wall_time": result["wall_time"],
                     "generated": result["generated"],
                     "unique": result["unique"],
+                    "throughput": result.get("throughput", 0),
                     "line_cov": cov_data["line_cov"],
                     "branch_cov": cov_data["branch_cov"],
                     "crashes": cov_data["crashes"],
                     "speedup": speedup,
                     "efficiency": efficiency,
+                    "num_workers": result.get("num_workers") or (actual_np - 1),
                 })
 
                 shutil.rmtree(work_dir, ignore_errors=True)

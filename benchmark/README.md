@@ -156,35 +156,46 @@ Results are written to the output directory (`benchmark_results/` by default):
 ## Public Benchmark Suites
 
 Real-world programs from well-known fuzzing/symbolic-execution benchmarks.
+Using public benchmarks is a 3-step process: **download → compile → run**.
 
 ### Step 1: Download
 
 ```bash
-# Download LAVA target programs (file, jq, grep, pcre2, duktape, libyaml, etc.)
-./benchmark/setup_public_benchmarks.sh --lava
+cd benchmark/
 
-# Download LAVA-M corpus (base64, md5sum, uniq, who — with injected bugs)
-./benchmark/setup_public_benchmarks.sh --lava-m
+# Download LAVA-M corpus (base64, md5sum, uniq, who — coreutils with injected bugs)
+./setup_public_benchmarks.sh --lava-m
 
 # Download programs from the SymCC USENIX paper (openjpeg, libarchive, tcpdump)
-./benchmark/setup_public_benchmarks.sh --symcc-paper
+./setup_public_benchmarks.sh --symcc-paper
 
 # Download everything
-./benchmark/setup_public_benchmarks.sh --all
+./setup_public_benchmarks.sh --all
 ```
 
-Available suites:
+Available suites (`setup_public_benchmarks.sh`):
 
 | Flag | Suite | Programs | Source |
 |------|-------|----------|--------|
-| `--lava` | LAVA | file, jq, grep, pcre2, duktape, libyaml, etc. | [panda-re/lava](https://github.com/panda-re/lava) |
-| `--lava-m` | LAVA-M | base64, md5sum, uniq, who (with injected bugs) | [moyix/lava-m-corpus](https://github.com/moyix/lava-m-corpus) |
+| `--lava-m` | LAVA-M | base64, md5sum, uniq, who (coreutils 8.24 with injected bugs) | [panda-re/lava](https://github.com/panda-re/lava) |
 | `--symcc-paper` | SymCC paper | openjpeg, libarchive, tcpdump | Various |
 | `--unibench` | UniBench | 20 real-world programs | [unifuzz/unibench](https://github.com/unifuzz/unibench) |
 | `--fuzzbench` | FuzzBench | 47+ OSS-Fuzz targets | [google/fuzzbench](https://github.com/google/fuzzbench) |
 | `--magma` | Magma | 7-9 libraries, 118 real bugs | [HexHive/magma](https://github.com/HexHive/magma) |
 
-You can also manually clone additional repos:
+> **Note on LAVA-M:** The canonical download URL (`panda.moyix.net`) is currently
+> unreachable. The setup script automatically tries a [Gitee mirror](https://gitee.com/zeroaone/lava_corpus)
+> as a fallback. If that also fails, you can manually clone it:
+> ```bash
+> cd benchmark/public/lava-m/
+> git clone https://gitee.com/zeroaone/lava_corpus.git
+> ```
+> Expected directory structure after download:
+> ```
+> benchmark/public/lava-m/lava_corpus/LAVA-M/{base64,md5sum,uniq,who}/coreutils-8.24-lava-safe/
+> ```
+
+You can also manually clone additional repos into `benchmark/public/`:
 
 ```bash
 cd benchmark/public
@@ -194,16 +205,32 @@ git clone --depth 1 https://github.com/google/fuzzer-test-suite.git  # Google FT
 
 ### Step 2: Compile
 
+Compile downloaded suites with SymCC (or gcc for framework testing).
+
 ```bash
-# Compile with gcc (for MPI framework testing)
-./benchmark/compile_public_benchmarks.sh --all
+cd benchmark/
 
-# Compile with SymCC (for real symbolic execution)
-./benchmark/compile_public_benchmarks.sh --compiler symcc --all
+# Compile LAVA-M targets with SymCC (auto-detected from build/)
+./compile_public_benchmarks.sh --lava
 
-# Only LAVA targets
-./benchmark/compile_public_benchmarks.sh --lava
+# Compile with explicit SymCC path
+./compile_public_benchmarks.sh --compiler /path/to/symcc --lava
+
+# Compile with gcc (for MPI framework testing without symbolic execution)
+./compile_public_benchmarks.sh --compiler gcc --lava
+
+# Compile all available suites
+./compile_public_benchmarks.sh --all
 ```
+
+Available suites (`compile_public_benchmarks.sh`):
+
+| Flag | What it builds |
+|------|----------------|
+| `--lava` | LAVA-M targets (base64, md5sum, uniq, who) |
+| `--cgc` | CGC cb-multios challenge binaries |
+| `--google-fts` | Google fuzzer-test-suite targets |
+| `--all` | All of the above |
 
 Compiled binaries go to `benchmark/public/bin/<suite>/`, seeds to `benchmark/public/seeds/<suite>/`.
 
@@ -211,19 +238,37 @@ Compiled binaries go to `benchmark/public/bin/<suite>/`, seeds to `benchmark/pub
 
 ```bash
 # Auto-discover all compiled public benchmarks
-python3 benchmark/run_benchmark.py --public --simulation
+python3 run_benchmark.py --public --np-list 1,2,4,8 --rounds 3 --timeout 120
+
+# Simulation mode (uses gcc binaries, tests MPI framework only)
+python3 run_benchmark.py --public --simulation
 
 # Mix built-in and public targets
-python3 benchmark/run_benchmark.py --public --targets maze,parser --np-list 1,2,4,8
+python3 run_benchmark.py --public --targets maze,parser --np-list 1,2,4,8
 
 # Explicit target specification (name:binary:seeddir)
-python3 benchmark/run_benchmark.py \
-  --public 'file:benchmark/public/bin/lava/file:benchmark/public/seeds/lava/file'
+python3 run_benchmark.py \
+  --public 'base64:public/bin/lava-m/base64:public/seeds/lava-m/base64'
 ```
 
 When `--public` is used without arguments, the script automatically scans
 `benchmark/public/bin/` for compiled executables and matches them with seed
 directories in `benchmark/public/seeds/`.
+
+### LAVA-M End-to-End Example
+
+```bash
+cd benchmark/
+
+# 1. Download the LAVA-M corpus
+./setup_public_benchmarks.sh --lava-m
+
+# 2. Compile with SymCC
+./compile_public_benchmarks.sh --lava
+
+# 3. Run MPI benchmark (serial + 2/4/8 processes, 3 rounds each, 2 min timeout)
+python3 run_benchmark.py --public --np-list 1,2,4,8 --rounds 3 --timeout 120
+```
 
 ## Prerequisites
 
