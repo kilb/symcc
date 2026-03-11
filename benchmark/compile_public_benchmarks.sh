@@ -127,9 +127,20 @@ build_cgc() {
 # Pre-extracted source trees in public/lava-m/build_*
 ############################################################
 build_lava() {
-    local lava_m_dir="$PUBLIC_DIR/lava-m"
-    if [ ! -d "$lava_m_dir" ]; then
-        error "LAVA-M not found at $lava_m_dir"
+    # Find the LAVA-M directory.  The pre-extracted build_* source trees
+    # may live under public/lava-m/, public/lava/, or public/lava-m/lava/.
+    local lava_m_dir=""
+    for candidate in "$PUBLIC_DIR/lava-m" "$PUBLIC_DIR/lava" "$PUBLIC_DIR/lava-m/lava"; do
+        # Check for at least one build_* subdirectory
+        if ls "$candidate"/build_* 1>/dev/null 2>&1; then
+            lava_m_dir="$candidate"
+            break
+        fi
+    done
+    if [ -z "$lava_m_dir" ]; then
+        error "LAVA-M not found.  Expected build_* directories under one of:"
+        error "  $PUBLIC_DIR/lava-m/"
+        error "  $PUBLIC_DIR/lava/"
         error "Run: ./setup_public_benchmarks.sh --lava"
         return 1
     fi
