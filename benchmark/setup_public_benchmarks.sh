@@ -30,13 +30,28 @@ error() { echo -e "${RED}[ERROR]${NC} $*"; }
 #     Contains target_bins/ with source tarballs
 ############################################################
 setup_lava() {
-    local dest="$PUBLIC_DIR/lava"
-    if [ -d "$dest" ] && [ -d "$dest/target_bins" ]; then
-        info "LAVA already downloaded at $dest"
-        return
-    fi
+    # Check multiple possible locations for an existing LAVA installation
+    for dest in "$PUBLIC_DIR/lava" "$PUBLIC_DIR/lava-m/lava"; do
+        if [ -d "$dest" ] && [ -d "$dest/target_bins" ]; then
+            info "LAVA already present at $dest"
+            echo "  Target programs (source tarballs in target_bins/):"
+            ls "$dest/target_bins/"*.tar.gz 2>/dev/null | while read f; do echo "    $(basename "$f")"; done
+            echo "  To build: ./compile_public_benchmarks.sh --lava"
+            return
+        fi
+    done
+
+    # Also check for pre-extracted build_* directories (ready to compile)
+    for d in "$PUBLIC_DIR/lava-m" "$PUBLIC_DIR/lava"; do
+        if ls "$d"/build_* 1>/dev/null 2>&1; then
+            info "LAVA build directories already present at $d"
+            echo "  To build: ./compile_public_benchmarks.sh --lava"
+            return
+        fi
+    done
 
     info "Downloading LAVA (panda-re/lava)..."
+    local dest="$PUBLIC_DIR/lava"
     cd "$PUBLIC_DIR"
 
     git clone --depth 1 https://github.com/panda-re/lava.git 2>/dev/null || {
