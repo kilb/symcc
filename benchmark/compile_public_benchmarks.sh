@@ -26,23 +26,7 @@ error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 
 CC="${CC:-gcc}"
 CXX="${CXX:-g++}"
-
-# Auto-detect SymCC if CC is still default gcc
-if [ "$CC" = "gcc" ]; then
-    SYMCC_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-    if [ -x "$SYMCC_ROOT/build/symcc" ]; then
-        CC="$SYMCC_ROOT/build/symcc"
-        CXX="$SYMCC_ROOT/build/sym++"
-        info "Auto-detected SymCC at $CC"
-    elif command -v symcc >/dev/null 2>&1; then
-        CC="symcc"
-        CXX="sym++"
-        info "Auto-detected SymCC in PATH"
-    else
-        warn "SymCC not found, using gcc (simulation mode only)"
-        warn "For real symbolic execution, build SymCC first or use: --compiler /path/to/symcc"
-    fi
-fi
+_COMPILER_EXPLICIT=false
 
 ############################################################
 # CGC cb-multios  (243 challenge binaries)
@@ -133,6 +117,7 @@ build_lava() {
     for candidate in \
         "$PUBLIC_DIR/lava-m/lava_corpus/LAVA-M" \
         "$PUBLIC_DIR/lava-m/LAVA-M" \
+        "$PUBLIC_DIR/LAVA-M" \
         "$PUBLIC_DIR/lava_corpus/LAVA-M"; do
         if [ -d "$candidate/base64" ] || [ -d "$candidate/uniq" ]; then
             corpus_dir="$candidate"
@@ -185,12 +170,25 @@ build_lava() {
                 sed -i '/#include <stdint.h>/a #include <sys/sysmacros.h>' lib/mountlist.c
             fi
             if [ -f lib/stdio-impl.h ] && ! grep -q '_IO_IN_BACKUP' lib/stdio-impl.h; then
-                sed -i '/the same implementation of stdio/a \
+                # 在文件头部（include guard 之后）插入补丁，不要插在注释中间
+                sed -i '/#include <errno.h>/i \
 /* Glibc 2.28 made _IO_IN_BACKUP private. */\
 #if !defined _IO_IN_BACKUP \&\& defined _IO_EOF_SEEN\
 # define _IO_IN_BACKUP 0x100\
-#endif' lib/stdio-impl.h
+#endif\
+' lib/stdio-impl.h
             fi
+        fi
+
+        # O_SEARCH 在部分 Linux 系统上未定义，回退为 O_RDONLY
+        if ! echo '#include <fcntl.h>' | $CC -E - 2>/dev/null | grep -q O_SEARCH; then
+            info "    Patching O_SEARCH (not defined on this system)..."
+            for f in lib/fts.c lib/chdir-long.c lib/openat-proc.c \
+                     lib/savewd.c lib/save-cwd.c; do
+                if [ -f "$f" ] && ! grep -q 'ifndef O_SEARCH' "$f"; then
+                    sed -i '1i\#ifndef O_SEARCH\n# define O_SEARCH O_RDONLY\n#endif' "$f"
+                fi
+            done
         fi
 
         # coreutils uses autotools.  Clean and re-configure with our compiler.
@@ -199,8 +197,16 @@ build_lava() {
         fi
 
         if [ -f configure ]; then
-            CC="$CC" CFLAGS="-O2" FORCE_UNSAFE_CONFIGURE=1 \
+            chmod +x configure 2>/dev/null || true
+            # SymCC 编译的测试程序运行时需要 SYMCC_OUTPUT_DIR 存在，
+            # 否则 configure 的 "can the compiler produce executables" 测试会失败。
+            # SymCC 基于 Clang，对隐式函数声明报错，需要 -Wno-implicit-function-declaration
+            mkdir -p /tmp/output
+            CC="$CC" CFLAGS="-O2 -Wno-implicit-function-declaration" \
+                FORCE_UNSAFE_CONFIGURE=1 \
+                SYMCC_OUTPUT_DIR=/tmp/output \
                 ./configure --quiet 2>&1 | tail -5
+            rm -rf /tmp/output/*
         else
             warn "    $prog: no configure script found"
             set -e
@@ -208,8 +214,11 @@ build_lava() {
             continue
         fi
 
-        # Build only the target program (not all of coreutils)
-        make -j$(nproc) -C src "$prog" 2>&1 | tail -5
+        # 1) 先生成必要的头文件（configmake.h, .version 等）
+        # 2) 从顶层目录 make -k 构建，跳过不相关的 lib 编译错误
+        # SYMCC_OUTPUT_DIR 在 make 阶段也需要，因为 libtool 链接测试可能运行程序
+        mkdir -p /tmp/output
+        SYMCC_OUTPUT_DIR=/tmp/output make -k -j$(nproc) 2>&1 | tail -5
         set -e
 
         # Check for binary
@@ -264,7 +273,9 @@ build_google_fts() {
         rm -rf libpng-1.2.56
         tar xf "$tarball"
         cd libpng-1.2.56
-        CC="$CC" ./configure --quiet --disable-shared 2>/dev/null && make -j$(nproc) 2>/dev/null || { warn "  libpng: make failed"; return 1; }
+        mkdir -p /tmp/output
+        CC="$CC" SYMCC_OUTPUT_DIR=/tmp/output ./configure --quiet --disable-shared 2>/dev/null && make -j$(nproc) 2>/dev/null || { warn "  libpng: make failed"; return 1; }
+        rm -rf /tmp/output/*
 
         # Create standalone harness
         cat > /tmp/png_read_fuzzer.c << 'HARNESS_EOF'
@@ -338,15 +349,19 @@ open('$SEEDS_DIR/google-fts/png_read_fuzzer/seed_02.png', 'wb').write(sig + ihdr
     build_libxml2() {
         info "  Building libxml2 ..."
         cd "$work_dir"
-        local tarball="libxml2-2.9.2.tar.gz"
+        local tarball="libxml2-2.9.2.tar.xz"
         if [ ! -f "$tarball" ]; then
-            curl -sL "https://github.com/GNOME/libxml2/archive/refs/tags/v2.9.2.tar.gz" -o "$tarball" || { warn "  Failed to download libxml2"; return 1; }
+            # 使用 GNOME 官方 FTP 发布包（包含预生成的 configure）
+            curl -sL "https://download.gnome.org/sources/libxml2/2.9/libxml2-2.9.2.tar.xz" -o "$tarball" || \
+            curl -sL "https://github.com/nicerloop/libxml2/releases/download/v2.9.2/libxml2-2.9.2.tar.xz" -o "$tarball" || \
+            { warn "  Failed to download libxml2"; return 1; }
         fi
         rm -rf libxml2-2.9.2
         tar xf "$tarball"
         cd libxml2-2.9.2
-        autoreconf -fi 2>/dev/null
-        CC="$CC" ./configure --quiet --disable-shared --without-python --without-threads 2>/dev/null && make -j$(nproc) 2>/dev/null || { warn "  libxml2: make failed"; return 1; }
+        mkdir -p /tmp/output
+        CC="$CC" SYMCC_OUTPUT_DIR=/tmp/output ./configure --quiet --disable-shared --without-python --without-threads --without-lzma 2>/dev/null && make -j$(nproc) 2>/dev/null || { warn "  libxml2: make failed"; return 1; }
+        rm -rf /tmp/output/*
 
         # Create standalone harness
         cat > /tmp/xml_read_fuzzer.c << 'HARNESS_EOF'
@@ -367,7 +382,7 @@ int main(int argc, char *argv[]) {
     xmlCleanupParser(); free(data); return 0;
 }
 HARNESS_EOF
-        "$CC" -O2 /tmp/xml_read_fuzzer.c -I include .libs/libxml2.a -lz -llzma -lm -lpthread -o "$BUILD_DIR/google-fts/xml_read_fuzzer" 2>/dev/null || { warn "  libxml2 harness link failed"; return 1; }
+        "$CC" -O2 /tmp/xml_read_fuzzer.c -I include .libs/libxml2.a -lz -lm -lpthread -o "$BUILD_DIR/google-fts/xml_read_fuzzer" 2>/dev/null || { warn "  libxml2 harness link failed"; return 1; }
         rm -f /tmp/xml_read_fuzzer.c
 
         # Create seeds
@@ -390,24 +405,317 @@ HARNESS_EOF
 }
 
 ############################################################
+# Coverage builds (gcc --coverage -O0 -g)
+# 输出到 <suite>-cov/ 目录，并写入 .covdir/.covsrc 元数据
+############################################################
+build_lava_coverage() {
+    local corpus_dir=""
+    for candidate in \
+        "$PUBLIC_DIR/lava-m/lava_corpus/LAVA-M" \
+        "$PUBLIC_DIR/lava-m/LAVA-M" \
+        "$PUBLIC_DIR/LAVA-M" \
+        "$PUBLIC_DIR/lava_corpus/LAVA-M"; do
+        if [ -d "$candidate/base64" ] || [ -d "$candidate/uniq" ]; then
+            corpus_dir="$candidate"
+            break
+        fi
+    done
+    if [ -z "$corpus_dir" ]; then
+        warn "Coverage: LAVA-M corpus not found, skipping"
+        return 0
+    fi
+
+    info "Building LAVA-M coverage binaries..."
+    mkdir -p "$BUILD_DIR/lava-m-cov"
+
+    local built=0
+    for prog in base64 md5sum uniq who; do
+        local src_dir=""
+        for d in "$corpus_dir/$prog"/coreutils-*; do
+            if [ -d "$d" ]; then
+                src_dir="$d"
+                break
+            fi
+        done
+        if [ -z "$src_dir" ]; then
+            warn "  Coverage: $prog source tree not found"
+            continue
+        fi
+
+        info "  Building $prog (coverage)..."
+        cd "$src_dir"
+        set +e
+
+        # 清理之前的构建（补丁已经应用在源文件中，distclean 不会还原）
+        if [ -f Makefile ]; then
+            make distclean 2>/dev/null || make clean 2>/dev/null || true
+        fi
+
+        if [ -f configure ]; then
+            chmod +x configure 2>/dev/null || true
+            CC=gcc CFLAGS="--coverage -O0 -g" LDFLAGS="--coverage" \
+                FORCE_UNSAFE_CONFIGURE=1 ./configure --quiet 2>&1 | tail -3
+        else
+            warn "    $prog: no configure script"
+            set -e
+            cd "$SCRIPT_DIR"
+            continue
+        fi
+
+        make -k -j$(nproc) 2>&1 | tail -3
+        set -e
+
+        if [ -f "src/$prog" ]; then
+            cp "src/$prog" "$BUILD_DIR/lava-m-cov/${prog}"
+            # 写入覆盖率元数据：gcov 需要知道构建目录和源文件路径
+            echo "$src_dir" > "$BUILD_DIR/lava-m-cov/${prog}.covdir"
+            echo "src/${prog}.c" > "$BUILD_DIR/lava-m-cov/${prog}.covsrc"
+            built=$((built + 1))
+            info "    -> $prog coverage binary built"
+        else
+            warn "    $prog: coverage binary not found"
+        fi
+
+        cd "$SCRIPT_DIR"
+    done
+
+    info "LAVA-M coverage: built $built / 4"
+}
+
+build_google_fts_coverage() {
+    local work_dir="$PUBLIC_DIR/gfts_build"
+
+    info "Building Google FTS coverage binaries..."
+    mkdir -p "$BUILD_DIR/google-fts-cov"
+
+    local built=0
+
+    # --- libpng coverage ---
+    if [ -d "$work_dir/libpng-1.2.56" ]; then
+        info "  Building libpng (coverage)..."
+        cd "$work_dir/libpng-1.2.56"
+        set +e
+        make distclean 2>/dev/null || make clean 2>/dev/null || true
+        CC=gcc CFLAGS="--coverage -O0 -g" LDFLAGS="--coverage" \
+            ./configure --quiet --disable-shared 2>/dev/null && \
+            make -j$(nproc) 2>/dev/null
+        if [ $? -eq 0 ] && [ -f .libs/libpng.a ]; then
+            # 创建临时 harness 文件用于 coverage 编译
+            local cov_dir="$BUILD_DIR/google-fts-cov/png_cov"
+            mkdir -p "$cov_dir"
+            cat > "$cov_dir/png_read_fuzzer.c" << 'HARNESS_EOF'
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include "png.h"
+struct BufState { const uint8_t *data; size_t bytes_left; };
+static void user_read_data(png_structp p, png_bytep d, png_size_t l) {
+    struct BufState *b = (struct BufState *)png_get_io_ptr(p);
+    if (l > b->bytes_left) png_error(p, "read error");
+    memcpy(d, b->data, l); b->bytes_left -= l; b->data += l;
+}
+int main(int argc, char *argv[]) {
+    if (argc != 2) return 1;
+    FILE *f = fopen(argv[1], "rb"); if (!f) return 1;
+    fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
+    if (sz <= 0 || sz > 10*1024*1024) { fclose(f); return 1; }
+    uint8_t *data = malloc(sz); fread(data, 1, sz, f); fclose(f);
+    if (sz < 8 || png_sig_cmp(data, 0, 8)) { free(data); return 0; }
+    png_structp pp = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    png_infop ip = png_create_info_struct(pp);
+    if (setjmp(png_jmpbuf(pp))) { png_destroy_read_struct(&pp, &ip, NULL); free(data); return 0; }
+    struct BufState bs = { data + 8, sz - 8 };
+    png_set_read_fn(pp, &bs, user_read_data); png_set_sig_bytes(pp, 8);
+    png_read_info(pp, ip);
+    png_uint_32 w, h; int bd, ct;
+    png_get_IHDR(pp, ip, &w, &h, &bd, &ct, NULL, NULL, NULL);
+    if (h * w > 1000000) { png_destroy_read_struct(&pp, &ip, NULL); free(data); return 0; }
+    int passes = png_set_interlace_handling(pp); png_start_read_image(pp);
+    png_bytep row = png_malloc(pp, png_get_rowbytes(pp, ip));
+    for (int p2 = 0; p2 < passes; p2++) for (png_uint_32 y = 0; y < h; y++) png_read_row(pp, row, NULL);
+    png_free(pp, row); png_destroy_read_struct(&pp, &ip, NULL); free(data); return 0;
+}
+HARNESS_EOF
+            gcc --coverage -O0 -g "$cov_dir/png_read_fuzzer.c" \
+                -I "$work_dir/libpng-1.2.56" \
+                "$work_dir/libpng-1.2.56/.libs/libpng.a" \
+                -lz -lm -o "$BUILD_DIR/google-fts-cov/png_read_fuzzer" 2>/dev/null
+            if [ $? -eq 0 ]; then
+                # .gcno 生成在 -o 所在目录，用 .gcno 文件名作为 gcov 参数
+                local gcno_file=$(ls "$BUILD_DIR/google-fts-cov/"*png_read_fuzzer*.gcno 2>/dev/null | head -1)
+                echo "$BUILD_DIR/google-fts-cov" > "$BUILD_DIR/google-fts-cov/png_read_fuzzer.covdir"
+                echo "$(basename "$gcno_file")" > "$BUILD_DIR/google-fts-cov/png_read_fuzzer.covsrc"
+                # 记录库构建目录，用于 lcov 采集完整库覆盖率
+                echo "$work_dir/libpng-1.2.56" > "$BUILD_DIR/google-fts-cov/png_read_fuzzer.covlibdirs"
+                built=$((built + 1))
+                info "    -> png_read_fuzzer coverage built"
+            else
+                warn "    png_read_fuzzer coverage link failed"
+            fi
+        else
+            warn "    libpng coverage build failed"
+        fi
+        set -e
+        cd "$SCRIPT_DIR"
+    fi
+
+    # --- libxml2 coverage ---
+    if [ -d "$work_dir/libxml2-2.9.2" ]; then
+        info "  Building libxml2 (coverage)..."
+        cd "$work_dir/libxml2-2.9.2"
+        set +e
+        make distclean 2>/dev/null || make clean 2>/dev/null || true
+        CC=gcc CFLAGS="--coverage -O0 -g" LDFLAGS="--coverage" \
+            ./configure --quiet --disable-shared --without-python \
+            --without-threads --without-lzma 2>/dev/null && \
+            make -j$(nproc) 2>/dev/null
+        if [ $? -eq 0 ] && [ -f .libs/libxml2.a ]; then
+            local cov_dir="$BUILD_DIR/google-fts-cov/xml_cov"
+            mkdir -p "$cov_dir"
+            cat > "$cov_dir/xml_read_fuzzer.c" << 'HARNESS_EOF'
+#include <stdio.h>
+#include <stdlib.h>
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+int main(int argc, char *argv[]) {
+    if (argc != 2) return 1;
+    FILE *f = fopen(argv[1], "rb"); if (!f) return 1;
+    fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
+    if (sz <= 0 || sz > 1024*1024) { fclose(f); return 1; }
+    char *data = malloc(sz); fread(data, 1, sz, f); fclose(f);
+    xmlInitParser();
+    xmlDocPtr doc = xmlReadMemory(data, sz, "input.xml", NULL,
+        XML_PARSE_NONET | XML_PARSE_RECOVER | XML_PARSE_NOERROR | XML_PARSE_NOWARNING);
+    if (doc) xmlFreeDoc(doc);
+    xmlCleanupParser(); free(data); return 0;
+}
+HARNESS_EOF
+            gcc --coverage -O0 -g "$cov_dir/xml_read_fuzzer.c" \
+                -I "$work_dir/libxml2-2.9.2/include" \
+                "$work_dir/libxml2-2.9.2/.libs/libxml2.a" \
+                -lz -lm -lpthread -o "$BUILD_DIR/google-fts-cov/xml_read_fuzzer" 2>/dev/null
+            if [ $? -eq 0 ]; then
+                local gcno_file=$(ls "$BUILD_DIR/google-fts-cov/"*xml_read_fuzzer*.gcno 2>/dev/null | head -1)
+                echo "$BUILD_DIR/google-fts-cov" > "$BUILD_DIR/google-fts-cov/xml_read_fuzzer.covdir"
+                echo "$(basename "$gcno_file")" > "$BUILD_DIR/google-fts-cov/xml_read_fuzzer.covsrc"
+                # 记录库构建目录，用于 lcov 采集完整库覆盖率
+                echo "$work_dir/libxml2-2.9.2" > "$BUILD_DIR/google-fts-cov/xml_read_fuzzer.covlibdirs"
+                built=$((built + 1))
+                info "    -> xml_read_fuzzer coverage built"
+            else
+                warn "    xml_read_fuzzer coverage link failed"
+            fi
+        else
+            warn "    libxml2 coverage build failed"
+        fi
+        set -e
+        cd "$SCRIPT_DIR"
+    fi
+
+    info "Google FTS coverage: built $built targets"
+}
+
+############################################################
+# AFL-instrumented builds (afl-clang-fast)
+# 用于 hybrid fuzzing: AFL + SymCC 协同
+############################################################
+build_google_fts_afl() {
+    if ! command -v afl-clang-fast >/dev/null 2>&1; then
+        error "afl-clang-fast not found. Install AFL++"
+        return 1
+    fi
+
+    info "Building Google FTS AFL-instrumented binaries..."
+    mkdir -p "$BUILD_DIR/google-fts-afl"
+
+    local built=0
+    local work_dir="$PUBLIC_DIR/gfts_build"
+
+    # --- libpng AFL ---
+    if [ -d "$work_dir/libpng-1.2.56" ]; then
+        info "  Building libpng (AFL)..."
+        cd "$work_dir/libpng-1.2.56"
+        set +e
+        make distclean 2>/dev/null || make clean 2>/dev/null || true
+        CC=afl-clang-fast CFLAGS="-O2" \
+            ./configure --quiet --disable-shared 2>/dev/null && \
+            make -j$(nproc) 2>/dev/null
+        if [ $? -eq 0 ] && [ -f .libs/libpng.a ]; then
+            afl-clang-fast -O2 "$BUILD_DIR/google-fts-cov/png_cov/png_read_fuzzer.c" \
+                -I "$work_dir/libpng-1.2.56" \
+                "$work_dir/libpng-1.2.56/.libs/libpng.a" \
+                -lz -lm -o "$BUILD_DIR/google-fts-afl/png_read_fuzzer" 2>/dev/null
+            if [ $? -eq 0 ]; then
+                built=$((built + 1))
+                info "    -> png_read_fuzzer AFL built"
+            else
+                warn "    png_read_fuzzer AFL link failed"
+            fi
+        else
+            warn "    libpng AFL build failed"
+        fi
+        set -e
+        cd "$SCRIPT_DIR"
+    else
+        warn "  libpng source not found; run --google-fts first to download"
+    fi
+
+    # --- libxml2 AFL ---
+    if [ -d "$work_dir/libxml2-2.9.2" ]; then
+        info "  Building libxml2 (AFL)..."
+        cd "$work_dir/libxml2-2.9.2"
+        set +e
+        make distclean 2>/dev/null || make clean 2>/dev/null || true
+        CC=afl-clang-fast CFLAGS="-O2" \
+            ./configure --quiet --disable-shared --without-python \
+            --without-threads --without-lzma 2>/dev/null && \
+            make -j$(nproc) 2>/dev/null
+        if [ $? -eq 0 ] && [ -f .libs/libxml2.a ]; then
+            afl-clang-fast -O2 "$BUILD_DIR/google-fts-cov/xml_cov/xml_read_fuzzer.c" \
+                -I "$work_dir/libxml2-2.9.2/include" \
+                "$work_dir/libxml2-2.9.2/.libs/libxml2.a" \
+                -lz -lm -lpthread -o "$BUILD_DIR/google-fts-afl/xml_read_fuzzer" 2>/dev/null
+            if [ $? -eq 0 ]; then
+                built=$((built + 1))
+                info "    -> xml_read_fuzzer AFL built"
+            else
+                warn "    xml_read_fuzzer AFL link failed"
+            fi
+        else
+            warn "    libxml2 AFL build failed"
+        fi
+        set -e
+        cd "$SCRIPT_DIR"
+    else
+        warn "  libxml2 source not found; run --google-fts first to download"
+    fi
+
+    info "Google FTS AFL: built $built targets"
+}
+
+############################################################
 # Main
 ############################################################
 usage() {
-    echo "Usage: $0 [--compiler CC] [--all | --cgc | --lava | --google-fts]"
+    echo "Usage: $0 [--compiler CC] [--all | --cgc | --lava | --google-fts] [--with-coverage]"
     echo ""
     echo "Build public benchmark programs. Assumes repos are already cloned"
     echo "into benchmark/public/ (use setup_public_benchmarks.sh first)."
     echo ""
     echo "Options:"
-    echo "  --compiler CC   C compiler to use (default: gcc, or use 'symcc')"
-    echo "  --all           Build all available benchmarks"
-    echo "  --cgc           Build CGC cb-multios challenges"
-    echo "  --lava          Build LAVA-M targets (base64, md5sum, uniq, who)"
-    echo "  --google-fts    Build Google fuzzer-test-suite"
+    echo "  --compiler CC     C compiler to use (default: gcc, or use 'symcc')"
+    echo "  --all             Build all available benchmarks"
+    echo "  --cgc             Build CGC cb-multios challenges"
+    echo "  --lava            Build LAVA-M targets (base64, md5sum, uniq, who)"
+    echo "  --google-fts      Build Google fuzzer-test-suite"
+    echo "  --with-coverage   Also build coverage-instrumented binaries (gcc --coverage)"
+    echo "  --with-afl        Also build AFL-instrumented binaries (afl-clang-fast)"
     echo ""
     echo "Output:"
-    echo "  Binaries: $BUILD_DIR/<suite>/"
-    echo "  Seeds:    $SEEDS_DIR/<suite>/"
+    echo "  Binaries:  $BUILD_DIR/<suite>/"
+    echo "  Coverage:  $BUILD_DIR/<suite>-cov/"
+    echo "  Seeds:     $SEEDS_DIR/<suite>/"
     echo ""
     echo "Example:"
     echo "  # Build with gcc (for MPI framework testing):"
@@ -415,12 +723,17 @@ usage() {
     echo ""
     echo "  # Build with SymCC (for real symbolic execution):"
     echo "  $0 --compiler symcc --all"
+    echo ""
+    echo "  # Build with coverage for benchmark reports:"
+    echo "  $0 --all --with-coverage"
 }
 
 # Parse args
 BUILD_CGC=false
 BUILD_LAVA=false
 BUILD_GOOGLE=false
+WITH_COVERAGE=false
+WITH_AFL=false
 
 if [ $# -eq 0 ]; then
     usage
@@ -432,20 +745,44 @@ while [ $# -gt 0 ]; do
         --compiler)
             shift
             CC="$1"
+            _COMPILER_EXPLICIT=true
             if [ "$CC" = "symcc" ] || [[ "$CC" == *"/symcc" ]]; then
-                # If using symcc, also set CXX to sym++
                 CXX="${CC%symcc}sym++"
+            elif [ "$CC" = "gcc" ]; then
+                CXX="g++"
+            elif [ "$CC" = "clang" ]; then
+                CXX="clang++"
+            else
+                CXX="${CC}++"
             fi
             ;;
-        --all)        BUILD_CGC=true; BUILD_LAVA=true; BUILD_GOOGLE=true ;;
-        --cgc)        BUILD_CGC=true ;;
-        --lava)       BUILD_LAVA=true ;;
-        --google-fts) BUILD_GOOGLE=true ;;
-        --help|-h)    usage; exit 0 ;;
-        *)            error "Unknown option: $1"; usage; exit 1 ;;
+        --all)            BUILD_CGC=true; BUILD_LAVA=true; BUILD_GOOGLE=true ;;
+        --cgc)            BUILD_CGC=true ;;
+        --lava)           BUILD_LAVA=true ;;
+        --google-fts)     BUILD_GOOGLE=true ;;
+        --with-coverage)  WITH_COVERAGE=true ;;
+        --with-afl)       WITH_AFL=true ;;
+        --help|-h)        usage; exit 0 ;;
+        *)                error "Unknown option: $1"; usage; exit 1 ;;
     esac
     shift
 done
+
+# Auto-detect SymCC only if no --compiler was explicitly given
+if [ "$_COMPILER_EXPLICIT" = false ] && [ "$CC" = "gcc" ]; then
+    SYMCC_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+    if [ -x "$SYMCC_ROOT/build/symcc" ]; then
+        CC="$SYMCC_ROOT/build/symcc"
+        CXX="$SYMCC_ROOT/build/sym++"
+        info "Auto-detected SymCC at $CC"
+    elif command -v symcc >/dev/null 2>&1; then
+        CC="symcc"
+        CXX="sym++"
+        info "Auto-detected SymCC in PATH"
+    else
+        warn "SymCC not found, using gcc (simulation mode only)"
+    fi
+fi
 
 mkdir -p "$BUILD_DIR" "$SEEDS_DIR"
 
@@ -458,6 +795,28 @@ echo ""
 $BUILD_CGC    && build_cgc
 $BUILD_LAVA   && build_lava
 $BUILD_GOOGLE && build_google_fts
+
+# AFL builds 必须在 coverage 之前，因为两者都会 distclean 库源码
+# Coverage 最后编译确保 .gcno 文件不被后续步骤覆盖
+if $WITH_AFL; then
+    echo ""
+    echo "================================================================"
+    echo "  Building AFL-Instrumented Binaries"
+    echo "================================================================"
+    echo ""
+    $BUILD_GOOGLE && build_google_fts_afl
+fi
+
+# Coverage builds (使用 gcc --coverage -O0 -g 重新编译) — 必须最后！
+if $WITH_COVERAGE; then
+    echo ""
+    echo "================================================================"
+    echo "  Building Coverage-Instrumented Binaries"
+    echo "================================================================"
+    echo ""
+    $BUILD_LAVA   && build_lava_coverage
+    $BUILD_GOOGLE && build_google_fts_coverage
+fi
 
 echo ""
 echo "================================================================"

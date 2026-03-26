@@ -46,6 +46,7 @@ SYMCC_ROOT = SCRIPT_DIR.parent
 TARGETS_DIR = SCRIPT_DIR / "targets"
 SEEDS_DIR = SCRIPT_DIR / "seeds"
 MPI_SCRIPT = SYMCC_ROOT / "util" / "mpi_concolic_execution.py"
+MPI_FUZZING_SCRIPT = SYMCC_ROOT / "util" / "mpi_fuzzing_helper.py"
 SERIAL_SCRIPT = SYMCC_ROOT / "util" / "pure_concolic_execution.sh"
 
 # Target configs: name -> (source, input_len, seed_prefix, uses_file_arg)
@@ -163,7 +164,7 @@ def build_targets_gcc(output_dir):
             print(f"OK ({elapsed:.1f}s)")
             binaries[name] = str(bin_path)
         else:
-            print(f"FAILED")
+            print("FAILED")
     return binaries
 
 
@@ -195,33 +196,216 @@ def build_coverage_targets(output_dir):
             cov_binaries[name] = bin_path
             cov_dirs[name] = cov_dir
         else:
-            print(f"FAILED")
+            print("FAILED")
             if stderr:
                 print(f"    {stderr[:200]}")
 
     return cov_binaries, cov_dirs
 
 
+def discover_public_coverage_targets() -> tuple[dict[str, str], dict[str, str], dict[str, str], dict[str, list[str]]]:
+    """发现已编译的 public benchmark 覆盖率二进制文件。
+
+    查找 public/bin/<suite>-cov/ 目录下的覆盖率二进制和元数据文件
+    （.covdir 和 .covsrc 由 compile_public_benchmarks.sh --with-coverage 生成）。
+
+    Returns:
+        (cov_binaries, cov_dirs, cov_sources, cov_libdirs) 四个字典，键为目标名
+        cov_libdirs: 库构建目录列表，用于 lcov 采集完整覆盖率
+    """
+    cov_binaries: dict[str, str] = {}
+    cov_dirs: dict[str, str] = {}
+    cov_sources: dict[str, str] = {}
+    cov_libdirs: dict[str, list[str]] = {}
+
+    pub_bin_dir = PUBLIC_DIR / "bin"
+    if not pub_bin_dir.is_dir():
+        return cov_binaries, cov_dirs, cov_sources, cov_libdirs
+
+    for suite_cov_dir in sorted(pub_bin_dir.iterdir()):
+        if not suite_cov_dir.is_dir() or not suite_cov_dir.name.endswith("-cov"):
+            continue
+        # 从 "lava-m-cov" 得到 suite 前缀 "lava-m" -> target 前缀 "lava-"
+        suite_name = suite_cov_dir.name[:-4]  # 去掉 "-cov"
+        if suite_name == "lava-m":
+            prefix = "lava-"
+        elif suite_name == "google-fts":
+            prefix = "gfts-"
+        else:
+            prefix = suite_name + "-"
+
+        for binary in sorted(suite_cov_dir.iterdir()):
+            if not binary.is_file() or binary.suffix:
+                continue  # 跳过 .covdir, .covsrc 等元数据文件
+            if not os.access(str(binary), os.X_OK):
+                continue
+
+            prog_name = binary.name
+            target_name = prefix + prog_name
+            covdir_file = suite_cov_dir / f"{prog_name}.covdir"
+            covsrc_file = suite_cov_dir / f"{prog_name}.covsrc"
+
+            if covdir_file.exists() and covsrc_file.exists():
+                cov_dir_path = covdir_file.read_text().strip()
+                cov_src_path = covsrc_file.read_text().strip()
+                cov_binaries[target_name] = str(binary)
+                cov_dirs[target_name] = cov_dir_path
+                cov_sources[target_name] = cov_src_path
+
+                # 读取库构建目录列表（如果存在）
+                covlibdirs_file = suite_cov_dir / f"{prog_name}.covlibdirs"
+                if covlibdirs_file.exists():
+                    lib_dirs = [
+                        d.strip() for d in covlibdirs_file.read_text().strip().splitlines()
+                        if d.strip() and os.path.isdir(d.strip())
+                    ]
+                    if lib_dirs:
+                        cov_libdirs[target_name] = lib_dirs
+
+    return cov_binaries, cov_dirs, cov_sources, cov_libdirs
+
+
+def _clean_gcda_files(directories: list[str]) -> None:
+    """清理多个目录下的 .gcda 文件。"""
+    for d in directories:
+        if not os.path.isdir(d):
+            continue
+        for root, _dirs, files in os.walk(d):
+            for f in files:
+                if f.endswith(".gcda"):
+                    os.remove(os.path.join(root, f))
+
+
+def _measure_with_lcov(all_cov_dirs: list[str]) -> tuple[float, float]:
+    """使用 lcov 从多个目录采集覆盖率，返回 (line_cov, branch_cov)。
+
+    lcov 能聚合所有 --coverage 编译的源文件（harness + 库），
+    比 gcov 单文件测量更全面。
+    """
+    import tempfile
+    line_cov = 0.0
+    branch_cov = 0.0
+
+    with tempfile.NamedTemporaryFile(suffix=".info", delete=False) as tmp:
+        info_file = tmp.name
+
+    try:
+        # 构建 lcov 命令：从所有目录采集覆盖率
+        cmd = ["lcov", "--capture", "--rc", "branch_coverage=1", "--quiet"]
+        for d in all_cov_dirs:
+            cmd.extend(["--directory", d])
+        cmd.extend(["--output-file", info_file])
+
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        if result.returncode != 0:
+            return 0.0, 0.0
+
+        # 用 lcov --summary 获取汇总覆盖率
+        result = subprocess.run(
+            ["lcov", "--summary", info_file, "--rc", "branch_coverage=1"],
+            capture_output=True, text=True, timeout=30
+        )
+        output = result.stdout + result.stderr  # lcov summary 输出到 stderr
+
+        # 解析: "lines......: 45.2% (1234 of 2734 lines)"
+        m = re.search(r"lines\.*:\s*(\d+\.?\d*)%", output)
+        if m:
+            line_cov = float(m.group(1))
+
+        # 解析: "branches...: 32.1% (567 of 1765 branches)"
+        m = re.search(r"branches\.*:\s*(\d+\.?\d*)%", output)
+        if m:
+            branch_cov = float(m.group(1))
+
+    except (subprocess.TimeoutExpired, Exception):
+        pass
+    finally:
+        try:
+            os.remove(info_file)
+        except OSError:
+            pass
+
+    return line_cov, branch_cov
+
+
+def _measure_with_gcov(cov_dir: str, source_file: str) -> tuple[float, float]:
+    """使用 gcov 从单个源文件测量覆盖率（旧方法，仅测 harness）。"""
+    line_cov = 0.0
+    branch_cov = 0.0
+
+    try:
+        # autotools 的 per-program CFLAGS 会生成形如 src_<prog>-<source>.gcno
+        # 的文件名（如 src_md5sum-md5sum.gcno），直接用源文件名调用 gcov 会
+        # 找不到对应的 gcno 文件。这里先检查是否存在 autotools 风格的 gcno，
+        # 如果有则用 gcno 文件名调用 gcov。
+        src_base = os.path.splitext(os.path.basename(source_file))[0]
+        gcov_target = source_file  # 默认用源文件名
+        gcno_dir = os.path.join(cov_dir, os.path.dirname(source_file))
+        if os.path.isdir(gcno_dir):
+            exact_gcno = os.path.join(gcno_dir, f"{src_base}.gcno")
+            if not os.path.isfile(exact_gcno):
+                import glob as _glob
+                candidates = _glob.glob(
+                    os.path.join(gcno_dir, f"*-{src_base}.gcno")
+                )
+                for c in candidates:
+                    cname = os.path.basename(c)
+                    if f"src_{src_base}-{src_base}.gcno" == cname:
+                        gcov_target = os.path.join(
+                            os.path.dirname(source_file), cname)
+                        break
+                else:
+                    if candidates:
+                        gcov_target = os.path.join(
+                            os.path.dirname(source_file),
+                            os.path.basename(candidates[0]))
+
+        result = subprocess.run(
+            ["gcov", "-b", gcov_target],
+            capture_output=True, text=True, cwd=cov_dir, timeout=30
+        )
+        output = result.stdout
+
+        m = re.search(r"Lines executed:(\d+\.\d+)% of (\d+)", output)
+        if m:
+            line_cov = float(m.group(1))
+
+        m = re.search(r"Taken at least once:(\d+\.\d+)% of (\d+)", output)
+        if m:
+            branch_cov = float(m.group(1))
+        else:
+            m = re.search(r"Branches executed:(\d+\.\d+)% of (\d+)", output)
+            if m:
+                branch_cov = float(m.group(1))
+    except Exception:
+        pass
+
+    return line_cov, branch_cov
+
+
 def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
                      uses_file=True, timeout_per_case=5,
-                     max_cases=200000):
+                     max_cases=200000, lib_dirs=None):
     """
     Run all test cases through the coverage binary and measure coverage.
 
     Uses a shell loop to batch-execute test cases, avoiding per-file
     subprocess fork overhead (~100x faster for thousands of test cases).
 
+    If lib_dirs is provided, uses lcov to aggregate coverage across harness
+    and library source files (much more comprehensive than gcov single-file).
+
     If there are more than max_cases test cases, a stratified sample is used.
-    The default of 200K (up from 50K) ensures reliable coverage measurement
-    even for corpora with 1M+ test cases — a 50K sample at 1M files has
-    a ~95% chance of missing any single critical test case.
 
     Returns dict with: line_cov, branch_cov, crashes, total_cases
     """
-    # Clear old .gcda files
-    for f in os.listdir(cov_dir):
-        if f.endswith(".gcda"):
-            os.remove(os.path.join(cov_dir, f))
+    # 确定所有需要清理和采集的覆盖率目录
+    all_cov_dirs = [cov_dir]
+    if lib_dirs:
+        all_cov_dirs.extend(lib_dirs)
+
+    # 清理旧的 .gcda 文件（递归，支持多目录）
+    _clean_gcda_files(all_cov_dirs)
 
     crashes = 0
     total_cases = 0
@@ -237,16 +421,10 @@ def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
     if total_cases == 0:
         return {"line_cov": 0.0, "branch_cov": 0.0, "crashes": 0, "total_cases": 0}
 
-    # Sample if too many test cases.
-    # Use a two-pass stratified approach: first take every Nth file (stride),
-    # then also include the first and last few files from each 256-bucket
-    # (based on first byte of filename). This ensures rare "outlier" test
-    # cases that uniquely cover certain branches aren't missed by stride
-    # sampling alone, which is critical at >1M files.
+    # 采样策略：超过 max_cases 时使用分层采样
     sampled = False
     if total_cases > max_cases:
         test_files.sort()
-        # Primary: stride-based sample
         stride = total_cases / max_cases
         stride_set = set()
         stride_sample = []
@@ -255,23 +433,17 @@ def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
             stride_set.add(idx)
             stride_sample.append(test_files[idx])
 
-        # Secondary: bucket boundary files (first+last per hex prefix bucket)
-        # This catches files that fall between stride gaps.
-        # Cost: at most 512 extra files — negligible.
         bucket_extras = []
         prev_prefix = None
         for idx, fp in enumerate(test_files):
             fname = os.path.basename(fp)
             prefix = fname[:2] if len(fname) >= 2 else fname
             if prefix != prev_prefix:
-                # First file of new bucket
                 if idx not in stride_set:
                     bucket_extras.append(fp)
-                # Also add last file of previous bucket
                 if prev_prefix is not None and (idx - 1) not in stride_set:
                     bucket_extras.append(test_files[idx - 1])
                 prev_prefix = prefix
-        # Last file of last bucket
         if test_files and (len(test_files) - 1) not in stride_set:
             bucket_extras.append(test_files[-1])
 
@@ -280,9 +452,7 @@ def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
     else:
         test_files.sort()
 
-    # Batch execute: use a shell loop to run all test cases in one subprocess.
-    # This avoids per-file Python subprocess fork overhead.
-    # The shell script counts crash signals (retcode > 128).
+    # 批量执行测试用例
     list_file = os.path.join(cov_dir, "_test_list.txt")
     with open(list_file, "w") as lf:
         for fp in test_files:
@@ -304,8 +474,6 @@ def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
     )
 
     try:
-        # Allow generous timeout: 2s per case (most finish in <10ms)
-        # Use len(test_files) not total_cases — test_files may be sampled down
         batch_timeout = max(60, len(test_files) * 2)
         result = subprocess.run(
             ["bash", "-c", script],
@@ -318,41 +486,20 @@ def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
     except Exception:
         pass
 
-    # Clean up temp file
     try:
         os.remove(list_file)
     except OSError:
         pass
 
-    # Run gcov to get coverage stats
+    # 测量覆盖率：有库目录时用 lcov（完整覆盖率），否则用 gcov（仅 harness）
     line_cov = 0.0
     branch_cov = 0.0
 
-    try:
-        result = subprocess.run(
-            ["gcov", "-b", source_file],
-            capture_output=True, text=True, cwd=cov_dir, timeout=30
-        )
-        output = result.stdout
-
-        # Parse "Lines executed:XX.XX% of YY"
-        m = re.search(r"Lines executed:(\d+\.\d+)% of (\d+)", output)
-        if m:
-            line_cov = float(m.group(1))
-
-        # Parse "Taken at least once:XX.XX% of YY" for true branch coverage.
-        # "Branches executed" only means the branch instruction was reached,
-        # not that both outcomes (true/false) were covered.
-        m = re.search(r"Taken at least once:(\d+\.\d+)% of (\d+)", output)
-        if m:
-            branch_cov = float(m.group(1))
-        else:
-            # Fall back to "Branches executed" if "Taken at least once" not found
-            m = re.search(r"Branches executed:(\d+\.\d+)% of (\d+)", output)
-            if m:
-                branch_cov = float(m.group(1))
-    except Exception:
-        pass
+    use_lcov = lib_dirs and shutil.which("lcov")
+    if use_lcov:
+        line_cov, branch_cov = _measure_with_lcov(all_cov_dirs)
+    else:
+        line_cov, branch_cov = _measure_with_gcov(cov_dir, source_file)
 
     return {
         "line_cov": line_cov,
@@ -400,61 +547,146 @@ def get_unique_hashes(directory):
     return hashes
 
 
-def run_serial(binary, target_name, seed_dir, timeout, work_dir):
+def _simulate_serial(binary, seed_dir, output_dir, timeout, uses_file,
+                     max_files=10000):
+    """模拟模式的串行执行：运行目标二进制并生成随机变异测试用例。
+
+    限制最大文件数以避免产生过多文件导致后续计数和清理太慢。
+    """
+    import random as _random
+
+    env = os.environ.copy()
+    magic_path = os.path.join(os.path.dirname(binary), "magic.mgc")
+    if os.path.isfile(magic_path):
+        env["MAGIC"] = magic_path
+
+    # 收集种子文件
+    seeds = [os.path.join(seed_dir, f) for f in sorted(os.listdir(seed_dir))
+             if os.path.isfile(os.path.join(seed_dir, f))]
+    if not seeds:
+        return
+
+    queue = list(seeds)
+    start = time.monotonic()
+    file_count = 0
+
+    while time.monotonic() - start < timeout and queue and file_count < max_files:
+        input_file = queue.pop(0)
+        try:
+            with open(input_file, "rb") as f:
+                data = f.read()
+        except (IOError, OSError):
+            continue
+
+        if not data:
+            continue
+
+        # 运行目标二进制
+        if uses_file:
+            cmd = ["timeout", "-k", "2", "5", binary, input_file]
+        else:
+            cmd = ["timeout", "-k", "2", "5", binary]
+
+        try:
+            if uses_file:
+                subprocess.run(cmd, stdin=subprocess.DEVNULL,
+                               stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL, env=env)
+            else:
+                with open(input_file, "rb") as inf:
+                    subprocess.run(cmd, stdin=inf,
+                                   stdout=subprocess.DEVNULL,
+                                   stderr=subprocess.DEVNULL, env=env)
+        except Exception:
+            pass
+
+        # 生成变异测试用例
+        for i in range(5):
+            if file_count >= max_files:
+                break
+            mutated = bytearray(data)
+            num_bytes = _random.randint(1, min(3, len(mutated)))
+            for _ in range(num_bytes):
+                pos = _random.randint(0, len(mutated) - 1)
+                mutated[pos] = _random.randint(0, 255)
+            h = hashlib.sha256(bytes(mutated)).hexdigest()
+            out_path = os.path.join(output_dir, h)
+            if not os.path.exists(out_path):
+                with open(out_path, "wb") as f:
+                    f.write(bytes(mutated))
+                queue.append(out_path)
+                file_count += 1
+
+
+def run_serial(binary, target_name, seed_dir, timeout, work_dir,
+               simulate=False):
     """Run the serial pure_concolic_execution.sh baseline."""
     output_dir = os.path.join(work_dir, "serial_output")
     os.makedirs(output_dir, exist_ok=True)
 
     uses_file = TARGETS[target_name][3] if target_name in TARGETS else True
 
-    if uses_file:
-        cmd = [
-            "bash", str(SERIAL_SCRIPT),
-            "-i", seed_dir,
-            "-o", output_dir,
-            binary, "@@"
-        ]
-    else:
-        cmd = [
-            "bash", str(SERIAL_SCRIPT),
-            "-i", seed_dir,
-            "-o", output_dir,
-            binary
-        ]
-
-    # Set up environment: auto-detect magic.mgc for 'file' binary
-    env = None
-    magic_path = os.path.join(os.path.dirname(binary), "magic.mgc")
-    if os.path.isfile(magic_path):
-        env = os.environ.copy()
-        env["MAGIC"] = magic_path
-
-    # The serial script runs forever, so we use timeout.
-    # Use start_new_session so we can kill the entire process group on timeout
-    # (otherwise SymCC children spawned by the shell script become orphans).
-    # Use DEVNULL instead of PIPE to avoid deadlock — we don't need the output,
-    # and PIPE with only wait() (no communicate()) deadlocks when the 64KB
-    # pipe buffer fills up.
-    timed_out = False
-    start = time.monotonic()
-    try:
-        proc = subprocess.Popen(
-            cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-            start_new_session=True, env=env
-        )
-        proc.wait(timeout=timeout)
-        retcode = proc.returncode
-    except subprocess.TimeoutExpired:
-        # Kill the entire process group (shell + all children)
+    if simulate:
+        # 模拟模式：直接在 Python 中运行目标并生成变异
+        timed_out = False
+        start = time.monotonic()
         try:
-            os.killpg(proc.pid, signal.SIGKILL)
-        except OSError:
-            proc.kill()
-        proc.wait()
-        retcode = -1
-        timed_out = True
+            _simulate_serial(binary, seed_dir, output_dir, timeout, uses_file)
+        except Exception:
+            pass
+        elapsed = time.monotonic() - start
+        timed_out = elapsed >= timeout * 0.95
+        retcode = 0
+    else:
+        if uses_file:
+            cmd = [
+                "bash", str(SERIAL_SCRIPT),
+                "-i", seed_dir,
+                "-o", output_dir,
+                binary, "@@"
+            ]
+        else:
+            cmd = [
+                "bash", str(SERIAL_SCRIPT),
+                "-i", seed_dir,
+                "-o", output_dir,
+                binary
+            ]
 
-    elapsed = time.monotonic() - start
+        # Set up environment: auto-detect magic.mgc for 'file' binary
+        env = None
+        magic_path = os.path.join(os.path.dirname(binary), "magic.mgc")
+        if os.path.isfile(magic_path):
+            env = os.environ.copy()
+            env["MAGIC"] = magic_path
+
+        # The serial script runs forever, so we use timeout.
+        # Use start_new_session so we can kill the entire process group on timeout
+        # (otherwise SymCC children spawned by the shell script become orphans).
+        # Use DEVNULL instead of PIPE to avoid deadlock — we don't need the output,
+        # and PIPE with only wait() (no communicate()) deadlocks when the 64KB
+        # pipe buffer fills up.
+        timed_out = False
+        start = time.monotonic()
+        try:
+            proc = subprocess.Popen(
+                cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                start_new_session=True, env=env
+            )
+            proc.wait(timeout=timeout)
+            retcode = proc.returncode
+        except subprocess.TimeoutExpired:
+            # Kill the entire process group (shell + all children)
+            try:
+                os.killpg(proc.pid, signal.SIGKILL)
+            except OSError:
+                proc.kill()
+            proc.wait()
+            retcode = -1
+            timed_out = True
+
+        elapsed = time.monotonic() - start
+
     num_generated = count_output_files(output_dir)
     unique = get_unique_hashes(output_dir)
 
@@ -469,7 +701,8 @@ def run_serial(binary, target_name, seed_dir, timeout, work_dir):
     }
 
 
-def run_mpi(binary, target_name, seed_dir, np, timeout, work_dir):
+def run_mpi(binary, target_name, seed_dir, np, timeout, work_dir,
+            simulate=False):
     """Run MPI-parallel concolic execution."""
     output_dir = os.path.join(work_dir, f"mpi_np{np}_output")
     os.makedirs(output_dir, exist_ok=True)
@@ -479,18 +712,24 @@ def run_mpi(binary, target_name, seed_dir, np, timeout, work_dir):
 
     # Give MPI script a wall timeout slightly less than the benchmark timeout
     # so it can shut down gracefully before the outer subprocess kills it.
-    wall_timeout = max(10, timeout - 30)
+    # 留 10% 或至少 5 秒余量给关闭过程
+    wall_timeout = max(10, int(timeout * 0.9) - 5)
+    # 每次执行的超时应远小于总超时，避免单次执行耗尽全部时间
+    # 保持较短以最大化探索的输入数量（广度优先优于深度优先）
+    per_exec_timeout = min(30, max(5, timeout // 4))
     cmd = [
         "mpirun", "--allow-run-as-root", "--oversubscribe",
         "-np", str(np),
         "python3", str(MPI_SCRIPT),
         "-i", seed_dir,
         "-o", output_dir,
-        "-t", str(min(30, timeout // 2)),
+        "-t", str(per_exec_timeout),
         "--max-idle", str(max_idle),
         "--wall-timeout", str(wall_timeout),
-        "--", binary,
     ]
+    if simulate:
+        cmd.append("--simulate")
+    cmd.extend(["--", binary])
 
     if uses_file:
         cmd.append("@@")
@@ -570,6 +809,347 @@ def run_mpi(binary, target_name, seed_dir, np, timeout, work_dir):
         "num_masters": mpi_num_masters,
         "num_workers": mpi_num_workers,
         "throughput": mpi_throughput or (num_generated / elapsed if elapsed > 0 else 0),
+    }
+
+
+def discover_public_afl_targets() -> dict[str, str]:
+    """发现已编译的 AFL-instrumented 二进制文件。
+
+    查找 public/bin/google-fts-afl/ 目录下的 AFL 二进制。
+    返回 {目标名: AFL 二进制路径} 字典。
+    """
+    afl_binaries: dict[str, str] = {}
+    afl_dir = PUBLIC_DIR / "bin" / "google-fts-afl"
+    if not afl_dir.is_dir():
+        return afl_binaries
+
+    for binary in sorted(afl_dir.iterdir()):
+        if binary.is_file() and os.access(str(binary), os.X_OK):
+            # 映射到与 public target 相同的名称前缀
+            afl_binaries[f"gfts-{binary.name}"] = str(binary)
+
+    return afl_binaries
+
+
+def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
+               seed_dir: str, np: int, timeout: int, work_dir: str) -> dict:
+    """运行 AFL + MPI SymCC 混合模式。
+
+    1. 启动 AFL fuzzer (afl-fuzz -M fuzzer01)
+    2. 等待 AFL 初始化
+    3. 启动 MPI SymCC workers (mpi_fuzzing_helper.py)
+    4. 等待 timeout
+    5. 终止两个进程
+    6. 收集结果
+    """
+    afl_out_dir = os.path.join(work_dir, "afl_out")
+    os.makedirs(afl_out_dir, exist_ok=True)
+
+    # 启动 AFL fuzzer
+    afl_cmd = [
+        "afl-fuzz",
+        "-M", "fuzzer01",
+        "-i", seed_dir,
+        "-o", afl_out_dir,
+        "-m", "none",
+        "--", afl_binary, "@@",
+    ]
+
+    print(f"      Starting AFL: {' '.join(afl_cmd[:8])}...")
+    afl_env = os.environ.copy()
+    afl_env["AFL_NO_UI"] = "1"  # 无 UI 模式，避免终端干扰
+    afl_env["AFL_SKIP_CPUFREQ"] = "1"
+    afl_env["AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES"] = "1"
+
+    afl_proc = subprocess.Popen(
+        afl_cmd,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        start_new_session=True,
+        env=afl_env,
+    )
+
+    # 等待 AFL 初始化（fuzzer_stats 文件出现）
+    fuzzer_dir = os.path.join(afl_out_dir, "fuzzer01")
+    stats_path = os.path.join(fuzzer_dir, "fuzzer_stats")
+    start = time.monotonic()
+    afl_ready = False
+    while time.monotonic() - start < 30:
+        if os.path.isfile(stats_path):
+            afl_ready = True
+            break
+        # 检查 AFL 是否崩溃
+        if afl_proc.poll() is not None:
+            stderr = afl_proc.stderr.read().decode(errors="replace")
+            print(f"      AFL exited early (ret={afl_proc.returncode})")
+            if stderr:
+                print(f"      AFL stderr: {stderr[-300:]}")
+            return {
+                "wall_time": time.monotonic() - start,
+                "generated": 0, "unique": 0, "output_dir": afl_out_dir,
+                "retcode": afl_proc.returncode, "timed_out": False,
+                "throughput": 0, "stdout": "", "stderr": stderr[-500:],
+                "afl_generated": 0, "symcc_interesting": 0,
+            }
+        time.sleep(0.5)
+
+    if not afl_ready:
+        print("      WARNING: AFL did not initialize in 30s, continuing anyway")
+
+    # 保存所有 SymCC 输出（不经 afl-showmap 过滤）用于覆盖率测量
+    symcc_all_dir = os.path.join(work_dir, "symcc_all_outputs")
+    os.makedirs(symcc_all_dir, exist_ok=True)
+
+    # 启动 MPI SymCC workers
+    symcc_np = max(2, np - 1)  # 留 1 个核给 AFL
+    mpi_cmd = [
+        "mpirun", "--allow-run-as-root", "--oversubscribe",
+        "-np", str(symcc_np),
+        "python3", str(MPI_FUZZING_SCRIPT),
+        "-a", "fuzzer01",
+        "-o", afl_out_dir,
+        "-n", "symcc01",
+        "--save-all", symcc_all_dir,
+        "--", symcc_binary, "@@",
+    ]
+
+    print(f"      Starting MPI SymCC (np={symcc_np})...")
+    mpi_proc = subprocess.Popen(
+        mpi_cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        start_new_session=True,
+    )
+
+    # 等待 timeout
+    remaining = timeout - (time.monotonic() - start)
+    try:
+        mpi_proc.wait(timeout=max(10, remaining))
+    except subprocess.TimeoutExpired:
+        pass
+
+    # 终止进程
+    for proc, name in [(mpi_proc, "MPI"), (afl_proc, "AFL")]:
+        if proc.poll() is None:
+            try:
+                os.killpg(proc.pid, signal.SIGTERM)
+                proc.wait(timeout=10)
+            except (OSError, subprocess.TimeoutExpired):
+                try:
+                    os.killpg(proc.pid, signal.SIGKILL)
+                    proc.wait(timeout=5)
+                except (OSError, subprocess.TimeoutExpired):
+                    proc.kill()
+
+    elapsed = time.monotonic() - start
+
+    # 读取 MPI 输出
+    mpi_stdout = ""
+    try:
+        mpi_stdout = mpi_proc.stdout.read().decode(errors="replace")
+    except Exception:
+        pass
+
+    # 收集结果
+    # AFL 生成的测试用例在 fuzzer01/queue/
+    # SymCC 反馈的用例在 symcc01/queue/
+    afl_queue = os.path.join(afl_out_dir, "fuzzer01", "queue")
+    symcc_queue = os.path.join(afl_out_dir, "symcc01", "queue")
+
+    afl_count = count_output_files(afl_queue) if os.path.isdir(afl_queue) else 0
+    symcc_count = count_output_files(symcc_queue) if os.path.isdir(symcc_queue) else 0
+
+    # 合并所有测试用例到一个目录用于覆盖率测量
+    combined_dir = os.path.join(work_dir, "combined_output")
+    os.makedirs(combined_dir, exist_ok=True)
+
+    # 复制种子
+    for f in os.listdir(seed_dir):
+        src = os.path.join(seed_dir, f)
+        if os.path.isfile(src):
+            shutil.copy2(src, os.path.join(combined_dir, f"seed_{f}"))
+
+    # 复制 AFL queue
+    if os.path.isdir(afl_queue):
+        for f in os.listdir(afl_queue):
+            src = os.path.join(afl_queue, f)
+            if os.path.isfile(src):
+                shutil.copy2(src, os.path.join(combined_dir, f"afl_{f}"))
+
+    # 复制 SymCC queue (afl-showmap 过滤后的 interesting)
+    if os.path.isdir(symcc_queue):
+        for f in os.listdir(symcc_queue):
+            src = os.path.join(symcc_queue, f)
+            if os.path.isfile(src):
+                shutil.copy2(src, os.path.join(combined_dir, f"symcc_{f}"))
+
+    # 复制所有 SymCC 输出（未过滤）— 这些可能有 lcov 覆盖率提升
+    symcc_all_count = 0
+    if os.path.isdir(symcc_all_dir):
+        for f in os.listdir(symcc_all_dir):
+            src = os.path.join(symcc_all_dir, f)
+            if os.path.isfile(src):
+                dest = os.path.join(combined_dir, f"symcc_all_{f}")
+                if not os.path.exists(dest):
+                    shutil.copy2(src, dest)
+                    symcc_all_count += 1
+
+    total_generated = afl_count + symcc_count + symcc_all_count
+
+    # 解析 MPI 输出中的 interesting count
+    symcc_interesting = 0
+    m = re.search(r"(\d+) interesting", mpi_stdout)
+    if m:
+        symcc_interesting = int(m.group(1))
+
+    # 解析 AFL fuzzer_stats 获取覆盖率信息
+    afl_bitmap_cvg = ""
+    if os.path.isfile(stats_path):
+        try:
+            with open(stats_path) as f:
+                for line in f:
+                    if "bitmap_cvg" in line:
+                        afl_bitmap_cvg = line.split(":", 1)[1].strip()
+        except Exception:
+            pass
+
+    return {
+        "wall_time": elapsed,
+        "generated": total_generated,
+        "unique": total_generated,  # AFL 去重机制保证 queue 中唯一
+        "output_dir": combined_dir,
+        "retcode": mpi_proc.returncode or 0,
+        "timed_out": elapsed >= timeout * 0.95,
+        "throughput": total_generated / elapsed if elapsed > 0 else 0,
+        "stdout": mpi_stdout[-500:] if mpi_stdout else "",
+        "stderr": "",
+        "afl_generated": afl_count,
+        "symcc_interesting": symcc_interesting,
+        "afl_bitmap_cvg": afl_bitmap_cvg,
+        "num_workers": symcc_np - 1,
+    }
+
+
+def run_afl_only(afl_binary: str, target_name: str,
+                 seed_dir: str, timeout: int, work_dir: str) -> dict:
+    """运行 AFL-only 基准模式（无 SymCC）。
+
+    仅启动 AFL fuzzer，作为 hybrid 模式的对照基准。
+    """
+    afl_out_dir = os.path.join(work_dir, "afl_out")
+    os.makedirs(afl_out_dir, exist_ok=True)
+
+    afl_cmd = [
+        "afl-fuzz",
+        "-M", "fuzzer01",
+        "-i", seed_dir,
+        "-o", afl_out_dir,
+        "-m", "none",
+        "--", afl_binary, "@@",
+    ]
+
+    print(f"      Starting AFL-only: {' '.join(afl_cmd[:8])}...")
+    afl_env = os.environ.copy()
+    afl_env["AFL_NO_UI"] = "1"
+    afl_env["AFL_SKIP_CPUFREQ"] = "1"
+    afl_env["AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES"] = "1"
+
+    start = time.monotonic()
+    afl_proc = subprocess.Popen(
+        afl_cmd,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        start_new_session=True,
+        env=afl_env,
+    )
+
+    # 等待 AFL 初始化
+    fuzzer_dir = os.path.join(afl_out_dir, "fuzzer01")
+    stats_path = os.path.join(fuzzer_dir, "fuzzer_stats")
+    afl_ready = False
+    while time.monotonic() - start < 30:
+        if os.path.isfile(stats_path):
+            afl_ready = True
+            break
+        if afl_proc.poll() is not None:
+            stderr = afl_proc.stderr.read().decode(errors="replace")
+            print(f"      AFL exited early (ret={afl_proc.returncode})")
+            if stderr:
+                print(f"      AFL stderr: {stderr[-300:]}")
+            return {
+                "wall_time": time.monotonic() - start,
+                "generated": 0, "unique": 0, "output_dir": afl_out_dir,
+                "retcode": afl_proc.returncode, "timed_out": False,
+                "throughput": 0, "stdout": "", "stderr": stderr[-500:],
+            }
+        time.sleep(0.5)
+
+    if not afl_ready:
+        print("      WARNING: AFL did not initialize in 30s, continuing anyway")
+
+    # 等待 timeout
+    remaining = timeout - (time.monotonic() - start)
+    if remaining > 0:
+        try:
+            afl_proc.wait(timeout=remaining)
+        except subprocess.TimeoutExpired:
+            pass
+
+    # 终止 AFL
+    if afl_proc.poll() is None:
+        try:
+            os.killpg(afl_proc.pid, signal.SIGTERM)
+            afl_proc.wait(timeout=10)
+        except (OSError, subprocess.TimeoutExpired):
+            try:
+                os.killpg(afl_proc.pid, signal.SIGKILL)
+                afl_proc.wait(timeout=5)
+            except (OSError, subprocess.TimeoutExpired):
+                afl_proc.kill()
+
+    elapsed = time.monotonic() - start
+
+    # 收集结果
+    afl_queue = os.path.join(afl_out_dir, "fuzzer01", "queue")
+    afl_count = count_output_files(afl_queue) if os.path.isdir(afl_queue) else 0
+
+    # 合并种子和 AFL queue 用于覆盖率测量
+    combined_dir = os.path.join(work_dir, "combined_output")
+    os.makedirs(combined_dir, exist_ok=True)
+
+    for f in os.listdir(seed_dir):
+        src = os.path.join(seed_dir, f)
+        if os.path.isfile(src):
+            shutil.copy2(src, os.path.join(combined_dir, f"seed_{f}"))
+
+    if os.path.isdir(afl_queue):
+        for f in os.listdir(afl_queue):
+            src = os.path.join(afl_queue, f)
+            if os.path.isfile(src):
+                shutil.copy2(src, os.path.join(combined_dir, f"afl_{f}"))
+
+    # 解析 AFL bitmap coverage
+    afl_bitmap_cvg = ""
+    if os.path.isfile(stats_path):
+        try:
+            with open(stats_path) as f:
+                for line in f:
+                    if "bitmap_cvg" in line:
+                        afl_bitmap_cvg = line.split(":", 1)[1].strip()
+        except Exception:
+            pass
+
+    return {
+        "wall_time": elapsed,
+        "generated": afl_count,
+        "unique": afl_count,
+        "output_dir": combined_dir,
+        "retcode": afl_proc.returncode or 0,
+        "timed_out": elapsed >= timeout * 0.95,
+        "throughput": afl_count / elapsed if elapsed > 0 else 0,
+        "stdout": "",
+        "stderr": "",
+        "afl_bitmap_cvg": afl_bitmap_cvg,
     }
 
 
@@ -657,12 +1237,14 @@ def generate_report(results, output_dir):
                     "rounds": len(rows),
                 })
 
-            # Find serial baseline throughput for speedup calculation
+            # Find serial baseline and np=2 baseline for speedup/efficiency
             serial_throughput = None
+            base_mpi_throughput = None
             for s in summaries:
                 if s["mode"] == "serial":
                     serial_throughput = s["avg_throughput"]
-                    break
+                if s["mode"] == "mpi" and s["np"] == 2:
+                    base_mpi_throughput = s["avg_throughput"]
 
             # Check if any coverage data is present
             has_cov = any(s["avg_line_cov"] > 0 or s["avg_branch_cov"] > 0
@@ -682,15 +1264,22 @@ def generate_report(results, output_dir):
             f.write(sep)
 
             for s in summaries:
-                # Speedup = throughput ratio (tc/s of MPI vs serial).
-                # This is meaningful even when both configs hit the timeout,
-                # unlike wall-clock ratio which would always be ~1x.
+                # Speedup = tc/s ratio vs serial baseline
+                # Efficiency = 并行扩展效率，以 np=2（单 worker）为基线
                 if (serial_throughput and serial_throughput > 0
                         and s["mode"] != "serial"):
                     speedup = (s["avg_throughput"] / serial_throughput
                                if serial_throughput > 0 else 0)
                     workers = s.get("avg_workers") or (s["np"] - 1)
-                    efficiency = (speedup / workers * 100) if workers > 0 else 0
+                    if (base_mpi_throughput and base_mpi_throughput > 0
+                            and workers > 0):
+                        efficiency = (s["avg_throughput"]
+                                      / base_mpi_throughput
+                                      / workers * 100)
+                    elif workers > 0:
+                        efficiency = (speedup / workers * 100)
+                    else:
+                        efficiency = 0.0
                 else:
                     speedup = 1.0
                     efficiency = 100.0
@@ -746,7 +1335,7 @@ def generate_report(results, output_dir):
 
         # Overall summary
         f.write(f"\n{'=' * 80}\n")
-        f.write(f"  OVERALL SUMMARY\n")
+        f.write("  OVERALL SUMMARY\n")
         f.write(f"{'=' * 80}\n\n")
 
         # Find best config per target (by coverage first, then throughput)
@@ -784,7 +1373,7 @@ def generate_report(results, output_dir):
                 info += ")\n"
                 f.write(info)
 
-        f.write(f"\n  Report files:\n")
+        f.write("\n  Report files:\n")
         f.write(f"    Text:  {report_path}\n")
         f.write(f"    CSV:   {csv_path}\n")
         f.write(f"    JSON:  {json_path}\n")
@@ -824,6 +1413,10 @@ def main():
                         help="Disable auto-discovery of public benchmarks")
     parser.add_argument("--no-coverage", action="store_true",
                         help="Skip coverage measurement (faster but less metrics)")
+    parser.add_argument("--hybrid", action="store_true",
+                        help="Also run hybrid AFL+SymCC mode (requires AFL-instrumented binaries)")
+    parser.add_argument("--afl-only", action="store_true",
+                        help="Also run AFL-only baseline (requires AFL-instrumented binaries)")
 
     args = parser.parse_args()
 
@@ -906,7 +1499,7 @@ def main():
                                 continue
                             seed_candidate = pub_seed_dir / suite_dir.name / bname
                             if seed_candidate.is_dir():
-                                if not _has_symcc_instrumentation(str(binary)):
+                                if not args.simulation and not _has_symcc_instrumentation(str(binary)):
                                     print(f"  Skipping {bname}: no SymCC instrumentation (gcc-compiled)")
                                     continue
                                 public_specs.append(
@@ -952,20 +1545,37 @@ def main():
         print("\nERROR: mpirun not found. Install OpenMPI: apt install openmpi-bin")
         sys.exit(1)
 
-    # Build coverage binaries (for built-in targets only)
-    cov_binaries = {}
-    cov_dirs = {}
+    # Build/discover coverage binaries
+    cov_binaries: dict[str, str] = {}
+    cov_dirs: dict[str, str] = {}
+    cov_sources: dict[str, str] = {}  # 用于 public 目标的 gcov source file
+    cov_libdirs: dict[str, list[str]] = {}  # 库构建目录，用于 lcov 完整覆盖率
     enable_coverage = not args.no_coverage
     if enable_coverage:
         if not shutil.which("gcov"):
             print("\n  WARNING: gcov not found, disabling coverage measurement")
             enable_coverage = False
         else:
-            print("\n  Building coverage-instrumented binaries:")
-            cov_bin_dir = os.path.join(output_dir, "cov_bin")
-            cov_binaries, cov_dirs = build_coverage_targets(cov_bin_dir)
+            # 内置目标的 coverage 二进制
+            if not args.no_default:
+                print("\n  Building coverage-instrumented binaries:")
+                cov_bin_dir = os.path.join(output_dir, "cov_bin")
+                cov_binaries, cov_dirs = build_coverage_targets(cov_bin_dir)
+
+            # 发现 public 目标的 coverage 二进制
+            pub_cov_bins, pub_cov_dirs, pub_cov_srcs, pub_cov_libs = discover_public_coverage_targets()
+            if pub_cov_bins:
+                print(f"\n  Discovered {len(pub_cov_bins)} public coverage binaries:")
+                for name in sorted(pub_cov_bins):
+                    lib_info = f" (+libs: {len(pub_cov_libs.get(name, []))} dirs)" if name in pub_cov_libs else ""
+                    print(f"    {name}: {pub_cov_bins[name]}{lib_info}")
+                cov_binaries.update(pub_cov_bins)
+                cov_dirs.update(pub_cov_dirs)
+                cov_sources.update(pub_cov_srcs)
+                cov_libdirs.update(pub_cov_libs)
+
             if not cov_binaries:
-                print("  WARNING: no coverage binaries built, disabling coverage")
+                print("  WARNING: no coverage binaries found, disabling coverage")
                 enable_coverage = False
 
     # Prepare seed directories per target
@@ -985,11 +1595,10 @@ def main():
             seed_dirs[target] = target_seed_dir
 
     # Run benchmarks
-    print(f"\nStep 2: Running benchmarks")
+    print("\nStep 2: Running benchmarks")
     print("-" * 40)
 
     all_results = []
-    total_runs = len(available_targets) * (1 + len(np_list)) * args.rounds
     current_run = 0
 
     for target in available_targets:
@@ -1001,23 +1610,38 @@ def main():
         print(f"  Seeds:  {seed_dir} ({len(os.listdir(seed_dir))} files)")
 
         # Serial baseline
-        print(f"\n  [Serial baseline]")
+        print("\n  [Serial baseline]")
         for r in range(args.rounds):
             current_run += 1
             work_dir = tempfile.mkdtemp(prefix=f"bench_{target}_serial_r{r}_")
 
             print(f"    Round {r+1}/{args.rounds}... ", end="", flush=True)
-            result = run_serial(binary, target, seed_dir, args.timeout, work_dir)
+            result = run_serial(binary, target, seed_dir, args.timeout, work_dir,
+                                simulate=args.simulation)
 
             # Measure coverage before cleanup
             cov_data = {"line_cov": 0.0, "branch_cov": 0.0, "crashes": 0}
             if enable_coverage and target in cov_binaries:
                 uses_file = TARGETS[target][3] if target in TARGETS else True
-                cov_data = measure_coverage(
-                    cov_binaries[target], cov_dirs[target],
-                    TARGETS[target][0], result["output_dir"],
-                    uses_file=uses_file
-                )
+                # 内置目标用 TARGETS[...][0] 作为 source_file；public 目标用 cov_sources
+                if target in TARGETS:
+                    src_file = TARGETS[target][0]
+                else:
+                    src_file = cov_sources.get(target, "")
+                # 将种子文件复制到输出目录，确保覆盖率测量包含种子覆盖
+                # （MPI 运行会自动复制种子，serial 不会）
+                for sf in os.listdir(seed_dir):
+                    sp = os.path.join(seed_dir, sf)
+                    dp = os.path.join(result["output_dir"], f"seed_{sf}")
+                    if os.path.isfile(sp) and not os.path.exists(dp):
+                        shutil.copy2(sp, dp)
+                if src_file:
+                    cov_data = measure_coverage(
+                        cov_binaries[target], cov_dirs[target],
+                        src_file, result["output_dir"],
+                        uses_file=uses_file,
+                        lib_dirs=cov_libdirs.get(target)
+                    )
 
             cov_str = ""
             if enable_coverage and target in cov_binaries:
@@ -1085,18 +1709,25 @@ def main():
                 print(f"    Round {r+1}/{args.rounds}... ", end="", flush=True)
                 result = run_mpi(
                     binary, target, seed_dir, actual_np,
-                    args.timeout, work_dir
+                    args.timeout, work_dir,
+                    simulate=args.simulation
                 )
 
                 # Measure coverage before cleanup
                 cov_data = {"line_cov": 0.0, "branch_cov": 0.0, "crashes": 0}
                 if enable_coverage and target in cov_binaries:
                     uses_file = TARGETS[target][3] if target in TARGETS else True
-                    cov_data = measure_coverage(
-                        cov_binaries[target], cov_dirs[target],
-                        TARGETS[target][0], result["output_dir"],
-                        uses_file=uses_file
-                    )
+                    if target in TARGETS:
+                        src_file = TARGETS[target][0]
+                    else:
+                        src_file = cov_sources.get(target, "")
+                    if src_file:
+                        cov_data = measure_coverage(
+                            cov_binaries[target], cov_dirs[target],
+                            src_file, result["output_dir"],
+                            uses_file=uses_file,
+                            lib_dirs=cov_libdirs.get(target)
+                        )
 
                 cov_str = ""
                 if enable_coverage and target in cov_binaries:
@@ -1118,14 +1749,16 @@ def main():
                 stderr_text = result.get("stderr", "")
                 if retcode != 0 and stderr_text and stderr_text != "TIMEOUT":
                     # Show last few meaningful lines
-                    err_lines = [l for l in stderr_text.strip().splitlines() if l.strip()]
+                    err_lines = [ln for ln in stderr_text.strip().splitlines() if ln.strip()]
                     if err_lines:
                         print(f"      stderr: {err_lines[-1][:200]}")
 
-                # Compute throughput speedup against serial baseline.
-                # Use throughput (tc/s) ratio instead of wall-clock ratio,
-                # because wall-clock speedup is meaningless when both
-                # configurations run until timeout (both ~5min → ~1x).
+                # Compute throughput speedup and parallel efficiency.
+                # Speedup = tc/s ratio vs serial baseline.
+                # Efficiency = parallel scaling vs single MPI worker (np=2),
+                # 因为串行模式是紧密 Python 循环，与 MPI 执行模型不同，
+                # 用串行做基线会导致 efficiency 失真（<1%）。
+                # 以 np=2 (1 worker) 为基线能真实反映并行扩展效率。
                 mpi_tp = result.get("throughput", 0)
                 serial_tp_sum = 0
                 serial_count = 0
@@ -1136,8 +1769,26 @@ def main():
                 if serial_count > 0 and serial_tp_sum > 0:
                     serial_tp_avg = serial_tp_sum / serial_count
                     speedup = mpi_tp / serial_tp_avg if serial_tp_avg > 0 else 0
+                    # 并行效率：以 np=2（单 worker）吞吐量为基线
                     workers = result.get("num_workers") or (actual_np - 1)
-                    efficiency = (speedup / workers * 100) if workers > 0 else 0
+                    if actual_np == 2:
+                        # np=2 本身就是基线，efficiency 定义为 100%
+                        efficiency = 100.0
+                    else:
+                        base_tp_sum = 0
+                        base_count = 0
+                        for sr in all_results:
+                            if (sr["target"] == target and sr["mode"] == "mpi"
+                                    and sr["np"] == 2):
+                                base_tp_sum += sr.get("throughput", 0)
+                                base_count += 1
+                        if base_count > 0 and base_tp_sum > 0 and workers > 0:
+                            base_tp = base_tp_sum / base_count
+                            efficiency = (mpi_tp / base_tp / workers * 100)
+                        elif workers > 0:
+                            efficiency = (speedup / workers * 100)
+                        else:
+                            efficiency = 0.0
                 elif serial_count > 0:
                     # Serial throughput is 0 — can't compute meaningful speedup
                     speedup = 0.0
@@ -1165,8 +1816,156 @@ def main():
 
                 shutil.rmtree(work_dir, ignore_errors=True)
 
+        # Hybrid AFL + SymCC
+        if args.hybrid and target in public_targets:
+            afl_targets = discover_public_afl_targets()
+            afl_binary = afl_targets.get(target)
+            if afl_binary:
+                for np_val in np_list:
+                    actual_np = max(2, np_val)
+                    symcc_workers = max(1, actual_np - 2)  # -1 for AFL, -1 for MPI master
+                    print(f"\n  [Hybrid AFL+SymCC np={actual_np} "
+                          f"(AFL=1, SymCC workers={symcc_workers})]")
+
+                    for r in range(args.rounds):
+                        current_run += 1
+                        work_dir = tempfile.mkdtemp(
+                            prefix=f"bench_{target}_hybrid{actual_np}_r{r}_"
+                        )
+
+                        print(f"    Round {r+1}/{args.rounds}... ", end="", flush=True)
+                        result = run_hybrid(
+                            binary, afl_binary, target, seed_dir,
+                            actual_np, args.timeout, work_dir
+                        )
+
+                        # 覆盖率测量
+                        cov_data = {"line_cov": 0.0, "branch_cov": 0.0, "crashes": 0}
+                        if enable_coverage and target in cov_binaries:
+                            uses_file = True
+                            src_file = cov_sources.get(target, "")
+                            if src_file:
+                                cov_data = measure_coverage(
+                                    cov_binaries[target], cov_dirs[target],
+                                    src_file, result["output_dir"],
+                                    uses_file=uses_file,
+                                    lib_dirs=cov_libdirs.get(target)
+                                )
+
+                        cov_str = ""
+                        if enable_coverage and target in cov_binaries:
+                            sample_note = ""
+                            if cov_data.get("sampled"):
+                                sample_note = (f" (sampled "
+                                               f"{cov_data['sampled_cases']}/"
+                                               f"{cov_data['total_cases']})")
+                            cov_str = (f", line={cov_data['line_cov']:.1f}%, "
+                                       f"branch={cov_data['branch_cov']:.1f}%, "
+                                       f"crashes={cov_data['crashes']}{sample_note}")
+
+                        afl_gen = result.get("afl_generated", 0)
+                        symcc_int = result.get("symcc_interesting", 0)
+                        bitmap_cvg = result.get("afl_bitmap_cvg", "")
+                        timeout_str = " [TIMEOUT]" if result.get("timed_out") else ""
+                        print(f"time={format_time(result['wall_time'])}, "
+                              f"afl={afl_gen}, symcc_interesting={symcc_int}, "
+                              f"total={result['generated']}"
+                              f"{cov_str}{timeout_str}"
+                              f"{' bitmap=' + bitmap_cvg if bitmap_cvg else ''}")
+
+                        all_results.append({
+                            "target": target,
+                            "mode": "hybrid",
+                            "np": actual_np,
+                            "round": r + 1,
+                            "wall_time": result["wall_time"],
+                            "generated": result["generated"],
+                            "unique": result["unique"],
+                            "throughput": result.get("throughput", 0),
+                            "line_cov": cov_data["line_cov"],
+                            "branch_cov": cov_data["branch_cov"],
+                            "crashes": cov_data["crashes"],
+                            "speedup": 0,
+                            "efficiency": 0,
+                            "num_workers": result.get("num_workers", actual_np - 2),
+                        })
+
+                        shutil.rmtree(work_dir, ignore_errors=True)
+            else:
+                print(f"\n  [Hybrid] No AFL binary found for {target}, skipping")
+
+        # AFL-only baseline
+        if args.afl_only and target in public_targets:
+            afl_targets = discover_public_afl_targets()
+            afl_binary = afl_targets.get(target)
+            if afl_binary:
+                print("\n  [AFL-only baseline]")
+
+                for r in range(args.rounds):
+                    current_run += 1
+                    work_dir = tempfile.mkdtemp(
+                        prefix=f"bench_{target}_aflonly_r{r}_"
+                    )
+
+                    print(f"    Round {r+1}/{args.rounds}... ", end="", flush=True)
+                    result = run_afl_only(
+                        afl_binary, target, seed_dir,
+                        args.timeout, work_dir
+                    )
+
+                    # 覆盖率测量
+                    cov_data = {"line_cov": 0.0, "branch_cov": 0.0, "crashes": 0}
+                    if enable_coverage and target in cov_binaries:
+                        uses_file = True
+                        src_file = cov_sources.get(target, "")
+                        if src_file:
+                            cov_data = measure_coverage(
+                                cov_binaries[target], cov_dirs[target],
+                                src_file, result["output_dir"],
+                                uses_file=uses_file,
+                                lib_dirs=cov_libdirs.get(target)
+                            )
+
+                    cov_str = ""
+                    if enable_coverage and target in cov_binaries:
+                        sample_note = ""
+                        if cov_data.get("sampled"):
+                            sample_note = (f" (sampled "
+                                           f"{cov_data['sampled_cases']}/"
+                                           f"{cov_data['total_cases']})")
+                        cov_str = (f", line={cov_data['line_cov']:.1f}%, "
+                                   f"branch={cov_data['branch_cov']:.1f}%, "
+                                   f"crashes={cov_data['crashes']}{sample_note}")
+
+                    bitmap_cvg = result.get("afl_bitmap_cvg", "")
+                    timeout_str = " [TIMEOUT]" if result.get("timed_out") else ""
+                    print(f"time={format_time(result['wall_time'])}, "
+                          f"gen={result['generated']}, uniq={result['unique']}"
+                          f"{cov_str}{timeout_str}"
+                          f"{' bitmap=' + bitmap_cvg if bitmap_cvg else ''}")
+
+                    all_results.append({
+                        "target": target,
+                        "mode": "afl-only",
+                        "np": 1,
+                        "round": r + 1,
+                        "wall_time": result["wall_time"],
+                        "generated": result["generated"],
+                        "unique": result["unique"],
+                        "throughput": result.get("throughput", 0),
+                        "line_cov": cov_data["line_cov"],
+                        "branch_cov": cov_data["branch_cov"],
+                        "crashes": cov_data["crashes"],
+                        "speedup": 0,
+                        "efficiency": 0,
+                    })
+
+                    shutil.rmtree(work_dir, ignore_errors=True)
+            else:
+                print(f"\n  [AFL-only] No AFL binary found for {target}, skipping")
+
     # Generate report
-    print(f"\n\nStep 3: Generating report")
+    print("\n\nStep 3: Generating report")
     print("-" * 40)
     report_path = generate_report(all_results, output_dir)
 

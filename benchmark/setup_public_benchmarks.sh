@@ -348,7 +348,57 @@ BUILDEOF
 }
 
 ############################################################
-# 4. Google FuzzBench (selected benchmarks)
+# 4. Google Fuzzer Test Suite
+#    Source: https://github.com/google/fuzzer-test-suite
+#    Collection of real-world fuzz targets with build scripts
+#    and seed corpora. Used by compile_public_benchmarks.sh
+#    --google-fts to build libpng, libxml2, etc.
+############################################################
+setup_google_fts() {
+    local dest="$PUBLIC_DIR/fuzzer-test-suite"
+    if [ -d "$dest" ] && [ -f "$dest/common.sh" ]; then
+        info "Google Fuzzer Test Suite already downloaded at $dest"
+        return
+    fi
+
+    info "Downloading Google Fuzzer Test Suite..."
+    mkdir -p "$PUBLIC_DIR"
+    cd "$PUBLIC_DIR"
+
+    rm -rf fuzzer-test-suite  # clean partial downloads
+    if git clone --depth 1 https://github.com/google/fuzzer-test-suite.git 2>/dev/null; then
+        info "  Cloned successfully"
+    else
+        warn "  Git clone failed, trying archive download..."
+        curl -sL https://github.com/google/fuzzer-test-suite/archive/refs/heads/master.tar.gz | tar xz
+        mv fuzzer-test-suite-master fuzzer-test-suite
+    fi
+
+    if [ ! -d "$dest" ]; then
+        error "Failed to download Google Fuzzer Test Suite."
+        return 1
+    fi
+
+    # List available targets
+    info "Google Fuzzer Test Suite downloaded to $dest"
+    echo "  Available targets:"
+    for d in "$dest"/*/; do
+        local name=$(basename "$d")
+        # Skip non-target directories
+        case "$name" in
+            examples|tutorial|.git) continue ;;
+        esac
+        if [ -f "$d/build.sh" ] || [ -f "$d/Makefile" ]; then
+            echo "    - $name"
+        fi
+    done
+    echo ""
+    echo "  To build with SymCC:"
+    echo "    ./compile_public_benchmarks.sh --google-fts"
+}
+
+############################################################
+# 5. Google FuzzBench (selected benchmarks)
 #    Source: https://github.com/google/fuzzbench
 #    Docker-based - we clone the repo and provide instructions
 ############################################################
@@ -403,7 +453,7 @@ EOF
 }
 
 ############################################################
-# 5. Magma (ground-truth fuzzing benchmark)
+# 6. Magma (ground-truth fuzzing benchmark)
 ############################################################
 setup_magma() {
     local dest="$PUBLIC_DIR/magma"
@@ -452,7 +502,7 @@ EOF
 ############################################################
 
 usage() {
-    echo "Usage: $0 [--all | --lava-m | --unibench | --symcc-paper | --fuzzbench | --magma]"
+    echo "Usage: $0 [--all | --lava-m | --unibench | --symcc-paper | --google-fts | --fuzzbench | --magma]"
     echo ""
     echo "Download and set up public benchmark suites for SymCC MPI benchmarking."
     echo ""
@@ -461,6 +511,7 @@ usage() {
     echo "  --lava-m       LAVA-M: 4 coreutils with injected bugs (base64, md5sum, uniq, who)"
     echo "  --unibench     UniBench: 20 real-world programs"
     echo "  --symcc-paper  Programs from the SymCC USENIX paper"
+    echo "  --google-fts   Google Fuzzer Test Suite (libpng, libxml2, freetype2, etc.)"
     echo "  --fuzzbench    Google FuzzBench framework"
     echo "  --magma        Magma ground-truth benchmark"
     echo ""
@@ -478,12 +529,14 @@ for arg in "$@"; do
             setup_lava_m
             setup_unibench
             setup_symcc_paper
+            setup_google_fts
             setup_fuzzbench
             setup_magma
             ;;
         --lava-m)       setup_lava_m ;;
         --unibench)     setup_unibench ;;
         --symcc-paper)  setup_symcc_paper ;;
+        --google-fts)   setup_google_fts ;;
         --fuzzbench)    setup_fuzzbench ;;
         --magma)        setup_magma ;;
         --help|-h)      usage; exit 0 ;;
