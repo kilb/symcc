@@ -273,6 +273,15 @@ build_google_fts() {
         rm -rf libpng-1.2.56
         tar xf "$tarball"
         cd libpng-1.2.56
+
+        # CRC bypass: 禁用 CRC 校验，让 SymCC 变异的 chunk 数据不被拒绝
+        if [ -f pngrutil.c ] && ! grep -q 'SYMCC_SKIP_CRC' pngrutil.c; then
+            info "    Patching CRC check for SymCC exploration..."
+            sed -i 's/if (need_crc)/if (need_crc \&\& !getenv("SYMCC_SKIP_CRC"))/' pngrutil.c 2>/dev/null || true
+            # 更直接的方法：让 png_crc_error 总是返回 0（无错误）
+            sed -i 's/return ((png_ptr->flags & PNG_FLAG_CRC_CRITICAL_MASK) ==/if (getenv("SYMCC_SKIP_CRC")) return 0; return ((png_ptr->flags \& PNG_FLAG_CRC_CRITICAL_MASK) ==/' pngrutil.c 2>/dev/null || true
+        fi
+
         mkdir -p /tmp/output
         CC="$CC" SYMCC_OUTPUT_DIR=/tmp/output ./configure --quiet --disable-shared 2>/dev/null && make -j$(nproc) 2>/dev/null || { warn "  libpng: make failed"; return 1; }
         rm -rf /tmp/output/*
@@ -306,7 +315,14 @@ int main(int argc, char *argv[]) {
     png_uint_32 w, h; int bd, ct;
     png_get_IHDR(pp, ip, &w, &h, &bd, &ct, NULL, NULL, NULL);
     if (h * w > 1000000) { png_destroy_read_struct(&pp, &ip, NULL); free(data); return 0; }
-    int passes = png_set_interlace_handling(pp); png_start_read_image(pp);
+    /* 启用颜色变换以覆盖 pngrtran.c 代码路径 */
+    png_set_expand(pp);           /* palette→RGB, gray 1/2/4→8, tRNS→alpha */
+    png_set_gray_to_rgb(pp);      /* grayscale→RGB */
+    png_set_strip_16(pp);         /* 16-bit→8-bit */
+    png_set_add_alpha(pp, 0xFF, PNG_FILLER_AFTER); /* 添加 alpha 通道 */
+    png_set_gamma(pp, 2.2, 0.45455); /* gamma 校正 */
+    png_read_update_info(pp, ip); /* 应用变换 */
+    int passes = png_set_interlace_handling(pp);
     png_bytep row = png_malloc(pp, png_get_rowbytes(pp, ip));
     for (int p2 = 0; p2 < passes; p2++) for (png_uint_32 y = 0; y < h; y++) png_read_row(pp, row, NULL);
     png_free(pp, row); png_destroy_read_struct(&pp, &ip, NULL); free(data); return 0;
@@ -339,6 +355,45 @@ c2 = zlib.compress(raw2)
 idat2_crc = struct.pack('>I', zlib.crc32(b'IDAT' + c2) & 0xFFFFFFFF)
 idat2 = struct.pack('>I', len(c2)) + b'IDAT' + c2 + idat2_crc
 open('$SEEDS_DIR/google-fts/png_read_fuzzer/seed_02.png', 'wb').write(sig + ihdr2_chunk + idat2 + iend)
+# Grayscale 8-bit
+ihdr3 = struct.pack('>IIBBBBB', 4, 4, 8, 0, 0, 0, 0)
+ihdr3_crc = struct.pack('>I', zlib.crc32(b'IHDR' + ihdr3) & 0xFFFFFFFF)
+ihdr3_chunk = struct.pack('>I', 13) + b'IHDR' + ihdr3 + ihdr3_crc
+raw3 = b''.join(b'\x00' + bytes([i*64]*4) for i in range(4))
+c3 = zlib.compress(raw3)
+idat3_crc = struct.pack('>I', zlib.crc32(b'IDAT' + c3) & 0xFFFFFFFF)
+idat3 = struct.pack('>I', len(c3)) + b'IDAT' + c3 + idat3_crc
+open('$SEEDS_DIR/google-fts/png_read_fuzzer/seed_03_gray.png', 'wb').write(sig + ihdr3_chunk + idat3 + iend)
+# 16-bit RGB
+ihdr4 = struct.pack('>IIBBBBB', 2, 2, 16, 2, 0, 0, 0)
+ihdr4_crc = struct.pack('>I', zlib.crc32(b'IHDR' + ihdr4) & 0xFFFFFFFF)
+ihdr4_chunk = struct.pack('>I', 13) + b'IHDR' + ihdr4 + ihdr4_crc
+raw4 = b''.join(b'\x00' + b'\xff\x00\x80\x00\x40\x00' * 2 for _ in range(2))
+c4 = zlib.compress(raw4)
+idat4_crc = struct.pack('>I', zlib.crc32(b'IDAT' + c4) & 0xFFFFFFFF)
+idat4 = struct.pack('>I', len(c4)) + b'IDAT' + c4 + idat4_crc
+open('$SEEDS_DIR/google-fts/png_read_fuzzer/seed_04_16bit.png', 'wb').write(sig + ihdr4_chunk + idat4 + iend)
+# Palette PNG
+plte = b'\xff\x00\x00\x00\xff\x00\x00\x00\xff\xff\xff\x00'
+plte_crc = struct.pack('>I', zlib.crc32(b'PLTE' + plte) & 0xFFFFFFFF)
+plte_chunk = struct.pack('>I', len(plte)) + b'PLTE' + plte + plte_crc
+ihdr5 = struct.pack('>IIBBBBB', 4, 4, 8, 3, 0, 0, 0)
+ihdr5_crc = struct.pack('>I', zlib.crc32(b'IHDR' + ihdr5) & 0xFFFFFFFF)
+ihdr5_chunk = struct.pack('>I', 13) + b'IHDR' + ihdr5 + ihdr5_crc
+raw5 = b''.join(b'\x00' + bytes([i % 4]*4) for i in range(4))
+c5 = zlib.compress(raw5)
+idat5_crc = struct.pack('>I', zlib.crc32(b'IDAT' + c5) & 0xFFFFFFFF)
+idat5 = struct.pack('>I', len(c5)) + b'IDAT' + c5 + idat5_crc
+open('$SEEDS_DIR/google-fts/png_read_fuzzer/seed_05_palette.png', 'wb').write(sig + ihdr5_chunk + plte_chunk + idat5 + iend)
+# Grayscale with Alpha
+ihdr6 = struct.pack('>IIBBBBB', 2, 2, 8, 4, 0, 0, 0)
+ihdr6_crc = struct.pack('>I', zlib.crc32(b'IHDR' + ihdr6) & 0xFFFFFFFF)
+ihdr6_chunk = struct.pack('>I', 13) + b'IHDR' + ihdr6 + ihdr6_crc
+raw6 = b'\x00\xff\x80\x00\x80' + b'\x00\x80\xff\xff\x00'
+c6 = zlib.compress(raw6)
+idat6_crc = struct.pack('>I', zlib.crc32(b'IDAT' + c6) & 0xFFFFFFFF)
+idat6 = struct.pack('>I', len(c6)) + b'IDAT' + c6 + idat6_crc
+open('$SEEDS_DIR/google-fts/png_read_fuzzer/seed_06_gray_alpha.png', 'wb').write(sig + ihdr6_chunk + idat6 + iend)
 " 2>/dev/null
         info "    -> png_read_fuzzer built successfully"
         built=$((built + 1))
@@ -369,6 +424,9 @@ open('$SEEDS_DIR/google-fts/png_read_fuzzer/seed_02.png', 'wb').write(sig + ihdr
 #include <stdlib.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
+#include <libxml/xpath.h>
+#include <libxml/xinclude.h>
+#include <libxml/xmlschemas.h>
 int main(int argc, char *argv[]) {
     if (argc != 2) return 1;
     FILE *f = fopen(argv[1], "rb"); if (!f) return 1;
@@ -376,13 +434,37 @@ int main(int argc, char *argv[]) {
     if (sz <= 0 || sz > 1024*1024) { fclose(f); return 1; }
     char *data = malloc(sz); fread(data, 1, sz, f); fclose(f);
     xmlInitParser();
-    xmlDocPtr doc = xmlReadMemory(data, sz, "input.xml", NULL,
-        XML_PARSE_NONET | XML_PARSE_RECOVER | XML_PARSE_NOERROR | XML_PARSE_NOWARNING);
-    if (doc) xmlFreeDoc(doc);
+    /* 启用 DTD 验证 + 实体替换 + XInclude */
+    int flags = XML_PARSE_NONET | XML_PARSE_RECOVER | XML_PARSE_NOERROR
+              | XML_PARSE_NOWARNING | XML_PARSE_DTDLOAD | XML_PARSE_DTDVALID
+              | XML_PARSE_NOENT;
+    xmlDocPtr doc = xmlReadMemory(data, sz, "input.xml", NULL, flags);
+    if (doc) {
+        /* XInclude 处理 */
+        xmlXIncludeProcess(doc);
+        /* XPath 查询以覆盖 XPath 引擎代码路径 */
+        xmlXPathContextPtr ctx = xmlXPathNewContext(doc);
+        if (ctx) {
+            xmlXPathObjectPtr res = xmlXPathEvalExpression(
+                (const xmlChar *)"//node()", ctx);
+            if (res) xmlXPathFreeObject(res);
+            res = xmlXPathEvalExpression(
+                (const xmlChar *)"count(//*)", ctx);
+            if (res) xmlXPathFreeObject(res);
+            xmlXPathFreeContext(ctx);
+        }
+        /* DTD 验证 */
+        xmlValidCtxtPtr vctx = xmlNewValidCtxt();
+        if (vctx) {
+            xmlValidateDocument(vctx, doc);
+            xmlFreeValidCtxt(vctx);
+        }
+        xmlFreeDoc(doc);
+    }
     xmlCleanupParser(); free(data); return 0;
 }
 HARNESS_EOF
-        "$CC" -O2 /tmp/xml_read_fuzzer.c -I include .libs/libxml2.a -lz -lm -lpthread -o "$BUILD_DIR/google-fts/xml_read_fuzzer" 2>/dev/null || { warn "  libxml2 harness link failed"; return 1; }
+        "$CC" -O2 /tmp/xml_read_fuzzer.c -I include -I include/libxml .libs/libxml2.a -lz -lm -lpthread -o "$BUILD_DIR/google-fts/xml_read_fuzzer" 2>/dev/null || { warn "  libxml2 harness link failed"; return 1; }
         rm -f /tmp/xml_read_fuzzer.c
 
         # Create seeds
@@ -390,6 +472,16 @@ HARNESS_EOF
         echo '<?xml version="1.0"?><root><item>test</item></root>' > "$SEEDS_DIR/google-fts/xml_read_fuzzer/seed_01.xml"
         echo '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE t [<!ENTITY f "bar">]><root a="v"><c>&f;</c></root>' > "$SEEDS_DIR/google-fts/xml_read_fuzzer/seed_02.xml"
         echo '<html><head><title>t</title></head><body><p>hello</p></body></html>' > "$SEEDS_DIR/google-fts/xml_read_fuzzer/seed_03.xml"
+        # DTD 验证种子
+        echo '<?xml version="1.0"?><!DOCTYPE note [<!ELEMENT note (to,from,body)><!ELEMENT to (#PCDATA)><!ELEMENT from (#PCDATA)><!ELEMENT body (#PCDATA)>]><note><to>A</to><from>B</from><body>C</body></note>' > "$SEEDS_DIR/google-fts/xml_read_fuzzer/seed_04_dtd.xml"
+        # XPath 查询种子（深层嵌套）
+        echo '<?xml version="1.0"?><a><b id="1"><c><d>deep</d></c></b><b id="2"><c>shallow</c></b></a>' > "$SEEDS_DIR/google-fts/xml_read_fuzzer/seed_05_xpath.xml"
+        # 命名空间种子
+        echo '<?xml version="1.0"?><root xmlns:ns="http://example.com"><ns:item ns:attr="val">namespaced</ns:item></root>' > "$SEEDS_DIR/google-fts/xml_read_fuzzer/seed_06_ns.xml"
+        # CDATA 和混合内容
+        echo '<?xml version="1.0"?><doc><![CDATA[<not>xml</not>]]><p>mixed <b>bold</b> text</p></doc>' > "$SEEDS_DIR/google-fts/xml_read_fuzzer/seed_07_cdata.xml"
+        # 多实体和属性
+        echo '<?xml version="1.0"?><!DOCTYPE d [<!ENTITY a "alpha"><!ENTITY b "beta">]><r x="1" y="2" z="3">&a;&b;</r>' > "$SEEDS_DIR/google-fts/xml_read_fuzzer/seed_08_entity.xml"
         info "    -> xml_read_fuzzer built successfully"
         built=$((built + 1))
         cd "$SCRIPT_DIR"
@@ -531,7 +623,14 @@ int main(int argc, char *argv[]) {
     png_uint_32 w, h; int bd, ct;
     png_get_IHDR(pp, ip, &w, &h, &bd, &ct, NULL, NULL, NULL);
     if (h * w > 1000000) { png_destroy_read_struct(&pp, &ip, NULL); free(data); return 0; }
-    int passes = png_set_interlace_handling(pp); png_start_read_image(pp);
+    /* 启用颜色变换以覆盖 pngrtran.c 代码路径 */
+    png_set_expand(pp);           /* palette→RGB, gray 1/2/4→8, tRNS→alpha */
+    png_set_gray_to_rgb(pp);      /* grayscale→RGB */
+    png_set_strip_16(pp);         /* 16-bit→8-bit */
+    png_set_add_alpha(pp, 0xFF, PNG_FILLER_AFTER); /* 添加 alpha 通道 */
+    png_set_gamma(pp, 2.2, 0.45455); /* gamma 校正 */
+    png_read_update_info(pp, ip); /* 应用变换 */
+    int passes = png_set_interlace_handling(pp);
     png_bytep row = png_malloc(pp, png_get_rowbytes(pp, ip));
     for (int p2 = 0; p2 < passes; p2++) for (png_uint_32 y = 0; y < h; y++) png_read_row(pp, row, NULL);
     png_free(pp, row); png_destroy_read_struct(&pp, &ip, NULL); free(data); return 0;
@@ -578,6 +677,9 @@ HARNESS_EOF
 #include <stdlib.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
+#include <libxml/xpath.h>
+#include <libxml/xinclude.h>
+#include <libxml/xmlschemas.h>
 int main(int argc, char *argv[]) {
     if (argc != 2) return 1;
     FILE *f = fopen(argv[1], "rb"); if (!f) return 1;
@@ -585,9 +687,33 @@ int main(int argc, char *argv[]) {
     if (sz <= 0 || sz > 1024*1024) { fclose(f); return 1; }
     char *data = malloc(sz); fread(data, 1, sz, f); fclose(f);
     xmlInitParser();
-    xmlDocPtr doc = xmlReadMemory(data, sz, "input.xml", NULL,
-        XML_PARSE_NONET | XML_PARSE_RECOVER | XML_PARSE_NOERROR | XML_PARSE_NOWARNING);
-    if (doc) xmlFreeDoc(doc);
+    /* 启用 DTD 验证 + 实体替换 + XInclude */
+    int flags = XML_PARSE_NONET | XML_PARSE_RECOVER | XML_PARSE_NOERROR
+              | XML_PARSE_NOWARNING | XML_PARSE_DTDLOAD | XML_PARSE_DTDVALID
+              | XML_PARSE_NOENT;
+    xmlDocPtr doc = xmlReadMemory(data, sz, "input.xml", NULL, flags);
+    if (doc) {
+        /* XInclude 处理 */
+        xmlXIncludeProcess(doc);
+        /* XPath 查询以覆盖 XPath 引擎代码路径 */
+        xmlXPathContextPtr ctx = xmlXPathNewContext(doc);
+        if (ctx) {
+            xmlXPathObjectPtr res = xmlXPathEvalExpression(
+                (const xmlChar *)"//node()", ctx);
+            if (res) xmlXPathFreeObject(res);
+            res = xmlXPathEvalExpression(
+                (const xmlChar *)"count(//*)", ctx);
+            if (res) xmlXPathFreeObject(res);
+            xmlXPathFreeContext(ctx);
+        }
+        /* DTD 验证 */
+        xmlValidCtxtPtr vctx = xmlNewValidCtxt();
+        if (vctx) {
+            xmlValidateDocument(vctx, doc);
+            xmlFreeValidCtxt(vctx);
+        }
+        xmlFreeDoc(doc);
+    }
     xmlCleanupParser(); free(data); return 0;
 }
 HARNESS_EOF

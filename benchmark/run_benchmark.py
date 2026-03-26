@@ -36,6 +36,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from collections import defaultdict
 from datetime import datetime
@@ -510,6 +511,116 @@ def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
         "sampled_cases": len(test_files) if sampled else total_cases,
     }
 
+
+def measure_coverage_timeseries(
+    cov_binary: str,
+    cov_dir: str,
+    source_file: str,
+    test_case_dir: str,
+    interval: int = 30,
+    max_duration: int = 600,
+    uses_file: bool = True,
+    lib_dirs: list[str] | None = None,
+) -> list[dict]:
+    """在后台线程中定期采样覆盖率，生成时间序列数据。
+
+    每隔 interval 秒运行一次覆盖率测量，记录当前时间点的覆盖率。
+    返回 [{timestamp_sec, line_cov, branch_cov, total_cases}, ...] 列表。
+    """
+    timeseries: list[dict] = []
+    start_time = time.monotonic()
+
+    while time.monotonic() - start_time < max_duration:
+        elapsed = time.monotonic() - start_time
+        try:
+            cov_data = measure_coverage(
+                cov_binary, cov_dir, source_file, test_case_dir,
+                uses_file=uses_file, lib_dirs=lib_dirs,
+            )
+            timeseries.append({
+                "timestamp_sec": round(elapsed, 1),
+                "line_cov": cov_data["line_cov"],
+                "branch_cov": cov_data["branch_cov"],
+                "total_cases": cov_data["total_cases"],
+            })
+        except Exception:
+            pass
+        # 等待到下一个采样点
+        next_sample = start_time + len(timeseries) * interval
+        sleep_time = next_sample - time.monotonic()
+        if sleep_time > 0:
+            time.sleep(sleep_time)
+
+    return timeseries
+
+
+def run_with_timeseries(
+    run_fn,
+    run_kwargs: dict,
+    cov_binary: str,
+    cov_dir: str,
+    source_file: str,
+    interval: int = 30,
+    uses_file: bool = True,
+    lib_dirs: list[str] | None = None,
+    timeout: int = 300,
+) -> tuple[dict, list[dict]]:
+    """运行基准测试同时在后台采样覆盖率时间序列。
+
+    run_fn: 实际执行函数 (run_mpi, run_hybrid, etc.)
+    run_kwargs: 传递给 run_fn 的参数
+    返回 (run_result, timeseries)
+    """
+    # 先启动基准测试，获取输出目录
+    # run_fn 会阻塞直到完成
+    result_container = [None]
+    error_container = [None]
+
+    def run_benchmark():
+        try:
+            result_container[0] = run_fn(**run_kwargs)
+        except Exception as e:
+            error_container[0] = e
+
+    bench_thread = threading.Thread(target=run_benchmark, daemon=True)
+    bench_thread.start()
+
+    # 等待输出目录出现
+    output_dir = run_kwargs.get("work_dir", "")
+    # MPI 输出到 work_dir 下的子目录
+    np_val = run_kwargs.get("np")
+    if np_val:
+        candidate_dir = os.path.join(output_dir, f"mpi_np{np_val}_output")
+    else:
+        candidate_dir = os.path.join(output_dir, "output")
+
+    # 等待目录创建（最多等 10 秒）
+    wait_start = time.monotonic()
+    while not os.path.isdir(candidate_dir) and time.monotonic() - wait_start < 10:
+        time.sleep(0.5)
+
+    if not os.path.isdir(candidate_dir):
+        # 回退：等基准测试完成再测量
+        bench_thread.join(timeout=timeout + 60)
+        result = result_container[0]
+        if error_container[0]:
+            raise error_container[0]
+        return result, []
+
+    # 在后台采样覆盖率
+    timeseries = measure_coverage_timeseries(
+        cov_binary, cov_dir, source_file, candidate_dir,
+        interval=interval, max_duration=timeout + 30,
+        uses_file=uses_file, lib_dirs=lib_dirs,
+    )
+
+    # 等待基准测试完成
+    bench_thread.join(timeout=60)
+    result = result_container[0]
+    if error_container[0]:
+        raise error_container[0]
+
+    return result, timeseries
 
 
 def count_output_files(directory):
@@ -1417,6 +1528,8 @@ def main():
                         help="Also run hybrid AFL+SymCC mode (requires AFL-instrumented binaries)")
     parser.add_argument("--afl-only", action="store_true",
                         help="Also run AFL-only baseline (requires AFL-instrumented binaries)")
+    parser.add_argument("--timeseries", type=int, default=0, metavar="INTERVAL",
+                        help="Enable time-series coverage sampling every N seconds (default: disabled)")
 
     args = parser.parse_args()
 
@@ -1599,6 +1712,7 @@ def main():
     print("-" * 40)
 
     all_results = []
+    all_timeseries = []
     current_run = 0
 
     for target in available_targets:
@@ -1972,6 +2086,24 @@ def main():
     # Print the report to stdout
     with open(report_path) as f:
         print(f.read())
+
+    # 保存时间序列数据（如果有）
+    if all_timeseries:
+        ts_path = os.path.join(output_dir, "coverage_timeseries.csv")
+        with open(ts_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["target", "mode", "np", "round",
+                             "timestamp_sec", "line_cov_pct", "branch_cov_pct",
+                             "total_cases"])
+            for entry in all_timeseries:
+                for point in entry["timeseries"]:
+                    writer.writerow([
+                        entry["target"], entry["mode"], entry["np"],
+                        entry["round"],
+                        point["timestamp_sec"], point["line_cov"],
+                        point["branch_cov"], point["total_cases"],
+                    ])
+        print(f"\n  Time-series data saved to: {ts_path}")
 
     print(f"\nBenchmark complete. Results in: {output_dir}/")
 
