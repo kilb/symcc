@@ -28,6 +28,7 @@ Requirements:
 import argparse
 import hashlib
 import os
+import random
 import shutil
 import subprocess
 import sys
@@ -36,6 +37,24 @@ import time
 from collections import deque
 
 from mpi4py import MPI
+
+# --- 辅助函数 ---
+
+
+def _atomic_write(dest: str, content: bytes) -> None:
+    """原子写入文件：先写临时文件再 rename，避免并发写入导致数据损坏。"""
+    tmp = dest + f".tmp.{os.getpid()}"
+    try:
+        with open(tmp, "wb") as f:
+            f.write(content)
+        os.rename(tmp, dest)
+    except OSError:
+        # 清理临时文件（rename 失败时）
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+
 
 # MPI message tags — group communicator (master <-> workers)
 TAG_WORK = 1       # Master -> Worker: hash string of input to process
@@ -83,10 +102,48 @@ def compute_roles(comm_size, workers_per_master=45):
     return master_ranks, groups
 
 
+def _simulate_mutations(input_file: str, output_dir: str,
+                        num_mutations: int = 5) -> list[str]:
+    """在模拟模式下，对输入文件进行随机变异生成测试用例。
+
+    模拟 SymCC 的行为：读取输入，生成若干变异版本。
+    用于 gcc 编译的二进制（无 SymCC 插桩）的框架性能测试。
+    """
+    try:
+        with open(input_file, "rb") as f:
+            data = f.read()
+    except (IOError, OSError):
+        return []
+
+    if not data:
+        return []
+
+    os.makedirs(output_dir, exist_ok=True)
+    new_tests = []
+
+    for i in range(num_mutations):
+        mutated = bytearray(data)
+        # 随机变异 1~3 个字节
+        num_bytes = random.randint(1, min(3, len(mutated)))
+        for _ in range(num_bytes):
+            pos = random.randint(0, len(mutated) - 1)
+            mutated[pos] = random.randint(0, 255)
+
+        out_path = os.path.join(output_dir, f"sim_{i:04d}")
+        with open(out_path, "wb") as f:
+            f.write(bytes(mutated))
+        new_tests.append(out_path)
+
+    return new_tests
+
+
 def run_symcc(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
-              base_env=None):
+              base_env=None, simulate=False):
     """
     Run the SymCC-instrumented target on the given input.
+
+    When simulate=True, runs the target normally but generates synthetic
+    mutations if no SymCC output is produced (for gcc-compiled binaries).
 
     Returns:
         (list_of_new_testcase_paths, return_code, elapsed_seconds)
@@ -97,7 +154,7 @@ def run_symcc(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
         env = os.environ.copy()
         env["SYMCC_ENABLE_LINEARIZATION"] = "1"
     else:
-        env = base_env
+        env = dict(base_env)  # 浅拷贝，避免修改调用方的字典
     env["SYMCC_OUTPUT_DIR"] = output_dir
 
     if use_stdin:
@@ -135,6 +192,10 @@ def run_symcc(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
             fpath = os.path.join(output_dir, fname)
             if os.path.isfile(fpath):
                 new_tests.append(fpath)
+
+    # 模拟模式：如果目标二进制没有产生 SymCC 输出，生成随机变异
+    if simulate and not new_tests:
+        new_tests = _simulate_mutations(input_file, output_dir)
 
     return new_tests, retcode, elapsed
 
@@ -190,11 +251,10 @@ def master_loop(global_comm, group_comm, args, peer_masters, is_root,
             h = hashlib.sha256(content).hexdigest()
             if h not in analyzed_hashes:
                 analyzed_hashes.add(h)
-                # Write to shared dir so any worker can read it
+                # 原子写入 shared dir，避免多进程并发写入竞态
                 dest = os.path.join(shared_dir, h)
                 if not os.path.exists(dest):
-                    with open(dest, "wb") as f:
-                        f.write(content)
+                    _atomic_write(dest, content)
                 pending_queue.append(h)
                 count += 1
         return count
@@ -440,7 +500,7 @@ def master_loop(global_comm, group_comm, args, peer_masters, is_root,
         wall_elapsed = time.monotonic() - wall_start
         throughput = total_generated / wall_elapsed if wall_elapsed > 0 else 0
 
-        print(f"\n[Master] === Final Statistics ===")
+        print("\n[Master] === Final Statistics ===")
         print(f"[Master] Total inputs analyzed:      {len(analyzed_hashes)}")
         print(f"[Master] Total test cases generated:  {total_generated}")
         print(f"[Master] New interesting test cases:  {actual_unique}")
@@ -505,7 +565,7 @@ def worker_loop(group_comm, args, shared_dir):
         try:
             new_tests, retcode, elapsed = run_symcc(
                 target_cmd, input_file, run_output, timeout_sec, use_stdin,
-                base_env=worker_env
+                base_env=worker_env, simulate=args.simulate
             )
 
             # Hash each output, write to shared_dir, collect hashes
@@ -516,11 +576,10 @@ def worker_loop(group_comm, args, shared_dir):
                         content = f.read()
                     h = hashlib.sha256(content).hexdigest()
                     new_hashes.append(h)
-                    # Idempotent write: same hash = same content
+                    # 原子写入：避免多 worker 并发写入同一 hash 文件时损坏
                     dest = os.path.join(shared_dir, h)
                     if not os.path.exists(dest):
-                        with open(dest, "wb") as f:
-                            f.write(content)
+                        _atomic_write(dest, content)
                 except (IOError, OSError):
                     pass
 
@@ -589,6 +648,11 @@ def parse_args():
              "With 160 processes and default 45, creates 4 masters.",
     )
     parser.add_argument(
+        "--simulate", action="store_true",
+        help="Simulation mode: generate random mutations when target produces "
+             "no SymCC output (for gcc-compiled binaries)",
+    )
+    parser.add_argument(
         "target", nargs=argparse.REMAINDER,
         help="Target command (after '--')",
     )
@@ -648,7 +712,7 @@ def main():
 
     # Print configuration (root only)
     if rank == 0:
-        print(f"SymCC MPI Parallel Concolic Execution")
+        print("SymCC MPI Parallel Concolic Execution")
         print(f"  Processes:     {size}")
         num_masters = len(master_ranks)
         if num_masters == 1:

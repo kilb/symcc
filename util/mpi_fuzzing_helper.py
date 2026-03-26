@@ -32,13 +32,12 @@ Example:
 import argparse
 import hashlib
 import os
-import re
+import signal
 import shutil
 import subprocess
 import sys
 import tempfile
 import time
-from pathlib import Path
 
 from mpi4py import MPI
 
@@ -237,11 +236,15 @@ class Stats:
         f.flush()
 
 
-def run_symcc_worker(target_cmd, input_file, output_dir, timeout_sec, use_stdin):
+def run_symcc_worker(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
+                     base_env=None):
     """Run SymCC on a single input. Returns (new_tests_data, retcode, elapsed)."""
     os.makedirs(output_dir, exist_ok=True)
 
-    env = os.environ.copy()
+    if base_env is not None:
+        env = dict(base_env)  # 浅拷贝，避免修改调用方字典
+    else:
+        env = os.environ.copy()
     env["SYMCC_OUTPUT_DIR"] = output_dir
     env["SYMCC_ENABLE_LINEARIZATION"] = "1"
 
@@ -320,6 +323,9 @@ def master(comm, args):
     os.makedirs(hangs_dir)
     os.makedirs(crashes_dir)
 
+    # AFL 反馈目录：将有趣的 SymCC 输出同步回 AFL 的 queue，形成双向反馈环
+    afl_sync_queue = os.path.join(afl_queue_dir, "queue")  # fuzzer01/queue/
+
     stats_file = open(os.path.join(symcc_dir, "stats"), "w")
     bitmap_path_triage = os.path.join(symcc_dir, ".triage_bitmap")
 
@@ -334,7 +340,7 @@ def master(comm, args):
             comm.send(None, dest=rank, tag=TAG_STOP)
         return
 
-    print(f"[Master] SymCC MPI Fuzzing Helper")
+    print("[Master] SymCC MPI Fuzzing Helper")
     print(f"[Master] Workers: {num_workers}")
     print(f"[Master] AFL queue: {afl_config.queue}")
     print(f"[Master] SymCC output: {symcc_dir}")
@@ -346,7 +352,27 @@ def master(comm, args):
     queue_id = 0
     last_stats_time = time.monotonic()
 
-    while True:
+    # --save-all: 保存所有生成的测试用例（不经过滤）
+    save_all_dir = None
+    save_all_id = 0
+    if args.save_all:
+        save_all_dir = args.save_all
+        os.makedirs(save_all_dir, exist_ok=True)
+        print(f"[Master] Saving all test cases to: {save_all_dir}")
+
+    # 信号处理：收到 SIGTERM/SIGINT 时优雅退出
+    shutdown_requested = False
+
+    def _signal_handler(signum, frame):
+        nonlocal shutdown_requested
+        shutdown_requested = True
+        print(f"\n[Master] Received signal {signum}, shutting down...",
+              file=sys.stderr)
+
+    signal.signal(signal.SIGTERM, _signal_handler)
+    signal.signal(signal.SIGINT, _signal_handler)
+
+    while not shutdown_requested:
         # Get new test cases from AFL queue
         new_inputs = afl_config.best_new_testcases(processed_files, batch_size=num_workers * 2)
 
@@ -391,6 +417,18 @@ def master(comm, args):
                 stats.generated_count += 1
                 tc_content = tc["content"]
 
+                # --save-all: 保存所有生成的测试用例
+                if save_all_dir is not None:
+                    h = hashlib.sha256(tc_content).hexdigest()
+                    save_path = os.path.join(save_all_dir, h)
+                    if not os.path.exists(save_path):
+                        try:
+                            with open(save_path, "wb") as sf:
+                                sf.write(tc_content)
+                            save_all_id += 1
+                        except (IOError, OSError):
+                            pass
+
                 # Write to temp file for triage
                 with tempfile.NamedTemporaryFile(delete=False, dir=symcc_dir,
                                                   prefix=".tc_") as tmp:
@@ -406,29 +444,48 @@ def master(comm, args):
                     if result_type == "success" and bitmap_data:
                         is_new = coverage.merge(bitmap_data)
                         if is_new:
-                            # Save to SymCC queue (AFL will pick it up)
                             orig_name = os.path.basename(input_path)
-                            # Extract source id
                             src_id = "000000"
                             if orig_name.startswith("id:") and len(orig_name) >= 9:
                                 src_id = orig_name[3:9]
                             new_name = f"id:{queue_id:06d},src:{src_id}"
+                            # 保存到 SymCC 自身 queue
                             dest = os.path.join(queue_dir, new_name)
                             shutil.copy2(tmp_path, dest)
+                            # 同步到 AFL queue，形成 SymCC→AFL 反馈环
+                            if os.path.isdir(afl_sync_queue):
+                                afl_dest = os.path.join(
+                                    afl_sync_queue,
+                                    f"id:symcc_{queue_id:06d},src:{src_id}"
+                                )
+                                try:
+                                    shutil.copy2(tmp_path, afl_dest)
+                                except OSError:
+                                    pass  # AFL 目录不可写时静默跳过
                             queue_id += 1
                             num_interesting += 1
                             stats.interesting_count += 1
 
                     elif result_type == "crash":
-                        # Save crashing input
                         orig_name = os.path.basename(input_path)
                         src_id = "000000"
                         if orig_name.startswith("id:") and len(orig_name) >= 9:
                             src_id = orig_name[3:9]
                         crash_name = f"id:{queue_id:06d},src:{src_id}"
                         shutil.copy2(tmp_path, os.path.join(crashes_dir, crash_name))
-                        # Also add to queue
                         shutil.copy2(tmp_path, os.path.join(queue_dir, crash_name))
+                        # 同步到 AFL queue
+                        if os.path.isdir(afl_sync_queue):
+                            try:
+                                shutil.copy2(
+                                    tmp_path,
+                                    os.path.join(
+                                        afl_sync_queue,
+                                        f"id:symcc_{queue_id:06d},src:{src_id}"
+                                    )
+                                )
+                            except OSError:
+                                pass
                         queue_id += 1
                         num_interesting += 1
                         stats.interesting_count += 1
@@ -440,14 +497,18 @@ def master(comm, args):
                         pass
 
             if killed:
-                # Save hanging input
+                # 保存导致超时的输入到 hangs 目录
                 orig_name = os.path.basename(input_path)
                 src_id = "000000"
                 if orig_name.startswith("id:") and len(orig_name) >= 9:
                     src_id = orig_name[3:9]
                 hang_name = f"id:{queue_id:06d},src:{src_id}"
-                # Write from the original path since we already processed it
-                # (the worker sent back the input file was already at input_path)
+                try:
+                    shutil.copy2(input_path, os.path.join(hangs_dir, hang_name))
+                    queue_id += 1
+                except (IOError, OSError) as e:
+                    print(f"[Master] Error saving hang {hang_name}: {e}",
+                          file=sys.stderr)
 
             input_short = os.path.basename(input_path)[:30]
             print(f"[Master] Worker {worker_rank}: {input_short} -> "
@@ -469,6 +530,27 @@ def master(comm, args):
         else:
             time.sleep(0.05)
 
+    # --- 优雅关闭：排空消息并发送 TAG_STOP ---
+    print("[Master] Shutting down workers...")
+
+    # 排空所有 pending 消息并发送停止信号
+    for rank in range(1, size):
+        # 排空该 worker 的 TAG_READY 和 TAG_RESULT
+        while comm.iprobe(source=rank, tag=TAG_READY):
+            comm.recv(source=rank, tag=TAG_READY)
+        while comm.iprobe(source=rank, tag=TAG_RESULT):
+            comm.recv(source=rank, tag=TAG_RESULT)
+        comm.send(None, dest=rank, tag=TAG_STOP)
+
+    # 最终统计输出
+    stats.log(stats_file)
+    print(f"[Master] Final stats: {stats.total_count} ok, "
+          f"{stats.failed_count} failed, "
+          f"{stats.interesting_count} interesting / "
+          f"{stats.generated_count} total")
+
+    stats_file.close()
+
 
 def worker(comm, args):
     """Worker process: receives inputs, runs SymCC, sends back results."""
@@ -478,8 +560,10 @@ def worker(comm, args):
 
     worker_dir = tempfile.mkdtemp(prefix=f"symcc_mpi_w{rank}_")
 
-    # Create a local bitmap file for the SYMCC_AFL_COVERAGE_MAP
+    # 构建 worker 环境变量字典（不修改全局 os.environ）
     bitmap_file = os.path.join(worker_dir, "bitmap")
+    worker_env = os.environ.copy()
+    worker_env["SYMCC_AFL_COVERAGE_MAP"] = bitmap_file
 
     while True:
         # Signal ready
@@ -495,7 +579,6 @@ def worker(comm, args):
         if status.Get_tag() != TAG_WORK:
             continue
 
-        input_path = msg["path"]
         input_content = msg["content"]
 
         # Write input to local file
@@ -506,13 +589,10 @@ def worker(comm, args):
         # Run SymCC
         run_output = os.path.join(worker_dir, f"output_{time.monotonic_ns()}")
 
-        # Set up environment for AFL coverage map
-        env_backup = os.environ.get("SYMCC_AFL_COVERAGE_MAP")
-        os.environ["SYMCC_AFL_COVERAGE_MAP"] = bitmap_file
-
         try:
             new_tests, retcode, elapsed, killed = run_symcc_worker(
-                target_cmd, local_input, run_output, TIMEOUT_SEC, use_stdin
+                target_cmd, local_input, run_output, TIMEOUT_SEC, use_stdin,
+                base_env=worker_env
             )
 
             result = {
@@ -529,12 +609,6 @@ def worker(comm, args):
                 "elapsed": 0,
                 "killed": False,
             }
-
-        # Restore env
-        if env_backup is not None:
-            os.environ["SYMCC_AFL_COVERAGE_MAP"] = env_backup
-        elif "SYMCC_AFL_COVERAGE_MAP" in os.environ:
-            del os.environ["SYMCC_AFL_COVERAGE_MAP"]
 
         # Clean up output
         shutil.rmtree(run_output, ignore_errors=True)
@@ -558,6 +632,8 @@ def parse_args():
                         help="Name for this SymCC instance")
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="Verbose output")
+    parser.add_argument("--save-all", default=None, metavar="DIR",
+                        help="保存所有 SymCC 生成的测试用例到指定目录（不经 afl-showmap 过滤）")
     parser.add_argument("target", nargs=argparse.REMAINDER,
                         help="Target command (after '--')")
 
@@ -583,6 +659,7 @@ def main():
     else:
         worker(comm, args)
 
+    comm.Barrier()
     MPI.Finalize()
 
 
