@@ -80,10 +80,18 @@ class AflConfig:
         else:
             raise RuntimeError("Could not find command_line in fuzzer_stats")
 
-        # Find afl-showmap path (same dir as afl-fuzz)
+        # 查找 afl-showmap：先从 afl-fuzz 同目录找，再从 PATH 找
         afl_binary = parts[0]
-        afl_dir = os.path.dirname(afl_binary) or "."
-        self.show_map = os.path.join(afl_dir, "afl-showmap")
+        afl_dir = os.path.dirname(afl_binary)
+        if afl_dir:
+            candidate = os.path.join(afl_dir, "afl-showmap")
+            if os.path.isfile(candidate):
+                self.show_map = candidate
+            else:
+                self.show_map = shutil.which("afl-showmap") or "afl-showmap"
+        else:
+            # afl-fuzz 是通过 PATH 调用的，afl-showmap 也应该在 PATH 中
+            self.show_map = shutil.which("afl-showmap") or "afl-showmap"
 
         # Extract target command (after --)
         try:
@@ -148,16 +156,17 @@ class AflConfig:
                 cmd.append(arg)
 
         try:
+            run_timeout = 10  # subprocess 级别超时，防止 afl-showmap 挂起
             if self.use_stdin:
                 with open(testcase, "rb") as inf:
                     proc = subprocess.run(
                         cmd, stdin=inf, stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL
+                        stderr=subprocess.DEVNULL, timeout=run_timeout
                     )
             else:
                 proc = subprocess.run(
                     cmd, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
+                    stderr=subprocess.DEVNULL, timeout=run_timeout
                 )
 
             if proc.returncode == 0:
@@ -170,6 +179,12 @@ class AflConfig:
                 return "crash", None
             else:
                 return "error", None
+        except subprocess.TimeoutExpired:
+            return "hang", None
+        except FileNotFoundError:
+            print(f"[Master] afl-showmap not found at: {self.show_map}",
+                  file=sys.stderr)
+            return "error", None
         except Exception as e:
             print(f"[Master] afl-showmap error: {e}", file=sys.stderr)
             return "error", None
@@ -180,6 +195,46 @@ class CoverageBitmap:
 
     def __init__(self):
         self.data = None
+
+    def init_from_afl(self, afl_config: AflConfig, queue_dir: str,
+                      max_entries: int = 100, time_budget: float = 10.0) -> None:
+        """从 AFL queue 中已有的测试用例初始化 bitmap。
+
+        这样 SymCC 只会报告 AFL 尚未发现的新覆盖，避免重复计算。
+        限制处理数量和时间，避免在 AFL 快速生成大量用例时阻塞太久。
+        """
+        if not os.path.isdir(queue_dir):
+            return
+        bitmap_path = os.path.join(
+            os.path.dirname(queue_dir), ".init_bitmap"
+        )
+        # 取最新的 max_entries 个文件（按名称排序，AFL 的 ID 递增）
+        files = sorted(os.listdir(queue_dir))
+        if len(files) > max_entries:
+            files = files[-max_entries:]  # 取最新的
+        count = 0
+        start_time = time.monotonic()
+        for fname in files:
+            if time.monotonic() - start_time > time_budget:
+                print(f"[Master] Bitmap init time budget ({time_budget}s) exceeded, "
+                      f"processed {count}/{len(files)}")
+                break
+            fpath = os.path.join(queue_dir, fname)
+            if not os.path.isfile(fpath):
+                continue
+            result_type, bitmap_data = afl_config.run_showmap(
+                fpath, bitmap_path
+            )
+            if result_type == "success" and bitmap_data:
+                self.merge(bitmap_data)
+                count += 1
+        try:
+            os.unlink(bitmap_path)
+        except OSError:
+            pass
+        elapsed = time.monotonic() - start_time
+        print(f"[Master] Initialized bitmap from {count} AFL queue entries "
+              f"({elapsed:.1f}s)")
 
     def merge(self, new_data):
         """Merge new bitmap data. Returns True if new coverage found."""
@@ -343,9 +398,12 @@ def master(comm, args):
     print("[Master] SymCC MPI Fuzzing Helper")
     print(f"[Master] Workers: {num_workers}")
     print(f"[Master] AFL queue: {afl_config.queue}")
+    print(f"[Master] AFL showmap: {afl_config.show_map}")
     print(f"[Master] SymCC output: {symcc_dir}")
 
     coverage = CoverageBitmap()
+    # 从 AFL 已有 queue 初始化 bitmap，确保只报告 AFL 未覆盖的新路径
+    coverage.init_from_afl(afl_config, afl_config.queue)
     stats = Stats()
     processed_files = set()
     active_workers = {}  # rank -> input_path
@@ -367,7 +425,7 @@ def master(comm, args):
         nonlocal shutdown_requested
         shutdown_requested = True
         print(f"\n[Master] Received signal {signum}, shutting down...",
-              file=sys.stderr)
+              file=sys.stderr, flush=True)
 
     signal.signal(signal.SIGTERM, _signal_handler)
     signal.signal(signal.SIGINT, _signal_handler)
@@ -386,12 +444,15 @@ def master(comm, args):
             input_file = new_inputs[input_idx]
             input_idx += 1
 
-            # Send input content to worker
+            # Send input content + cumulative bitmap to worker
             try:
                 with open(input_file, "rb") as f:
                     content = f.read()
-                comm.send({"path": input_file, "content": content},
-                          dest=worker_rank, tag=TAG_WORK)
+                comm.send({
+                    "path": input_file,
+                    "content": content,
+                    "bitmap": bytes(coverage.data) if coverage.data else None,
+                }, dest=worker_rank, tag=TAG_WORK)
                 active_workers[worker_rank] = input_file
                 processed_files.add(input_file)
             except (IOError, OSError) as e:
@@ -530,26 +591,28 @@ def master(comm, args):
         else:
             time.sleep(0.05)
 
-    # --- 优雅关闭：排空消息并发送 TAG_STOP ---
-    print("[Master] Shutting down workers...")
-
-    # 排空所有 pending 消息并发送停止信号
-    for rank in range(1, size):
-        # 排空该 worker 的 TAG_READY 和 TAG_RESULT
-        while comm.iprobe(source=rank, tag=TAG_READY):
-            comm.recv(source=rank, tag=TAG_READY)
-        while comm.iprobe(source=rank, tag=TAG_RESULT):
-            comm.recv(source=rank, tag=TAG_RESULT)
-        comm.send(None, dest=rank, tag=TAG_STOP)
-
-    # 最终统计输出
+    # --- 优雅关闭 ---
+    # 先输出最终统计（在尝试与 worker 通信之前，因为 worker 可能已被 SIGTERM 杀死）
     stats.log(stats_file)
     print(f"[Master] Final stats: {stats.total_count} ok, "
           f"{stats.failed_count} failed, "
           f"{stats.interesting_count} interesting / "
           f"{stats.generated_count} total")
-
+    sys.stdout.flush()
     stats_file.close()
+
+    # 尝试发送 TAG_STOP（worker 可能已经死了，忽略错误）
+    print("[Master] Shutting down workers...")
+    for rank in range(1, size):
+        try:
+            # 排空该 worker 的 TAG_READY 和 TAG_RESULT
+            while comm.iprobe(source=rank, tag=TAG_READY):
+                comm.recv(source=rank, tag=TAG_READY)
+            while comm.iprobe(source=rank, tag=TAG_RESULT):
+                comm.recv(source=rank, tag=TAG_RESULT)
+            comm.send(None, dest=rank, tag=TAG_STOP)
+        except Exception:
+            pass  # worker 可能已经被 SIGTERM 杀死
 
 
 def worker(comm, args):
@@ -580,6 +643,13 @@ def worker(comm, args):
             continue
 
         input_content = msg["content"]
+
+        # 将 master 发送的累积 bitmap 写入 SYMCC_AFL_COVERAGE_MAP，
+        # 让 QSYM 后端知道哪些路径已经被 AFL/SymCC 覆盖，避免重复求解
+        bitmap_data = msg.get("bitmap")
+        if bitmap_data:
+            with open(bitmap_file, "wb") as bf:
+                bf.write(bitmap_data)
 
         # Write input to local file
         local_input = os.path.join(worker_dir, "current_input")

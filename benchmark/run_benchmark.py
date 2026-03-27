@@ -73,8 +73,10 @@ def _has_symcc_instrumentation(binary_path):
         result = subprocess.run(
             ["nm", binary_path], capture_output=True, text=True, timeout=10
         )
+        # SymCC 插桩会插入 __sym_ctor 符号
         count = sum(1 for line in result.stdout.splitlines()
-                    if "Sym" in line or "SYM" in line)
+                    if "__sym_ctor" in line or "_sym_build" in line
+                    or "SymExpr" in line)
         return count >= MIN_SYMCC_SYMBOLS
     except Exception:
         return True  # assume instrumented if we can't check
@@ -1016,7 +1018,7 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
     mpi_cmd = [
         "mpirun", "--allow-run-as-root", "--oversubscribe",
         "-np", str(symcc_np),
-        "python3", str(MPI_FUZZING_SCRIPT),
+        "python3", "-u", str(MPI_FUZZING_SCRIPT),
         "-a", "fuzzer01",
         "-o", afl_out_dir,
         "-n", "symcc01",
@@ -1025,11 +1027,14 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
     ]
 
     print(f"      Starting MPI SymCC (np={symcc_np})...")
+    mpi_env = os.environ.copy()
+    mpi_env["PYTHONUNBUFFERED"] = "1"
     mpi_proc = subprocess.Popen(
         mpi_cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         start_new_session=True,
+        env=mpi_env,
     )
 
     # 等待 timeout
@@ -1604,6 +1609,14 @@ def main():
                 for suite_dir in sorted(pub_bin_dir.iterdir()):
                     if not suite_dir.is_dir():
                         continue
+                    # 使用与覆盖率发现相同的命名前缀
+                    suite_name = suite_dir.name
+                    if suite_name == "lava-m":
+                        prefix = "lava-"
+                    elif suite_name == "google-fts":
+                        prefix = "gfts-"
+                    else:
+                        prefix = suite_name + "-"
                     for binary in sorted(suite_dir.iterdir()):
                         if binary.is_file() and os.access(str(binary), os.X_OK):
                             bname = binary.name
@@ -1615,8 +1628,9 @@ def main():
                                 if not args.simulation and not _has_symcc_instrumentation(str(binary)):
                                     print(f"  Skipping {bname}: no SymCC instrumentation (gcc-compiled)")
                                     continue
+                                target_name = prefix + bname
                                 public_specs.append(
-                                    f"{bname}:{binary}:{seed_candidate}"
+                                    f"{target_name}:{binary}:{seed_candidate}"
                                 )
 
         if public_specs:
@@ -1642,7 +1656,8 @@ def main():
             binaries[name] = binary_path
             public_seed_dirs[name] = seed_path
             public_targets[name] = True
-            if name not in target_names:
+            # 仅在用户未指定 --targets 时自动添加到运行列表
+            if not args.targets and name not in target_names:
                 target_names.append(name)
             print(f"    {name}: {binary_path} (seeds: {seed_path})")
 
