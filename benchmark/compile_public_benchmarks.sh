@@ -201,7 +201,42 @@ build_lava() {
             # SymCC 编译的测试程序运行时需要 SYMCC_OUTPUT_DIR 存在，
             # 否则 configure 的 "can the compiler produce executables" 测试会失败。
             # SymCC 基于 Clang，对隐式函数声明报错，需要 -Wno-implicit-function-declaration
+            #
+            # 关键：禁用 coreutils 的 unlocked-io 优化。
+            # coreutils 的 gnulib 用 fread_unlocked/fwrite_unlocked/getc_unlocked 等
+            # 替代标准 I/O 函数，但 SymCC 运行时只包装标准版本（fread_symbolized 等）。
+            # 不禁用的话，所有输入读取绕过 SymCC，导致 0 个符号约束、0 个测试用例。
             mkdir -p /tmp/output
+
+            # Patch unlocked-io.h：用空文件替换，禁用所有 *_unlocked 宏替换
+            if [ -f lib/unlocked-io.h ]; then
+                info "    Patching unlocked-io.h for SymCC compatibility..."
+                cat > lib/unlocked-io.h << 'UNLOCKED_PATCH'
+/* Patched for SymCC: disable *_unlocked I/O replacements.
+   SymCC only wraps standard libc I/O functions (fread, fwrite, getc, etc.),
+   not their *_unlocked variants. Using unlocked versions bypasses SymCC's
+   symbolic input tracking, resulting in zero test case generation. */
+#ifndef UNLOCKED_IO_H
+# define UNLOCKED_IO_H 1
+# include <stdio.h>
+/* Map unlocked -> standard (reverse of original) */
+# define clearerr_unlocked(x) clearerr(x)
+# define feof_unlocked(x) feof(x)
+# define ferror_unlocked(x) ferror(x)
+# define fflush_unlocked(x) fflush(x)
+# define fgets_unlocked(x,y,z) fgets(x,y,z)
+# define fputc_unlocked(x,y) fputc(x,y)
+# define fputs_unlocked(x,y) fputs(x,y)
+# define fread_unlocked(w,x,y,z) fread(w,x,y,z)
+# define fwrite_unlocked(w,x,y,z) fwrite(w,x,y,z)
+# define getc_unlocked(x) getc(x)
+# define getchar_unlocked() getchar()
+# define putc_unlocked(x,y) putc(x,y)
+# define putchar_unlocked(x) putchar(x)
+#endif
+UNLOCKED_PATCH
+            fi
+
             CC="$CC" CFLAGS="-O2 -Wno-implicit-function-declaration" \
                 FORCE_UNSAFE_CONFIGURE=1 \
                 SYMCC_OUTPUT_DIR=/tmp/output \
@@ -821,6 +856,93 @@ build_google_fts_afl() {
 }
 
 ############################################################
+# LAVA-M AFL-instrumented builds
+############################################################
+build_lava_afl() {
+    if ! command -v afl-clang-fast >/dev/null 2>&1; then
+        error "afl-clang-fast not found. Install AFL++"
+        return 1
+    fi
+
+    local corpus_dir=""
+    for candidate in \
+        "$PUBLIC_DIR/lava-m/lava_corpus/LAVA-M" \
+        "$PUBLIC_DIR/lava-m/LAVA-M" \
+        "$PUBLIC_DIR/LAVA-M" \
+        "$PUBLIC_DIR/lava_corpus/LAVA-M"; do
+        if [ -d "$candidate/base64" ] || [ -d "$candidate/uniq" ]; then
+            corpus_dir="$candidate"
+            break
+        fi
+    done
+    if [ -z "$corpus_dir" ]; then
+        error "LAVA-M corpus not found for AFL build"
+        return 1
+    fi
+
+    info "Building LAVA-M AFL-instrumented binaries..."
+    mkdir -p "$BUILD_DIR/lava-m-afl"
+
+    local built=0
+    for prog in base64 md5sum uniq who; do
+        local src_dir=""
+        for d in "$corpus_dir/$prog"/coreutils-*; do
+            [ -d "$d" ] && src_dir="$d" && break
+        done
+        [ -z "$src_dir" ] && continue
+
+        info "  Building $prog (AFL)..."
+        cd "$src_dir"
+        set +e
+        make distclean 2>/dev/null || make clean 2>/dev/null || true
+
+        if [ -f configure ]; then
+            chmod +x configure 2>/dev/null || true
+
+            # 和 SymCC 版本一样 patch unlocked-io.h（保持一致性）
+            if [ -f lib/unlocked-io.h ]; then
+                cat > lib/unlocked-io.h << 'UNLOCKED_PATCH'
+#ifndef UNLOCKED_IO_H
+# define UNLOCKED_IO_H 1
+# include <stdio.h>
+# define clearerr_unlocked(x) clearerr(x)
+# define feof_unlocked(x) feof(x)
+# define ferror_unlocked(x) ferror(x)
+# define fflush_unlocked(x) fflush(x)
+# define fgets_unlocked(x,y,z) fgets(x,y,z)
+# define fputc_unlocked(x,y) fputc(x,y)
+# define fputs_unlocked(x,y) fputs(x,y)
+# define fread_unlocked(w,x,y,z) fread(w,x,y,z)
+# define fwrite_unlocked(w,x,y,z) fwrite(w,x,y,z)
+# define getc_unlocked(x) getc(x)
+# define getchar_unlocked() getchar()
+# define putc_unlocked(x,y) putc(x,y)
+# define putchar_unlocked(x) putchar(x)
+#endif
+UNLOCKED_PATCH
+            fi
+
+            CC=afl-clang-fast CFLAGS="-O2 -Wno-implicit-function-declaration" \
+                FORCE_UNSAFE_CONFIGURE=1 \
+                ./configure --quiet 2>&1 | tail -3
+            make -k -j$(nproc) 2>&1 | tail -3
+        fi
+
+        if [ -f "src/$prog" ]; then
+            cp "src/$prog" "$BUILD_DIR/lava-m-afl/${prog}"
+            built=$((built + 1))
+            info "    -> $prog AFL built"
+        else
+            warn "    $prog AFL build failed"
+        fi
+        set -e
+        cd "$SCRIPT_DIR"
+    done
+
+    info "LAVA-M AFL: built $built / 4 targets"
+}
+
+############################################################
 # Main
 ############################################################
 usage() {
@@ -931,6 +1053,7 @@ if $WITH_AFL; then
     echo "================================================================"
     echo ""
     $BUILD_GOOGLE && build_google_fts_afl
+    $BUILD_LAVA   && build_lava_afl
 fi
 
 # Coverage builds (使用 gcc --coverage -O0 -g 重新编译) — 必须最后！
