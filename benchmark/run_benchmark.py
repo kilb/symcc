@@ -514,20 +514,145 @@ def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
     }
 
 
-def measure_coverage_timeseries(
-    cov_binary: str,
-    cov_dir: str,
-    source_file: str,
+def measure_coverage_afl(afl_binary: str, test_case_dir: str,
+                         uses_file: bool = True,
+                         timeout_per_case: int = 5000) -> dict:
+    """使用 afl-showmap -C 测量 AFL 边覆盖率。
+
+    通过 afl-showmap 的批量收集模式（-C -i dir）一次性处理所有测试用例，
+    输出边覆盖率百分比。比 gcov/lcov 快得多，且不需要特殊的 coverage 二进制。
+
+    Args:
+        afl_binary: AFL-instrumented 二进制路径
+        test_case_dir: 包含测试用例的目录
+        uses_file: True 表示目标从文件读取输入，False 表示从 stdin
+        timeout_per_case: 每个测试用例超时（毫秒）
+
+    Returns:
+        dict with: edge_cov (%), edges_found, edges_total, crashes
+    """
+    if not os.path.isdir(test_case_dir):
+        return {"edge_cov": 0.0, "edges_found": 0, "edges_total": 0,
+                "crashes": 0, "total_cases": 0}
+
+    test_files = [f for f in os.listdir(test_case_dir)
+                  if os.path.isfile(os.path.join(test_case_dir, f))]
+    total_cases = len(test_files)
+    if total_cases == 0:
+        return {"edge_cov": 0.0, "edges_found": 0, "edges_total": 0,
+                "crashes": 0, "total_cases": 0}
+
+    afl_showmap = shutil.which("afl-showmap")
+    if not afl_showmap:
+        return {"edge_cov": 0.0, "edges_found": 0, "edges_total": 0,
+                "crashes": 0, "total_cases": total_cases}
+
+    out_file = os.path.join(test_case_dir, ".afl_cov_map")
+    cmd = [
+        afl_showmap,
+        "-t", str(timeout_per_case),
+        "-m", "none",
+        "-C",
+        "-i", test_case_dir,
+        "-o", out_file,
+        "--", afl_binary,
+    ]
+    if uses_file:
+        cmd.append("@@")
+
+    try:
+        batch_timeout = max(60, total_cases * 2)
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=batch_timeout
+        )
+        stderr = result.stderr + result.stdout  # afl-showmap 输出到 stderr
+
+        # 解析 "A coverage of N edges were achieved out of M existing (X%)"
+        edge_cov = 0.0
+        edges_found = 0
+        edges_total = 0
+        m = re.search(
+            r"coverage of (\d+) edges were achieved out of (\d+) existing "
+            r"\(([0-9.]+)%\)",
+            stderr
+        )
+        if m:
+            edges_found = int(m.group(1))
+            edges_total = int(m.group(2))
+            edge_cov = float(m.group(3))
+        else:
+            # 备用：从 "Captured N tuples" 解析
+            m2 = re.search(r"Captured (\d+) tuples \(map size (\d+)", stderr)
+            if m2:
+                edges_found = int(m2.group(1))
+                edges_total = int(m2.group(2))
+                if edges_total > 0:
+                    edge_cov = edges_found / edges_total * 100.0
+
+    except subprocess.TimeoutExpired:
+        edge_cov = 0.0
+        edges_found = 0
+        edges_total = 0
+    except Exception:
+        edge_cov = 0.0
+        edges_found = 0
+        edges_total = 0
+
+    try:
+        os.remove(out_file)
+    except OSError:
+        pass
+
+    return {
+        "edge_cov": round(edge_cov, 2),
+        "edges_found": edges_found,
+        "edges_total": edges_total,
+        "crashes": 0,  # afl-showmap -C 不单独报告 crash 数
+        "total_cases": total_cases,
+    }
+
+
+def discover_afl_coverage_binaries() -> dict[str, str]:
+    """发现所有可用于 AFL 覆盖率测量的二进制文件。
+
+    扫描 public/bin/ 下所有 *-afl 目录，返回 {目标名: AFL二进制路径}。
+    """
+    afl_cov_binaries: dict[str, str] = {}
+    pub_bin_dir = PUBLIC_DIR / "bin"
+    if not pub_bin_dir.is_dir():
+        return afl_cov_binaries
+
+    for suite_dir in sorted(pub_bin_dir.iterdir()):
+        if not suite_dir.is_dir() or not suite_dir.name.endswith("-afl"):
+            continue
+        # 从 "google-fts-afl" 得到 suite 名 "google-fts"
+        suite_name = suite_dir.name[:-4]  # 去掉 "-afl"
+        if suite_name == "lava-m":
+            prefix = "lava-"
+        elif suite_name == "google-fts":
+            prefix = "gfts-"
+        else:
+            prefix = suite_name + "-"
+
+        for binary in sorted(suite_dir.iterdir()):
+            if binary.is_file() and os.access(str(binary), os.X_OK):
+                target_name = prefix + binary.name
+                afl_cov_binaries[target_name] = str(binary)
+
+    return afl_cov_binaries
+
+
+def measure_coverage_timeseries_afl(
+    afl_binary: str,
     test_case_dir: str,
     interval: int = 30,
     max_duration: int = 600,
     uses_file: bool = True,
-    lib_dirs: list[str] | None = None,
 ) -> list[dict]:
-    """在后台线程中定期采样覆盖率，生成时间序列数据。
+    """在后台线程中定期采样 AFL 边覆盖率，生成时间序列数据。
 
-    每隔 interval 秒运行一次覆盖率测量，记录当前时间点的覆盖率。
-    返回 [{timestamp_sec, line_cov, branch_cov, total_cases}, ...] 列表。
+    每隔 interval 秒运行一次 afl-showmap 覆盖率测量，记录当前时间点的覆盖率。
+    返回 [{timestamp_sec, edge_cov, edges_found, edges_total, total_cases}, ...] 列表。
     """
     timeseries: list[dict] = []
     start_time = time.monotonic()
@@ -535,14 +660,14 @@ def measure_coverage_timeseries(
     while time.monotonic() - start_time < max_duration:
         elapsed = time.monotonic() - start_time
         try:
-            cov_data = measure_coverage(
-                cov_binary, cov_dir, source_file, test_case_dir,
-                uses_file=uses_file, lib_dirs=lib_dirs,
+            cov_data = measure_coverage_afl(
+                afl_binary, test_case_dir, uses_file=uses_file,
             )
             timeseries.append({
                 "timestamp_sec": round(elapsed, 1),
-                "line_cov": cov_data["line_cov"],
-                "branch_cov": cov_data["branch_cov"],
+                "edge_cov": cov_data["edge_cov"],
+                "edges_found": cov_data["edges_found"],
+                "edges_total": cov_data["edges_total"],
                 "total_cases": cov_data["total_cases"],
             })
         except Exception:
@@ -559,22 +684,17 @@ def measure_coverage_timeseries(
 def run_with_timeseries(
     run_fn,
     run_kwargs: dict,
-    cov_binary: str,
-    cov_dir: str,
-    source_file: str,
+    afl_binary: str,
     interval: int = 30,
     uses_file: bool = True,
-    lib_dirs: list[str] | None = None,
     timeout: int = 300,
 ) -> tuple[dict, list[dict]]:
-    """运行基准测试同时在后台采样覆盖率时间序列。
+    """运行基准测试同时在后台采样 AFL 边覆盖率时间序列。
 
     run_fn: 实际执行函数 (run_mpi, run_hybrid, etc.)
     run_kwargs: 传递给 run_fn 的参数
     返回 (run_result, timeseries)
     """
-    # 先启动基准测试，获取输出目录
-    # run_fn 会阻塞直到完成
     result_container = [None]
     error_container = [None]
 
@@ -589,34 +709,30 @@ def run_with_timeseries(
 
     # 等待输出目录出现
     output_dir = run_kwargs.get("work_dir", "")
-    # MPI 输出到 work_dir 下的子目录
     np_val = run_kwargs.get("np")
     if np_val:
         candidate_dir = os.path.join(output_dir, f"mpi_np{np_val}_output")
     else:
         candidate_dir = os.path.join(output_dir, "output")
 
-    # 等待目录创建（最多等 10 秒）
     wait_start = time.monotonic()
     while not os.path.isdir(candidate_dir) and time.monotonic() - wait_start < 10:
         time.sleep(0.5)
 
     if not os.path.isdir(candidate_dir):
-        # 回退：等基准测试完成再测量
         bench_thread.join(timeout=timeout + 60)
         result = result_container[0]
         if error_container[0]:
             raise error_container[0]
         return result, []
 
-    # 在后台采样覆盖率
-    timeseries = measure_coverage_timeseries(
-        cov_binary, cov_dir, source_file, candidate_dir,
+    # 在后台采样 AFL 边覆盖率
+    timeseries = measure_coverage_timeseries_afl(
+        afl_binary, candidate_dir,
         interval=interval, max_duration=timeout + 30,
-        uses_file=uses_file, lib_dirs=lib_dirs,
+        uses_file=uses_file,
     )
 
-    # 等待基准测试完成
     bench_thread.join(timeout=60)
     result = result_container[0]
     if error_container[0]:
@@ -1290,7 +1406,7 @@ def generate_report(results, output_dir):
         writer.writerow([
             "target", "mode", "np", "round",
             "wall_time_sec", "generated", "unique", "throughput_tc_s",
-            "line_cov_pct", "branch_cov_pct", "crashes",
+            "edge_cov_pct", "edges_found", "edges_total", "crashes",
             "speedup", "efficiency"
         ])
         for row in results:
@@ -1298,8 +1414,9 @@ def generate_report(results, output_dir):
                 row["target"], row["mode"], row["np"], row["round"],
                 f"{row['wall_time']:.2f}", row["generated"], row["unique"],
                 f"{row.get('throughput', 0.0):.2f}",
-                f"{row.get('line_cov', 0.0):.2f}",
-                f"{row.get('branch_cov', 0.0):.2f}",
+                f"{row.get('edge_cov', 0.0):.2f}",
+                row.get("edges_found", 0),
+                row.get("edges_total", 0),
                 row.get("crashes", 0),
                 f"{row.get('speedup', 1.0):.2f}",
                 f"{row.get('efficiency', 100.0):.1f}"
@@ -1334,8 +1451,9 @@ def generate_report(results, output_dir):
                 avg_time = sum(r["wall_time"] for r in rows) / len(rows)
                 avg_gen = sum(r["generated"] for r in rows) / len(rows)
                 avg_uniq = sum(r["unique"] for r in rows) / len(rows)
-                avg_line_cov = sum(r.get("line_cov", 0) for r in rows) / len(rows)
-                avg_branch_cov = sum(r.get("branch_cov", 0) for r in rows) / len(rows)
+                avg_edge_cov = sum(r.get("edge_cov", 0) for r in rows) / len(rows)
+                avg_edges_found = sum(r.get("edges_found", 0) for r in rows) / len(rows)
+                avg_edges_total = sum(r.get("edges_total", 0) for r in rows) / len(rows)
                 total_crashes = sum(r.get("crashes", 0) for r in rows)
                 avg_workers = sum(r.get("num_workers", np_val - 1) for r in rows) / len(rows)
                 avg_throughput = sum(r.get("throughput", 0) for r in rows) / len(rows)
@@ -1346,8 +1464,9 @@ def generate_report(results, output_dir):
                     "avg_generated": avg_gen,
                     "avg_unique": avg_uniq,
                     "avg_throughput": avg_throughput,
-                    "avg_line_cov": avg_line_cov,
-                    "avg_branch_cov": avg_branch_cov,
+                    "avg_edge_cov": avg_edge_cov,
+                    "avg_edges_found": avg_edges_found,
+                    "avg_edges_total": avg_edges_total,
                     "total_crashes": total_crashes,
                     "avg_workers": avg_workers,
                     "rounds": len(rows),
@@ -1363,8 +1482,7 @@ def generate_report(results, output_dir):
                     base_mpi_throughput = s["avg_throughput"]
 
             # Check if any coverage data is present
-            has_cov = any(s["avg_line_cov"] > 0 or s["avg_branch_cov"] > 0
-                          for s in summaries)
+            has_cov = any(s["avg_edge_cov"] > 0 for s in summaries)
 
             # Table header
             hdr = (f"  {'Mode':<10} {'NP':>4} {'Avg Time':>12} "
@@ -1372,8 +1490,8 @@ def generate_report(results, output_dir):
             sep = (f"  {'─'*10} {'─'*4} {'─'*12} "
                    f"{'─'*10} {'─'*8} {'─'*10} ")
             if has_cov:
-                hdr += f"{'LineCov':>8} {'BranchCov':>10} {'Crashes':>8} "
-                sep += f"{'─'*8} {'─'*10} {'─'*8} "
+                hdr += f"{'EdgeCov':>10} {'Edges':>14} {'Crashes':>8} "
+                sep += f"{'─'*10} {'─'*14} {'─'*8} "
             hdr += f"{'Speedup':>8} {'Efficiency':>10}\n"
             sep += f"{'─'*8} {'─'*10}\n"
             f.write(hdr)
@@ -1409,23 +1527,26 @@ def generate_report(results, output_dir):
                         f"{s['avg_generated']:>10.1f} "
                         f"{s['avg_unique']:>8.1f} {tp_str} ")
                 if has_cov:
-                    line += (f"{s['avg_line_cov']:>7.1f}% "
-                             f"{s['avg_branch_cov']:>9.1f}% "
+                    edges_str = f"{int(s['avg_edges_found'])}/{int(s['avg_edges_total'])}"
+                    line += (f"{s['avg_edge_cov']:>9.2f}% "
+                             f"{edges_str:>14} "
                              f"{s['total_crashes']:>8} ")
                 line += f"{speedup:>7.2f}x {efficiency:>9.1f}%\n"
                 f.write(line)
 
             f.write("\n")
 
-            # Coverage chart (ASCII) - most important metric
+            # Edge Coverage chart (ASCII) - most important metric
             if has_cov:
-                f.write("  Branch Coverage Chart:\n")
+                max_cov = max((s["avg_edge_cov"] for s in summaries), default=1)
+                scale = max(max_cov, 1.0)  # 动态缩放
+                f.write("  Edge Coverage Chart:\n")
                 for s in summaries:
                     label = f"  np={s['np']:>2}" if s["mode"] != "serial" else "  serial"
-                    cov = s["avg_branch_cov"]
-                    bar_len = int(cov / 2.5)  # scale: 100% = 40 chars
+                    cov = s["avg_edge_cov"]
+                    bar_len = int(cov / scale * 40)
                     bar = "█" * bar_len + "░" * max(0, 40 - bar_len)
-                    f.write(f"  {label:>8} |{bar}| {cov:.1f}%\n")
+                    f.write(f"  {label:>8} |{bar}| {cov:.2f}%\n")
                 f.write("\n")
 
             # Throughput Speedup chart (ASCII)
@@ -1462,18 +1583,18 @@ def generate_report(results, output_dir):
             for (mode, np_val), rows in configs.items():
                 avg_time = sum(r["wall_time"] for r in rows) / len(rows)
                 avg_gen = sum(r["generated"] for r in rows) / len(rows)
-                avg_branch_cov = sum(r.get("branch_cov", 0) for r in rows) / len(rows)
+                avg_edge_cov = sum(r.get("edge_cov", 0) for r in rows) / len(rows)
                 total_crashes = sum(r.get("crashes", 0) for r in rows)
                 throughput = avg_gen / avg_time if avg_time > 0 else 0
                 # Score: prioritize coverage, then throughput
-                score = avg_branch_cov * 1000 + throughput
+                score = avg_edge_cov * 1000 + throughput
                 if score > best_score:
                     best_score = score
                     best = {
                         "mode": mode, "np": np_val,
                         "time": avg_time, "gen": avg_gen,
                         "throughput": throughput,
-                        "branch_cov": avg_branch_cov,
+                        "edge_cov": avg_edge_cov,
                         "crashes": total_crashes,
                     }
 
@@ -1482,8 +1603,8 @@ def generate_report(results, output_dir):
                         f"({format_time(best['time'])}, "
                         f"{best['gen']:.0f} test cases, "
                         f"{best['throughput']:.1f} tc/s")
-                if best["branch_cov"] > 0:
-                    info += f", branch_cov={best['branch_cov']:.1f}%"
+                if best["edge_cov"] > 0:
+                    info += f", edge_cov={best['edge_cov']:.2f}%"
                 if best["crashes"] > 0:
                     info += f", crashes={best['crashes']}"
                 info += ")\n"
@@ -1673,37 +1794,23 @@ def main():
         print("\nERROR: mpirun not found. Install OpenMPI: apt install openmpi-bin")
         sys.exit(1)
 
-    # Build/discover coverage binaries
-    cov_binaries: dict[str, str] = {}
-    cov_dirs: dict[str, str] = {}
-    cov_sources: dict[str, str] = {}  # 用于 public 目标的 gcov source file
-    cov_libdirs: dict[str, list[str]] = {}  # 库构建目录，用于 lcov 完整覆盖率
+    # Build/discover AFL coverage binaries
+    afl_cov_binaries: dict[str, str] = {}
     enable_coverage = not args.no_coverage
     if enable_coverage:
-        if not shutil.which("gcov"):
-            print("\n  WARNING: gcov not found, disabling coverage measurement")
+        if not shutil.which("afl-showmap"):
+            print("\n  WARNING: afl-showmap not found, disabling coverage measurement")
             enable_coverage = False
         else:
-            # 内置目标的 coverage 二进制
-            if not args.no_default:
-                print("\n  Building coverage-instrumented binaries:")
-                cov_bin_dir = os.path.join(output_dir, "cov_bin")
-                cov_binaries, cov_dirs = build_coverage_targets(cov_bin_dir)
+            # 发现 AFL-instrumented 二进制（用于覆盖率测量）
+            afl_cov_binaries = discover_afl_coverage_binaries()
+            if afl_cov_binaries:
+                print(f"\n  Discovered {len(afl_cov_binaries)} AFL coverage binaries:")
+                for name in sorted(afl_cov_binaries):
+                    print(f"    {name}: {afl_cov_binaries[name]}")
 
-            # 发现 public 目标的 coverage 二进制
-            pub_cov_bins, pub_cov_dirs, pub_cov_srcs, pub_cov_libs = discover_public_coverage_targets()
-            if pub_cov_bins:
-                print(f"\n  Discovered {len(pub_cov_bins)} public coverage binaries:")
-                for name in sorted(pub_cov_bins):
-                    lib_info = f" (+libs: {len(pub_cov_libs.get(name, []))} dirs)" if name in pub_cov_libs else ""
-                    print(f"    {name}: {pub_cov_bins[name]}{lib_info}")
-                cov_binaries.update(pub_cov_bins)
-                cov_dirs.update(pub_cov_dirs)
-                cov_sources.update(pub_cov_srcs)
-                cov_libdirs.update(pub_cov_libs)
-
-            if not cov_binaries:
-                print("  WARNING: no coverage binaries found, disabling coverage")
+            if not afl_cov_binaries:
+                print("  WARNING: no AFL coverage binaries found, disabling coverage")
                 enable_coverage = False
 
     # Prepare seed directories per target
@@ -1748,38 +1855,26 @@ def main():
             result = run_serial(binary, target, seed_dir, args.timeout, work_dir,
                                 simulate=args.simulation)
 
-            # Measure coverage before cleanup
-            cov_data = {"line_cov": 0.0, "branch_cov": 0.0, "crashes": 0}
-            if enable_coverage and target in cov_binaries:
+            # 使用 AFL 边覆盖率测量
+            cov_data = {"edge_cov": 0.0, "edges_found": 0, "edges_total": 0, "crashes": 0}
+            if enable_coverage and target in afl_cov_binaries:
                 uses_file = TARGETS[target][3] if target in TARGETS else True
-                # 内置目标用 TARGETS[...][0] 作为 source_file；public 目标用 cov_sources
-                if target in TARGETS:
-                    src_file = TARGETS[target][0]
-                else:
-                    src_file = cov_sources.get(target, "")
                 # 将种子文件复制到输出目录，确保覆盖率测量包含种子覆盖
-                # （MPI 运行会自动复制种子，serial 不会）
                 for sf in os.listdir(seed_dir):
                     sp = os.path.join(seed_dir, sf)
                     dp = os.path.join(result["output_dir"], f"seed_{sf}")
                     if os.path.isfile(sp) and not os.path.exists(dp):
                         shutil.copy2(sp, dp)
-                if src_file:
-                    cov_data = measure_coverage(
-                        cov_binaries[target], cov_dirs[target],
-                        src_file, result["output_dir"],
-                        uses_file=uses_file,
-                        lib_dirs=cov_libdirs.get(target)
-                    )
+                cov_data = measure_coverage_afl(
+                    afl_cov_binaries[target], result["output_dir"],
+                    uses_file=uses_file
+                )
 
             cov_str = ""
-            if enable_coverage and target in cov_binaries:
-                sample_note = ""
-                if cov_data.get("sampled"):
-                    sample_note = f" (sampled {cov_data['sampled_cases']}/{cov_data['total_cases']})"
-                cov_str = (f", line={cov_data['line_cov']:.1f}%, "
-                           f"branch={cov_data['branch_cov']:.1f}%, "
-                           f"crashes={cov_data['crashes']}{sample_note}")
+            if enable_coverage and target in afl_cov_binaries:
+                cov_str = (f", edge={cov_data['edge_cov']:.2f}% "
+                           f"({cov_data['edges_found']}/{cov_data['edges_total']}), "
+                           f"crashes={cov_data['crashes']}")
             timeout_str = ""
             if result.get("timed_out"):
                 timeout_str = " [TIMEOUT]"
@@ -1797,9 +1892,10 @@ def main():
                 "generated": result["generated"],
                 "unique": result["unique"],
                 "throughput": result.get("throughput", 0),
-                "line_cov": cov_data["line_cov"],
-                "branch_cov": cov_data["branch_cov"],
-                "crashes": cov_data["crashes"],
+                "edge_cov": cov_data.get("edge_cov", 0.0),
+                "edges_found": cov_data.get("edges_found", 0),
+                "edges_total": cov_data.get("edges_total", 0),
+                "crashes": cov_data.get("crashes", 0),
             })
 
             shutil.rmtree(work_dir, ignore_errors=True)
@@ -1842,30 +1938,20 @@ def main():
                     simulate=args.simulation
                 )
 
-                # Measure coverage before cleanup
-                cov_data = {"line_cov": 0.0, "branch_cov": 0.0, "crashes": 0}
-                if enable_coverage and target in cov_binaries:
+                # 使用 AFL 边覆盖率测量
+                cov_data = {"edge_cov": 0.0, "edges_found": 0, "edges_total": 0, "crashes": 0}
+                if enable_coverage and target in afl_cov_binaries:
                     uses_file = TARGETS[target][3] if target in TARGETS else True
-                    if target in TARGETS:
-                        src_file = TARGETS[target][0]
-                    else:
-                        src_file = cov_sources.get(target, "")
-                    if src_file:
-                        cov_data = measure_coverage(
-                            cov_binaries[target], cov_dirs[target],
-                            src_file, result["output_dir"],
-                            uses_file=uses_file,
-                            lib_dirs=cov_libdirs.get(target)
-                        )
+                    cov_data = measure_coverage_afl(
+                        afl_cov_binaries[target], result["output_dir"],
+                        uses_file=uses_file
+                    )
 
                 cov_str = ""
-                if enable_coverage and target in cov_binaries:
-                    sample_note = ""
-                    if cov_data.get("sampled"):
-                        sample_note = f" (sampled {cov_data['sampled_cases']}/{cov_data['total_cases']})"
-                    cov_str = (f", line={cov_data['line_cov']:.1f}%, "
-                               f"branch={cov_data['branch_cov']:.1f}%, "
-                               f"crashes={cov_data['crashes']}{sample_note}")
+                if enable_coverage and target in afl_cov_binaries:
+                    cov_str = (f", edge={cov_data['edge_cov']:.2f}% "
+                               f"({cov_data['edges_found']}/{cov_data['edges_total']}), "
+                               f"crashes={cov_data['crashes']}")
                 timeout_str = ""
                 if result.get("timed_out"):
                     timeout_str = " [TIMEOUT]"
@@ -1935,9 +2021,10 @@ def main():
                     "generated": result["generated"],
                     "unique": result["unique"],
                     "throughput": result.get("throughput", 0),
-                    "line_cov": cov_data["line_cov"],
-                    "branch_cov": cov_data["branch_cov"],
-                    "crashes": cov_data["crashes"],
+                    "edge_cov": cov_data.get("edge_cov", 0.0),
+                    "edges_found": cov_data.get("edges_found", 0),
+                    "edges_total": cov_data.get("edges_total", 0),
+                    "crashes": cov_data.get("crashes", 0),
                     "speedup": speedup,
                     "efficiency": efficiency,
                     "num_workers": result.get("num_workers") or (actual_np - 1),
@@ -1968,29 +2055,19 @@ def main():
                             actual_np, args.timeout, work_dir
                         )
 
-                        # 覆盖率测量
-                        cov_data = {"line_cov": 0.0, "branch_cov": 0.0, "crashes": 0}
-                        if enable_coverage and target in cov_binaries:
-                            uses_file = True
-                            src_file = cov_sources.get(target, "")
-                            if src_file:
-                                cov_data = measure_coverage(
-                                    cov_binaries[target], cov_dirs[target],
-                                    src_file, result["output_dir"],
-                                    uses_file=uses_file,
-                                    lib_dirs=cov_libdirs.get(target)
-                                )
+                        # 使用 AFL 边覆盖率测量
+                        cov_data = {"edge_cov": 0.0, "edges_found": 0, "edges_total": 0, "crashes": 0}
+                        if enable_coverage and target in afl_cov_binaries:
+                            cov_data = measure_coverage_afl(
+                                afl_cov_binaries[target], result["output_dir"],
+                                uses_file=True
+                            )
 
                         cov_str = ""
-                        if enable_coverage and target in cov_binaries:
-                            sample_note = ""
-                            if cov_data.get("sampled"):
-                                sample_note = (f" (sampled "
-                                               f"{cov_data['sampled_cases']}/"
-                                               f"{cov_data['total_cases']})")
-                            cov_str = (f", line={cov_data['line_cov']:.1f}%, "
-                                       f"branch={cov_data['branch_cov']:.1f}%, "
-                                       f"crashes={cov_data['crashes']}{sample_note}")
+                        if enable_coverage and target in afl_cov_binaries:
+                            cov_str = (f", edge={cov_data['edge_cov']:.2f}% "
+                                       f"({cov_data['edges_found']}/{cov_data['edges_total']}), "
+                                       f"crashes={cov_data['crashes']}")
 
                         afl_gen = result.get("afl_generated", 0)
                         symcc_int = result.get("symcc_interesting", 0)
@@ -2011,9 +2088,10 @@ def main():
                             "generated": result["generated"],
                             "unique": result["unique"],
                             "throughput": result.get("throughput", 0),
-                            "line_cov": cov_data["line_cov"],
-                            "branch_cov": cov_data["branch_cov"],
-                            "crashes": cov_data["crashes"],
+                            "edge_cov": cov_data.get("edge_cov", 0.0),
+                            "edges_found": cov_data.get("edges_found", 0),
+                            "edges_total": cov_data.get("edges_total", 0),
+                            "crashes": cov_data.get("crashes", 0),
                             "speedup": 0,
                             "efficiency": 0,
                             "num_workers": result.get("num_workers", actual_np - 2),
@@ -2042,29 +2120,19 @@ def main():
                         args.timeout, work_dir
                     )
 
-                    # 覆盖率测量
-                    cov_data = {"line_cov": 0.0, "branch_cov": 0.0, "crashes": 0}
-                    if enable_coverage and target in cov_binaries:
-                        uses_file = True
-                        src_file = cov_sources.get(target, "")
-                        if src_file:
-                            cov_data = measure_coverage(
-                                cov_binaries[target], cov_dirs[target],
-                                src_file, result["output_dir"],
-                                uses_file=uses_file,
-                                lib_dirs=cov_libdirs.get(target)
-                            )
+                    # 使用 AFL 边覆盖率测量
+                    cov_data = {"edge_cov": 0.0, "edges_found": 0, "edges_total": 0, "crashes": 0}
+                    if enable_coverage and target in afl_cov_binaries:
+                        cov_data = measure_coverage_afl(
+                            afl_cov_binaries[target], result["output_dir"],
+                            uses_file=True
+                        )
 
                     cov_str = ""
-                    if enable_coverage and target in cov_binaries:
-                        sample_note = ""
-                        if cov_data.get("sampled"):
-                            sample_note = (f" (sampled "
-                                           f"{cov_data['sampled_cases']}/"
-                                           f"{cov_data['total_cases']})")
-                        cov_str = (f", line={cov_data['line_cov']:.1f}%, "
-                                   f"branch={cov_data['branch_cov']:.1f}%, "
-                                   f"crashes={cov_data['crashes']}{sample_note}")
+                    if enable_coverage and target in afl_cov_binaries:
+                        cov_str = (f", edge={cov_data['edge_cov']:.2f}% "
+                                   f"({cov_data['edges_found']}/{cov_data['edges_total']}), "
+                                   f"crashes={cov_data['crashes']}")
 
                     bitmap_cvg = result.get("afl_bitmap_cvg", "")
                     timeout_str = " [TIMEOUT]" if result.get("timed_out") else ""
@@ -2082,9 +2150,10 @@ def main():
                         "generated": result["generated"],
                         "unique": result["unique"],
                         "throughput": result.get("throughput", 0),
-                        "line_cov": cov_data["line_cov"],
-                        "branch_cov": cov_data["branch_cov"],
-                        "crashes": cov_data["crashes"],
+                        "edge_cov": cov_data.get("edge_cov", 0.0),
+                        "edges_found": cov_data.get("edges_found", 0),
+                        "edges_total": cov_data.get("edges_total", 0),
+                        "crashes": cov_data.get("crashes", 0),
                         "speedup": 0,
                         "efficiency": 0,
                     })
@@ -2108,15 +2177,16 @@ def main():
         with open(ts_path, "w", newline="") as f:
             writer = csv.writer(f)
             writer.writerow(["target", "mode", "np", "round",
-                             "timestamp_sec", "line_cov_pct", "branch_cov_pct",
-                             "total_cases"])
+                             "timestamp_sec", "edge_cov_pct",
+                             "edges_found", "edges_total", "total_cases"])
             for entry in all_timeseries:
                 for point in entry["timeseries"]:
                     writer.writerow([
                         entry["target"], entry["mode"], entry["np"],
                         entry["round"],
-                        point["timestamp_sec"], point["line_cov"],
-                        point["branch_cov"], point["total_cases"],
+                        point["timestamp_sec"], point["edge_cov"],
+                        point["edges_found"], point["edges_total"],
+                        point["total_cases"],
                     ])
         print(f"\n  Time-series data saved to: {ts_path}")
 

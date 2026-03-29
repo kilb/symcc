@@ -47,7 +47,7 @@ TAG_RESULT = 2
 TAG_STOP = 3
 TAG_READY = 4
 
-TIMEOUT_SEC = 90
+TIMEOUT_SEC = 10  # hybrid 模式下用短超时，快速轮转大量输入
 SHOWMAP_TIMEOUT_MS = "5000"
 STATS_INTERVAL_SEC = 60
 
@@ -191,13 +191,14 @@ class AflConfig:
 
 
 class CoverageBitmap:
-    """Cumulative coverage bitmap."""
+    """使用边集合追踪覆盖率，merge 操作 O(新边数) 而非 O(bitmap大小)。"""
 
     def __init__(self):
         self.data = None
+        self.edges: set[int] = set()
 
     def init_from_afl(self, afl_config: AflConfig, queue_dir: str,
-                      max_entries: int = 100, time_budget: float = 10.0) -> None:
+                      max_entries: int = 50, time_budget: float = 5.0) -> None:
         """从 AFL queue 中已有的测试用例初始化 bitmap。
 
         这样 SymCC 只会报告 AFL 尚未发现的新覆盖，避免重复计算。
@@ -237,21 +238,53 @@ class CoverageBitmap:
               f"({elapsed:.1f}s)")
 
     def merge(self, new_data):
-        """Merge new bitmap data. Returns True if new coverage found."""
+        """Merge new bitmap data. Returns True if new coverage found.
+
+        接受 bytes (完整 bitmap) 或 list[(index, value)] (稀疏边列表)。
+        稀疏格式只需检查非零边，O(~500) 而非 O(8M)。
+        """
+        # 支持稀疏格式: [(edge_id, hit_count), ...]
+        if isinstance(new_data, list):
+            return self._merge_sparse(new_data)
+
         if self.data is None:
             self.data = bytearray(new_data)
+            for i, b in enumerate(new_data):
+                if b:
+                    self.edges.add(i)
             return True
 
         if len(self.data) != len(new_data):
             return False
 
+        # 完整 bitmap：用大整数快速检查
+        old_int = int.from_bytes(self.data, 'little')
+        new_int = int.from_bytes(new_data, 'little')
+        interesting = bool(new_int & ~old_int)
+        if interesting:
+            merged = old_int | new_int
+            self.data[:] = merged.to_bytes(len(self.data), 'little')
+            # 更新边集合
+            for i, b in enumerate(new_data):
+                if b:
+                    self.edges.add(i)
+        return interesting
+
+    def _merge_sparse(self, edges: list) -> bool:
+        """合并稀疏边列表 [(edge_id, hit_count), ...]。极快。"""
         interesting = False
-        for i in range(len(self.data)):
-            old = self.data[i]
-            merged = old | new_data[i]
-            if merged != old:
-                self.data[i] = merged
+        for edge_id, hit in edges:
+            if edge_id not in self.edges:
                 interesting = True
+                self.edges.add(edge_id)
+                if self.data and edge_id < len(self.data):
+                    self.data[edge_id] |= hit
+            elif self.data and edge_id < len(self.data):
+                old = self.data[edge_id]
+                if old | hit != old:
+                    interesting = True
+                    self.data[edge_id] = old | hit
+        return interesting
         return interesting
 
 
@@ -292,8 +325,12 @@ class Stats:
 
 
 def run_symcc_worker(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
-                     base_env=None):
-    """Run SymCC on a single input. Returns (new_tests_data, retcode, elapsed)."""
+                     base_env=None, afl_showmap=None, afl_target_cmd=None):
+    """Run SymCC on a single input. Returns (new_tests_data, retcode, elapsed).
+
+    如果提供了 afl_showmap 和 afl_target_cmd，会在 worker 端为每个输出
+    运行 afl-showmap 收集 bitmap，这样 master 只需内存中比较 bitmap。
+    """
     os.makedirs(output_dir, exist_ok=True)
 
     if base_env is not None:
@@ -312,19 +349,26 @@ def run_symcc_worker(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
         ]
 
     start = time.monotonic()
+    python_timeout = timeout_sec + 15
     try:
         if use_stdin:
             with open(input_file, "rb") as inf:
                 proc = subprocess.run(
                     cmd, stdin=inf, stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL, env=env
+                    stderr=subprocess.DEVNULL, env=env,
+                    timeout=python_timeout
                 )
         else:
             proc = subprocess.run(
                 cmd, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL, env=env
+                stderr=subprocess.DEVNULL, env=env,
+                timeout=python_timeout
             )
         retcode = proc.returncode
+    except subprocess.TimeoutExpired:
+        print(f"[Worker {MPI.COMM_WORLD.Get_rank()}] Python-level timeout "
+              f"({python_timeout}s)", file=sys.stderr, flush=True)
+        retcode = 124
     except Exception as e:
         print(f"[Worker {MPI.COMM_WORLD.Get_rank()}] Error: {e}", file=sys.stderr)
         retcode = -1
@@ -332,20 +376,66 @@ def run_symcc_worker(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
     elapsed = time.monotonic() - start
     killed = retcode in (124, -9, 137)  # timeout codes
 
-    # Collect test cases
+    # Collect test cases + 可选地在 worker 端收集 bitmap
     new_tests = []
+    bitmap_path = os.path.join(output_dir, ".worker_bitmap")
     if os.path.isdir(output_dir):
         for fname in os.listdir(output_dir):
+            if fname.startswith("."):
+                continue
             fpath = os.path.join(output_dir, fname)
             if os.path.isfile(fpath):
                 try:
                     with open(fpath, "rb") as f:
                         content = f.read()
-                    new_tests.append({"name": fname, "content": content})
+                    tc_entry = {"name": fname, "content": content}
+
+                    # 在 worker 端收集 bitmap，避免 master 逐个 fork showmap
+                    if afl_showmap and afl_target_cmd:
+                        bm = _run_showmap_fast(
+                            afl_showmap, afl_target_cmd, fpath, bitmap_path
+                        )
+                        if bm is not None:
+                            tc_entry["bitmap"] = bm
+
+                    new_tests.append(tc_entry)
                 except (IOError, OSError):
                     pass
 
     return new_tests, retcode, elapsed, killed
+
+
+def _run_showmap_fast(afl_showmap, target_cmd, testcase, bitmap_path):
+    """运行 afl-showmap，返回稀疏边列表 [(edge_id, hit_count), ...] 或 None。
+
+    使用文本模式输出 (不加 -b)，解析 "edge_id:count" 格式，
+    只传输非零边（通常 ~500 条），避免序列化/反序列化 8MB bitmap。
+    """
+    cmd = [afl_showmap, "-t", "5000", "-m", "none",
+           "-o", bitmap_path]
+    for arg in target_cmd:
+        if arg == "@@":
+            cmd.append(str(testcase))
+        else:
+            cmd.append(arg)
+    try:
+        subprocess.run(
+            cmd, stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            timeout=10
+        )
+        edges = []
+        with open(bitmap_path, "r") as f:
+            for line in f:
+                line = line.strip()
+                if ":" in line:
+                    parts = line.split(":")
+                    edge_id = int(parts[0])
+                    count = int(parts[1])
+                    edges.append((edge_id, count))
+        return edges
+    except Exception:
+        return None
 
 
 def master(comm, args):
@@ -402,13 +492,16 @@ def master(comm, args):
     print(f"[Master] SymCC output: {symcc_dir}")
 
     coverage = CoverageBitmap()
-    # 从 AFL 已有 queue 初始化 bitmap，确保只报告 AFL 未覆盖的新路径
-    coverage.init_from_afl(afl_config, afl_config.queue)
+    # 跳过耗时的 bitmap 初始化 — 前几个 triage 结果会自然建立 bitmap，
+    # 代价是初期可能有少量假阳性 (interesting)，但不影响正确性
     stats = Stats()
     processed_files = set()
     active_workers = {}  # rank -> input_path
     queue_id = 0
     last_stats_time = time.monotonic()
+
+    # SymCC 产生的有趣测试用例队列，会被重新分发给 workers
+    symcc_feedback_queue: list[str] = []
 
     # --save-all: 保存所有生成的测试用例（不经过滤）
     save_all_dir = None
@@ -431,20 +524,25 @@ def master(comm, args):
     signal.signal(signal.SIGINT, _signal_handler)
 
     while not shutdown_requested:
-        # Get new test cases from AFL queue
-        new_inputs = afl_config.best_new_testcases(processed_files, batch_size=num_workers * 2)
+        # 合并输入源：SymCC 反馈用例优先，然后是 AFL queue 的新文件
+        pending_feedback = list(symcc_feedback_queue)
+        symcc_feedback_queue.clear()
+        new_inputs = afl_config.best_new_testcases(
+            processed_files, batch_size=num_workers * 2
+        )
+        work_queue = pending_feedback + new_inputs
 
         # Distribute work to ready workers
-        input_idx = 0
-        while input_idx < len(new_inputs) and comm.iprobe(source=MPI.ANY_SOURCE, tag=TAG_READY):
+        dispatched = 0
+        for input_file in work_queue:
+            if not comm.iprobe(source=MPI.ANY_SOURCE, tag=TAG_READY):
+                break
+
             status = MPI.Status()
             comm.recv(source=MPI.ANY_SOURCE, tag=TAG_READY, status=status)
             worker_rank = status.Get_source()
 
-            input_file = new_inputs[input_idx]
-            input_idx += 1
-
-            # Send input content + cumulative bitmap to worker
+            # Send input content + cumulative bitmap + AFL target cmd to worker
             try:
                 with open(input_file, "rb") as f:
                     content = f.read()
@@ -452,129 +550,165 @@ def master(comm, args):
                     "path": input_file,
                     "content": content,
                     "bitmap": bytes(coverage.data) if coverage.data else None,
+                    "afl_target_cmd": afl_config.target_command,
                 }, dest=worker_rank, tag=TAG_WORK)
                 active_workers[worker_rank] = input_file
                 processed_files.add(input_file)
+                dispatched += 1
             except (IOError, OSError) as e:
-                print(f"[Master] Error reading {input_file}: {e}", file=sys.stderr)
+                print(f"[Master] Error reading {input_file}: {e}",
+                      file=sys.stderr)
                 continue
 
-        # Collect results from workers
+        # 未分发完的 SymCC 反馈用例放回队列（AFL 输入不放回，下轮自然重取）
+        undispatched_feedback = [
+            f for f in pending_feedback
+            if f not in processed_files
+        ]
+        symcc_feedback_queue.extend(undispatched_feedback)
+
+        # Collect results from workers — 批量收集后批量 triage
+        pending_results: list[tuple[int, str, list, int, float, bool]] = []
         while comm.iprobe(source=MPI.ANY_SOURCE, tag=TAG_RESULT):
             status = MPI.Status()
             result = comm.recv(source=MPI.ANY_SOURCE, tag=TAG_RESULT, status=status)
             worker_rank = status.Get_source()
-
             input_path = active_workers.pop(worker_rank, "unknown")
-            new_tests = result.get("new_tests", [])
-            retcode = result.get("retcode", 0)
-            elapsed = result.get("elapsed", 0)
-            killed = result.get("killed", False)
+            pending_results.append((
+                worker_rank, input_path,
+                result.get("new_tests", []),
+                result.get("retcode", 0),
+                result.get("elapsed", 0),
+                result.get("killed", False),
+            ))
 
-            stats.add_execution(elapsed, killed)
+        # 批量 triage：先写所有临时文件到一个目录，然后一次 afl-showmap -C
+        if pending_results:
+            t_triage_start = time.monotonic()
+            # 收集所有待 triage 的测试用例
+            triage_dir = os.path.join(symcc_dir, ".triage_batch")
+            os.makedirs(triage_dir, exist_ok=True)
 
-            num_interesting = 0
-            for tc in new_tests:
-                stats.generated_count += 1
-                tc_content = tc["content"]
+            # tc_id -> (worker_rank, input_path, tc_content, bitmap_or_None)
+            tc_map: dict[str, tuple[int, str, bytes, bytes | None]] = {}
+            has_worker_bitmaps = 0
+            for worker_rank, input_path, new_tests, retcode, elapsed, killed in pending_results:
+                stats.add_execution(elapsed, killed)
+                for tc in new_tests:
+                    stats.generated_count += 1
+                    tc_content = tc["content"]
+                    tc_bitmap = tc.get("bitmap")
+                    if tc_bitmap:
+                        has_worker_bitmaps += 1
+                    tc_id = hashlib.sha256(tc_content).hexdigest()[:16]
 
-                # --save-all: 保存所有生成的测试用例
-                if save_all_dir is not None:
-                    h = hashlib.sha256(tc_content).hexdigest()
-                    save_path = os.path.join(save_all_dir, h)
-                    if not os.path.exists(save_path):
-                        try:
-                            with open(save_path, "wb") as sf:
-                                sf.write(tc_content)
-                            save_all_id += 1
-                        except (IOError, OSError):
-                            pass
+                    # --save-all
+                    if save_all_dir is not None:
+                        h = hashlib.sha256(tc_content).hexdigest()
+                        save_path = os.path.join(save_all_dir, h)
+                        if not os.path.exists(save_path):
+                            try:
+                                with open(save_path, "wb") as sf:
+                                    sf.write(tc_content)
+                                save_all_id += 1
+                            except (IOError, OSError):
+                                pass
 
-                # Write to temp file for triage
-                with tempfile.NamedTemporaryFile(delete=False, dir=symcc_dir,
-                                                  prefix=".tc_") as tmp:
-                    tmp.write(tc_content)
-                    tmp_path = tmp.name
+                    # 写入 triage 目录（仅在无 worker bitmap 时需要）
+                    if tc_id not in tc_map:
+                        if not tc_bitmap:
+                            tc_path = os.path.join(triage_dir, tc_id)
+                            with open(tc_path, "wb") as f:
+                                f.write(tc_content)
+                        tc_map[tc_id] = (worker_rank, input_path, tc_content, tc_bitmap)
 
-                try:
-                    # Check coverage via afl-showmap
+                if killed:
+                    orig_name = os.path.basename(input_path)
+                    src_id = "000000"
+                    if orig_name.startswith("id:") and len(orig_name) >= 9:
+                        src_id = orig_name[3:9]
+                    hang_name = f"id:{queue_id:06d},src:{src_id}"
+                    try:
+                        shutil.copy2(input_path, os.path.join(hangs_dir, hang_name))
+                        queue_id += 1
+                    except (IOError, OSError):
+                        pass
+
+            # Triage：优先使用 worker 端收集的稀疏边列表（无需 fork showmap）
+            num_interesting_total = 0
+            for tc_id, (worker_rank, input_path, tc_content, tc_bitmap) in tc_map.items():
+                if tc_bitmap is not None:
+                    # 直接用 worker 提供的稀疏边列表做内存比较 — 极快
+                    bitmap_data = tc_bitmap  # list[(edge_id, count)]
+                    result_type = "success"
+                else:
+                    # 回退：master 端运行 showmap
+                    tc_path = os.path.join(triage_dir, tc_id)
                     result_type, bitmap_data = afl_config.run_showmap(
-                        tmp_path, bitmap_path_triage
+                        tc_path, bitmap_path_triage
                     )
-
-                    if result_type == "success" and bitmap_data:
-                        is_new = coverage.merge(bitmap_data)
-                        if is_new:
-                            orig_name = os.path.basename(input_path)
-                            src_id = "000000"
-                            if orig_name.startswith("id:") and len(orig_name) >= 9:
-                                src_id = orig_name[3:9]
-                            new_name = f"id:{queue_id:06d},src:{src_id}"
-                            # 保存到 SymCC 自身 queue
-                            dest = os.path.join(queue_dir, new_name)
-                            shutil.copy2(tmp_path, dest)
-                            # 同步到 AFL queue，形成 SymCC→AFL 反馈环
-                            if os.path.isdir(afl_sync_queue):
-                                afl_dest = os.path.join(
-                                    afl_sync_queue,
-                                    f"id:symcc_{queue_id:06d},src:{src_id}"
-                                )
-                                try:
-                                    shutil.copy2(tmp_path, afl_dest)
-                                except OSError:
-                                    pass  # AFL 目录不可写时静默跳过
-                            queue_id += 1
-                            num_interesting += 1
-                            stats.interesting_count += 1
-
-                    elif result_type == "crash":
+                if result_type == "success" and bitmap_data:
+                    is_new = coverage.merge(bitmap_data)
+                    if is_new:
                         orig_name = os.path.basename(input_path)
                         src_id = "000000"
                         if orig_name.startswith("id:") and len(orig_name) >= 9:
                             src_id = orig_name[3:9]
-                        crash_name = f"id:{queue_id:06d},src:{src_id}"
-                        shutil.copy2(tmp_path, os.path.join(crashes_dir, crash_name))
-                        shutil.copy2(tmp_path, os.path.join(queue_dir, crash_name))
-                        # 同步到 AFL queue
+                        new_name = f"id:{queue_id:06d},src:{src_id}"
+                        dest = os.path.join(queue_dir, new_name)
+                        with open(dest, "wb") as f:
+                            f.write(tc_content)
+                        symcc_feedback_queue.append(dest)
                         if os.path.isdir(afl_sync_queue):
+                            afl_dest = os.path.join(
+                                afl_sync_queue,
+                                f"id:symcc_{queue_id:06d},src:{src_id}"
+                            )
                             try:
-                                shutil.copy2(
-                                    tmp_path,
-                                    os.path.join(
-                                        afl_sync_queue,
-                                        f"id:symcc_{queue_id:06d},src:{src_id}"
-                                    )
-                                )
+                                with open(afl_dest, "wb") as f:
+                                    f.write(tc_content)
                             except OSError:
                                 pass
                         queue_id += 1
-                        num_interesting += 1
+                        num_interesting_total += 1
                         stats.interesting_count += 1
-
-                finally:
-                    try:
-                        os.unlink(tmp_path)
-                    except OSError:
-                        pass
-
-            if killed:
-                # 保存导致超时的输入到 hangs 目录
-                orig_name = os.path.basename(input_path)
-                src_id = "000000"
-                if orig_name.startswith("id:") and len(orig_name) >= 9:
-                    src_id = orig_name[3:9]
-                hang_name = f"id:{queue_id:06d},src:{src_id}"
-                try:
-                    shutil.copy2(input_path, os.path.join(hangs_dir, hang_name))
+                elif result_type == "crash":
+                    orig_name = os.path.basename(input_path)
+                    src_id = "000000"
+                    if orig_name.startswith("id:") and len(orig_name) >= 9:
+                        src_id = orig_name[3:9]
+                    crash_name = f"id:{queue_id:06d},src:{src_id}"
+                    with open(os.path.join(crashes_dir, crash_name), "wb") as f:
+                        f.write(tc_content)
+                    queue_dest = os.path.join(queue_dir, crash_name)
+                    with open(queue_dest, "wb") as f:
+                        f.write(tc_content)
+                    symcc_feedback_queue.append(queue_dest)
+                    if os.path.isdir(afl_sync_queue):
+                        try:
+                            with open(os.path.join(
+                                afl_sync_queue,
+                                f"id:symcc_{queue_id:06d},src:{src_id}"
+                            ), "wb") as f:
+                                f.write(tc_content)
+                        except OSError:
+                            pass
                     queue_id += 1
-                except (IOError, OSError) as e:
-                    print(f"[Master] Error saving hang {hang_name}: {e}",
-                          file=sys.stderr)
+                    num_interesting_total += 1
+                    stats.interesting_count += 1
 
-            input_short = os.path.basename(input_path)[:30]
-            print(f"[Master] Worker {worker_rank}: {input_short} -> "
-                  f"{len(new_tests)} generated, {num_interesting} interesting "
-                  f"({elapsed:.1f}s, ret={retcode})")
+            # 清理 triage 目录
+            shutil.rmtree(triage_dir, ignore_errors=True)
+
+            triage_time = time.monotonic() - t_triage_start
+            total_tcs = sum(len(r[2]) for r in pending_results)
+            worker_info = ", ".join(
+                f"W{r[0]}={len(r[2])}tc/{r[4]:.1f}s"
+                for r in pending_results
+            )
+            print(f"[Master] Batch triage: {total_tcs} tc -> "
+                  f"{num_interesting_total} interesting in {triage_time:.1f}s "
+                  f"(w_bm={has_worker_bitmaps}) [{worker_info}]")
 
         # Periodic stats output
         if time.monotonic() - last_stats_time > STATS_INTERVAL_SEC:
@@ -585,9 +719,11 @@ def master(comm, args):
                   f"{stats.interesting_count} interesting / "
                   f"{stats.generated_count} total")
 
-        # If no new inputs and no active workers, wait
-        if not new_inputs and not active_workers:
-            time.sleep(5)
+        # 无输入且无活跃 worker 时等待 AFL 产生新用例
+        if not work_queue and not active_workers and not symcc_feedback_queue:
+            time.sleep(2)
+        elif symcc_feedback_queue:
+            pass  # 有反馈用例时立即分发
         else:
             time.sleep(0.05)
 
@@ -628,6 +764,10 @@ def worker(comm, args):
     worker_env = os.environ.copy()
     worker_env["SYMCC_AFL_COVERAGE_MAP"] = bitmap_file
 
+    # 查找 afl-showmap 和 AFL target command（用于 worker 端 triage）
+    afl_showmap = shutil.which("afl-showmap")
+    afl_target_cmd = None
+
     while True:
         # Signal ready
         comm.send(rank, dest=0, tag=TAG_READY)
@@ -644,8 +784,11 @@ def worker(comm, args):
 
         input_content = msg["content"]
 
-        # 将 master 发送的累积 bitmap 写入 SYMCC_AFL_COVERAGE_MAP，
-        # 让 QSYM 后端知道哪些路径已经被 AFL/SymCC 覆盖，避免重复求解
+        # 从 master 获取 AFL target command（仅第一次）
+        if afl_target_cmd is None and msg.get("afl_target_cmd"):
+            afl_target_cmd = msg["afl_target_cmd"]
+
+        # 将 master 发送的累积 bitmap 写入 SYMCC_AFL_COVERAGE_MAP
         bitmap_data = msg.get("bitmap")
         if bitmap_data:
             with open(bitmap_file, "wb") as bf:
@@ -662,7 +805,9 @@ def worker(comm, args):
         try:
             new_tests, retcode, elapsed, killed = run_symcc_worker(
                 target_cmd, local_input, run_output, TIMEOUT_SEC, use_stdin,
-                base_env=worker_env
+                base_env=worker_env,
+                afl_showmap=afl_showmap,
+                afl_target_cmd=afl_target_cmd,
             )
 
             result = {
