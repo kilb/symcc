@@ -547,7 +547,7 @@ def measure_coverage_afl(afl_binary: str, test_case_dir: str,
         return {"edge_cov": 0.0, "edges_found": 0, "edges_total": 0,
                 "crashes": 0, "total_cases": total_cases}
 
-    out_file = os.path.join(test_case_dir, ".afl_cov_map")
+    out_file = tempfile.mktemp(prefix=".afl_cov_", suffix=".map")
     cmd = [
         afl_showmap,
         "-t", str(timeout_per_case),
@@ -635,6 +635,8 @@ def discover_afl_coverage_binaries() -> dict[str, str]:
             prefix = suite_name + "-"
 
         for binary in sorted(suite_dir.iterdir()):
+            if binary.suffix:
+                continue
             if binary.is_file() and os.access(str(binary), os.X_OK):
                 target_name = prefix + binary.name
                 afl_cov_binaries[target_name] = str(binary)
@@ -1093,7 +1095,7 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
     afl_proc = subprocess.Popen(
         afl_cmd,
         stdout=subprocess.DEVNULL,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
         start_new_session=True,
         env=afl_env,
     )
@@ -1109,15 +1111,12 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
             break
         # 检查 AFL 是否崩溃
         if afl_proc.poll() is not None:
-            stderr = afl_proc.stderr.read().decode(errors="replace")
             print(f"      AFL exited early (ret={afl_proc.returncode})")
-            if stderr:
-                print(f"      AFL stderr: {stderr[-300:]}")
             return {
                 "wall_time": time.monotonic() - start,
                 "generated": 0, "unique": 0, "output_dir": afl_out_dir,
                 "retcode": afl_proc.returncode, "timed_out": False,
-                "throughput": 0, "stdout": "", "stderr": stderr[-500:],
+                "throughput": 0, "stdout": "", "stderr": "",
                 "afl_generated": 0, "symcc_interesting": 0,
             }
         time.sleep(0.5)
@@ -1148,7 +1147,7 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
     mpi_proc = subprocess.Popen(
         mpi_cmd,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
         start_new_session=True,
         env=mpi_env,
     )
@@ -1156,9 +1155,9 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
     # 等待 timeout
     remaining = timeout - (time.monotonic() - start)
     try:
-        mpi_proc.wait(timeout=max(10, remaining))
+        mpi_stdout_bytes, _ = mpi_proc.communicate(timeout=max(10, remaining))
     except subprocess.TimeoutExpired:
-        pass
+        mpi_stdout_bytes = b""
 
     # 终止进程
     for proc, name in [(mpi_proc, "MPI"), (afl_proc, "AFL")]:
@@ -1178,7 +1177,7 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
     # 读取 MPI 输出
     mpi_stdout = ""
     try:
-        mpi_stdout = mpi_proc.stdout.read().decode(errors="replace")
+        mpi_stdout = mpi_stdout_bytes.decode(errors="replace")
     except Exception:
         pass
 
@@ -1226,7 +1225,7 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
                     shutil.copy2(src, dest)
                     symcc_all_count += 1
 
-    total_generated = afl_count + symcc_count + symcc_all_count
+    total_generated = afl_count + symcc_all_count
 
     # 解析 MPI 输出中的 interesting count
     symcc_interesting = 0
@@ -1290,7 +1289,7 @@ def run_afl_only(afl_binary: str, target_name: str,
     afl_proc = subprocess.Popen(
         afl_cmd,
         stdout=subprocess.DEVNULL,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
         start_new_session=True,
         env=afl_env,
     )
@@ -1304,15 +1303,12 @@ def run_afl_only(afl_binary: str, target_name: str,
             afl_ready = True
             break
         if afl_proc.poll() is not None:
-            stderr = afl_proc.stderr.read().decode(errors="replace")
             print(f"      AFL exited early (ret={afl_proc.returncode})")
-            if stderr:
-                print(f"      AFL stderr: {stderr[-300:]}")
             return {
                 "wall_time": time.monotonic() - start,
                 "generated": 0, "unique": 0, "output_dir": afl_out_dir,
                 "retcode": afl_proc.returncode, "timed_out": False,
-                "throughput": 0, "stdout": "", "stderr": stderr[-500:],
+                "throughput": 0, "stdout": "", "stderr": "",
             }
         time.sleep(0.5)
 

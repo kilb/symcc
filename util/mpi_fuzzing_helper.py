@@ -97,7 +97,7 @@ class AflConfig:
         # Extract target command (after --)
         try:
             dash_idx = parts.index("--")
-            self.target_command = parts[dash_idx:]  # includes '--'
+            self.target_command = parts[dash_idx + 1:]  # skip '--'
         except ValueError:
             self.target_command = parts[-1:]
 
@@ -286,7 +286,6 @@ class CoverageBitmap:
                     interesting = True
                     self.data[edge_id] = old | hit
         return interesting
-        return interesting
 
 
 class Stats:
@@ -394,7 +393,8 @@ def run_symcc_worker(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
                     # 在 worker 端收集 bitmap，避免 master 逐个 fork showmap
                     if afl_showmap and afl_target_cmd:
                         bm = _run_showmap_fast(
-                            afl_showmap, afl_target_cmd, fpath, bitmap_path
+                            afl_showmap, afl_target_cmd, fpath, bitmap_path,
+                            use_stdin=use_stdin
                         )
                         if bm is not None:
                             tc_entry["bitmap"] = bm
@@ -406,7 +406,8 @@ def run_symcc_worker(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
     return new_tests, retcode, elapsed, killed
 
 
-def _run_showmap_fast(afl_showmap, target_cmd, testcase, bitmap_path):
+def _run_showmap_fast(afl_showmap, target_cmd, testcase, bitmap_path,
+                      use_stdin=False):
     """运行 afl-showmap，返回稀疏边列表 [(edge_id, hit_count), ...] 或 None。
 
     使用文本模式输出 (不加 -b)，解析 "edge_id:count" 格式，
@@ -420,11 +421,19 @@ def _run_showmap_fast(afl_showmap, target_cmd, testcase, bitmap_path):
         else:
             cmd.append(arg)
     try:
-        subprocess.run(
-            cmd, stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-            timeout=10
-        )
+        if use_stdin:
+            with open(testcase, "rb") as inf:
+                subprocess.run(
+                    cmd, stdin=inf,
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                    timeout=10
+                )
+        else:
+            subprocess.run(
+                cmd, stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                timeout=10
+            )
         edges = []
         with open(bitmap_path, "r") as f:
             for line in f:
@@ -590,6 +599,7 @@ def master(comm, args):
         afl_config = AflConfig(afl_queue_dir)
     except Exception as e:
         print(f"Error loading AFL config: {e}", file=sys.stderr)
+        stats_file.close()
         for rank in range(1, size):
             while comm.iprobe(source=rank, tag=TAG_READY):
                 comm.recv(source=rank, tag=TAG_READY)
@@ -639,125 +649,128 @@ def master(comm, args):
     bitmap_version = 0
     bitmap_shared_path = os.path.join(symcc_dir, ".shared_bitmap")
 
-    while not shutdown_requested:
-        # 合并输入源：SymCC 反馈用例优先，然后是 AFL queue 的新文件
-        pending_feedback = list(symcc_feedback_queue)
-        symcc_feedback_queue.clear()
-        new_inputs = afl_config.best_new_testcases(
-            processed_files, batch_size=num_workers * 4
-        )
-        work_queue = pending_feedback + new_inputs
+    try:
+        while not shutdown_requested:
+            # 合并输入源：SymCC 反馈用例优先，然后是 AFL queue 的新文件
+            pending_feedback = list(symcc_feedback_queue)
+            symcc_feedback_queue.clear()
+            new_inputs = afl_config.best_new_testcases(
+                processed_files, batch_size=num_workers * 4
+            )
+            work_queue = pending_feedback + new_inputs
 
-        # 交替处理 READY 和 RESULT 消息，避免单方向阻塞
-        dispatched = 0
-        work_idx = 0
-        any_progress = True
-        while any_progress:
-            any_progress = False
+            # 交替处理 READY 和 RESULT 消息，避免单方向阻塞
+            dispatched = 0
+            work_idx = 0
+            any_progress = True
+            while any_progress:
+                any_progress = False
 
-            # 分发工作给空闲 workers
-            while work_idx < len(work_queue) and comm.iprobe(
-                source=MPI.ANY_SOURCE, tag=TAG_READY
-            ):
-                status = MPI.Status()
-                comm.recv(source=MPI.ANY_SOURCE, tag=TAG_READY, status=status)
-                worker_rank = status.Get_source()
-                input_file = work_queue[work_idx]
-                work_idx += 1
-
-                # 只发路径 + bitmap 版本号，不发内容（worker 自己读文件）
-                comm.send({
-                    "path": input_file,
-                    "bitmap_version": bitmap_version,
-                }, dest=worker_rank, tag=TAG_WORK)
-                active_workers[worker_rank] = input_file
-                processed_files.add(input_file)
-                dispatched += 1
-                any_progress = True
-
-            # 收集已完成 workers 的结果（非阻塞）
-            if comm.iprobe(source=MPI.ANY_SOURCE, tag=TAG_RESULT):
-                any_progress = True
-                # 批量收集所有可用结果
-                batch_results: list[tuple] = []
-                while comm.iprobe(source=MPI.ANY_SOURCE, tag=TAG_RESULT):
+                # 分发工作给空闲 workers
+                while work_idx < len(work_queue) and comm.iprobe(
+                    source=MPI.ANY_SOURCE, tag=TAG_READY
+                ):
                     status = MPI.Status()
-                    result = comm.recv(
-                        source=MPI.ANY_SOURCE, tag=TAG_RESULT, status=status
-                    )
-                    wr = status.Get_source()
-                    ip = active_workers.pop(wr, "unknown")
-                    batch_results.append((
-                        wr, ip,
-                        result.get("new_tests", []),
-                        result.get("retcode", 0),
-                        result.get("elapsed", 0),
-                        result.get("killed", False),
-                    ))
+                    comm.recv(source=MPI.ANY_SOURCE, tag=TAG_READY, status=status)
+                    worker_rank = status.Get_source()
+                    input_file = work_queue[work_idx]
+                    work_idx += 1
 
-                # 批量 triage
-                if batch_results:
-                    bitmap_changed = _batch_triage(
-                        batch_results, stats, coverage, afl_config,
-                        queue_dir, crashes_dir, hangs_dir, afl_sync_queue,
-                        save_all_dir, symcc_dir, bitmap_path_triage,
-                        symcc_feedback_queue, queue_id_ref,
-                    )
-                    queue_id = queue_id_ref[0]
-                    if bitmap_changed:
-                        bitmap_version += 1
-                        if coverage.data:
-                            with open(bitmap_shared_path, "wb") as f:
-                                f.write(bytes(coverage.data))
+                    # 只发路径 + bitmap 版本号，不发内容（worker 自己读文件）
+                    comm.send({
+                        "path": input_file,
+                        "bitmap_version": bitmap_version,
+                    }, dest=worker_rank, tag=TAG_WORK)
+                    active_workers[worker_rank] = input_file
+                    processed_files.add(input_file)
+                    dispatched += 1
+                    any_progress = True
 
-        # 未分发完的 SymCC 反馈用例放回队列
-        undispatched_feedback = [
-            f for f in pending_feedback
-            if f not in processed_files
-        ]
-        symcc_feedback_queue.extend(undispatched_feedback)
+                # 收集已完成 workers 的结果（非阻塞）
+                if comm.iprobe(source=MPI.ANY_SOURCE, tag=TAG_RESULT):
+                    any_progress = True
+                    # 批量收集所有可用结果
+                    batch_results: list[tuple] = []
+                    while comm.iprobe(source=MPI.ANY_SOURCE, tag=TAG_RESULT):
+                        status = MPI.Status()
+                        result = comm.recv(
+                            source=MPI.ANY_SOURCE, tag=TAG_RESULT, status=status
+                        )
+                        wr = status.Get_source()
+                        ip = active_workers.pop(wr, "unknown")
+                        batch_results.append((
+                            wr, ip,
+                            result.get("new_tests", []),
+                            result.get("retcode", 0),
+                            result.get("elapsed", 0),
+                            result.get("killed", False),
+                        ))
 
-        # 旧的 collect/triage 代码已移到 while 循环内的交替处理中
+                    # 批量 triage
+                    if batch_results:
+                        bitmap_changed = _batch_triage(
+                            batch_results, stats, coverage, afl_config,
+                            queue_dir, crashes_dir, hangs_dir, afl_sync_queue,
+                            save_all_dir, symcc_dir, bitmap_path_triage,
+                            symcc_feedback_queue, queue_id_ref,
+                        )
+                        queue_id = queue_id_ref[0]
+                        if bitmap_changed:
+                            bitmap_version += 1
+                            if coverage.data:
+                                tmp_path = bitmap_shared_path + ".tmp"
+                                with open(tmp_path, "wb") as f:
+                                    f.write(bytes(coverage.data))
+                                os.replace(tmp_path, bitmap_shared_path)
 
-        # Periodic stats output
-        if time.monotonic() - last_stats_time > STATS_INTERVAL_SEC:
-            stats.log(stats_file)
-            last_stats_time = time.monotonic()
-            print(f"[Master] Stats: {stats.total_count} ok, "
-                  f"{stats.failed_count} failed, "
-                  f"{stats.interesting_count} interesting / "
-                  f"{stats.generated_count} total")
+            # 未分发完的 SymCC 反馈用例放回队列
+            undispatched_feedback = [
+                f for f in pending_feedback
+                if f not in processed_files
+            ]
+            symcc_feedback_queue.extend(undispatched_feedback)
 
-        # 无输入且无活跃 worker 时等待 AFL 产生新用例
-        if not work_queue and not active_workers and not symcc_feedback_queue:
-            time.sleep(2)
-        elif symcc_feedback_queue:
-            pass  # 有反馈用例时立即分发
-        else:
-            time.sleep(0.05)
+            # 旧的 collect/triage 代码已移到 while 循环内的交替处理中
 
-    # --- 优雅关闭 ---
-    # 先输出最终统计（在尝试与 worker 通信之前，因为 worker 可能已被 SIGTERM 杀死）
-    stats.log(stats_file)
-    print(f"[Master] Final stats: {stats.total_count} ok, "
-          f"{stats.failed_count} failed, "
-          f"{stats.interesting_count} interesting / "
-          f"{stats.generated_count} total")
-    sys.stdout.flush()
-    stats_file.close()
+            # Periodic stats output
+            if time.monotonic() - last_stats_time > STATS_INTERVAL_SEC:
+                stats.log(stats_file)
+                last_stats_time = time.monotonic()
+                print(f"[Master] Stats: {stats.total_count} ok, "
+                      f"{stats.failed_count} failed, "
+                      f"{stats.interesting_count} interesting / "
+                      f"{stats.generated_count} total")
 
-    # 尝试发送 TAG_STOP（worker 可能已经死了，忽略错误）
-    print("[Master] Shutting down workers...")
-    for rank in range(1, size):
-        try:
-            # 排空该 worker 的 TAG_READY 和 TAG_RESULT
-            while comm.iprobe(source=rank, tag=TAG_READY):
-                comm.recv(source=rank, tag=TAG_READY)
-            while comm.iprobe(source=rank, tag=TAG_RESULT):
-                comm.recv(source=rank, tag=TAG_RESULT)
-            comm.send(None, dest=rank, tag=TAG_STOP)
-        except Exception:
-            pass  # worker 可能已经被 SIGTERM 杀死
+            # 无输入且无活跃 worker 时等待 AFL 产生新用例
+            if not work_queue and not active_workers and not symcc_feedback_queue:
+                time.sleep(2)
+            elif symcc_feedback_queue:
+                pass  # 有反馈用例时立即分发
+            else:
+                time.sleep(0.05)
+    finally:
+        # --- 优雅关闭 ---
+        # 先输出最终统计（在尝试与 worker 通信之前，因为 worker 可能已被 SIGTERM 杀死）
+        stats.log(stats_file)
+        print(f"[Master] Final stats: {stats.total_count} ok, "
+              f"{stats.failed_count} failed, "
+              f"{stats.interesting_count} interesting / "
+              f"{stats.generated_count} total")
+        sys.stdout.flush()
+        stats_file.close()
+
+        # 尝试发送 TAG_STOP（worker 可能已经死了，忽略错误）
+        print("[Master] Shutting down workers...")
+        for rank in range(1, size):
+            try:
+                # 排空该 worker 的 TAG_READY 和 TAG_RESULT
+                while comm.iprobe(source=rank, tag=TAG_READY):
+                    comm.recv(source=rank, tag=TAG_READY)
+                while comm.iprobe(source=rank, tag=TAG_RESULT):
+                    comm.recv(source=rank, tag=TAG_RESULT)
+                comm.send(None, dest=rank, tag=TAG_STOP)
+            except Exception:
+                pass  # worker 可能已经被 SIGTERM 杀死
 
 
 def worker(comm, args):

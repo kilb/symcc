@@ -166,19 +166,26 @@ def run_symcc(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
         ]
 
     start = time.monotonic()
+    py_timeout = timeout_sec + 15  # Python-side backstop for hung processes
     try:
         if use_stdin:
             with open(input_file, "rb") as inf:
                 proc = subprocess.run(
                     cmd, stdin=inf, stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL, env=env
+                    stderr=subprocess.DEVNULL, env=env,
+                    timeout=py_timeout
                 )
         else:
             proc = subprocess.run(
                 cmd, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL, env=env
+                stderr=subprocess.DEVNULL, env=env,
+                timeout=py_timeout
             )
         retcode = proc.returncode
+    except subprocess.TimeoutExpired:
+        print(f"[Worker {MPI.COMM_WORLD.Get_rank()}] Python-side timeout "
+              f"after {py_timeout}s", file=sys.stderr)
+        retcode = -1
     except Exception as e:
         print(f"[Worker {MPI.COMM_WORLD.Get_rank()}] Error running SymCC: {e}",
               file=sys.stderr)
@@ -356,9 +363,9 @@ def master_loop(global_comm, group_comm, args, peer_masters, is_root,
         import_inputs(args.input_dir)
 
         # Distribute work to idle workers via group_comm
-        wall_remaining = (wall_timeout - (time.monotonic() - wall_start)
-                          if wall_timeout > 0 else float("inf"))
-        while (pending_queue and wall_remaining > args.timeout + 5
+        while (pending_queue
+               and ((wall_timeout - (time.monotonic() - wall_start))
+                    if wall_timeout > 0 else float("inf")) > args.timeout + 5
                and group_comm.iprobe(source=MPI.ANY_SOURCE, tag=TAG_READY)):
             status = MPI.Status()
             group_comm.recv(source=MPI.ANY_SOURCE, tag=TAG_READY,
@@ -441,6 +448,15 @@ def master_loop(global_comm, group_comm, args, peer_masters, is_root,
     for w_rank in range(1, group_size):
         while group_comm.iprobe(source=w_rank, tag=TAG_RESULT):
             group_comm.recv(source=w_rank, tag=TAG_RESULT)
+
+    # Phase 3: blocking recv for workers that were still active when we
+    # sent TAG_STOP — they will send TAG_RESULT after finishing their
+    # current SymCC run.
+    for w_rank in list(active_workers.keys()):
+        try:
+            group_comm.recv(source=w_rank, tag=TAG_RESULT)
+        except Exception:
+            pass
 
     # --- Aggregate statistics across masters ---
     if peer_masters:
