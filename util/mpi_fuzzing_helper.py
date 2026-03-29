@@ -46,6 +46,7 @@ TAG_WORK = 1
 TAG_RESULT = 2
 TAG_STOP = 3
 TAG_READY = 4
+TAG_BITMAP_VERSION = 5  # master 通知 workers bitmap 已更新
 
 TIMEOUT_SEC = 10  # hybrid 模式下用短超时，快速轮转大量输入
 SHOWMAP_TIMEOUT_MS = "5000"
@@ -438,6 +439,116 @@ def _run_showmap_fast(afl_showmap, target_cmd, testcase, bitmap_path):
         return None
 
 
+def _batch_triage(
+    batch_results: list[tuple],
+    stats: "Stats",
+    coverage: "CoverageBitmap",
+    afl_config: "AflConfig",
+    queue_dir: str,
+    crashes_dir: str,
+    hangs_dir: str,
+    afl_sync_queue: str,
+    save_all_dir: str | None,
+    symcc_dir: str,
+    bitmap_path_triage: str,
+    symcc_feedback_queue: list[str],
+    queue_id_ref: list[int],
+) -> bool:
+    """批量 triage worker 返回的结果。返回 bitmap 是否有变化。"""
+    queue_id = queue_id_ref[0]
+    bitmap_changed = False
+    num_interesting = 0
+    total_tcs = 0
+
+    for worker_rank, input_path, new_tests, retcode, elapsed, killed in batch_results:
+        stats.add_execution(elapsed, killed)
+        total_tcs += len(new_tests)
+
+        for tc in new_tests:
+            stats.generated_count += 1
+            tc_content = tc["content"]
+            tc_bitmap = tc.get("bitmap")  # 稀疏边列表 [(edge_id, count)]
+
+            # --save-all
+            if save_all_dir is not None:
+                h = hashlib.sha256(tc_content).hexdigest()
+                save_path = os.path.join(save_all_dir, h)
+                if not os.path.exists(save_path):
+                    try:
+                        with open(save_path, "wb") as sf:
+                            sf.write(tc_content)
+                    except (IOError, OSError):
+                        pass
+
+            # Triage：优先用 worker 端的稀疏边列表
+            if tc_bitmap is not None:
+                bitmap_data = tc_bitmap
+                result_type = "success"
+            else:
+                # 回退：写临时文件并运行 showmap
+                tc_id = hashlib.sha256(tc_content).hexdigest()[:16]
+                tc_path = os.path.join(symcc_dir, f".tc_{tc_id}")
+                with open(tc_path, "wb") as f:
+                    f.write(tc_content)
+                result_type, bitmap_data = afl_config.run_showmap(
+                    tc_path, bitmap_path_triage
+                )
+                try:
+                    os.unlink(tc_path)
+                except OSError:
+                    pass
+
+            if result_type == "success" and bitmap_data:
+                is_new = coverage.merge(bitmap_data)
+                if is_new:
+                    bitmap_changed = True
+                    orig_name = os.path.basename(input_path)
+                    src_id = "000000"
+                    if orig_name.startswith("id:") and len(orig_name) >= 9:
+                        src_id = orig_name[3:9]
+                    new_name = f"id:{queue_id:06d},src:{src_id}"
+                    dest = os.path.join(queue_dir, new_name)
+                    with open(dest, "wb") as f:
+                        f.write(tc_content)
+                    symcc_feedback_queue.append(dest)
+                    if os.path.isdir(afl_sync_queue):
+                        try:
+                            with open(os.path.join(
+                                afl_sync_queue,
+                                f"id:symcc_{queue_id:06d},src:{src_id}"
+                            ), "wb") as f:
+                                f.write(tc_content)
+                        except OSError:
+                            pass
+                    queue_id += 1
+                    num_interesting += 1
+                    stats.interesting_count += 1
+
+        if killed:
+            orig_name = os.path.basename(input_path)
+            src_id = "000000"
+            if orig_name.startswith("id:") and len(orig_name) >= 9:
+                src_id = orig_name[3:9]
+            hang_name = f"id:{queue_id:06d},src:{src_id}"
+            try:
+                shutil.copy2(input_path, os.path.join(hangs_dir, hang_name))
+                queue_id += 1
+            except (IOError, OSError):
+                pass
+
+    queue_id_ref[0] = queue_id
+
+    if total_tcs > 0:
+        worker_info = ", ".join(
+            f"W{r[0]}={len(r[2])}tc/{r[4]:.1f}s"
+            for r in batch_results
+        )
+        print(f"[Master] Triage: {total_tcs} tc -> {num_interesting} interesting "
+              f"[{worker_info}]")
+
+    return bitmap_changed
+
+
 def master(comm, args):
     """Master process: monitors AFL queue, distributes work, triages results."""
     size = comm.Get_size()
@@ -498,6 +609,7 @@ def master(comm, args):
     processed_files = set()
     active_workers = {}  # rank -> input_path
     queue_id = 0
+    queue_id_ref = [0]  # 可变引用，供 _batch_triage 更新
     last_stats_time = time.monotonic()
 
     # SymCC 产生的有趣测试用例队列，会被重新分发给 workers
@@ -523,192 +635,89 @@ def master(comm, args):
     signal.signal(signal.SIGTERM, _signal_handler)
     signal.signal(signal.SIGINT, _signal_handler)
 
+    # Bitmap 版本号：只在有新覆盖时写入共享文件，workers 按版本号决定是否重读
+    bitmap_version = 0
+    bitmap_shared_path = os.path.join(symcc_dir, ".shared_bitmap")
+
     while not shutdown_requested:
         # 合并输入源：SymCC 反馈用例优先，然后是 AFL queue 的新文件
         pending_feedback = list(symcc_feedback_queue)
         symcc_feedback_queue.clear()
         new_inputs = afl_config.best_new_testcases(
-            processed_files, batch_size=num_workers * 2
+            processed_files, batch_size=num_workers * 4
         )
         work_queue = pending_feedback + new_inputs
 
-        # Distribute work to ready workers
+        # 交替处理 READY 和 RESULT 消息，避免单方向阻塞
         dispatched = 0
-        for input_file in work_queue:
-            if not comm.iprobe(source=MPI.ANY_SOURCE, tag=TAG_READY):
-                break
+        work_idx = 0
+        any_progress = True
+        while any_progress:
+            any_progress = False
 
-            status = MPI.Status()
-            comm.recv(source=MPI.ANY_SOURCE, tag=TAG_READY, status=status)
-            worker_rank = status.Get_source()
+            # 分发工作给空闲 workers
+            while work_idx < len(work_queue) and comm.iprobe(
+                source=MPI.ANY_SOURCE, tag=TAG_READY
+            ):
+                status = MPI.Status()
+                comm.recv(source=MPI.ANY_SOURCE, tag=TAG_READY, status=status)
+                worker_rank = status.Get_source()
+                input_file = work_queue[work_idx]
+                work_idx += 1
 
-            # Send input content + cumulative bitmap + AFL target cmd to worker
-            try:
-                with open(input_file, "rb") as f:
-                    content = f.read()
+                # 只发路径 + bitmap 版本号，不发内容（worker 自己读文件）
                 comm.send({
                     "path": input_file,
-                    "content": content,
-                    "bitmap": bytes(coverage.data) if coverage.data else None,
-                    "afl_target_cmd": afl_config.target_command,
+                    "bitmap_version": bitmap_version,
                 }, dest=worker_rank, tag=TAG_WORK)
                 active_workers[worker_rank] = input_file
                 processed_files.add(input_file)
                 dispatched += 1
-            except (IOError, OSError) as e:
-                print(f"[Master] Error reading {input_file}: {e}",
-                      file=sys.stderr)
-                continue
+                any_progress = True
 
-        # 未分发完的 SymCC 反馈用例放回队列（AFL 输入不放回，下轮自然重取）
+            # 收集已完成 workers 的结果（非阻塞）
+            if comm.iprobe(source=MPI.ANY_SOURCE, tag=TAG_RESULT):
+                any_progress = True
+                # 批量收集所有可用结果
+                batch_results: list[tuple] = []
+                while comm.iprobe(source=MPI.ANY_SOURCE, tag=TAG_RESULT):
+                    status = MPI.Status()
+                    result = comm.recv(
+                        source=MPI.ANY_SOURCE, tag=TAG_RESULT, status=status
+                    )
+                    wr = status.Get_source()
+                    ip = active_workers.pop(wr, "unknown")
+                    batch_results.append((
+                        wr, ip,
+                        result.get("new_tests", []),
+                        result.get("retcode", 0),
+                        result.get("elapsed", 0),
+                        result.get("killed", False),
+                    ))
+
+                # 批量 triage
+                if batch_results:
+                    bitmap_changed = _batch_triage(
+                        batch_results, stats, coverage, afl_config,
+                        queue_dir, crashes_dir, hangs_dir, afl_sync_queue,
+                        save_all_dir, symcc_dir, bitmap_path_triage,
+                        symcc_feedback_queue, queue_id_ref,
+                    )
+                    queue_id = queue_id_ref[0]
+                    if bitmap_changed:
+                        bitmap_version += 1
+                        if coverage.data:
+                            with open(bitmap_shared_path, "wb") as f:
+                                f.write(bytes(coverage.data))
+
+        # 未分发完的 SymCC 反馈用例放回队列
         undispatched_feedback = [
             f for f in pending_feedback
             if f not in processed_files
         ]
         symcc_feedback_queue.extend(undispatched_feedback)
 
-        # Collect results from workers — 批量收集后批量 triage
-        pending_results: list[tuple[int, str, list, int, float, bool]] = []
-        while comm.iprobe(source=MPI.ANY_SOURCE, tag=TAG_RESULT):
-            status = MPI.Status()
-            result = comm.recv(source=MPI.ANY_SOURCE, tag=TAG_RESULT, status=status)
-            worker_rank = status.Get_source()
-            input_path = active_workers.pop(worker_rank, "unknown")
-            pending_results.append((
-                worker_rank, input_path,
-                result.get("new_tests", []),
-                result.get("retcode", 0),
-                result.get("elapsed", 0),
-                result.get("killed", False),
-            ))
-
-        # 批量 triage：先写所有临时文件到一个目录，然后一次 afl-showmap -C
-        if pending_results:
-            t_triage_start = time.monotonic()
-            # 收集所有待 triage 的测试用例
-            triage_dir = os.path.join(symcc_dir, ".triage_batch")
-            os.makedirs(triage_dir, exist_ok=True)
-
-            # tc_id -> (worker_rank, input_path, tc_content, bitmap_or_None)
-            tc_map: dict[str, tuple[int, str, bytes, bytes | None]] = {}
-            has_worker_bitmaps = 0
-            for worker_rank, input_path, new_tests, retcode, elapsed, killed in pending_results:
-                stats.add_execution(elapsed, killed)
-                for tc in new_tests:
-                    stats.generated_count += 1
-                    tc_content = tc["content"]
-                    tc_bitmap = tc.get("bitmap")
-                    if tc_bitmap:
-                        has_worker_bitmaps += 1
-                    tc_id = hashlib.sha256(tc_content).hexdigest()[:16]
-
-                    # --save-all
-                    if save_all_dir is not None:
-                        h = hashlib.sha256(tc_content).hexdigest()
-                        save_path = os.path.join(save_all_dir, h)
-                        if not os.path.exists(save_path):
-                            try:
-                                with open(save_path, "wb") as sf:
-                                    sf.write(tc_content)
-                                save_all_id += 1
-                            except (IOError, OSError):
-                                pass
-
-                    # 写入 triage 目录（仅在无 worker bitmap 时需要）
-                    if tc_id not in tc_map:
-                        if not tc_bitmap:
-                            tc_path = os.path.join(triage_dir, tc_id)
-                            with open(tc_path, "wb") as f:
-                                f.write(tc_content)
-                        tc_map[tc_id] = (worker_rank, input_path, tc_content, tc_bitmap)
-
-                if killed:
-                    orig_name = os.path.basename(input_path)
-                    src_id = "000000"
-                    if orig_name.startswith("id:") and len(orig_name) >= 9:
-                        src_id = orig_name[3:9]
-                    hang_name = f"id:{queue_id:06d},src:{src_id}"
-                    try:
-                        shutil.copy2(input_path, os.path.join(hangs_dir, hang_name))
-                        queue_id += 1
-                    except (IOError, OSError):
-                        pass
-
-            # Triage：优先使用 worker 端收集的稀疏边列表（无需 fork showmap）
-            num_interesting_total = 0
-            for tc_id, (worker_rank, input_path, tc_content, tc_bitmap) in tc_map.items():
-                if tc_bitmap is not None:
-                    # 直接用 worker 提供的稀疏边列表做内存比较 — 极快
-                    bitmap_data = tc_bitmap  # list[(edge_id, count)]
-                    result_type = "success"
-                else:
-                    # 回退：master 端运行 showmap
-                    tc_path = os.path.join(triage_dir, tc_id)
-                    result_type, bitmap_data = afl_config.run_showmap(
-                        tc_path, bitmap_path_triage
-                    )
-                if result_type == "success" and bitmap_data:
-                    is_new = coverage.merge(bitmap_data)
-                    if is_new:
-                        orig_name = os.path.basename(input_path)
-                        src_id = "000000"
-                        if orig_name.startswith("id:") and len(orig_name) >= 9:
-                            src_id = orig_name[3:9]
-                        new_name = f"id:{queue_id:06d},src:{src_id}"
-                        dest = os.path.join(queue_dir, new_name)
-                        with open(dest, "wb") as f:
-                            f.write(tc_content)
-                        symcc_feedback_queue.append(dest)
-                        if os.path.isdir(afl_sync_queue):
-                            afl_dest = os.path.join(
-                                afl_sync_queue,
-                                f"id:symcc_{queue_id:06d},src:{src_id}"
-                            )
-                            try:
-                                with open(afl_dest, "wb") as f:
-                                    f.write(tc_content)
-                            except OSError:
-                                pass
-                        queue_id += 1
-                        num_interesting_total += 1
-                        stats.interesting_count += 1
-                elif result_type == "crash":
-                    orig_name = os.path.basename(input_path)
-                    src_id = "000000"
-                    if orig_name.startswith("id:") and len(orig_name) >= 9:
-                        src_id = orig_name[3:9]
-                    crash_name = f"id:{queue_id:06d},src:{src_id}"
-                    with open(os.path.join(crashes_dir, crash_name), "wb") as f:
-                        f.write(tc_content)
-                    queue_dest = os.path.join(queue_dir, crash_name)
-                    with open(queue_dest, "wb") as f:
-                        f.write(tc_content)
-                    symcc_feedback_queue.append(queue_dest)
-                    if os.path.isdir(afl_sync_queue):
-                        try:
-                            with open(os.path.join(
-                                afl_sync_queue,
-                                f"id:symcc_{queue_id:06d},src:{src_id}"
-                            ), "wb") as f:
-                                f.write(tc_content)
-                        except OSError:
-                            pass
-                    queue_id += 1
-                    num_interesting_total += 1
-                    stats.interesting_count += 1
-
-            # 清理 triage 目录
-            shutil.rmtree(triage_dir, ignore_errors=True)
-
-            triage_time = time.monotonic() - t_triage_start
-            total_tcs = sum(len(r[2]) for r in pending_results)
-            worker_info = ", ".join(
-                f"W{r[0]}={len(r[2])}tc/{r[4]:.1f}s"
-                for r in pending_results
-            )
-            print(f"[Master] Batch triage: {total_tcs} tc -> "
-                  f"{num_interesting_total} interesting in {triage_time:.1f}s "
-                  f"(w_bm={has_worker_bitmaps}) [{worker_info}]")
+        # 旧的 collect/triage 代码已移到 while 循环内的交替处理中
 
         # Periodic stats output
         if time.monotonic() - last_stats_time > STATS_INTERVAL_SEC:
@@ -764,9 +773,10 @@ def worker(comm, args):
     worker_env = os.environ.copy()
     worker_env["SYMCC_AFL_COVERAGE_MAP"] = bitmap_file
 
-    # 查找 afl-showmap 和 AFL target command（用于 worker 端 triage）
+    # 查找 afl-showmap（用于 worker 端 triage）
     afl_showmap = shutil.which("afl-showmap")
-    afl_target_cmd = None
+    afl_target_cmd = None  # 从 master 首次消息中获取
+    current_bitmap_version = -1
 
     while True:
         # Signal ready
@@ -782,22 +792,52 @@ def worker(comm, args):
         if status.Get_tag() != TAG_WORK:
             continue
 
-        input_content = msg["content"]
+        input_path = msg["path"]
+        bm_version = msg.get("bitmap_version", 0)
 
-        # 从 master 获取 AFL target command（仅第一次）
-        if afl_target_cmd is None and msg.get("afl_target_cmd"):
-            afl_target_cmd = msg["afl_target_cmd"]
+        # 仅在 bitmap 版本更新时重读共享 bitmap 文件
+        if bm_version > current_bitmap_version:
+            # 共享 bitmap 路径由 symcc_dir/.shared_bitmap 约定
+            # 从 input_path 推断 symcc_dir
+            shared_bm = os.path.join(
+                os.path.dirname(os.path.dirname(input_path))
+                if "/queue/" in input_path
+                else os.path.dirname(input_path),
+                ".shared_bitmap"
+            )
+            # 查找正确的 shared bitmap 路径
+            for candidate in [
+                shared_bm,
+                os.path.join(args.output_dir, args.name, ".shared_bitmap"),
+            ]:
+                if os.path.isfile(candidate):
+                    try:
+                        shutil.copy2(candidate, bitmap_file)
+                        current_bitmap_version = bm_version
+                    except (IOError, OSError):
+                        pass
+                    break
 
-        # 将 master 发送的累积 bitmap 写入 SYMCC_AFL_COVERAGE_MAP
-        bitmap_data = msg.get("bitmap")
-        if bitmap_data:
-            with open(bitmap_file, "wb") as bf:
-                bf.write(bitmap_data)
+        # 从 master 获取 AFL target command（首次消息带有，后续通过路径推断）
+        if afl_target_cmd is None:
+            # 从 AFL fuzzer_stats 读取 target command
+            try:
+                afl_cfg = AflConfig(os.path.join(
+                    args.output_dir, args.fuzzer_name
+                ))
+                afl_target_cmd = afl_cfg.target_command
+            except Exception:
+                pass
 
-        # Write input to local file
+        # 直接读取文件（路径协议，无需通过 MPI 传输内容）
         local_input = os.path.join(worker_dir, "current_input")
-        with open(local_input, "wb") as f:
-            f.write(input_content)
+        try:
+            shutil.copy2(input_path, local_input)
+        except (IOError, OSError):
+            # 文件可能被 AFL 删除，跳过
+            result = {"new_tests": [], "retcode": -1, "elapsed": 0, "killed": False}
+            comm.send(result, dest=0, tag=TAG_RESULT)
+            continue
 
         # Run SymCC
         run_output = os.path.join(worker_dir, f"output_{time.monotonic_ns()}")
