@@ -1044,20 +1044,25 @@ def run_mpi(binary, target_name, seed_dir, np, timeout, work_dir,
 
 
 def discover_public_afl_targets() -> dict[str, str]:
-    """发现已编译的 AFL-instrumented 二进制文件。
+    """发现所有 AFL-instrumented 二进制文件。
 
-    查找 public/bin/google-fts-afl/ 目录下的 AFL 二进制。
+    扫描 public/bin/ 下所有 *-afl 目录（google-fts-afl、lava-m-afl 等）。
     返回 {目标名: AFL 二进制路径} 字典。
     """
     afl_binaries: dict[str, str] = {}
-    afl_dir = PUBLIC_DIR / "bin" / "google-fts-afl"
-    if not afl_dir.is_dir():
+    pub_bin = PUBLIC_DIR / "bin"
+    if not pub_bin.is_dir():
         return afl_binaries
 
-    for binary in sorted(afl_dir.iterdir()):
-        if binary.is_file() and os.access(str(binary), os.X_OK):
-            # 映射到与 public target 相同的名称前缀
-            afl_binaries[f"gfts-{binary.name}"] = str(binary)
+    suite_prefixes = {"google-fts": "gfts-", "lava-m": "lava-"}
+    for suite_dir in sorted(pub_bin.iterdir()):
+        if not suite_dir.is_dir() or not suite_dir.name.endswith("-afl"):
+            continue
+        suite_base = suite_dir.name[:-4]  # 去掉 -afl
+        prefix = suite_prefixes.get(suite_base, suite_base + "-")
+        for binary in sorted(suite_dir.iterdir()):
+            if binary.is_file() and not binary.suffix and os.access(str(binary), os.X_OK):
+                afl_binaries[prefix + binary.name] = str(binary)
 
     return afl_binaries
 
