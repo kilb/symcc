@@ -1233,21 +1233,30 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
     if m:
         symcc_interesting = int(m.group(1))
 
-    # 解析 AFL fuzzer_stats 获取覆盖率信息
+    # 从 fuzzer_stats 解析 AFL 指标
     afl_bitmap_cvg = ""
+    afl_execs_done = 0
+    afl_execs_per_sec = 0.0
     if os.path.isfile(stats_path):
         try:
             with open(stats_path) as f:
                 for line in f:
-                    if "bitmap_cvg" in line:
-                        afl_bitmap_cvg = line.split(":", 1)[1].strip()
+                    key, _, val = line.partition(":")
+                    key = key.strip()
+                    val = val.strip()
+                    if key == "bitmap_cvg":
+                        afl_bitmap_cvg = val
+                    elif key == "execs_done":
+                        afl_execs_done = int(val)
+                    elif key == "execs_per_sec":
+                        afl_execs_per_sec = float(val)
         except Exception:
             pass
 
     return {
         "wall_time": elapsed,
         "generated": total_generated,
-        "unique": total_generated,  # AFL 去重机制保证 queue 中唯一
+        "unique": total_generated,
         "output_dir": combined_dir,
         "retcode": mpi_proc.returncode or 0,
         "timed_out": elapsed >= timeout * 0.95,
@@ -1257,6 +1266,8 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
         "afl_generated": afl_count,
         "symcc_interesting": symcc_interesting,
         "afl_bitmap_cvg": afl_bitmap_cvg,
+        "afl_execs_done": afl_execs_done,
+        "afl_execs_per_sec": afl_execs_per_sec,
         "num_workers": symcc_np - 1,
     }
 
@@ -1356,20 +1367,32 @@ def run_afl_only(afl_binary: str, target_name: str,
             if os.path.isfile(src):
                 shutil.copy2(src, os.path.join(combined_dir, f"afl_{f}"))
 
-    # 解析 AFL bitmap coverage
+    # 从 fuzzer_stats 解析关键指标
     afl_bitmap_cvg = ""
+    afl_execs_done = 0
+    afl_execs_per_sec = 0.0
+    afl_corpus_count = 0
     if os.path.isfile(stats_path):
         try:
             with open(stats_path) as f:
                 for line in f:
-                    if "bitmap_cvg" in line:
-                        afl_bitmap_cvg = line.split(":", 1)[1].strip()
+                    key, _, val = line.partition(":")
+                    key = key.strip()
+                    val = val.strip()
+                    if key == "bitmap_cvg":
+                        afl_bitmap_cvg = val
+                    elif key == "execs_done":
+                        afl_execs_done = int(val)
+                    elif key == "execs_per_sec":
+                        afl_execs_per_sec = float(val)
+                    elif key == "corpus_count":
+                        afl_corpus_count = int(val)
         except Exception:
             pass
 
     return {
         "wall_time": elapsed,
-        "generated": afl_count,
+        "generated": afl_count,       # queue 中的 interesting 用例数
         "unique": afl_count,
         "output_dir": combined_dir,
         "retcode": afl_proc.returncode or 0,
@@ -1378,6 +1401,9 @@ def run_afl_only(afl_binary: str, target_name: str,
         "stdout": "",
         "stderr": "",
         "afl_bitmap_cvg": afl_bitmap_cvg,
+        "afl_execs_done": afl_execs_done,
+        "afl_execs_per_sec": afl_execs_per_sec,
+        "afl_corpus_count": afl_corpus_count,
     }
 
 
@@ -2130,12 +2156,16 @@ def main():
                                    f"({cov_data['edges_found']}/{cov_data['edges_total']}), "
                                    f"crashes={cov_data['crashes']}")
 
+                    afl_execs = result.get("afl_execs_done", 0)
+                    afl_eps = result.get("afl_execs_per_sec", 0)
                     bitmap_cvg = result.get("afl_bitmap_cvg", "")
                     timeout_str = " [TIMEOUT]" if result.get("timed_out") else ""
                     print(f"time={format_time(result['wall_time'])}, "
-                          f"gen={result['generated']}, uniq={result['unique']}"
+                          f"queue={result['generated']}, "
+                          f"execs={afl_execs}"
                           f"{cov_str}{timeout_str}"
-                          f"{' bitmap=' + bitmap_cvg if bitmap_cvg else ''}")
+                          f"{' bitmap=' + bitmap_cvg if bitmap_cvg else ''}"
+                          f"{f' ({afl_eps:.0f} exec/s)' if afl_eps else ''}")
 
                     all_results.append({
                         "target": target,
@@ -2152,6 +2182,8 @@ def main():
                         "crashes": cov_data.get("crashes", 0),
                         "speedup": 0,
                         "efficiency": 0,
+                        "afl_execs_done": afl_execs,
+                        "afl_execs_per_sec": afl_eps,
                     })
 
                     shutil.rmtree(work_dir, ignore_errors=True)
