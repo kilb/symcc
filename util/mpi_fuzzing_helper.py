@@ -325,7 +325,7 @@ class Stats:
 
 
 def run_symcc_worker(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
-                     base_env=None, afl_showmap=None, afl_target_cmd=None):
+                     base_env=None, streaming_showmap=None):
     """Run SymCC on a single input. Returns (new_tests_data, retcode, elapsed).
 
     如果提供了 afl_showmap 和 afl_target_cmd，会在 worker 端为每个输出
@@ -376,50 +376,104 @@ def run_symcc_worker(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
     elapsed = time.monotonic() - start
     killed = retcode in (124, -9, 137)  # timeout codes
 
-    # Collect test cases + 可选地在 worker 端收集 bitmap
+    # Collect test cases + streaming showmap 收集边覆盖
     new_tests = []
-    bitmap_path = os.path.join(output_dir, ".worker_bitmap")
     if os.path.isdir(output_dir):
-        for fname in os.listdir(output_dir):
-            if fname.startswith("."):
-                continue
-            fpath = os.path.join(output_dir, fname)
-            if os.path.isfile(fpath):
-                try:
-                    with open(fpath, "rb") as f:
-                        content = f.read()
-                    tc_entry = {"name": fname, "content": content}
+        files = [(fname, os.path.join(output_dir, fname))
+                 for fname in os.listdir(output_dir)
+                 if not fname.startswith(".")
+                 and os.path.isfile(os.path.join(output_dir, fname))]
 
-                    # 在 worker 端收集 bitmap，避免 master 逐个 fork showmap
-                    if afl_showmap and afl_target_cmd:
-                        bm = _run_showmap_fast(
-                            afl_showmap, afl_target_cmd, fpath, bitmap_path,
-                            use_stdin=use_stdin
-                        )
-                        if bm is not None:
-                            tc_entry["bitmap"] = bm
+        for fname, fpath in files:
+            try:
+                with open(fpath, "rb") as f:
+                    content = f.read()
+                tc_entry = {"name": fname, "content": content}
 
-                    new_tests.append(tc_entry)
-                except (IOError, OSError):
-                    pass
+                # 用 streaming showmap 收集边覆盖（0.6ms/call vs 12ms fork）
+                if streaming_showmap is not None:
+                    bm = streaming_showmap.get_edges(content)
+                    if bm is not None:
+                        tc_entry["bitmap"] = bm
+
+                new_tests.append(tc_entry)
+            except (IOError, OSError):
+                pass
 
     return new_tests, retcode, elapsed, killed
 
 
+class StreamingShowmap:
+    """afl-showmap -S 流式模式封装。
+
+    维持持久 fork server，通过 stdin/stdout 管道传输测试用例。
+    每次调用 ~0.6ms（vs fork 模式 ~12ms，19x 加速）。
+    """
+
+    def __init__(self, afl_showmap: str, target_cmd: list[str]):
+        cmd = [afl_showmap, "-S", "-t", "5000", "-m", "none", "--"]
+        cmd.extend(target_cmd)
+        self._proc = subprocess.Popen(
+            cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
+
+    def get_edges(self, content: bytes) -> list[tuple[int, int]] | None:
+        """发送测试用例内容，返回稀疏边列表 [(edge_id, count), ...]。"""
+        import struct
+        try:
+            # 发送: [u32 len][data]
+            self._proc.stdin.write(struct.pack("<I", len(content)))
+            self._proc.stdin.write(content)
+            self._proc.stdin.flush()
+
+            # 接收: [u16 status][u32 edges_count][(u32 eid, u8 count) × N]
+            #        [u32 stdout_len][stdout][u32 stderr_len][stderr]
+            raw = self._proc.stdout.read(2)
+            if len(raw) < 2:
+                return None
+            _status = struct.unpack("<H", raw)[0]
+
+            raw = self._proc.stdout.read(4)
+            edges_count = struct.unpack("<I", raw)[0]
+
+            edges = []
+            for _ in range(edges_count):
+                eid = struct.unpack("<I", self._proc.stdout.read(4))[0]
+                cnt = struct.unpack("<B", self._proc.stdout.read(1))[0]
+                edges.append((eid, cnt))
+
+            # 消费 stdout/stderr 输出
+            slen = struct.unpack("<I", self._proc.stdout.read(4))[0]
+            if slen > 0:
+                self._proc.stdout.read(slen)
+            elen = struct.unpack("<I", self._proc.stdout.read(4))[0]
+            if elen > 0:
+                self._proc.stdout.read(elen)
+
+            return edges
+        except Exception:
+            return None
+
+    def close(self):
+        try:
+            self._proc.stdin.close()
+            self._proc.wait(timeout=5)
+        except Exception:
+            self._proc.kill()
+
+    def __del__(self):
+        self.close()
+
+
 def _run_showmap_fast(afl_showmap, target_cmd, testcase, bitmap_path,
                       use_stdin=False):
-    """运行 afl-showmap，返回稀疏边列表 [(edge_id, hit_count), ...] 或 None。
-
-    使用文本模式输出 (不加 -b)，解析 "edge_id:count" 格式，
-    只传输非零边（通常 ~500 条），避免序列化/反序列化 8MB bitmap。
-    """
+    """回退方案：逐个 fork afl-showmap（当 streaming 不可用时）。"""
     cmd = [afl_showmap, "-t", "5000", "-m", "none",
            "-o", bitmap_path]
-    for arg in target_cmd:
-        if arg == "@@":
-            cmd.append(str(testcase))
-        else:
-            cmd.append(arg)
+    cmd.extend(target_cmd)
+    # 替换 @@ 为实际文件路径
+    cmd = [testcase if a == "@@" else a for a in cmd]
     try:
         if use_stdin:
             with open(testcase, "rb") as inf:
@@ -440,9 +494,7 @@ def _run_showmap_fast(afl_showmap, target_cmd, testcase, bitmap_path,
                 line = line.strip()
                 if ":" in line:
                     parts = line.split(":")
-                    edge_id = int(parts[0])
-                    count = int(parts[1])
-                    edges.append((edge_id, count))
+                    edges.append((int(parts[0]), int(parts[1])))
         return edges
     except Exception:
         return None
@@ -786,9 +838,9 @@ def worker(comm, args):
     worker_env = os.environ.copy()
     worker_env["SYMCC_AFL_COVERAGE_MAP"] = bitmap_file
 
-    # 查找 afl-showmap（用于 worker 端 triage）
-    afl_showmap = shutil.which("afl-showmap")
-    afl_target_cmd = None  # 从 master 首次消息中获取
+    # 初始化 streaming showmap（持久 fork server，~0.6ms/call）
+    afl_showmap_path = shutil.which("afl-showmap")
+    streaming_sm: StreamingShowmap | None = None
     current_bitmap_version = -1
 
     while True:
@@ -831,14 +883,15 @@ def worker(comm, args):
                         pass
                     break
 
-        # 从 master 获取 AFL target command（首次消息带有，后续通过路径推断）
-        if afl_target_cmd is None:
-            # 从 AFL fuzzer_stats 读取 target command
+        # 延迟初始化 streaming showmap（首次需要知道 AFL target command）
+        if streaming_sm is None and afl_showmap_path:
             try:
                 afl_cfg = AflConfig(os.path.join(
                     args.output_dir, args.fuzzer_name
                 ))
-                afl_target_cmd = afl_cfg.target_command
+                streaming_sm = StreamingShowmap(
+                    afl_showmap_path, afl_cfg.target_command
+                )
             except Exception:
                 pass
 
@@ -859,8 +912,7 @@ def worker(comm, args):
             new_tests, retcode, elapsed, killed = run_symcc_worker(
                 target_cmd, local_input, run_output, TIMEOUT_SEC, use_stdin,
                 base_env=worker_env,
-                afl_showmap=afl_showmap,
-                afl_target_cmd=afl_target_cmd,
+                streaming_showmap=streaming_sm,
             )
 
             result = {
@@ -884,6 +936,8 @@ def worker(comm, args):
         # Send result
         comm.send(result, dest=0, tag=TAG_RESULT)
 
+    if streaming_sm is not None:
+        streaming_sm.close()
     shutil.rmtree(worker_dir, ignore_errors=True)
 
 

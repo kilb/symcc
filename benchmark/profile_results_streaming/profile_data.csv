@@ -1,0 +1,6 @@
+target,mode,np,wall_time_s,total_tasks,total_generated,interesting,throughput_tc_s,workers_used,avg_worker_time_s,max_worker_time_s,afl_count,symcc_count,symcc_all_count,prof_dispatch_s,prof_triage_s,prof_idle_s,prof_collect_s,prof_sync_s
+gfts-xml_read_fuzzer,hybrid,2,77.0,497,11318,570,0,1,0.135,1.300,2402,570,7538,0.000,0.000,0.000,0.000,0.000
+gfts-xml_read_fuzzer,hybrid,4,77.0,546,20582,623,0,3,0.238,3.900,2669,623,13868,0.000,0.000,0.000,0.000,0.000
+gfts-xml_read_fuzzer,hybrid,8,77.0,1250,71827,1016,0,7,0.287,5.200,2932,1016,51453,0.000,0.000,0.000,0.000,0.000
+gfts-xml_read_fuzzer,hybrid,16,77.0,1445,100050,1159,0,15,0.549,10.000,3127,1190,79695,0.000,0.000,0.000,0.000,0.000
+gfts-xml_read_fuzzer,hybrid,32,77.0,2266,215661,1117,0,31,0.570,10.000,2637,1152,162532,0.000,0.000,0.000,0.000,0.000
