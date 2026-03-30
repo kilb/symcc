@@ -326,7 +326,8 @@ class Stats:
 
 
 def run_symcc_worker(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
-                     base_env=None, streaming_showmap=None):
+                     base_env=None, streaming_showmap=None,
+                     worker_coverage=None, save_dir=None):
     """Run SymCC on a single input. Returns (new_tests_data, retcode, elapsed).
 
     如果提供了 afl_showmap 和 afl_target_cmd，会在 worker 端为每个输出
@@ -377,10 +378,11 @@ def run_symcc_worker(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
     elapsed = time.monotonic() - start
     killed = retcode in (124, -9, 137)  # timeout codes
 
-    # Collect test cases + streaming showmap 收集边覆盖
-    # 当有 streaming showmap 时，只传 hash + bitmap 不传 content
-    # 减少 MPI 消息大小，降低 recv 反序列化时间
+    # Collect test cases + worker 端 coverage dedup
+    # Worker 有 master bitmap 副本，在本地做 coverage merge
+    # 只传 interesting 的 TC（~3% 的输出），消息 323KB → 10KB
     new_tests = []
+    total_generated = 0
     if os.path.isdir(output_dir):
         try:
             entries = list(os.scandir(output_dir))
@@ -390,21 +392,30 @@ def run_symcc_worker(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
         for entry in entries:
             if entry.name.startswith(".") or not entry.is_file():
                 continue
+            total_generated += 1
             try:
                 with open(entry.path, "rb") as f:
                     content = f.read()
-                tc_entry = {"content": content}
 
-                if streaming_showmap is not None:
-                    bm = streaming_showmap.get_edges(content)
-                    if bm is not None:
-                        tc_entry["bitmap"] = bm
-
-                new_tests.append(tc_entry)
+                # Worker 端 streaming showmap + coverage dedup
+                if streaming_showmap is not None and worker_coverage is not None:
+                    edges = streaming_showmap.get_edges(content)
+                    if edges is not None:
+                        is_new = worker_coverage.merge(edges)
+                        if is_new:
+                            # 只传 interesting 的 TC
+                            new_tests.append({
+                                "content": content,
+                                "bitmap": edges,
+                            })
+                    # 不 interesting 的直接跳过，不传
+                else:
+                    # 回退：没有 streaming showmap 时传所有 TC
+                    new_tests.append({"content": content})
             except (IOError, OSError):
                 pass
 
-    return new_tests, retcode, elapsed, killed
+    return new_tests, total_generated, retcode, elapsed, killed
 
 
 class StreamingShowmap:
@@ -527,10 +538,10 @@ def _batch_triage(
 
     for worker_rank, input_path, new_tests, retcode, elapsed, killed in batch_results:
         stats.add_execution(elapsed, killed)
+        # new_tests 现在只含 interesting 的 TC（worker 端已做 dedup）
         total_tcs += len(new_tests)
 
         for tc in new_tests:
-            stats.generated_count += 1
             tc_content = tc["content"]
             tc_bitmap = tc.get("bitmap")  # 稀疏边列表 [(edge_id, count)]
 
@@ -783,6 +794,8 @@ def master(comm, args):
                         wr = status.Get_source()
                         ip = active_workers.pop(wr, "unknown")
                         new_tcs = result.get("new_tests", [])
+                        total_gen = result.get("total_generated", len(new_tcs))
+                        stats.generated_count += total_gen
                         if _prof:
                             _n_recv_bytes += sum(
                                 len(tc.get("content", b"")) for tc in new_tcs
@@ -909,6 +922,8 @@ def worker(comm, args):
     # 初始化 streaming showmap（持久 fork server，~0.6ms/call）
     afl_showmap_path = shutil.which("afl-showmap")
     streaming_sm: StreamingShowmap | None = None
+    # Worker 端 coverage bitmap 副本 — 用于本地 dedup
+    worker_cov = CoverageBitmap()
     current_bitmap_version = -1
 
     while True:
@@ -977,14 +992,16 @@ def worker(comm, args):
         run_output = os.path.join(worker_dir, f"output_{time.monotonic_ns()}")
 
         try:
-            new_tests, retcode, elapsed, killed = run_symcc_worker(
+            new_tests, total_gen, retcode, elapsed, killed = run_symcc_worker(
                 target_cmd, local_input, run_output, TIMEOUT_SEC, use_stdin,
                 base_env=worker_env,
                 streaming_showmap=streaming_sm,
+                worker_coverage=worker_cov,
             )
 
             result = {
-                "new_tests": new_tests,
+                "new_tests": new_tests,    # 只含 interesting 的 TC
+                "total_generated": total_gen,  # 总生成数（含被过滤的）
                 "retcode": retcode,
                 "elapsed": elapsed,
                 "killed": killed,
@@ -993,6 +1010,7 @@ def worker(comm, args):
             print(f"[Worker {rank}] Error: {e}", file=sys.stderr)
             result = {
                 "new_tests": [],
+                "total_generated": 0,
                 "retcode": -1,
                 "elapsed": 0,
                 "killed": False,
