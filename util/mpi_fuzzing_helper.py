@@ -106,32 +106,33 @@ class AflConfig:
 
     def best_new_testcases(self, seen, batch_size=None):
         """
-        Return a list of unseen test cases from the AFL queue,
-        sorted by priority (new coverage first, then seed-derived, then by size).
+        Return a list of unseen test cases from the AFL queue.
+
+        使用增量扫描：只 stat 上次扫描后新增的文件，避免对整个目录
+        做 full scan（AFL queue 可达数千文件，full scan ~10ms/次）。
         """
-        candidates = []
         if not os.path.isdir(self.queue):
-            return candidates
+            return []
 
-        for fname in os.listdir(self.queue):
-            fpath = os.path.join(self.queue, fname)
-            if not os.path.isfile(fpath):
-                continue
-            if fpath in seen:
-                continue
+        # 增量扫描：用 scandir 替代 listdir + isfile + getsize
+        # scandir 一次系统调用返回 d_type，避免额外 stat
+        new_candidates = []
+        try:
+            for entry in os.scandir(self.queue):
+                if not entry.is_file(follow_symlinks=False):
+                    continue
+                fpath = entry.path
+                if fpath in seen:
+                    continue
+                # 简单优先级：+cov 文件优先，其他按名字顺序（近似时间顺序）
+                has_cov = entry.name.endswith("+cov")
+                new_candidates.append((has_cov, entry.name, fpath))
+        except OSError:
+            return []
 
-            # Score: (new_coverage, derived_from_seed, -file_size)
-            has_cov = fname.endswith("+cov")
-            from_seed = "orig:" in fname
-            try:
-                size = os.path.getsize(fpath)
-            except OSError:
-                size = 0
-            candidates.append((has_cov, from_seed, -size, fpath))
-
-        # Sort descending by score
-        candidates.sort(reverse=True)
-        paths = [c[3] for c in candidates]
+        # 按优先级排序：有覆盖的优先，然后按文件名（AFL 的 ID 递增 = 时间顺序）
+        new_candidates.sort(key=lambda c: (not c[0], c[1]))
+        paths = [c[2] for c in new_candidates]
 
         if batch_size is not None:
             return paths[:batch_size]
@@ -377,20 +378,23 @@ def run_symcc_worker(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
     killed = retcode in (124, -9, 137)  # timeout codes
 
     # Collect test cases + streaming showmap 收集边覆盖
+    # 当有 streaming showmap 时，只传 hash + bitmap 不传 content
+    # 减少 MPI 消息大小，降低 recv 反序列化时间
     new_tests = []
     if os.path.isdir(output_dir):
-        files = [(fname, os.path.join(output_dir, fname))
-                 for fname in os.listdir(output_dir)
-                 if not fname.startswith(".")
-                 and os.path.isfile(os.path.join(output_dir, fname))]
+        try:
+            entries = list(os.scandir(output_dir))
+        except OSError:
+            entries = []
 
-        for fname, fpath in files:
+        for entry in entries:
+            if entry.name.startswith(".") or not entry.is_file():
+                continue
             try:
-                with open(fpath, "rb") as f:
+                with open(entry.path, "rb") as f:
                     content = f.read()
-                tc_entry = {"name": fname, "content": content}
+                tc_entry = {"content": content}
 
-                # 用 streaming showmap 收集边覆盖（0.6ms/call vs 12ms fork）
                 if streaming_showmap is not None:
                     bm = streaming_showmap.get_edges(content)
                     if bm is not None:
@@ -701,14 +705,37 @@ def master(comm, args):
     bitmap_version = 0
     bitmap_shared_path = os.path.join(symcc_dir, ".shared_bitmap")
 
+    # 性能计时器（环境变量 SYMCC_MASTER_PROFILE=1 时输出）
+    _prof = os.environ.get("SYMCC_MASTER_PROFILE") == "1"
+    _t_scan = 0.0     # AFL queue 扫描耗时
+    _t_dispatch = 0.0  # MPI send (dispatch) 耗时
+    _t_recv = 0.0      # MPI recv (result) 耗时
+    _t_triage = 0.0    # batch_triage 耗时
+    _t_idle = 0.0      # sleep 耗时
+    _n_scan = 0
+    _n_dispatch = 0
+    _n_recv = 0
+    _n_triage = 0
+    _n_recv_bytes = 0   # 估算 MPI recv 数据量
+
     try:
         while not shutdown_requested:
             # 合并输入源：SymCC 反馈用例优先，然后是 AFL queue 的新文件
             pending_feedback = list(symcc_feedback_queue)
             symcc_feedback_queue.clear()
-            new_inputs = afl_config.best_new_testcases(
-                processed_files, batch_size=num_workers * 4
-            )
+
+            # 有反馈用例时优先分发，不扫描 AFL queue（节省 ~10ms/次）
+            if pending_feedback and len(pending_feedback) >= num_workers:
+                new_inputs = []
+            else:
+                _t0 = time.monotonic()
+                new_inputs = afl_config.best_new_testcases(
+                    processed_files, batch_size=num_workers * 4
+                )
+                if _prof:
+                    _t_scan += time.monotonic() - _t0
+                    _n_scan += 1
+
             work_queue = pending_feedback + new_inputs
 
             # 交替处理 READY 和 RESULT 消息，避免单方向阻塞
@@ -729,10 +756,14 @@ def master(comm, args):
                     work_idx += 1
 
                     # 只发路径 + bitmap 版本号，不发内容（worker 自己读文件）
+                    _t0 = time.monotonic()
                     comm.send({
                         "path": input_file,
                         "bitmap_version": bitmap_version,
                     }, dest=worker_rank, tag=TAG_WORK)
+                    if _prof:
+                        _t_dispatch += time.monotonic() - _t0
+                        _n_dispatch += 1
                     active_workers[worker_rank] = input_file
                     processed_files.add(input_file)
                     dispatched += 1
@@ -743,6 +774,7 @@ def master(comm, args):
                     any_progress = True
                     # 批量收集所有可用结果
                     batch_results: list[tuple] = []
+                    _t0 = time.monotonic()
                     while comm.iprobe(source=MPI.ANY_SOURCE, tag=TAG_RESULT):
                         status = MPI.Status()
                         result = comm.recv(
@@ -750,15 +782,23 @@ def master(comm, args):
                         )
                         wr = status.Get_source()
                         ip = active_workers.pop(wr, "unknown")
+                        new_tcs = result.get("new_tests", [])
+                        if _prof:
+                            _n_recv_bytes += sum(
+                                len(tc.get("content", b"")) for tc in new_tcs
+                            )
                         batch_results.append((
-                            wr, ip,
-                            result.get("new_tests", []),
+                            wr, ip, new_tcs,
                             result.get("retcode", 0),
                             result.get("elapsed", 0),
                             result.get("killed", False),
                         ))
+                    if _prof:
+                        _t_recv += time.monotonic() - _t0
+                        _n_recv += len(batch_results)
 
                     # 批量 triage
+                    _t0 = time.monotonic()
                     if batch_results:
                         bitmap_changed = _batch_triage(
                             batch_results, stats, coverage, afl_config,
@@ -774,6 +814,9 @@ def master(comm, args):
                                 with open(tmp_path, "wb") as f:
                                     f.write(bytes(coverage.data))
                                 os.replace(tmp_path, bitmap_shared_path)
+                    if _prof:
+                        _t_triage += time.monotonic() - _t0
+                        _n_triage += 1
 
             # 未分发完的 SymCC 反馈用例放回队列
             undispatched_feedback = [
@@ -785,23 +828,48 @@ def master(comm, args):
             # 旧的 collect/triage 代码已移到 while 循环内的交替处理中
 
             # Periodic stats output
-            if time.monotonic() - last_stats_time > STATS_INTERVAL_SEC:
+            stats_interval = 15 if _prof else STATS_INTERVAL_SEC
+            if time.monotonic() - last_stats_time > stats_interval:
                 stats.log(stats_file)
                 last_stats_time = time.monotonic()
                 print(f"[Master] Stats: {stats.total_count} ok, "
                       f"{stats.failed_count} failed, "
                       f"{stats.interesting_count} interesting / "
                       f"{stats.generated_count} total")
+                if _prof and _n_scan > 0:
+                    print(f"[PROF] scan={_t_scan:.2f}s/{_n_scan}x "
+                          f"dispatch={_t_dispatch:.2f}s/{_n_dispatch}x "
+                          f"recv={_t_recv:.2f}s/{_n_recv}x({_n_recv_bytes//1024}KB) "
+                          f"triage={_t_triage:.2f}s/{_n_triage}x "
+                          f"idle={_t_idle:.2f}s")
+                    sys.stdout.flush()
 
             # 无输入且无活跃 worker 时等待 AFL 产生新用例
+            _t0 = time.monotonic()
             if not work_queue and not active_workers and not symcc_feedback_queue:
                 time.sleep(2)
             elif symcc_feedback_queue:
                 pass  # 有反馈用例时立即分发
             else:
                 time.sleep(0.05)
+            if _prof:
+                _t_idle += time.monotonic() - _t0
     finally:
         # --- 优雅关闭 ---
+        # 输出 profiling 数据
+        if _prof:
+            wall = time.monotonic() - last_stats_time + STATS_INTERVAL_SEC
+            print(f"[PROF] scan:     {_t_scan:>7.2f}s ({_n_scan} calls, "
+                  f"avg {_t_scan/_n_scan*1000:.1f}ms)" if _n_scan else "")
+            print(f"[PROF] dispatch: {_t_dispatch:>7.2f}s ({_n_dispatch} sends, "
+                  f"avg {_t_dispatch/_n_dispatch*1000:.2f}ms)" if _n_dispatch else "")
+            print(f"[PROF] recv:     {_t_recv:>7.2f}s ({_n_recv} results, "
+                  f"avg {_t_recv/max(_n_recv,1)*1000:.1f}ms, "
+                  f"~{_n_recv_bytes/1024/1024:.1f}MB total)")
+            print(f"[PROF] triage:   {_t_triage:>7.2f}s ({_n_triage} batches)")
+            print(f"[PROF] idle:     {_t_idle:>7.2f}s")
+            sys.stdout.flush()
+
         # 先输出最终统计（在尝试与 worker 通信之前，因为 worker 可能已被 SIGTERM 杀死）
         stats.log(stats_file)
         print(f"[Master] Final stats: {stats.total_count} ok, "
