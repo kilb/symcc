@@ -261,6 +261,11 @@ UNLOCKED_PATCH
             cp "src/$prog" "$BUILD_DIR/lava-m/${prog}"
             built=$((built + 1))
             info "    -> $prog built successfully"
+            # 生成 .args 文件：LAVA-M 程序需要特定参数才能触发丰富的分支
+            # base64 需要 -d（解码模式），否则只走编码路径（7%→21% 覆盖率）
+            case "$prog" in
+                base64) echo "-d" > "$BUILD_DIR/lava-m/${prog}.args" ;;
+            esac
         else
             warn "    $prog: binary not found at src/$prog"
         fi
@@ -932,6 +937,9 @@ UNLOCKED_PATCH
             cp "src/$prog" "$BUILD_DIR/lava-m-afl/${prog}"
             built=$((built + 1))
             info "    -> $prog AFL built"
+            case "$prog" in
+                base64) echo "-d" > "$BUILD_DIR/lava-m-afl/${prog}.args" ;;
+            esac
         else
             warn "    $prog AFL build failed"
         fi

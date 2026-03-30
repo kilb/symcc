@@ -516,7 +516,8 @@ def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
 
 def measure_coverage_afl(afl_binary: str, test_case_dir: str,
                          uses_file: bool = True,
-                         timeout_per_case: int = 5000) -> dict:
+                         timeout_per_case: int = 5000,
+                         extra_args: list[str] | None = None) -> dict:
     """使用 afl-showmap -C 测量 AFL 边覆盖率。
 
     通过 afl-showmap 的批量收集模式（-C -i dir）一次性处理所有测试用例，
@@ -557,6 +558,8 @@ def measure_coverage_afl(afl_binary: str, test_case_dir: str,
         "-o", out_file,
         "--", afl_binary,
     ]
+    if extra_args:
+        cmd.extend(extra_args)
     if uses_file:
         cmd.append("@@")
 
@@ -933,7 +936,7 @@ def run_serial(binary, target_name, seed_dir, timeout, work_dir,
 
 
 def run_mpi(binary, target_name, seed_dir, np, timeout, work_dir,
-            simulate=False):
+            simulate=False, extra_args=None):
     """Run MPI-parallel concolic execution."""
     output_dir = os.path.join(work_dir, f"mpi_np{np}_output")
     os.makedirs(output_dir, exist_ok=True)
@@ -961,6 +964,8 @@ def run_mpi(binary, target_name, seed_dir, np, timeout, work_dir,
     if simulate:
         cmd.append("--simulate")
     cmd.extend(["--", binary])
+    if extra_args:
+        cmd.extend(extra_args)
 
     if uses_file:
         cmd.append("@@")
@@ -1068,7 +1073,8 @@ def discover_public_afl_targets() -> dict[str, str]:
 
 
 def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
-               seed_dir: str, np: int, timeout: int, work_dir: str) -> dict:
+               seed_dir: str, np: int, timeout: int, work_dir: str,
+               extra_args: list[str] | None = None) -> dict:
     """运行 AFL + MPI SymCC 混合模式。
 
     1. 启动 AFL fuzzer (afl-fuzz -M fuzzer01)
@@ -1088,8 +1094,11 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
         "-i", seed_dir,
         "-o", afl_out_dir,
         "-m", "none",
-        "--", afl_binary, "@@",
+        "--", afl_binary,
     ]
+    if extra_args:
+        afl_cmd.extend(extra_args)
+    afl_cmd.append("@@")
 
     print(f"      Starting AFL: {' '.join(afl_cmd[:8])}...")
     afl_env = os.environ.copy()
@@ -1143,8 +1152,11 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
         "-o", afl_out_dir,
         "-n", "symcc01",
         "--save-all", symcc_all_dir,
-        "--", symcc_binary, "@@",
+        "--", symcc_binary,
     ]
+    if extra_args:
+        mpi_cmd.extend(extra_args)
+    mpi_cmd.append("@@")
 
     print(f"      Starting MPI SymCC (np={symcc_np})...")
     mpi_env = os.environ.copy()
@@ -1278,7 +1290,8 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
 
 
 def run_afl_only(afl_binary: str, target_name: str,
-                 seed_dir: str, timeout: int, work_dir: str) -> dict:
+                 seed_dir: str, timeout: int, work_dir: str,
+                 extra_args: list[str] | None = None) -> dict:
     """运行 AFL-only 基准模式（无 SymCC）。
 
     仅启动 AFL fuzzer，作为 hybrid 模式的对照基准。
@@ -1292,8 +1305,11 @@ def run_afl_only(afl_binary: str, target_name: str,
         "-i", seed_dir,
         "-o", afl_out_dir,
         "-m", "none",
-        "--", afl_binary, "@@",
+        "--", afl_binary,
     ]
+    if extra_args:
+        afl_cmd.extend(extra_args)
+    afl_cmd.append("@@")
 
     print(f"      Starting AFL-only: {' '.join(afl_cmd[:8])}...")
     afl_env = os.environ.copy()
@@ -1746,6 +1762,7 @@ def main():
     # Explicit --public specs override auto-discovery.
     public_targets = {}
     public_seed_dirs = {}
+    target_extra_args: dict[str, list[str]] = {}  # 目标额外参数，如 base64 的 "-d"
     if not args.no_public:
         public_specs = list(args.public) if args.public is not None else []
 
@@ -1780,6 +1797,12 @@ def main():
                                 public_specs.append(
                                     f"{target_name}:{binary}:{seed_candidate}"
                                 )
+                                # 读取 .args 文件（如有），如 base64.args 包含 "-d"
+                                args_file = suite_dir / f"{bname}.args"
+                                if args_file.is_file():
+                                    extra = args_file.read_text().strip().split()
+                                    if extra:
+                                        target_extra_args[target_name] = extra
 
         if public_specs:
             print("\n  Adding public benchmark targets:")
@@ -1894,7 +1917,8 @@ def main():
                         shutil.copy2(sp, dp)
                 cov_data = measure_coverage_afl(
                     afl_cov_binaries[target], result["output_dir"],
-                    uses_file=uses_file
+                    uses_file=uses_file,
+                    extra_args=target_extra_args.get(target),
                 )
 
             cov_str = ""
@@ -1962,7 +1986,8 @@ def main():
                 result = run_mpi(
                     binary, target, seed_dir, actual_np,
                     args.timeout, work_dir,
-                    simulate=args.simulation
+                    simulate=args.simulation,
+                    extra_args=target_extra_args.get(target),
                 )
 
                 # 使用 AFL 边覆盖率测量
@@ -1971,7 +1996,8 @@ def main():
                     uses_file = TARGETS[target][3] if target in TARGETS else True
                     cov_data = measure_coverage_afl(
                         afl_cov_binaries[target], result["output_dir"],
-                        uses_file=uses_file
+                        uses_file=uses_file,
+                        extra_args=target_extra_args.get(target),
                     )
 
                 cov_str = ""
@@ -2079,7 +2105,8 @@ def main():
                         print(f"    Round {r+1}/{args.rounds}... ", end="", flush=True)
                         result = run_hybrid(
                             binary, afl_binary, target, seed_dir,
-                            actual_np, args.timeout, work_dir
+                            actual_np, args.timeout, work_dir,
+                            extra_args=target_extra_args.get(target),
                         )
 
                         # 使用 AFL 边覆盖率测量
@@ -2087,7 +2114,8 @@ def main():
                         if enable_coverage and target in afl_cov_binaries:
                             cov_data = measure_coverage_afl(
                                 afl_cov_binaries[target], result["output_dir"],
-                                uses_file=True
+                                uses_file=True,
+                                extra_args=target_extra_args.get(target),
                             )
 
                         cov_str = ""
@@ -2144,7 +2172,8 @@ def main():
                     print(f"    Round {r+1}/{args.rounds}... ", end="", flush=True)
                     result = run_afl_only(
                         afl_binary, target, seed_dir,
-                        args.timeout, work_dir
+                        args.timeout, work_dir,
+                        extra_args=target_extra_args.get(target),
                     )
 
                     # 使用 AFL 边覆盖率测量
