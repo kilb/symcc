@@ -1,0 +1,1 @@
+INSERT INTO t1 VALUES(1,'hello',3.14);

@@ -1,0 +1,1 @@
+WITH cte AS (SELECT 1 AS n) SELECT * FROM cte;
