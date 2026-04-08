@@ -1,0 +1,79 @@
+{
+  "target": "sqlite",
+  "config": {
+    "total_cores": 192,
+    "cores_per_instance": 32,
+    "n_instances": 6,
+    "timeout": 120
+  },
+  "instances": [
+    {
+      "instance_id": 5,
+      "group": "multi",
+      "seeds": 1,
+      "tc_count": 122697,
+      "throughput": 1807.9,
+      "elapsed": 121.1,
+      "output_dir": "/tmp/multi_instance_rn6b4v2g/output_multi"
+    },
+    {
+      "instance_id": 0,
+      "group": "ddl",
+      "seeds": 6,
+      "tc_count": 165695,
+      "throughput": 2269.2,
+      "elapsed": 121.5,
+      "output_dir": "/tmp/multi_instance_rn6b4v2g/output_ddl"
+    },
+    {
+      "instance_id": 3,
+      "group": "control",
+      "seeds": 6,
+      "tc_count": 199850,
+      "throughput": 2737.1,
+      "elapsed": 121.5,
+      "output_dir": "/tmp/multi_instance_rn6b4v2g/output_control"
+    },
+    {
+      "instance_id": 1,
+      "group": "dml",
+      "seeds": 4,
+      "tc_count": 271114,
+      "throughput": 3509.9,
+      "elapsed": 121.9,
+      "output_dir": "/tmp/multi_instance_rn6b4v2g/output_dml"
+    },
+    {
+      "instance_id": 2,
+      "group": "query",
+      "seeds": 5,
+      "tc_count": 287516,
+      "throughput": 3833.8,
+      "elapsed": 121.9,
+      "output_dir": "/tmp/multi_instance_rn6b4v2g/output_query"
+    },
+    {
+      "instance_id": 4,
+      "group": "expr",
+      "seeds": 3,
+      "tc_count": 368087,
+      "throughput": 5083.6,
+      "elapsed": 122.2,
+      "output_dir": "/tmp/multi_instance_rn6b4v2g/output_expr"
+    }
+  ],
+  "merged_coverage": {
+    "edges": 4798,
+    "total": 31680,
+    "pct": 15.15,
+    "files": 30025,
+    "label": "merged"
+  },
+  "single_coverage": {
+    "edges": 4843,
+    "total": 31680,
+    "pct": 15.29,
+    "files": 529124,
+    "label": "single"
+  }
+}

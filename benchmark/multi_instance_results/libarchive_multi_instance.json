@@ -1,0 +1,61 @@
+{
+  "target": "libarchive",
+  "config": {
+    "total_cores": 128,
+    "cores_per_instance": 32,
+    "n_instances": 4,
+    "timeout": 120
+  },
+  "instances": [
+    {
+      "instance_id": 0,
+      "group": "tar",
+      "seeds": 4,
+      "tc_count": 75229,
+      "throughput": 1356.2,
+      "elapsed": 119.2,
+      "output_dir": "/tmp/multi_instance_r9kz_rre/output_tar"
+    },
+    {
+      "instance_id": 2,
+      "group": "cpio_ar",
+      "seeds": 1,
+      "tc_count": 73029,
+      "throughput": 1068.7,
+      "elapsed": 119.2,
+      "output_dir": "/tmp/multi_instance_r9kz_rre/output_cpio_ar"
+    },
+    {
+      "instance_id": 1,
+      "group": "zip",
+      "seeds": 2,
+      "tc_count": 67633,
+      "throughput": 2180.8,
+      "elapsed": 119.2,
+      "output_dir": "/tmp/multi_instance_r9kz_rre/output_zip"
+    },
+    {
+      "instance_id": 3,
+      "group": "headers",
+      "seeds": 5,
+      "tc_count": 84022,
+      "throughput": 2573.5,
+      "elapsed": 119.2,
+      "output_dir": "/tmp/multi_instance_r9kz_rre/output_headers"
+    }
+  ],
+  "merged_coverage": {
+    "edges": 1955,
+    "total": 13760,
+    "pct": 14.21,
+    "files": 20013,
+    "label": "merged"
+  },
+  "single_coverage": {
+    "edges": 2121,
+    "total": 13760,
+    "pct": 15.41,
+    "files": 119197,
+    "label": "single"
+  }
+}
