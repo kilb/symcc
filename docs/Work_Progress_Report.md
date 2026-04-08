@@ -6,14 +6,14 @@
 
 **项目目标**：通过 MPI 并行化框架，让 SymCC 能利用多核服务器同时处理多个输入，加速符号执行的探索速度；同时实现 AFL+SymCC 混合模式（Hybrid），结合模糊测试的随机变异和符号执行的精确求解。
 
-**硬件环境**：AMD Threadripper PRO 9995WX（96 核 / 192 线程）、250GB DDR5、Ubuntu 24.04
+**硬件环境**：AMD Threadripper PRO 9995WX（96 核 / 192 线程）、250GB DDR5、Ubuntu 24.04。后文中 `np=N` 表示启动 N 个 MPI 进程（其中 1 个为 Master，N-1 个为 Worker）。
 
 **软件环境**：SymCC（QSYM 后端）、LLVM/Clang 18、Z3 4.x、AFL++ 4.40c、OpenMPI、mpi4py
 
 **评估指标**：
 
 - **吞吐量**（test cases/s）：单位时间内生成的测试用例数量，衡量并行效率
-- **AFL 边覆盖率**：通过 `afl-showmap -C` 测量程序执行到的控制流边数占总边数的百分比。选择 AFL 边覆盖率而非 gcov 行覆盖率，因为它是 fuzzing 社区的事实标准，且所有模式（MPI、Hybrid、AFL-only）可以用同一个 AFL-instrumented 二进制统一测量
+- **AFL 边覆盖率**：通过 `afl-showmap -C` 测量程序执行到的控制流边数占 AFL 插桩记录的总边数的百分比（注：总边数由 AFL 编译时的插桩点数决定，包含程序中所有被插桩的分支转移，不等于"所有可能的代码路径"）。选择此指标而非 gcov 行覆盖率，因为它是 fuzzing 社区的事实标准，且所有模式（MPI、Hybrid、AFL-only）可以用同一个 AFL-instrumented 二进制统一测量
 - **Scaling 效率**：`(np=N 的吞吐量) / (np=2 的吞吐量) / (N/2)`，衡量并行扩展性
 
 ---
@@ -26,7 +26,7 @@
 
 **MPI 纯并行模式**（`mpi_concolic_execution.py`，771 行）
 
-Master-Worker 架构。Master 将种子输入分发给 Workers，每个 Worker 运行 SymCC 对输入做约束求解，产出新的测试用例反馈给 Master，形成迭代深化循环。Master 只通过 MPI 发送 64 字节的 SHA-256 hash（不传文件内容），Workers 从共享目录按 hash 读取文件，避免了序列化瓶颈。进程数超过 46 时自动分裂为多个 Master（通过 `MPI_Comm_Split` 创建子通信域），Master 间通过非阻塞 `isend` 每 2 秒同步 hash 集合。
+Master-Worker 架构。Master 将种子输入分发给 Workers，每个 Worker 运行 SymCC 对输入做约束求解，产出新的测试用例反馈给 Master，形成迭代深化循环。Master 只通过 MPI 发送 SHA-256 hash 的十六进制字符串（64 字符，不传文件内容），Workers 从共享目录按 hash 读取文件，避免了序列化瓶颈。进程数超过 46 时自动分裂为多个 Master（通过 `MPI_Comm_Split` 创建子通信域），Master 间通过非阻塞 `isend` 每 2 秒同步 hash 集合。
 
 **Hybrid AFL+SymCC 模式**（`mpi_fuzzing_helper.py`，1,075 行）
 
@@ -38,14 +38,14 @@ Master-Worker 架构。Master 将种子输入分发给 Workers，每个 Worker �
 
 | 轮次 | 瓶颈位置 | 占比 | 优化方法 | 效果 |
 |------|---------|------|----------|------|
-| 1 | Master 逐个 fork afl-showmap 做 triage | 60% per-task | Worker 端运行 afl-showmap，返回稀疏边列表 `[(edge_id, count)]` | triage 103s → 0ms |
+| 1 | Master 逐个 fork afl-showmap 做 triage（Hybrid 模式） | 每 task 60% 时间在 triage | Worker 端运行 afl-showmap，返回稀疏边列表 `[(edge_id, count)]` | triage 103s → 0ms |
 | 2 | MPI 消息传输文件内容 | ~8MB/msg | 路径协议：只发文件路径，Worker 直接读共享文件系统 | 消息 8MB → 64B |
 | 3 | Worker 端 afl-showmap fork/exec | 12ms/call × 95次 = 1.1s/task | `afl-showmap -S` 流式模式：持久 fork server + stdin/stdout 管道协议 | 12ms → 0.6ms/call (19x) |
-| 4 | AFL queue 目录扫描 | 88% (np=8) | `os.scandir` 替代 `os.listdir`+`stat`；有 SymCC 反馈时跳过扫描 | 39.5s → 3.7s (10x) |
-| 5 | MPI recv 反序列化 | 38% (np=64) | Worker 端 coverage dedup：只传 ~3% 的 interesting 测试用例 | 消息 34MB → 3.6MB，recv 18.7s → 2.3s |
+| 4 | AFL queue 目录扫描（Hybrid np=8） | Master 88% 时间 | `os.scandir` 替代 `os.listdir`+`stat`；有 SymCC 反馈时跳过扫描 | 39.5s → 3.7s (10x) |
+| 5 | MPI recv 反序列化（Hybrid np=64） | Master 38% 时间 | Worker 端 coverage dedup：只传 ~3% 的 interesting 测试用例 | 消息 34MB → 3.6MB，recv 18.7s → 2.3s |
 | 6 | dispatch 和 collect 串行执行 | — | 交替处理 TAG_READY 和 TAG_RESULT，同一循环内完成 | 减少 Worker 空闲时间 |
 
-优化后 Master 在 np=64 时：recv 5% + triage 4% + scan 34% + **idle 57%**。Master 不再是瓶颈。
+优化后 Master 在 Hybrid np=64 时：recv 5% + triage 4% + scan 34% + **idle 57%**。scan 的 34% 来自 `os.scandir` 的固有开销（AFL queue 目录有数千文件），已无进一步优化空间。Master 的有效处理时间（recv + triage）仅占 9%，不再是瓶颈。
 
 ### 1.3 Bug 修复（20+ 个）
 
@@ -54,7 +54,7 @@ Master-Worker 架构。Master 将种子输入分发给 Workers，每个 Worker �
 **致命 Bug（导致功能完全失效）**：
 - **afl-showmap 路径错误**：当 AFL 通过 PATH 调用时，路径解析产生 `./afl-showmap`（不存在），导致 Hybrid 模式所有 triage 静默失败，`symcc_interesting` 永远为 0
 - **LAVA-M 零产出**：coreutils 的 gnulib 用 `fread_unlocked` 宏替换 `fread`，绕过了 SymCC 的 `fread_symbolized` 包装器。Patch `unlocked-io.h` 将 `*_unlocked` 映射回标准函数后，base64 从 0 test cases 恢复到 16,855
-- **base64 参数缺失**：benchmark 以编码模式（`base64 @@`）运行，实际应为解码模式（`base64 -d @@`），导致覆盖率 7.44%（编码查表路径）vs 23.9%（解码验证路径）
+- **base64 参数缺失**：benchmark 以编码模式（`base64 @@`）运行，实际应为解码模式（`base64 -d @@`），导致覆盖率 7.44%（编码查表路径）vs 23.90%（解码验证路径）
 
 **严重 Bug（导致死锁或数据丢失）**：
 - **AFL stderr 管道死锁**：`afl_proc.stderr=PIPE` 未读取，64KB 缓冲区满后 AFL 停滞
@@ -124,25 +124,25 @@ Master-Worker 架构。Master 将种子输入分发给 Workers，每个 Worker �
 
 **现象**：Hybrid np=128 只有 497 tc/s，纯 MPI 有 15,022 tc/s（30x 差距）。
 
-**根因**：Hybrid 的输入来自 AFL queue（AFL 每秒只产出 ~50 个 interesting 用例），而纯 MPI 的输入来自 SymCC 自身产出的反馈循环（无外部瓶颈）。Hybrid 中 SymCC Workers 大部分时间在等待 AFL 产出新输入。
+**根因**：Hybrid 的输入来自 AFL queue。AFL 虽然以 ~7,000 exec/s 的速度执行，但只有触发新覆盖的输入才会进入 queue（称为 interesting），产出率约 ~50 interesting/s。纯 MPI 的输入来自 SymCC 自身产出的反馈循环，无外部速率限制。Hybrid 中 SymCC Workers 大部分时间在等待 AFL 产出新的 interesting 输入。
 
-**性质**：这是架构性取舍。Hybrid 用吞吐量换覆盖率质量——AFL 提供的种子虽少但多样性更高。
+**性质**：这是架构性取舍。Hybrid 用吞吐量换覆盖率质量——AFL 提供的种子虽少但多样性更高（每个都触发了新的代码路径）。
 
-### 问题 3：190 线程反而比 32 线程慢
+### 问题 3：超过最优并行度后效率下降
 
-**现象**：libarchive 的时间-覆盖率曲线显示 np=190 在 80s 才达到 np=32 在 20s 就达到的覆盖率。
+**现象**：libarchive 的时间-覆盖率曲线显示 np=190 在 80s 才达到 np=32 在 20s 就达到的覆盖率。这与问题 1（覆盖率天花板）的根因不同——问题 1 是约束求解的理论限制，问题 3 是工程层面的并行开销。
 
 **根因**：190 进程 = 5 个 Master 互相同步，协调开销大；搜索空间（~2100 条可达边）被 32 个 Worker 在 20s 内穷尽，之后 158 个 Worker 做冗余工作；文件系统在 190 进程并发写入时出现争用。
 
-**性质**：并行度应匹配搜索空间大小。小目标用少量核，大目标用多核。
+**性质**：并行度应匹配搜索空间大小和运行时间。工程问题，可通过配置调优避免。
 
 ### 问题 4：分种子多实例覆盖率反降
 
-**现象**：将 SQLite 的 25 个种子按 SQL 类型分成 6 组，各跑一个 np=32 实例，合并覆盖率 15.15% < 单实例 15.29%（-0.14%）。
+**现象**：如 1.6 节所述，将种子按类型分组独立运行后，合并覆盖率反而低于单实例（SQLite -0.14%，libarchive -1.20%）。
 
-**根因**：分种子**打断了跨类型正反馈循环**。单实例中 CREATE 种子的 SymCC 输出可以包含 INSERT 语句，形成 `CREATE→INSERT→SELECT` 的组合探索。分实例后 DDL 组永远不会产出 SELECT 相关的变体。SymCC 的正反馈循环是其核心价值之一。
+**根因**：分种子打断了跨类型正反馈循环（详见 1.6 节分析）。
 
-**性质**：已验证为无效方向。
+**性质**：已验证为无效方向。但仅否定了"分种子"策略，未测试其他多实例策略（如共享种子但使用不同约束求解超时、不同随机化配置等）。
 
 ### 问题 5：字典引导在全种子集下无效
 
@@ -160,13 +160,13 @@ Master-Worker 架构。Master 将种子输入分发给 Workers，每个 Worker �
 
 基线为 np=2（1 个 Worker），测试时间 120 秒。
 
-| 目标 | np=2 | np=8 | np=32 | np=128 | 加速比 | 效率 |
-|------|-----:|-----:|------:|-------:|------:|-----:|
-| xml (tc/s) | 128 | 1,604 | 7,683 | **15,022** | **117x** | 92% |
-| SQLite (tc/s) | 236 | 1,492 | 6,579 | **19,741** | **84x** | 66% |
-| base64_harness (tc/s) | 172 | 1,027 | 4,117 | **12,249** | **71x** | 56% |
+| 目标 | np=2 | np=8 (效率) | np=32 (效率) | np=128 (效率) | 加速比 |
+|------|-----:|------:|------:|------:|------:|
+| xml (tc/s) | 128 | 1,604 (179%) | 7,683 (194%) | **15,022** (92%) | **117x** |
+| SQLite (tc/s) | 236 | 1,492 (89%) | 6,579 (69%) | **19,741** (66%) | **84x** |
+| base64_harness (tc/s) | 172 | 1,027 (86%) | 4,117 (77%) | **12,249** (56%) | **71x** |
 
-注：tc/s = test cases per second（SymCC 生成的测试用例总数 / 运行时间）。np=8~32 出现超线性 scaling（效率 >100%），原因是更多 Worker 产出更多种子互相受益形成正反馈。
+注：tc/s = test cases per second（SymCC 生成的测试用例总数 / 运行时间）。效率 = 实际加速比 / 理想加速比 × 100%，基线为 np=2。xml 目标在 np=8~32 出现超线性 scaling（效率 >100%），原因是更多 Worker 产出更多种子互相受益形成正反馈。
 
 ### 3.2 覆盖率对比
 
@@ -184,13 +184,13 @@ base64 -d（LAVA-M），np=16，120 秒：
 | 模式 | 边数 | 覆盖率 | 说明 |
 |------|-----:|------:|------|
 | 种子 | 126 | 11.58% | 13 个 base64 种子 |
-| AFL-only | 85 | 7.81% | 无 -d 参数，编码模式 |
+| AFL-only | 85 | 7.81% | 注：此数据未使用 -d 参数（编码模式），覆盖率低于种子是因为种子用 -d 测量而 AFL 未用 |
 | MPI-only | 253 | 23.25% | SymCC 求解 LAVA magic value |
 | **Hybrid** | **260** | **23.90%** | **最高** |
 
 ### 3.3 SymCC 的特有价值：精确求解 magic value
 
-在 base64 目标上，AFL 执行 37 万次无法触发任何 LAVA-M 注入的 bug。SymCC 通过约束求解精确构造了满足 `lava_get(N) == 0x6c617564` 条件的输入，**47% 的 SymCC 输出触发了 SIGSEGV**。这证明了 concolic execution 在精确路径探索上相对于随机模糊测试的不可替代性。
+在 base64 目标上（120 秒测试），AFL 执行 373,805 次（均为 AFL-instrumented 二进制的随机变异）无法触发任何 LAVA-M 注入的 bug（0 crashes）。而 SymCC 通过约束求解精确构造了满足 `lava_get(N) == 0x6c617564` 条件的输入，**300 个样本中 47% 触发了 SIGSEGV**（即成功触发了 LAVA-M 注入的内存访问 bug）。需注意这是不同工具的对比（AFL 做随机变异，SymCC 做约束求解），各有擅长的场景，此处展示的是 SymCC 在 magic value 求解上的特有优势。
 
 ### 3.4 时间压缩效果
 
@@ -206,7 +206,7 @@ libarchive 目标上，np=32 在 **20 秒**内达到 np=2 在 **120 秒**才能�
 
 ### 4.2 Hybrid 模式实现了最高覆盖率
 
-在所有测试目标上，Hybrid（AFL + 并行 SymCC）的覆盖率均 ≥ AFL-only 和 MPI-only。AFL 提供了 SymCC 无法生成的语义级变异（通过字典和 havoc 阶段），SymCC 提供了 AFL 无法触达的精确路径（通过 magic value 约束求解）。两者互补效应明确。
+在 xml_read_fuzzer 和 base64 目标上，Hybrid（AFL + 并行 SymCC）均实现了最高覆盖率。xml 目标上 Hybrid 8.84% > AFL-only 7.55% > MPI-only 6.26%。AFL 提供了 SymCC 无法生成的语义级变异（通过字典和 havoc 阶段），SymCC 提供了 AFL 无法触达的精确路径（通过 magic value 约束求解）。两者互补效应明确。（注：base64 的 AFL-only 基线受参数 bug 影响，在修复 `-d` 参数后 AFL-only 的实际覆盖率可能更高。）
 
 ### 4.3 覆盖率天花板是 concolic execution 的固有限制
 
@@ -214,7 +214,7 @@ libarchive 目标上，np=32 在 **20 秒**内达到 np=2 在 **120 秒**才能�
 
 ### 4.4 最优资源配置建议
 
-单实例最优并行度为 32-128 核（取决于目标复杂度）。192 核服务器的推荐用法是同时测试多个不同目标（每个 32 核），而非单目标堆核。同一目标的分种子多实例无效（打断正反馈循环）。
+单实例最优并行度为 32-128 个进程（取决于目标复杂度和搜索空间大小）。192 线程服务器的推荐用法是同时测试多个不同目标程序（每个 32 进程），而非单目标堆进程。同一目标的"分种子"多实例策略已验证无效（打断正反馈循环），但其他多实例策略（如共享种子 + 不同随机化配置）尚未测试。
 
 ---
 
@@ -243,7 +243,7 @@ libarchive 目标上，np=32 在 **20 秒**内达到 np=2 在 **120 秒**才能�
 |------|------|------|
 | 分种子多实例 | 覆盖率降低 | SQLite -0.14%, libarchive -1.20% |
 | 字典引导（种子充分时） | 无额外收益 | +3 edges / 4832 total |
-| np > 128 | 吞吐量和覆盖率均下降 | xml np=190 比 np=128 低 7% |
+| np > 128 | 收益递减或下降 | xml np=190 吞吐量比 np=128 低 7%；SQLite np=190 吞吐量微增但覆盖率无变化 |
 
 ---
 
@@ -263,11 +263,22 @@ python3 benchmark/run_benchmark.py \
   --targets gfts-xml_read_fuzzer --hybrid --afl-only \
   --np-list 2,8,32,128 --timeout 120 --output results_hybrid/
 
-# 瓶颈分析
-SYMCC_MASTER_PROFILE=1 mpirun -np 32 python3 -u util/mpi_fuzzing_helper.py ...
+# 瓶颈分析（需先启动 AFL，参见 run_benchmark.py 的 --hybrid 模式）
+python3 benchmark/profile_bottleneck.py \
+  --target gfts-xml_read_fuzzer --np-list 2,8,32 --timeout 60
 
-# 字典引导
-SYMCC_DICT=/path/to/sql.dict mpirun -np 32 python3 -u util/mpi_concolic_execution.py ...
+# 字典引导（SQLite 示例）
+SYMCC_DICT=benchmark/public/fuzzer-test-suite/sqlite-2016-11-14/sql.dict \
+mpirun --allow-run-as-root -np 32 -x SYMCC_DICT \
+  python3 -u util/mpi_concolic_execution.py \
+  -i benchmark/public/seeds/sqlite/sqlite_fuzzer \
+  -o /tmp/dict_output -t 10 --wall-timeout 115 \
+  -- benchmark/public/bin/sqlite/sqlite_fuzzer @@
+
+# 多实例并行
+python3 benchmark/run_multi_instance.py \
+  --target sqlite --total-cores 192 --cores-per-instance 32 \
+  --timeout 120 --also-single
 ```
 
 注：当前 benchmark 结果为单轮运行（`rounds=1`），未计算标准差。多轮统计（建议 ≥3 轮）是后续工作的一部分。
