@@ -1,0 +1,17 @@
+target,mode,np,round,wall_time_sec,generated,unique,throughput_tc_s,edge_cov_pct,edges_found,edges_total,crashes,speedup,efficiency
+sqlite-sqlite_fuzzer,serial,1,1,120.00,2084,2084,17.37,14.81,4692,31680,0,1.00,100.0
+sqlite-sqlite_fuzzer,mpi,8,1,103.98,116956,79427,1132.50,15.15,4799,31680,0,65.21,931.6
+sqlite-sqlite_fuzzer,hybrid,8,1,121.23,3519,3519,29.03,18.72,5930,31680,0,0.00,0.0
+sqlite-sqlite_fuzzer,afl-only,1,1,120.16,1516,1516,12.62,21.03,6662,31680,0,0.00,0.0
+pcre2-pcre2_fuzzer,serial,1,1,120.00,2288,2288,19.07,15.83,1185,7488,0,1.00,100.0
+pcre2-pcre2_fuzzer,mpi,8,1,103.85,87529,39172,848.50,19.59,1467,7488,0,44.50,635.7
+pcre2-pcre2_fuzzer,hybrid,8,1,121.28,9152,9152,75.46,39.77,2978,7488,0,0.00,0.0
+pcre2-pcre2_fuzzer,afl-only,1,1,120.21,5236,5236,43.56,39.42,2952,7488,0,0.00,0.0
+libarchive-archive_fuzzer,serial,1,1,120.00,2442,2442,20.35,12.30,1692,13760,0,1.00,100.0
+libarchive-archive_fuzzer,mpi,8,1,103.80,51559,31871,500.00,14.24,1959,13760,0,24.57,351.0
+libarchive-archive_fuzzer,hybrid,8,1,121.18,4277,4277,35.29,18.60,2560,13760,0,0.00,0.0
+libarchive-archive_fuzzer,afl-only,1,1,120.11,1363,1363,11.35,15.60,2146,13760,0,0.00,0.0
+freetype2-freetype2_fuzzer,serial,1,1,120.00,68,68,0.57,2.26,488,21632,0,1.00,100.0
+freetype2-freetype2_fuzzer,mpi,8,1,103.74,3752,308,36.40,2.26,488,21632,0,64.24,917.7
+freetype2-freetype2_fuzzer,hybrid,8,1,121.24,672,672,5.54,9.06,1960,21632,0,0.00,0.0
+freetype2-freetype2_fuzzer,afl-only,1,1,120.06,567,567,4.72,5.70,1232,21632,0,0.00,0.0

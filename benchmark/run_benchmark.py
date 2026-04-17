@@ -1074,7 +1074,8 @@ def discover_public_afl_targets() -> dict[str, str]:
 
 def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
                seed_dir: str, np: int, timeout: int, work_dir: str,
-               extra_args: list[str] | None = None) -> dict:
+               extra_args: list[str] | None = None,
+               cmplog_binary: str | None = None) -> dict:
     """运行 AFL + MPI SymCC 混合模式。
 
     1. 启动 AFL fuzzer (afl-fuzz -M fuzzer01)
@@ -1094,8 +1095,11 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
         "-i", seed_dir,
         "-o", afl_out_dir,
         "-m", "none",
-        "--", afl_binary,
     ]
+    # CmpLog: 自动提取 strcmp/memcmp 参数做智能字典变异
+    if cmplog_binary:
+        afl_cmd.extend(["-c", cmplog_binary, "-l", "2AT"])
+    afl_cmd.extend(["--", afl_binary])
     if extra_args:
         afl_cmd.extend(extra_args)
     afl_cmd.append("@@")
@@ -1291,7 +1295,8 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
 
 def run_afl_only(afl_binary: str, target_name: str,
                  seed_dir: str, timeout: int, work_dir: str,
-                 extra_args: list[str] | None = None) -> dict:
+                 extra_args: list[str] | None = None,
+                 cmplog_binary: str | None = None) -> dict:
     """运行 AFL-only 基准模式（无 SymCC）。
 
     仅启动 AFL fuzzer，作为 hybrid 模式的对照基准。
@@ -1305,8 +1310,10 @@ def run_afl_only(afl_binary: str, target_name: str,
         "-i", seed_dir,
         "-o", afl_out_dir,
         "-m", "none",
-        "--", afl_binary,
     ]
+    if cmplog_binary:
+        afl_cmd.extend(["-c", cmplog_binary, "-l", "2AT"])
+    afl_cmd.extend(["--", afl_binary])
     if extra_args:
         afl_cmd.extend(extra_args)
     afl_cmd.append("@@")
@@ -1763,6 +1770,7 @@ def main():
     public_targets = {}
     public_seed_dirs = {}
     target_extra_args: dict[str, list[str]] = {}  # 目标额外参数，如 base64 的 "-d"
+    target_cmplog: dict[str, str] = {}  # 目标的 cmplog 二进制路径
     if not args.no_public:
         public_specs = list(args.public) if args.public is not None else []
 
@@ -1803,6 +1811,11 @@ def main():
                                     extra = args_file.read_text().strip().split()
                                     if extra:
                                         target_extra_args[target_name] = extra
+                                # 查找 cmplog 二进制（同名目录加 -cmplog 后缀）
+                                cmplog_dir = pub_bin_dir / (suite_dir.name + "-cmplog")
+                                cmplog_bin = cmplog_dir / bname
+                                if cmplog_bin.is_file() and os.access(str(cmplog_bin), os.X_OK):
+                                    target_cmplog[target_name] = str(cmplog_bin)
 
         if public_specs:
             print("\n  Adding public benchmark targets:")
@@ -1862,6 +1875,11 @@ def main():
             if not afl_cov_binaries:
                 print("  WARNING: no AFL coverage binaries found, disabling coverage")
                 enable_coverage = False
+
+    if target_cmplog:
+        print(f"\n  CmpLog binaries ({len(target_cmplog)}):")
+        for name in sorted(target_cmplog):
+            print(f"    {name}: {target_cmplog[name]}")
 
     # Prepare seed directories per target
     seed_dirs = {}
@@ -2107,6 +2125,7 @@ def main():
                             binary, afl_binary, target, seed_dir,
                             actual_np, args.timeout, work_dir,
                             extra_args=target_extra_args.get(target),
+                            cmplog_binary=target_cmplog.get(target),
                         )
 
                         # 使用 AFL 边覆盖率测量
@@ -2174,6 +2193,7 @@ def main():
                         afl_binary, target, seed_dir,
                         args.timeout, work_dir,
                         extra_args=target_extra_args.get(target),
+                        cmplog_binary=target_cmplog.get(target),
                     )
 
                     # 使用 AFL 边覆盖率测量
