@@ -1,0 +1,17 @@
+target,mode,np,round,wall_time_sec,generated,unique,throughput_tc_s,edge_cov_pct,edges_found,edges_total,crashes,speedup,efficiency
+pcre2-pcre2_fuzzer,serial,1,1,120.00,2289,2289,19.07,15.72,1177,7488,0,1.00,100.0
+pcre2-pcre2_fuzzer,mpi,2,1,103.55,8694,4693,84.40,15.13,1133,7488,0,4.42,100.0
+pcre2-pcre2_fuzzer,mpi,8,1,103.87,87415,39024,847.50,19.59,1467,7488,0,44.43,143.4
+pcre2-pcre2_fuzzer,mpi,32,1,104.95,370349,146813,3577.60,20.61,1543,7488,0,187.56,136.7
+pcre2-pcre2_fuzzer,hybrid,2,1,121.23,5672,5672,46.79,40.25,3014,7488,0,0.00,0.0
+pcre2-pcre2_fuzzer,hybrid,8,1,121.23,9340,9340,77.04,40.13,3005,7488,0,0.00,0.0
+pcre2-pcre2_fuzzer,hybrid,32,1,121.38,19851,19851,163.55,43.14,3230,7488,0,0.00,0.0
+pcre2-pcre2_fuzzer,afl-only,1,1,120.16,5347,5347,44.50,40.20,3010,7488,0,0.00,0.0
+freetype2-freetype2_fuzzer,serial,1,1,120.00,68,68,0.57,2.26,488,21632,0,1.00,100.0
+freetype2-freetype2_fuzzer,mpi,2,1,103.51,528,48,5.10,2.26,488,21632,0,9.00,100.0
+freetype2-freetype2_fuzzer,mpi,8,1,103.69,3751,309,36.40,2.26,488,21632,0,64.24,102.0
+freetype2-freetype2_fuzzer,mpi,32,1,104.29,9307,757,90.30,2.26,488,21632,0,159.35,57.1
+freetype2-freetype2_fuzzer,hybrid,2,1,121.19,1193,1193,9.84,10.24,2216,21632,0,0.00,0.0
+freetype2-freetype2_fuzzer,hybrid,8,1,121.19,662,662,5.46,9.06,1960,21632,0,0.00,0.0
+freetype2-freetype2_fuzzer,hybrid,32,1,121.30,451,451,3.72,5.28,1143,21632,0,0.00,0.0
+freetype2-freetype2_fuzzer,afl-only,1,1,120.03,551,551,4.59,6.19,1339,21632,0,0.00,0.0
