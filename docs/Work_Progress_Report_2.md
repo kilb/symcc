@@ -25,14 +25,16 @@
 |------|------:|-----:|--------:|--------:|-----------:|:----:|
 | png | 3,072 | 10.35% | 15.69% | 14.10% | **16.96%** | Hybrid |
 | xml | 50,880 | 3.09% | 6.13% | 7.57% | **8.80%** | Hybrid |
-| base64 | 1,088 | 11.58% | 23.25% | 7.81% | **23.90%** | Hybrid |
+| base64 | 1,088 | 11.58% | 23.25% | 7.81%* | **23.90%** | Hybrid |
 | md5sum | 1,344 | 7.14% | 7.14% | 7.37% | **7.37%** | Hybrid=AFL |
 | uniq | 1,216 | 9.54% | 9.54% | 10.61% | **10.61%** | Hybrid=AFL |
 | who | 10,688 | 6.73% | 6.73% | 44.55% | **44.58%** | Hybrid≈AFL |
 | libarchive | 13,760 | 12.27% | 15.33% | 16.41% | **22.25%** | Hybrid |
 | SQLite | 31,680 | 14.74% | 15.26% | 18.48% | **19.44%** | Hybrid |
 
-**结论**：Hybrid 在全部 8 个目标上均为最佳或并列最佳覆盖率。但各目标的 SymCC 贡献差异极大：base64 上 SymCC 是主力（+12%），who 上 SymCC 贡献为 0（全部来自 AFL），libarchive 上两者互补效果最明显（Hybrid 22.25% 远超 AFL 16.41% 和 MPI 15.33%）。
+*注：base64 的 AFL-only 数据未使用 `-d` 参数（编码模式），覆盖率低于种子属于参数配置问题（详见上期报告 1.3 节），不反映 AFL 的真实能力。
+
+**结论**：Hybrid 在全部 8 个目标上均为最佳或并列最佳覆盖率。SymCC 的纯贡献（MPI-only vs 种子）在 base64 上最显著（+11.67%，主要通过求解 LAVA-M 的 magic value），libarchive 上两者互补效果最明显（Hybrid 22.25% 远超 AFL 16.41% 和 MPI 15.33%），who 上 SymCC 贡献为 0（全部来自 AFL）。
 
 ### 1.2 who 目标深入分析
 
@@ -40,9 +42,9 @@ who 是数据中最极端的案例：AFL/Hybrid 覆盖率 44.5%，MPI（纯 SymC
 
 **第一层根因：SymCC 产出 0 个测试用例**
 
-通过 `nm` 检查发现 who 二进制中没有 `fread_symbolized`，只有 `getutxent@GLIBC`。追溯到 `readutmp.c` 的条件编译：当 `UTMP_NAME_FUNCTION` 被定义时，who 使用 glibc 的 `getutxent()` API 读取 utmp 文件。该函数在 glibc **内部**调用 `read()` 系统调用，SymCC 只拦截用户代码中的 I/O 函数，无法拦截 glibc 内部调用，导致输入数据不被标记为符号化。
+通过 `nm` 检查发现 who 二进制中没有 `fread_symbolized`，只有 `getutxent@GLIBC`。追溯到 `readutmp.c` 的条件编译：当 `UTMP_NAME_FUNCTION` 被定义时，who 使用 glibc 的 `getutxent()` API 读取 utmp 文件。该函数在 glibc **内部**调用 `read()` 系统调用，SymCC 的运行时库通过函数包装器拦截 libc 的 `fread`/`read`/`fgets` 等函数（参见 `LibcWrappers.cpp` 中的拦截列表），但 `getutxent` 不在拦截列表中，因此其内部的文件读取不会被标记为符号化输入。
 
-**修复**：在 `readutmp.c` 中将 `#ifdef UTMP_NAME_FUNCTION` 改为 `#if 0`，强制使用 `fopen`+`fread` 路径。修复后 SymCC 产出了 2 个测试用例。
+**修复**：在 `readutmp.c` 中将 `#ifdef UTMP_NAME_FUNCTION` 改为 `#if 0`，强制使用 `fopen`+`fread` 路径。修复后 SymCC 产出了 2 个测试用例。（注：此修复仅用于分析实验，1.1 节全量 benchmark 中 who 的 MPI 数据使用的是修复前的二进制，MPI 覆盖率 6.73% 反映的是原始 `getutxent` 路径下 SymCC 的无效状态。）
 
 **第二层根因：产出了测试用例但覆盖率不变**
 
@@ -80,7 +82,7 @@ pcre2 的特点：AFL 贡献巨大（随机变异产生多样的正则语法）�
 | AFL-only | 1,339 | 6.19% | AFL 有效 |
 | **Hybrid np=2** | **2,216** | **10.24%** | 最高，但 np 增大反而下降 |
 
-freetype2 的特点：SymCC 产出 0 新边（字体文件的表目录+偏移结构太复杂，逐字节翻转破坏表结构导致 `FT_New_Face` 直接失败）。Hybrid np=2 最好（10.24%），但增加 SymCC workers 反而降低覆盖率（np=32 降到 5.28%），因为 SymCC 占用了本可给 AFL 的计算资源。
+freetype2 的特点：SymCC 产出 0 新边（字体文件的表目录+偏移结构太复杂，逐字节翻转破坏表结构导致 `FT_New_Face` 直接失败）。Hybrid np=2 最好（10.24%），但增加 SymCC workers 反而降低覆盖率（np=8 降到 9.06%，np=32 降到 5.28%——来自 `benchmark_results_new_targets` 数据）。原因见下文问题 2 分析。
 
 ### 1.4 AFL++ CmpLog 集成
 
@@ -93,6 +95,8 @@ CmpLog 是 AFL++ 的功能，通过在编译时插桩 `strcmp`/`memcmp`/`switch`
 3. 自动发现 `*-cmplog` 目录下的 CmpLog 二进制
 
 **A/B 对比结果（np=8, 120s）**：
+
+注：「无 CmpLog」基线数据来自此前的 `benchmark_results_full`（AFL-only）和 `benchmark_results_new_targets`（Hybrid）实验，与 CmpLog 实验的运行条件相同（np=8, 120s），但非同次运行，存在随机性差异。
 
 | 目标 | AFL 无 CmpLog | AFL 有 CmpLog | 差异 |
 |------|------:|------:|------:|
@@ -130,7 +134,7 @@ base64 的 MPI 模式生成数万个测试用例，其中 47% 会触发 SIGSEGV�
 
 SQLite 上 AFL+CmpLog（21.03%）> Hybrid+CmpLog（18.72%）。这意味着在 CmpLog 启用后，Hybrid 中的 SymCC workers 不仅没有帮助，反而拉低了整体效果。
 
-**根因**：CmpLog 让 AFL 自动学会了 SQL 关键字替换（与 SymCC 的字典引导功能重叠），而 SymCC 的约束求解仍然是逐字节翻转（无法超越 CmpLog 的智能字典变异）。6 个 SymCC workers 消耗了本可给 AFL 的 CPU 资源。
+**根因**：CmpLog 让 AFL 自动学会了 SQL 关键字替换（与 SymCC 的字典引导功能重叠），而 SymCC 的约束求解仍然是逐字节翻转（无法超越 CmpLog 的智能字典变异）。虽然 AFL 是单进程（`-M fuzzer01`），多出的 SymCC workers 不直接抢占 AFL 的 CPU，但 SymCC 产出的大量低质量 interesting 候选被写入 AFL 的 sync 目录，可能干扰了 AFL 的种子调度和能量分配（corpus distillation），降低了 AFL 的变异效率。
 
 **启示**：Hybrid 的最优 SymCC worker 数应该自适应——对 CmpLog 有效的文本解析器应减少 SymCC workers（甚至为 0），对 magic number 型目标（base64）应增加 SymCC workers。
 
@@ -150,7 +154,7 @@ SymCC 对 freetype2 产出了 test cases 但 0 条新边。字体文件有严格
 |------|------:|--------:|--------:|-----------:|:---:|
 | png | 3,072 | 15.69% | 14.10% | **16.96%** | 边际 (+2.9%) |
 | xml | 50,880 | 6.13% | 7.57% | **8.80%** | 边际 (+1.2%) |
-| base64 | 1,088 | 23.25% | 7.81% | **23.90%** | **主力** (+16%) |
+| base64 | 1,088 | 23.25% | 7.81%* | **23.90%** | **主力** (MPI +11.7%) |
 | md5sum | 1,344 | 7.14% | 7.37% | **7.37%** | 无 |
 | uniq | 1,216 | 9.54% | 10.61% | **10.61%** | 无 |
 | who | 10,688 | 6.73% | 44.55% | **44.58%** | 无 |
@@ -165,9 +169,11 @@ SymCC 对 freetype2 产出了 test cases 但 0 条新边。字体文件有严格
 
 | 类别 | 目标 | 特征 | SymCC 贡献 |
 |------|------|------|-----------|
-| **SymCC 主力** | base64 | magic number 约束、校验和 | Hybrid 比 AFL 高 16+% |
-| **SymCC 有效** | libarchive, png, pcre2, xml | 格式头 magic、混合结构 | Hybrid 比 AFL 高 1-6% |
+| **SymCC 主力** | base64 | magic number 约束 | MPI 比种子高 +11.7%（纯 SymCC 贡献） |
+| **SymCC 有效** | libarchive, png, pcre2, xml, SQLite | 格式头 magic、混合结构 | Hybrid 比 AFL 高 1-6% |
 | **SymCC 无效** | who, freetype2, md5sum, uniq | 平坦二进制、无约束、glibc API 绕过 | Hybrid ≈ AFL 或 SymCC 有害 |
+
+注：base64 的 SymCC 贡献以 MPI-only（23.25%）vs 种子（11.58%）衡量，而非 Hybrid vs AFL-only（后者受 AFL 参数 bug 影响）。*表示数据受 `-d` 参数 bug 影响。
 
 ### 3.3 CmpLog 对 AFL 的提升
 
@@ -186,7 +192,7 @@ CmpLog 对文本解析器（SQLite）效果显著，对二进制格式无效。
 
 ### 4.1 Hybrid 模式在全部 10 个目标上覆盖率最优
 
-这是在扩展到 10 个不同类型目标后确认的结论。即使 SymCC 完全无效（freetype2, who），Hybrid 仍不低于 AFL-only，因为 Hybrid 中的 AFL 组件独立工作不受 SymCC 影响。
+这是在扩展到 10 个不同类型目标后确认的结论。在最优 np 配置下，即使 SymCC 完全无效（freetype2, who），Hybrid 仍不低于 AFL-only。但需注意：当 np 配置不当时（如 freetype2 np=32），SymCC workers 可能反而拉低覆盖率（5.28% < AFL-only 6.19%），因此 np 的选择对 Hybrid 效果至关重要。
 
 ### 4.2 SymCC 的价值取决于目标特征
 
@@ -194,7 +200,7 @@ SymCC 对含 magic number / 校验和的目标（base64）贡献极大（+16%）
 
 ### 4.3 CmpLog 是 SymCC 字典引导的更优替代
 
-AFL++ 的 CmpLog 功能在 SQLite 上自动提升覆盖率 2.55%，效果与我们手动实现的 SYMCC_DICT 字典引导相同，但不需要用户提供字典文件。且 CmpLog 启用后 AFL 如此强大，以至于在 SQLite 上 AFL-only (21.03%) > Hybrid (18.72%)——SymCC workers 反而成了负担。
+AFL++ 的 CmpLog 功能在 SQLite 上自动提升 AFL-only 覆盖率 2.55%（18.48% → 21.03%）。与 SYMCC_DICT 的区别：SYMCC_DICT 依赖用户提供的静态字典文件，在种子充分时无额外收益（+0%）；而 CmpLog 在运行时动态提取比较参数，即使种子充分仍有效（+2.55%），因为它能捕获程序执行过程中遇到的实际比较值。CmpLog 启用后 AFL 如此强大，以至于在 SQLite 上 AFL-only (21.03%) > Hybrid (18.72%)——SymCC workers 反而成了负担。
 
 ### 4.4 最优配置应自适应目标特征
 
