@@ -61,7 +61,7 @@ who 是数据中最极端的案例：AFL/Hybrid 覆盖率 44.5%，而 MPI（纯 
 
 **pcre2（正则表达式引擎）**：编写了 harness 和 8 个多样化正则种子。SymCC 有效（MPI 比种子 +31%），AFL 贡献更大（40.20%），Hybrid 最高（43.14%）。pcre2 展示了"AFL 主导、SymCC 边际贡献"的典型模式。
 
-**freetype2（字体渲染引擎）**：SymCC 完全无效（0 新边），因为逐字节翻转破坏了 TrueType 字体的表目录结构。更值得注意的是，Hybrid 中增加 SymCC workers 反而降低覆盖率：np=2 时 10.24%，np=32 时降到 5.28%。原因是 SymCC 产出的无效变体干扰了 AFL 的种子调度。
+**freetype2（字体渲染引擎）**：SymCC 完全无效（0 新边），因为逐字节翻转破坏了 TrueType 字体的表目录结构。更值得注意的是，Hybrid 中增加 SymCC workers 反而降低覆盖率：np=2 时 10.24%，np=32 时降到 5.28%。原因是 **CPU 资源争抢**：30 个 SymCC workers 持续执行字体解析和 Z3 求解，占用大量 CPU，AFL 分到的时间片减少，导致 AFL 的 generated 从 np=2 的 1,193 降到 np=32 的 451（甚至低于 AFL-only 的 551）。SymCC workers 在此目标上做的是无用功（0 新边），却实实在在消耗了本可让 AFL 跑得更快的 CPU 资源。
 
 ### 1.4 AFL++ CmpLog 集成
 
@@ -78,7 +78,7 @@ who 是数据中最极端的案例：AFL/Hybrid 覆盖率 44.5%，而 MPI（纯 
 
 CmpLog 对 SQLite 显著有效（+2.55%），因为它自动从 `strcmp` 调用中提取了 SQL 关键字。但对二进制格式无效（无字符串比较可提取）。
 
-**颠覆性发现**：启用 CmpLog 后，SQLite 上 AFL-only（21.03%）> Hybrid（18.72%）。CmpLog 的动态字典提取与 SymCC 的约束求解在功能上重叠，但 CmpLog 在运行时捕获程序遇到的实际比较值，比 SymCC 的逐字节翻转更有效。SymCC workers 产出的低质量变体写入 AFL 的 sync 目录后，可能干扰了 AFL 的种子调度效率。
+**颠覆性发现**：启用 CmpLog 后，SQLite 上 AFL-only（21.03%）> Hybrid（18.72%）。CmpLog 的动态字典提取与 SymCC 的约束求解在功能上重叠，但 CmpLog 在运行时捕获程序遇到的实际比较值，比 SymCC 的逐字节翻转更有效。同时，SymCC workers 与 AFL 争抢 CPU 资源，降低了 AFL 的执行速度。
 
 ---
 
