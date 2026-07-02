@@ -66,6 +66,18 @@ MAX_FILE_CACHE = 200000
 # 有界且不影响正确性）。基准运行通常远达不到，仅为病态长运行兜底。
 MAX_DEDUP_ENTRIES = 5000000
 
+# 细粒度并行分解（opt-in，SYMCC_WORKER_DIVERSITY=1）：给每个 worker 一个不同的 concolic
+# 策略画像 + 不相交的符号化字节区间，使相似种子在不同 worker 上产出发散（非重叠）的输入。
+# 目的：突破并行 concolic 的"下游冗余"瓶颈（相同翻转→相同下游代码），让 worker 数可扩展到
+# 远超 ~12 的经验饱和点——每个 worker 分到 P(区间)×S(策略) 网格中的一格不重复的工作。
+# 策略轴（受 AFL ensemble 配置多样性启发，实测对 AFL 有效，此为其 concolic 侧类比）：
+SYMCC_STRATEGY_PROFILES: list[dict[str, str]] = [
+    {},                            # 严格单分支（基线）
+    {"SYMCC_MULTI_SOLVE": "1"},    # 连续字节多分支联合求解
+    {"SYMCC_MULTI_SOLVE": "2"},    # + switch-case / 结构体字段（更深）
+    {"SYMCC_FAST_SOLVE": "1"},     # Fuzzy-Sat 快速求解（不同分支选择 / 更快周转）
+]
+
 
 def _pin_self_to_reserved_core(rank: int) -> None:
     """按 SYMCC_CPU_LIST 把本 rank 钉到保留逻辑核（其派生的 SymCC 子进程会继承亲和性）。
@@ -1378,6 +1390,20 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
     if branch_share:
         worker_env["SYMCC_SKIP_SITES"] = skip_sites_path
 
+    # 细粒度并行分解（opt-in）：本 worker 的策略画像 + 符号化区间槽位（按 rank 分配，
+    # 使不同 worker 做不相交的 concolic 工作，降低下游冗余、突破 ~12 worker 饱和点）。
+    diversity = os.environ.get("SYMCC_WORKER_DIVERSITY") == "1"
+    focus_parts = max(1, int(os.environ.get("SYMCC_FOCUS_PARTITIONS", "8")))
+    div_slot = rank - 1  # rank 0 为 master，worker 从 1 起
+    if diversity:
+        # 2D 网格分解：focus 区间取 slot%P、策略取 slot//P，两轴独立 → 得到 P×S 个互不
+        # 重复的 (区间,策略) 组合（而非两轴同步 slot% 造成的仅 P 个）。前 P×S 个 worker
+        # 各占一格不重复的工作；超过后才开始重复。
+        _strat_idx = (div_slot // focus_parts) % len(SYMCC_STRATEGY_PROFILES)
+        _prof = SYMCC_STRATEGY_PROFILES[_strat_idx]
+        for _k, _v in _prof.items():
+            worker_env[_k] = _v
+
     # 初始化 streaming showmap（持久 fork server，~0.6ms/call）
     afl_showmap_path = shutil.which("afl-showmap")
     streaming_sm: StreamingShowmap | None = None
@@ -1460,9 +1486,25 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
             comm.send(result, dest=0, tag=TAG_RESULT)
             continue
 
-        # 选择性符号化：如果 Master 指定了关注字节范围，传递给 SymCC
+        # 选择性符号化 focus_bytes：
+        #  - 多样性模式：按 worker 槽位分配不相交字节区间，不同 worker 只对输入的不同片段
+        #    符号化 → 翻转不同分支 → 产出发散输入（一个种子的符号化工作被 P 路分解）；
+        #  - 否则沿用 master 的全局 focus（若有）。
         focus = msg.get("focus_bytes", "")
-        if focus:
+        if diversity:
+            try:
+                _flen = os.path.getsize(local_input)
+            except OSError:
+                _flen = 0
+            if _flen > focus_parts:   # 太短则不分区（整段符号化，避免空区间）
+                _fslot = div_slot % focus_parts
+                _lo = (_fslot * _flen) // focus_parts
+                # SYMCC_FOCUS_BYTES 是闭区间 [lo,hi]，故上界减 1 使相邻分区不重叠
+                _hi = ((_fslot + 1) * _flen) // focus_parts - 1
+                worker_env["SYMCC_FOCUS_BYTES"] = f"{_lo}-{max(_lo, _hi)}"
+            elif "SYMCC_FOCUS_BYTES" in worker_env:
+                del worker_env["SYMCC_FOCUS_BYTES"]
+        elif focus:
             worker_env["SYMCC_FOCUS_BYTES"] = focus
         elif "SYMCC_FOCUS_BYTES" in worker_env:
             del worker_env["SYMCC_FOCUS_BYTES"]

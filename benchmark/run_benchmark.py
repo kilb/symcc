@@ -1392,7 +1392,8 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
                afl_instances: int = 1,
                adaptive: bool = False,
                honggfuzz_binary: str | None = None,
-               grimoire: bool = False) -> dict:
+               grimoire: bool = False,
+               symcc_diversity: bool = False) -> dict:
     """运行 AFL + MPI SymCC 混合模式。
 
     并行核心分配（受 KRAKEN ISSTA'25 / Boian 2024 启发）：
@@ -1615,6 +1616,12 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
     print(f"      Starting MPI SymCC (np={symcc_np})...")
     mpi_env = os.environ.copy()
     mpi_env["PYTHONUNBUFFERED"] = "1"
+    # 细粒度并行分解（opt-in）：每 worker 不同策略 + 不相交符号化区间，降低下游冗余、
+    # 突破 ~12 worker 饱和点（尤其对大/难目标）。P×S 个不重复工作格，见 mpi_fuzzing_helper。
+    if symcc_diversity:
+        mpi_env["SYMCC_WORKER_DIVERSITY"] = "1"
+        print("      SymCC worker diversity ON (per-worker strategy + disjoint "
+              "focus-byte regions)")
     # CPU 亲和性（高并行度）：把 MPI SymCC ranks 钉到与 AFL 自动绑核互斥的保留高位核段，
     # 消除 SymCC 子进程在 AFL 已绑核上漂移造成的争用/迁移。低并行度返回 None（不钉核）。
     _cpu_list = _compute_symcc_cpu_list(afl_instances, symcc_np)
@@ -2278,6 +2285,11 @@ def main():
     parser.add_argument("--hybrid-honggfuzz", action="store_true",
                         help="Add honggfuzz as a heterogeneous ensemble member (needs a "
                              "hfuzz-clang-instrumented binary in public/bin/<suite>-hfuzz/).")
+    parser.add_argument("--symcc-diversity", action="store_true",
+                        help="Fine-grained concolic parallelism: give each SymCC worker a "
+                             "distinct strategy + disjoint symbolized byte-region, reducing "
+                             "downstream redundancy so >~12 workers contribute non-overlapping "
+                             "coverage (tune SYMCC_FOCUS_PARTITIONS). Best on large/hard targets.")
     parser.add_argument("--afl-only", action="store_true",
                         help="Also run AFL-only baseline (requires AFL-instrumented binaries)")
     parser.add_argument("--no-serial", action="store_true",
@@ -2782,6 +2794,7 @@ def main():
                             honggfuzz_binary=(
                                 discover_public_hfuzz_targets().get(target)
                                 if args.hybrid_honggfuzz else None),
+                            symcc_diversity=args.symcc_diversity,
                         )
 
                         # 使用 AFL 边覆盖率测量
