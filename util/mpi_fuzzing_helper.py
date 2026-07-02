@@ -100,6 +100,37 @@ def _pin_self_to_reserved_core(rank: int) -> None:
         pass  # 核号无效/平台不支持 → 退回默认调度，不影响正确性
 
 
+def _build_work_items(paths: "list[str]", target_count: int, diversity: bool,
+                      focus_parts: int) -> "list[tuple[str, str | None]]":
+    """把种子路径构建为工作项 [(path, focus_or_None)]，focus 为 "lo-hi" 或 None（整段符号化）。
+
+    动态工作窃取（自适应粒度）：默认每种子 1 个整-种子项（无冗余 CPU）。多样性模式下，
+    当整-种子项数 < target_count（=活跃 worker 数）即出现空闲产能时，把种子按不相交字节
+    区间细分为子项来填满空闲 worker——种子充足时不细分，避免种子够用时 P 倍重复执行的浪费。
+    实测（pcre2）：等宽字节分区负载不均（符号化工作集中在少数驱动分支的字节），故仅用它
+    填补"本会空闲"的产能，而非无条件细分。细分度 per=ceil(target/种子数)，上限 focus_parts。"""
+    base: "list[tuple[str, str | None]]" = [(p, None) for p in paths]
+    if not diversity or not base or len(base) >= target_count:
+        return base
+    per = max(1, min(focus_parts, -(-target_count // len(base))))  # ceil 除法
+    if per <= 1:
+        return base
+    items: "list[tuple[str, str | None]]" = []
+    for path in paths:
+        try:
+            flen = os.path.getsize(path)
+        except OSError:
+            flen = 0
+        if flen <= per:                    # 太短，不细分（避免空/退化区间）
+            items.append((path, None))
+            continue
+        for i in range(per):
+            lo = (i * flen) // per
+            hi = ((i + 1) * flen) // per - 1   # 闭区间 [lo,hi]，减 1 使相邻区间不重叠
+            items.append((path, f"{lo}-{max(lo, hi)}"))
+    return items
+
+
 class AflConfig:
     """AFL fuzzer configuration, read from fuzzer_stats."""
 
@@ -928,6 +959,11 @@ def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
     grimoire_seen: set[str] = set()
     last_grimoire_scan = 0.0
 
+    # 细粒度并行分解 / 动态工作窃取（opt-in）：空闲产能出现时把种子细分为不相交字节区间
+    # 子项填补 worker（见 _build_work_items）。worker 侧还按 rank 分配不同求解策略。
+    _diversity = os.environ.get("SYMCC_WORKER_DIVERSITY") == "1"
+    _focus_parts = max(1, int(os.environ.get("SYMCC_FOCUS_PARTITIONS", "8")))
+
     # 边产出率在线学习（CoFuzz + T-Scheduler 风格）：
     # 跟踪每种种子类型被 concolic 分析后产出 interesting 结果的概率
     # 使用 Beta-Bernoulli Thompson Sampling（T-Scheduler AsiaCCS'24）
@@ -1126,19 +1162,26 @@ def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
                     _t_scan += time.monotonic() - _t0
                     _n_scan += 1
 
-            work_queue = pending_feedback + new_inputs
+            # 动态工作窃取：整-种子项不足以填满活跃 worker 时，把种子细分为不相交字节
+            # 区间子项填补空闲产能（多样性模式；否则等价于原来的整-种子列表）。
+            work_queue = _build_work_items(
+                pending_feedback + new_inputs, max_active_workers,
+                _diversity, _focus_parts)
 
             # 交替处理 READY 和 RESULT 消息，避免单方向阻塞
             work_idx = 0
             any_progress = True
 
-            def _dispatch_to(wr: int, input_file: str) -> None:
-                # 只发路径 + bitmap 版本号，不发内容（worker 自己读文件）
+            def _dispatch_to(wr: int, item: "tuple[str, str | None]") -> None:
+                # item = (种子路径, focus 区间或 None)。只发路径 + focus + bitmap 版本号，
+                # 不发内容（worker 自己读文件）。focus 为工作窃取分配的不相交字节区间。
+                input_file, item_focus = item
                 comm.send({
                     "path": input_file,
                     "bitmap_version": bitmap_version,
                     "bitmap_path": bitmap_shared_path,
-                    "focus_bytes": focus_bytes_str,
+                    "focus_bytes": item_focus if item_focus is not None
+                    else focus_bytes_str,
                 }, dest=wr, tag=TAG_WORK)
                 active_workers[wr] = input_file
                 processed_files.add(input_file)
@@ -1390,17 +1433,15 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
     if branch_share:
         worker_env["SYMCC_SKIP_SITES"] = skip_sites_path
 
-    # 细粒度并行分解（opt-in）：本 worker 的策略画像 + 符号化区间槽位（按 rank 分配，
-    # 使不同 worker 做不相交的 concolic 工作，降低下游冗余、突破 ~12 worker 饱和点）。
+    # 细粒度并行分解（opt-in，SYMCC_WORKER_DIVERSITY=1）：
+    #  - 策略轴（本处，per-rank）：每个 worker 一个不同的求解策略画像 —— 负载均衡（各做
+    #    完整分析），使相似种子在不同 worker 上产出发散输入；
+    #  - 空间轴（focus 字节区间）：由 MASTER 按工作项动态分配（见 _build_work_items 的
+    #    动态工作窃取），本 worker 直接采用 WORK 消息里的 focus_bytes。
     diversity = os.environ.get("SYMCC_WORKER_DIVERSITY") == "1"
-    focus_parts = max(1, int(os.environ.get("SYMCC_FOCUS_PARTITIONS", "8")))
     div_slot = rank - 1  # rank 0 为 master，worker 从 1 起
     if diversity:
-        # 2D 网格分解：focus 区间取 slot%P、策略取 slot//P，两轴独立 → 得到 P×S 个互不
-        # 重复的 (区间,策略) 组合（而非两轴同步 slot% 造成的仅 P 个）。前 P×S 个 worker
-        # 各占一格不重复的工作；超过后才开始重复。
-        _strat_idx = (div_slot // focus_parts) % len(SYMCC_STRATEGY_PROFILES)
-        _prof = SYMCC_STRATEGY_PROFILES[_strat_idx]
+        _prof = SYMCC_STRATEGY_PROFILES[div_slot % len(SYMCC_STRATEGY_PROFILES)]
         for _k, _v in _prof.items():
             worker_env[_k] = _v
 
@@ -1486,25 +1527,11 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
             comm.send(result, dest=0, tag=TAG_RESULT)
             continue
 
-        # 选择性符号化 focus_bytes：
-        #  - 多样性模式：按 worker 槽位分配不相交字节区间，不同 worker 只对输入的不同片段
-        #    符号化 → 翻转不同分支 → 产出发散输入（一个种子的符号化工作被 P 路分解）；
-        #  - 否则沿用 master 的全局 focus（若有）。
+        # 选择性符号化 focus_bytes：直接采用 WORK 消息里的区间。多样性模式下这是 master
+        # 动态工作窃取分配的不相交字节区间（见 _build_work_items）；否则是 master 的全局
+        # focus（若有）。空则整段符号化。
         focus = msg.get("focus_bytes", "")
-        if diversity:
-            try:
-                _flen = os.path.getsize(local_input)
-            except OSError:
-                _flen = 0
-            if _flen > focus_parts:   # 太短则不分区（整段符号化，避免空区间）
-                _fslot = div_slot % focus_parts
-                _lo = (_fslot * _flen) // focus_parts
-                # SYMCC_FOCUS_BYTES 是闭区间 [lo,hi]，故上界减 1 使相邻分区不重叠
-                _hi = ((_fslot + 1) * _flen) // focus_parts - 1
-                worker_env["SYMCC_FOCUS_BYTES"] = f"{_lo}-{max(_lo, _hi)}"
-            elif "SYMCC_FOCUS_BYTES" in worker_env:
-                del worker_env["SYMCC_FOCUS_BYTES"]
-        elif focus:
+        if focus:
             worker_env["SYMCC_FOCUS_BYTES"] = focus
         elif "SYMCC_FOCUS_BYTES" in worker_env:
             del worker_env["SYMCC_FOCUS_BYTES"]
