@@ -589,7 +589,9 @@ def measure_coverage_afl(afl_binary: str, test_case_dir: str,
     ]
     if extra_args:
         cmd.extend(extra_args)
-    if uses_file:
+    # 持久+shmem 目标：afl-showmap 必须不带 @@，经共享内存喂输入并进入持久循环，否则
+    # @@ 会让目标落入文件模式/参数错乱、几乎测不到覆盖率（实测 2 边 vs 正确的 399 边）。
+    if uses_file and not _afl_binary_uses_shmem(afl_binary):
         cmd.append("@@")
 
     try:
@@ -831,6 +833,27 @@ def _compute_symcc_cpu_list(afl_instances: int, symcc_np: int) -> "str | None":
         return None
     base = total - symcc_np
     return ",".join(str(c) for c in range(base, total))
+
+
+def _afl_binary_uses_shmem(afl_binary: str) -> bool:
+    """检测 AFL 目标是否为持久模式 + 共享内存输入（dual-mode 目标）。
+
+    __AFL_FUZZ_INIT() 会把 __afl_sharedmem_fuzzing 定义为强符号（nm 显示 'D'，值=1）；
+    普通 fork/文件目标只有 afl 运行时的弱默认（'V'/'W'，值=0）。这类 shmem 目标必须
+    "不带 @@" 运行，afl-fuzz 才会经共享内存喂输入并进入 __AFL_LOOP 持久循环——带 @@
+    会让目标落入一次性文件模式、退化为 fork-per-exec（实测慢约 35x）。
+    检测失败一律返回 False（保持带 @@ 的现有行为，安全无回归）。"""
+    try:
+        out = subprocess.run(["nm", afl_binary], capture_output=True,
+                             text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    for line in out.stdout.splitlines():
+        parts = line.split()
+        if (len(parts) == 3 and parts[2] == "__afl_sharedmem_fuzzing"
+                and parts[1] in ("D", "d")):
+            return True
+    return False
 
 
 def _link_or_copy(src: str, dst: str) -> None:
@@ -1468,6 +1491,21 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
     if _ext_dirs:
         foreign_dirs = ":".join(_ext_dirs + ([foreign_dirs] if foreign_dirs else []))
 
+    # 检测 AFL 目标是否为持久模式 + 共享内存（dual-mode）：若是，afl-fuzz 不带 @@ 运行，
+    # 经 shmem 喂输入并进入 __AFL_LOOP 持久循环（实测 ~35x 吞吐）；否则保持带 @@（fork/文件）。
+    afl_persistent = _afl_binary_uses_shmem(afl_binary)
+    if afl_persistent:
+        print("      AFL target is persistent+shmem -> feeding via shared memory "
+              "(no @@); expect large exec/s gain")
+    # cmplog 二进制的持久性必须与主二进制一致，否则 afl-fuzz 在 fork server 握手时
+    # PROGRAM ABORT。不一致则跳过 cmplog（保证不崩，代价是失去该目标的 RedQueen）。
+    cmplog_ok = bool(cmplog_binary) and (
+        _afl_binary_uses_shmem(cmplog_binary) == afl_persistent)
+    if cmplog_binary and not cmplog_ok:
+        print(f"      WARNING: cmplog binary persistence != main "
+              f"(main persistent={afl_persistent}) -> disabling cmplog to avoid "
+              f"fork-server-handshake abort (rebuild cmplog persistent to re-enable)")
+
     afl_procs: list[subprocess.Popen] = []
 
     def _spawn_afl(idx: int) -> subprocess.Popen:
@@ -1491,12 +1529,13 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
                 cmd += ["-L", "0"]  # 启用 MOpt 变异调度
             inst_env.update(extra_env)
         cmd += ["-i", seed_dir, "-o", afl_out_dir, "-m", "none"]
-        if cmplog_binary and use_cmplog:
+        if cmplog_ok and use_cmplog:
             cmd += ["-c", cmplog_binary, "-l", "2AT"]
         cmd += ["--", afl_binary]
         if extra_args:
             cmd += extra_args
-        cmd.append("@@")
+        if not afl_persistent:
+            cmd.append("@@")   # 非持久目标：文件输入
         return subprocess.Popen(cmd, stdout=subprocess.DEVNULL,
                                 stderr=subprocess.DEVNULL,
                                 start_new_session=True, env=inst_env,
@@ -1786,12 +1825,16 @@ def run_afl_only(afl_binary: str, target_name: str,
         "-o", afl_out_dir,
         "-m", "none",
     ]
-    if cmplog_binary:
+    _persistent = _afl_binary_uses_shmem(afl_binary)
+    # cmplog 持久性须与主二进制一致，否则 afl-fuzz 握手 ABORT；不一致则跳过 cmplog
+    if cmplog_binary and _afl_binary_uses_shmem(cmplog_binary) == _persistent:
         afl_cmd.extend(["-c", cmplog_binary, "-l", "2AT"])
     afl_cmd.extend(["--", afl_binary])
     if extra_args:
         afl_cmd.extend(extra_args)
-    afl_cmd.append("@@")
+    # 持久+shmem 目标不带 @@（经共享内存进入 __AFL_LOOP，~35x 吞吐）；否则文件输入
+    if not _persistent:
+        afl_cmd.append("@@")
 
     print(f"      Starting AFL-only: {' '.join(afl_cmd[:8])}...")
     afl_env = os.environ.copy()

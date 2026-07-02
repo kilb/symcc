@@ -332,6 +332,7 @@ build_google_fts() {
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <unistd.h>   /* read()：__AFL_FUZZ_TESTCASE_LEN 宏在非 shmem 回退路径用到 */
 #include "png.h"
 struct BufState { const uint8_t *data; size_t bytes_left; };
 static void user_read_data(png_structp p, png_bytep d, png_size_t l) {
@@ -339,22 +340,20 @@ static void user_read_data(png_structp p, png_bytep d, png_size_t l) {
     if (l > b->bytes_left) png_error(p, "read error");
     memcpy(d, b->data, l); b->bytes_left -= l; b->data += l;
 }
-int main(int argc, char *argv[]) {
-    if (argc != 2) return 1;
-    FILE *f = fopen(argv[1], "rb"); if (!f) return 1;
-    fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
-    if (sz <= 0 || sz > 10*1024*1024) { fclose(f); return 1; }
-    uint8_t *data = malloc(sz); fread(data, 1, sz, f); fclose(f);
-    if (sz < 8 || png_sig_cmp(data, 0, 8)) { free(data); return 0; }
+/* 解析逻辑：不拥有 data（调用方管理缓冲区），以便 AFL 持久模式复用共享内存缓冲区。
+ * gcov 覆盖率构建（gcc，无 __AFL_COMPILER）只编译下方文件模式；afl-clang-fast 构建
+ * 额外编译持久模式，消除每次执行的 fork + 文件 I/O（实测约 7-35x 吞吐）。 */
+static int process(const uint8_t *data, size_t sz) {
+    if (sz < 8 || png_sig_cmp((png_bytep)data, 0, 8)) return 0;
     png_structp pp = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     png_infop ip = png_create_info_struct(pp);
-    if (setjmp(png_jmpbuf(pp))) { png_destroy_read_struct(&pp, &ip, NULL); free(data); return 0; }
+    if (setjmp(png_jmpbuf(pp))) { png_destroy_read_struct(&pp, &ip, NULL); return 0; }
     struct BufState bs = { data + 8, sz - 8 };
     png_set_read_fn(pp, &bs, user_read_data); png_set_sig_bytes(pp, 8);
     png_read_info(pp, ip);
     png_uint_32 w, h; int bd, ct;
     png_get_IHDR(pp, ip, &w, &h, &bd, &ct, NULL, NULL, NULL);
-    if (h * w > 1000000) { png_destroy_read_struct(&pp, &ip, NULL); free(data); return 0; }
+    if (h * w > 1000000) { png_destroy_read_struct(&pp, &ip, NULL); return 0; }
     /* 启用颜色变换以覆盖 pngrtran.c 代码路径 */
     png_set_expand(pp);           /* palette→RGB, gray 1/2/4→8, tRNS→alpha */
     png_set_gray_to_rgb(pp);      /* grayscale→RGB */
@@ -365,7 +364,29 @@ int main(int argc, char *argv[]) {
     int passes = png_set_interlace_handling(pp);
     png_bytep row = png_malloc(pp, png_get_rowbytes(pp, ip));
     for (int p2 = 0; p2 < passes; p2++) for (png_uint_32 y = 0; y < h; y++) png_read_row(pp, row, NULL);
-    png_free(pp, row); png_destroy_read_struct(&pp, &ip, NULL); free(data); return 0;
+    png_free(pp, row); png_destroy_read_struct(&pp, &ip, NULL); return 0;
+}
+#ifdef __AFL_COMPILER
+__AFL_FUZZ_INIT();
+#endif
+int main(int argc, char *argv[]) {
+    if (argc == 2) {   /* 文件模式：afl-showmap 覆盖率测量 / 崩溃复现 */
+        FILE *f = fopen(argv[1], "rb"); if (!f) return 1;
+        fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
+        if (sz <= 0 || sz > 10*1024*1024) { fclose(f); return 1; }
+        uint8_t *data = malloc(sz); if (!data) { fclose(f); return 1; }
+        size_t n = fread(data, 1, sz, f); fclose(f);
+        int r = process(data, n); free(data); return r;
+    }
+#ifdef __AFL_COMPILER
+    /* AFL 持久模式 + 共享内存输入（afl-fuzz/afl-showmap 不带 @@ 时走此路径） */
+    const uint8_t *buf = __AFL_FUZZ_TESTCASE_BUF;
+    while (__AFL_LOOP(10000)) {
+        int len = __AFL_FUZZ_TESTCASE_LEN;
+        if (len > 0) process(buf, (size_t)len);
+    }
+#endif
+    return 0;
 }
 HARNESS_EOF
         "$CC" -O2 /tmp/png_read_fuzzer.c -I . .libs/libpng.a -lz -lm -o "$BUILD_DIR/google-fts/png_read_fuzzer" 2>/dev/null || { warn "  libpng harness link failed"; return 1; }
@@ -462,27 +483,23 @@ open('$SEEDS_DIR/google-fts/png_read_fuzzer/seed_06_gray_alpha.png', 'wb').write
         cat > /tmp/xml_read_fuzzer.c << 'HARNESS_EOF'
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <unistd.h>   /* read()：__AFL_FUZZ_TESTCASE_LEN 宏在非 shmem 回退路径用到 */
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <libxml/xpath.h>
 #include <libxml/xinclude.h>
 #include <libxml/xmlschemas.h>
-int main(int argc, char *argv[]) {
-    if (argc != 2) return 1;
-    FILE *f = fopen(argv[1], "rb"); if (!f) return 1;
-    fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
-    if (sz <= 0 || sz > 1024*1024) { fclose(f); return 1; }
-    char *data = malloc(sz); fread(data, 1, sz, f); fclose(f);
-    xmlInitParser();
-    /* 启用 DTD 验证 + 实体替换 + XInclude */
+/* 解析逻辑：不做全局 init/cleanup（由调用方一次性处理，以便持久模式复用）。
+ * gcov 覆盖率构建（gcc，无 __AFL_COMPILER）只编译文件模式；afl-clang-fast 构建额外
+ * 编译持久模式，消除每次执行的 fork + 文件 I/O（实测约 7x 吞吐）。 */
+static void process(const char *data, int sz) {
     int flags = XML_PARSE_NONET | XML_PARSE_RECOVER | XML_PARSE_NOERROR
               | XML_PARSE_NOWARNING | XML_PARSE_DTDLOAD | XML_PARSE_DTDVALID
               | XML_PARSE_NOENT;
     xmlDocPtr doc = xmlReadMemory(data, sz, "input.xml", NULL, flags);
     if (doc) {
-        /* XInclude 处理 */
         xmlXIncludeProcess(doc);
-        /* XPath 查询以覆盖 XPath 引擎代码路径 */
         xmlXPathContextPtr ctx = xmlXPathNewContext(doc);
         if (ctx) {
             xmlXPathObjectPtr res = xmlXPathEvalExpression(
@@ -493,15 +510,35 @@ int main(int argc, char *argv[]) {
             if (res) xmlXPathFreeObject(res);
             xmlXPathFreeContext(ctx);
         }
-        /* DTD 验证 */
         xmlValidCtxtPtr vctx = xmlNewValidCtxt();
-        if (vctx) {
-            xmlValidateDocument(vctx, doc);
-            xmlFreeValidCtxt(vctx);
-        }
+        if (vctx) { xmlValidateDocument(vctx, doc); xmlFreeValidCtxt(vctx); }
         xmlFreeDoc(doc);
     }
-    xmlCleanupParser(); free(data); return 0;
+}
+#ifdef __AFL_COMPILER
+__AFL_FUZZ_INIT();
+#endif
+int main(int argc, char *argv[]) {
+    if (argc == 2) {   /* 文件模式：afl-showmap 覆盖率测量 / 复现 */
+        FILE *f = fopen(argv[1], "rb"); if (!f) return 1;
+        fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
+        if (sz <= 0 || sz > 1024*1024) { fclose(f); return 1; }
+        char *data = malloc(sz); if (!data) { fclose(f); return 1; }
+        size_t n = fread(data, 1, sz, f); fclose(f);
+        xmlInitParser(); process(data, (int)n); xmlCleanupParser();
+        free(data); return 0;
+    }
+#ifdef __AFL_COMPILER
+    /* AFL 持久模式 + 共享内存：全局解析器只初始化一次，循环内复用 shmem 缓冲区 */
+    xmlInitParser();
+    const unsigned char *buf = __AFL_FUZZ_TESTCASE_BUF;
+    while (__AFL_LOOP(10000)) {
+        int len = __AFL_FUZZ_TESTCASE_LEN;
+        if (len > 0 && len <= 1024*1024) process((const char *)buf, len);
+    }
+    xmlCleanupParser();
+#endif
+    return 0;
 }
 HARNESS_EOF
         "$CC" -O2 /tmp/xml_read_fuzzer.c -I include -I include/libxml .libs/libxml2.a -lz -lm -lpthread -o "$BUILD_DIR/google-fts/xml_read_fuzzer" 2>/dev/null || { warn "  libxml2 harness link failed"; return 1; }
@@ -640,6 +677,7 @@ build_google_fts_coverage() {
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <unistd.h>   /* read()：__AFL_FUZZ_TESTCASE_LEN 宏在非 shmem 回退路径用到 */
 #include "png.h"
 struct BufState { const uint8_t *data; size_t bytes_left; };
 static void user_read_data(png_structp p, png_bytep d, png_size_t l) {
@@ -647,22 +685,20 @@ static void user_read_data(png_structp p, png_bytep d, png_size_t l) {
     if (l > b->bytes_left) png_error(p, "read error");
     memcpy(d, b->data, l); b->bytes_left -= l; b->data += l;
 }
-int main(int argc, char *argv[]) {
-    if (argc != 2) return 1;
-    FILE *f = fopen(argv[1], "rb"); if (!f) return 1;
-    fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
-    if (sz <= 0 || sz > 10*1024*1024) { fclose(f); return 1; }
-    uint8_t *data = malloc(sz); fread(data, 1, sz, f); fclose(f);
-    if (sz < 8 || png_sig_cmp(data, 0, 8)) { free(data); return 0; }
+/* 解析逻辑：不拥有 data（调用方管理缓冲区），以便 AFL 持久模式复用共享内存缓冲区。
+ * gcov 覆盖率构建（gcc，无 __AFL_COMPILER）只编译下方文件模式；afl-clang-fast 构建
+ * 额外编译持久模式，消除每次执行的 fork + 文件 I/O（实测约 7-35x 吞吐）。 */
+static int process(const uint8_t *data, size_t sz) {
+    if (sz < 8 || png_sig_cmp((png_bytep)data, 0, 8)) return 0;
     png_structp pp = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     png_infop ip = png_create_info_struct(pp);
-    if (setjmp(png_jmpbuf(pp))) { png_destroy_read_struct(&pp, &ip, NULL); free(data); return 0; }
+    if (setjmp(png_jmpbuf(pp))) { png_destroy_read_struct(&pp, &ip, NULL); return 0; }
     struct BufState bs = { data + 8, sz - 8 };
     png_set_read_fn(pp, &bs, user_read_data); png_set_sig_bytes(pp, 8);
     png_read_info(pp, ip);
     png_uint_32 w, h; int bd, ct;
     png_get_IHDR(pp, ip, &w, &h, &bd, &ct, NULL, NULL, NULL);
-    if (h * w > 1000000) { png_destroy_read_struct(&pp, &ip, NULL); free(data); return 0; }
+    if (h * w > 1000000) { png_destroy_read_struct(&pp, &ip, NULL); return 0; }
     /* 启用颜色变换以覆盖 pngrtran.c 代码路径 */
     png_set_expand(pp);           /* palette→RGB, gray 1/2/4→8, tRNS→alpha */
     png_set_gray_to_rgb(pp);      /* grayscale→RGB */
@@ -673,7 +709,29 @@ int main(int argc, char *argv[]) {
     int passes = png_set_interlace_handling(pp);
     png_bytep row = png_malloc(pp, png_get_rowbytes(pp, ip));
     for (int p2 = 0; p2 < passes; p2++) for (png_uint_32 y = 0; y < h; y++) png_read_row(pp, row, NULL);
-    png_free(pp, row); png_destroy_read_struct(&pp, &ip, NULL); free(data); return 0;
+    png_free(pp, row); png_destroy_read_struct(&pp, &ip, NULL); return 0;
+}
+#ifdef __AFL_COMPILER
+__AFL_FUZZ_INIT();
+#endif
+int main(int argc, char *argv[]) {
+    if (argc == 2) {   /* 文件模式：afl-showmap 覆盖率测量 / 崩溃复现 */
+        FILE *f = fopen(argv[1], "rb"); if (!f) return 1;
+        fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
+        if (sz <= 0 || sz > 10*1024*1024) { fclose(f); return 1; }
+        uint8_t *data = malloc(sz); if (!data) { fclose(f); return 1; }
+        size_t n = fread(data, 1, sz, f); fclose(f);
+        int r = process(data, n); free(data); return r;
+    }
+#ifdef __AFL_COMPILER
+    /* AFL 持久模式 + 共享内存输入（afl-fuzz/afl-showmap 不带 @@ 时走此路径） */
+    const uint8_t *buf = __AFL_FUZZ_TESTCASE_BUF;
+    while (__AFL_LOOP(10000)) {
+        int len = __AFL_FUZZ_TESTCASE_LEN;
+        if (len > 0) process(buf, (size_t)len);
+    }
+#endif
+    return 0;
 }
 HARNESS_EOF
             gcc --coverage -O0 -g "$cov_dir/png_read_fuzzer.c" \
@@ -715,27 +773,23 @@ HARNESS_EOF
             cat > "$cov_dir/xml_read_fuzzer.c" << 'HARNESS_EOF'
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <unistd.h>   /* read()：__AFL_FUZZ_TESTCASE_LEN 宏在非 shmem 回退路径用到 */
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <libxml/xpath.h>
 #include <libxml/xinclude.h>
 #include <libxml/xmlschemas.h>
-int main(int argc, char *argv[]) {
-    if (argc != 2) return 1;
-    FILE *f = fopen(argv[1], "rb"); if (!f) return 1;
-    fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
-    if (sz <= 0 || sz > 1024*1024) { fclose(f); return 1; }
-    char *data = malloc(sz); fread(data, 1, sz, f); fclose(f);
-    xmlInitParser();
-    /* 启用 DTD 验证 + 实体替换 + XInclude */
+/* 解析逻辑：不做全局 init/cleanup（由调用方一次性处理，以便持久模式复用）。
+ * gcov 覆盖率构建（gcc，无 __AFL_COMPILER）只编译文件模式；afl-clang-fast 构建额外
+ * 编译持久模式，消除每次执行的 fork + 文件 I/O（实测约 7x 吞吐）。 */
+static void process(const char *data, int sz) {
     int flags = XML_PARSE_NONET | XML_PARSE_RECOVER | XML_PARSE_NOERROR
               | XML_PARSE_NOWARNING | XML_PARSE_DTDLOAD | XML_PARSE_DTDVALID
               | XML_PARSE_NOENT;
     xmlDocPtr doc = xmlReadMemory(data, sz, "input.xml", NULL, flags);
     if (doc) {
-        /* XInclude 处理 */
         xmlXIncludeProcess(doc);
-        /* XPath 查询以覆盖 XPath 引擎代码路径 */
         xmlXPathContextPtr ctx = xmlXPathNewContext(doc);
         if (ctx) {
             xmlXPathObjectPtr res = xmlXPathEvalExpression(
@@ -746,15 +800,35 @@ int main(int argc, char *argv[]) {
             if (res) xmlXPathFreeObject(res);
             xmlXPathFreeContext(ctx);
         }
-        /* DTD 验证 */
         xmlValidCtxtPtr vctx = xmlNewValidCtxt();
-        if (vctx) {
-            xmlValidateDocument(vctx, doc);
-            xmlFreeValidCtxt(vctx);
-        }
+        if (vctx) { xmlValidateDocument(vctx, doc); xmlFreeValidCtxt(vctx); }
         xmlFreeDoc(doc);
     }
-    xmlCleanupParser(); free(data); return 0;
+}
+#ifdef __AFL_COMPILER
+__AFL_FUZZ_INIT();
+#endif
+int main(int argc, char *argv[]) {
+    if (argc == 2) {   /* 文件模式：afl-showmap 覆盖率测量 / 复现 */
+        FILE *f = fopen(argv[1], "rb"); if (!f) return 1;
+        fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
+        if (sz <= 0 || sz > 1024*1024) { fclose(f); return 1; }
+        char *data = malloc(sz); if (!data) { fclose(f); return 1; }
+        size_t n = fread(data, 1, sz, f); fclose(f);
+        xmlInitParser(); process(data, (int)n); xmlCleanupParser();
+        free(data); return 0;
+    }
+#ifdef __AFL_COMPILER
+    /* AFL 持久模式 + 共享内存：全局解析器只初始化一次，循环内复用 shmem 缓冲区 */
+    xmlInitParser();
+    const unsigned char *buf = __AFL_FUZZ_TESTCASE_BUF;
+    while (__AFL_LOOP(10000)) {
+        int len = __AFL_FUZZ_TESTCASE_LEN;
+        if (len > 0 && len <= 1024*1024) process((const char *)buf, len);
+    }
+    xmlCleanupParser();
+#endif
+    return 0;
 }
 HARNESS_EOF
             gcc --coverage -O0 -g "$cov_dir/xml_read_fuzzer.c" \
