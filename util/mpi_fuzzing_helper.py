@@ -100,8 +100,35 @@ def _pin_self_to_reserved_core(rank: int) -> None:
         pass  # 核号无效/平台不支持 → 退回默认调度，不影响正确性
 
 
+def _balanced_regions(density: "list[int]", per: int) -> "list[tuple[int, int]]":
+    """把 [0,len) 划分为 per 个连续字节区间，使各区间累计分支密度尽量相等（热点字节→窄
+    区间隔离，冷区→宽区间）。闭区间 [(lo,hi),...]。密度全 0 时退回等宽。"""
+    L = len(density)
+    if per <= 1 or L == 0:
+        return [(0, max(0, L - 1))]
+    total = sum(density)
+    if total <= 0:  # 无密度信息 → 等宽
+        return [((i * L) // per, ((i + 1) * L) // per - 1) for i in range(per)]
+    target = total / per
+    regions: "list[tuple[int, int]]" = []
+    lo = 0
+    acc = 0
+    for i in range(L):
+        acc += density[i]
+        remaining_cuts = per - 1 - len(regions)
+        # 累计越过下一目标线、还需切点、且剩余字节够分给剩余区间时切一刀
+        if (remaining_cuts > 0 and acc >= target * (len(regions) + 1)
+                and (L - 1 - i) >= remaining_cuts):
+            regions.append((lo, i))
+            lo = i + 1
+    regions.append((lo, L - 1))
+    return regions
+
+
 def _build_work_items(paths: "list[str]", target_count: int, diversity: bool,
-                      focus_parts: int) -> "list[tuple[str, str | None]]":
+                      focus_parts: int,
+                      density_fn: "typing.Callable[[str], list[int] | None] | None" = None
+                      ) -> "list[tuple[str, str | None]]":
     """把种子路径构建为工作项 [(path, focus_or_None)]，focus 为 "lo-hi" 或 None（整段符号化）。
 
     动态工作窃取（自适应粒度）：默认每种子 1 个整-种子项（无冗余 CPU）。多样性模式下，
@@ -124,10 +151,16 @@ def _build_work_items(paths: "list[str]", target_count: int, diversity: bool,
         if flen <= per:                    # 太短，不细分（避免空/退化区间）
             items.append((path, None))
             continue
-        for i in range(per):
-            lo = (i * flen) // per
-            hi = ((i + 1) * flen) // per - 1   # 闭区间 [lo,hi]，减 1 使相邻区间不重叠
-            items.append((path, f"{lo}-{max(lo, hi)}"))
+        # 优先按分支密度均衡划分（热点字节隔离到窄区间），无密度信息则退回等宽。
+        density = density_fn(path) if density_fn is not None else None
+        if density and len(density) == flen and sum(density) > 0:
+            for lo, hi in _balanced_regions(density, per):
+                items.append((path, f"{lo}-{hi}"))
+        else:
+            for i in range(per):
+                lo = (i * flen) // per
+                hi = ((i + 1) * flen) // per - 1   # 闭区间，减 1 使相邻不重叠
+                items.append((path, f"{lo}-{max(lo, hi)}"))
     return items
 
 
@@ -963,6 +996,77 @@ def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
     # 子项填补 worker（见 _build_work_items）。worker 侧还按 rank 分配不同求解策略。
     _diversity = os.environ.get("SYMCC_WORKER_DIVERSITY") == "1"
     _focus_parts = max(1, int(os.environ.get("SYMCC_FOCUS_PARTITIONS", "8")))
+    # 按分支密度均衡划分（opt-in SYMCC_DENSITY_BALANCE=1，需密度剖析版 runtime）：细分前
+    # 先用无求解的密度剖析 profile 种子，把热点字节隔离到窄区间，使各子项工作量更均衡。
+    _density_balance = _diversity and os.environ.get("SYMCC_DENSITY_BALANCE") == "1"
+    _target_cmd = args.target
+    _use_stdin = "@@" not in _target_cmd
+    _density_cache: "dict[str, list[int] | None]" = {}
+    _prof_dir = (tempfile.mkdtemp(prefix="symcc_dprof_")
+                 if _density_balance else None)
+
+    def _profile_density(path: str) -> "list[int] | None":
+        """无求解密度剖析：运行 SymCC（SYMCC_DENSITY_OUT）统计每字节被多少分支依赖。
+        按内容哈希缓存；失败/无密度返回 None（调用方退回等宽）。"""
+        try:
+            with open(path, "rb") as _pf:
+                content = _pf.read()
+        except OSError:
+            return None
+        h = hashlib.sha256(content).hexdigest()
+        if h in _density_cache:
+            return _density_cache[h]
+        flen = len(content)
+        dfile = os.path.join(_prof_dir, "density.txt")
+        try:
+            os.unlink(dfile)
+        except OSError:
+            pass
+        penv = dict(os.environ)
+        penv["SYMCC_DENSITY_OUT"] = dfile
+        penv["SYMCC_OUTPUT_DIR"] = _prof_dir           # runtime 要求存在
+        penv["SYMCC_ENABLE_LINEARIZATION"] = "1"
+        penv.pop("SYMCC_WORKER_DIVERSITY", None)       # 剖析子进程不需要
+        stdin_arg: "typing.Any" = subprocess.DEVNULL
+        if _use_stdin:
+            cmd = ["timeout", "-k", "2", "10"] + _target_cmd
+        else:
+            penv["SYMCC_INPUT_FILE"] = path
+            cmd = ["timeout", "-k", "2", "10"] + [
+                a.replace("@@", path) for a in _target_cmd]
+        result: "list[int] | None" = None
+        try:
+            if _use_stdin:
+                stdin_arg = open(path, "rb")
+            subprocess.run(cmd, env=penv, stdin=stdin_arg,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                           timeout=15)
+        except (OSError, subprocess.SubprocessError):
+            _density_cache[h] = None
+            return None
+        finally:
+            if _use_stdin and hasattr(stdin_arg, "close"):
+                try:
+                    stdin_arg.close()
+                except OSError:
+                    pass
+        dens = [0] * flen
+        try:
+            with open(dfile) as df:
+                for line in df:
+                    if line.startswith("#") or not line.strip():
+                        continue
+                    parts = line.split()
+                    if len(parts) == 2:
+                        off = int(parts[0])
+                        if 0 <= off < flen:
+                            dens[off] = int(parts[1])
+        except (OSError, ValueError):
+            _density_cache[h] = None
+            return None
+        result = dens if any(dens) else None
+        _density_cache[h] = result
+        return result
 
     # 边产出率在线学习（CoFuzz + T-Scheduler 风格）：
     # 跟踪每种种子类型被 concolic 分析后产出 interesting 结果的概率
@@ -1166,7 +1270,8 @@ def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
             # 区间子项填补空闲产能（多样性模式；否则等价于原来的整-种子列表）。
             work_queue = _build_work_items(
                 pending_feedback + new_inputs, max_active_workers,
-                _diversity, _focus_parts)
+                _diversity, _focus_parts,
+                density_fn=_profile_density if _density_balance else None)
 
             # 交替处理 READY 和 RESULT 消息，避免单方向阻塞
             work_idx = 0
