@@ -1136,6 +1136,12 @@ if $WITH_AFL; then
     echo ""
     $BUILD_GOOGLE && build_google_fts_afl
     $BUILD_LAVA   && build_lava_afl
+    # 将 FTS LLVMFuzzer/ossfuzz 目标（libarchive/pcre2/sqlite）重链接为持久模式+共享内存。
+    # png/xml 已由上面的 dual-mode heredoc 天然持久；此步骤补齐其余目标（幂等、缺构件则跳过）。
+    if [ -f "$SCRIPT_DIR/make_afl_targets_persistent.sh" ]; then
+        echo ""; echo "  Making FTS AFL targets persistent (shmem)..."
+        bash "$SCRIPT_DIR/make_afl_targets_persistent.sh" || true
+    fi
 fi
 
 # Coverage builds (使用 gcc --coverage -O0 -g 重新编译) — 必须最后！
