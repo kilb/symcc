@@ -31,13 +31,17 @@ Example:
 
 import argparse
 import hashlib
+import math
 import os
+import random
 import signal
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
 import time
+import typing
 
 from mpi4py import MPI
 
@@ -48,25 +52,51 @@ TAG_STOP = 3
 TAG_READY = 4
 TAG_BITMAP_VERSION = 5  # master 通知 workers bitmap 已更新
 
-TIMEOUT_SEC = 10  # hybrid 模式下用短超时，快速轮转大量输入
+TIMEOUT_SEC = int(os.environ.get("SYMCC_TIMEOUT", "30"))  # SymCC 执行超时（秒），默认 30s
 SHOWMAP_TIMEOUT_MS = "5000"
 STATS_INTERVAL_SEC = 60
+MAX_GENERATION_DEPTH = int(os.environ.get("SYMCC_MAX_DEPTH", "0"))  # 最大迭代深度，0=无限
+# AFL extras hint token 文件数上限：循环复用固定文件池，避免长时间运行产生数百万小文件
+# 耗尽 inode。AFL 字典体量本就有限，几千个 token 已充分。
+MAX_HINT_FILES = 4096
+# AflConfig._file_cache 条目上限：AFL queue 极长时防止无界内存增长。
+MAX_FILE_CACHE = 200000
+# 去重/跟踪容器（processed_files / _content_hashes / file_generation / grimoire_seen）
+# 硬上限：超长 campaign 下这些集合随派发数无界增长。超限清空（代价是少量重复分析，
+# 有界且不影响正确性）。基准运行通常远达不到，仅为病态长运行兜底。
+MAX_DEDUP_ENTRIES = 5000000
 
 
-def file_hash(path):
-    """Return SHA-256 hash of file contents."""
-    h = hashlib.sha256()
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(8192), b""):
-            h.update(chunk)
-    return h.hexdigest()
+def _pin_self_to_reserved_core(rank: int) -> None:
+    """按 SYMCC_CPU_LIST 把本 rank 钉到保留逻辑核（其派生的 SymCC 子进程会继承亲和性）。
+
+    编排层（run_benchmark）在高并行度下计算与 AFL 自动绑核互斥的保留核段并经此环境变量
+    传入，消除 MPI rank 在 AFL 已绑核上漂移造成的核冲突/迁移。未设置则不钉核（保持默认
+    调度）。OpenMPI 启动时的绑核会被此处的 sched_setaffinity 覆盖（已验证）。"""
+    spec = os.environ.get("SYMCC_CPU_LIST")
+    if not spec or not hasattr(os, "sched_setaffinity"):
+        return
+    try:
+        cores = [int(x) for x in spec.split(",") if x.strip()]
+    except ValueError:
+        return
+    if not cores:
+        return
+    try:
+        os.sched_setaffinity(0, {cores[rank % len(cores)]})
+    except OSError:
+        pass  # 核号无效/平台不支持 → 退回默认调度，不影响正确性
 
 
 class AflConfig:
     """AFL fuzzer configuration, read from fuzzer_stats."""
 
-    def __init__(self, fuzzer_output_dir):
+    def __init__(self, fuzzer_output_dir: str) -> None:
         self.queue = os.path.join(fuzzer_output_dir, "queue")
+        # 每文件静态属性缓存：AFL queue 文件不可变，故 name 派生标志/大小/afl_id/
+        # SHA-256 只需计算一次。消除 best_new_testcases 每轮重复 scandir+读文件+哈希
+        # 的开销（实测该扫描是 master 的主要瓶颈，34s/58s @ 15 workers）。
+        self._file_cache: dict[str, dict] = {}
         stats_path = os.path.join(fuzzer_output_dir, "fuzzer_stats")
 
         with open(stats_path) as f:
@@ -104,41 +134,102 @@ class AflConfig:
         self.use_stdin = "@@" not in self.target_command
         self.use_qemu = "-Q" in parts
 
-    def best_new_testcases(self, seen, batch_size=None):
+    def best_new_testcases(self, seen: set[str], batch_size: int | None = None,
+                           analyzed_hashes: set[str] | None = None,
+                           edge_yield: dict[str, float] | None = None
+                           ) -> list[str]:
         """
-        Return a list of unseen test cases from the AFL queue.
+        Return a list of unseen test cases from the AFL queue, scored by priority.
 
-        使用增量扫描：只 stat 上次扫描后新增的文件，避免对整个目录
-        做 full scan（AFL queue 可达数千文件，full scan ~10ms/次）。
+        增强种子调度策略（受 CoFuzz ICSE'23 启发）：
+        1. 边产出率加权：历史上 concolic 分析后产出新覆盖的种子类型优先
+        2. +cov 标记：AFL 认为发现新覆盖 → 高优先
+        3. 稀有边覆盖：触达稀有边的种子优先（AFL 文件名中的 +rare）
+        4. 文件大小效率：根据 size/yield 比率动态调整
+        5. 新颖度衰减：越新的种子优先，但对极新种子不再过度加分
         """
         if not os.path.isdir(self.queue):
             return []
 
-        # 增量扫描：用 scandir 替代 listdir + isfile + getsize
-        # scandir 一次系统调用返回 d_type，避免额外 stat
+        cache = self._file_cache
+        # 硬上限：dict 保持插入序，超限时按 FIFO 逐出最旧条目——它们多为最早发现、
+        # 早已派发（在 seen 中）的 queue 文件。偶尔逐出未处理条目仅导致其下轮被重新
+        # stat/哈希，代价有界（O(超出量)/次，非每次 O(cache) 重建列表）且不影响正确性。
+        while len(cache) > MAX_FILE_CACHE:
+            cache.pop(next(iter(cache)))
         new_candidates = []
         try:
             for entry in os.scandir(self.queue):
-                if not entry.is_file(follow_symlinks=False):
-                    continue
                 fpath = entry.path
                 if fpath in seen:
                     continue
-                # 简单优先级：+cov 文件优先，其他按名字顺序（近似时间顺序）
-                has_cov = entry.name.endswith("+cov")
-                new_candidates.append((has_cov, entry.name, fpath))
+
+                # 每文件静态属性只计算一次（AFL queue 文件不可变）
+                attrs = cache.get(fpath)
+                if attrs is None:
+                    if not entry.is_file(follow_symlinks=False):
+                        continue
+                    name = entry.name
+                    try:
+                        fsize = entry.stat(follow_symlinks=False).st_size
+                    except OSError:
+                        fsize = 0
+                    afl_id = 0
+                    if name.startswith("id:"):
+                        try:
+                            afl_id = int(name[3:9])
+                        except (ValueError, IndexError):
+                            pass
+                    # 大小/新颖度得分（与 edge_yield 无关，可预计算并缓存）
+                    static_score = 0.0
+                    if "+cov" in name:
+                        static_score += 100.0
+                    if "+rare" in name:
+                        static_score += 60.0
+                    if "symcc_" in name:
+                        static_score += 20.0
+                    if fsize > 50 * 1024:
+                        static_score -= 40.0
+                    elif fsize > 10240:
+                        static_score -= min(30.0, (fsize - 10240) / 1024.0)
+                    elif fsize < 256:
+                        static_score += 10.0
+                    static_score += min(50.0, math.log1p(afl_id) * 5.0)
+                    seed_type = "cov" if "+cov" in name else (
+                        "symcc" if "symcc_" in name else "normal")
+                    # 内容哈希只算一次
+                    chash = None
+                    try:
+                        with open(fpath, "rb") as f:
+                            chash = hashlib.sha256(f.read()).hexdigest()
+                    except (IOError, OSError):
+                        pass
+                    attrs = {"name": name, "static": static_score,
+                             "type": seed_type, "hash": chash}
+                    cache[fpath] = attrs
+
+                # 内容去重（用缓存哈希，不再重复读文件）
+                if analyzed_hashes is not None and attrs["hash"] in analyzed_hashes:
+                    continue
+
+                # 动态部分：edge_yield 每轮变化 → 廉价的算术叠加
+                score = attrs["static"]
+                if edge_yield is not None:
+                    score += edge_yield.get(attrs["type"], 0.0) * 30.0
+
+                new_candidates.append((score, attrs["name"], fpath))
         except OSError:
             return []
 
-        # 按优先级排序：有覆盖的优先，然后按文件名（AFL 的 ID 递增 = 时间顺序）
-        new_candidates.sort(key=lambda c: (not c[0], c[1]))
+        new_candidates.sort(key=lambda c: -c[0])
         paths = [c[2] for c in new_candidates]
 
         if batch_size is not None:
             return paths[:batch_size]
         return paths
 
-    def run_showmap(self, testcase, bitmap_path):
+    def run_showmap(self, testcase: str,
+                    bitmap_path: str) -> tuple[str, bytes | None]:
         """
         Run afl-showmap on a test case.
 
@@ -187,7 +278,7 @@ class AflConfig:
             print(f"[Master] afl-showmap not found at: {self.show_map}",
                   file=sys.stderr)
             return "error", None
-        except Exception as e:
+        except (OSError, subprocess.SubprocessError) as e:
             print(f"[Master] afl-showmap error: {e}", file=sys.stderr)
             return "error", None
 
@@ -195,8 +286,8 @@ class AflConfig:
 class CoverageBitmap:
     """使用边集合追踪覆盖率，merge 操作 O(新边数) 而非 O(bitmap大小)。"""
 
-    def __init__(self):
-        self.data = None
+    def __init__(self) -> None:
+        self.data: bytearray | None = None
         self.edges: set[int] = set()
 
     def init_from_afl(self, afl_config: AflConfig, queue_dir: str,
@@ -239,7 +330,7 @@ class CoverageBitmap:
         print(f"[Master] Initialized bitmap from {count} AFL queue entries "
               f"({elapsed:.1f}s)")
 
-    def merge(self, new_data):
+    def merge(self, new_data: "bytes | list[tuple[int, int]]") -> bool:
         """Merge new bitmap data. Returns True if new coverage found.
 
         接受 bytes (完整 bitmap) 或 list[(index, value)] (稀疏边列表)。
@@ -262,14 +353,18 @@ class CoverageBitmap:
         # 完整 bitmap：用大整数快速检查
         old_int = int.from_bytes(self.data, 'little')
         new_int = int.from_bytes(new_data, 'little')
-        interesting = bool(new_int & ~old_int)
+        diff = new_int & ~old_int
+        interesting = bool(diff)
         if interesting:
             merged = old_int | new_int
             self.data[:] = merged.to_bytes(len(self.data), 'little')
-            # 更新边集合
-            for i, b in enumerate(new_data):
-                if b:
-                    self.edges.add(i)
+            # 仅将新增边加入集合：从位差 diff 中提取置位所在字节索引，
+            # O(新增位数) 而非每次 O(map_size) 全字节扫描。已在集合中的字节
+            # （旧数据非零处）无需重加，集合去重保证正确。
+            while diff:
+                lsb = diff & -diff
+                self.edges.add((lsb.bit_length() - 1) // 8)
+                diff &= diff - 1
         return interesting
 
     def _merge_sparse(self, edges: list) -> bool:
@@ -292,7 +387,7 @@ class CoverageBitmap:
 class Stats:
     """Execution statistics."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.total_count = 0
         self.total_time = 0.0
         self.failed_count = 0
@@ -300,7 +395,7 @@ class Stats:
         self.generated_count = 0
         self.interesting_count = 0
 
-    def add_execution(self, elapsed, killed):
+    def add_execution(self, elapsed: float, killed: bool) -> None:
         if killed:
             self.failed_count += 1
             self.failed_time += elapsed
@@ -308,7 +403,7 @@ class Stats:
             self.total_count += 1
             self.total_time += elapsed
 
-    def log(self, f):
+    def log(self, f: "typing.TextIO") -> None:
         f.write(f"Successful executions: {self.total_count}\n")
         f.write(f"Time in successful executions: {self.total_time*1000:.0f}ms\n")
         if self.total_count > 0:
@@ -325,13 +420,26 @@ class Stats:
         f.flush()
 
 
-def run_symcc_worker(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
-                     base_env=None, streaming_showmap=None,
-                     worker_coverage=None, save_dir=None):
-    """Run SymCC on a single input. Returns (new_tests_data, retcode, elapsed).
+def run_symcc_worker(target_cmd: list[str], input_file: str, output_dir: str,
+                     timeout_sec: int, use_stdin: bool,
+                     base_env: "dict[str, str] | None" = None,
+                     streaming_showmap: "StreamingShowmap | None" = None,
+                     worker_coverage: "CoverageBitmap | None" = None,
+                     save_dir: str | None = None
+                     ) -> "tuple[list[dict], int, int, float, bool]":
+    """在单个输入上运行 SymCC。
 
-    如果提供了 afl_showmap 和 afl_target_cmd，会在 worker 端为每个输出
-    运行 afl-showmap 收集 bitmap，这样 master 只需内存中比较 bitmap。
+    返回 ``(new_tests, total_generated, retcode, elapsed, killed)``：
+      - new_tests: list[dict]，每项含 "content"（bytes），可选 "bitmap"（稀疏边列表）
+        和 "hints"（约束提示）。
+      - total_generated: int，SymCC 本次生成的测试用例总数（含被 dedup 过滤的）。
+      - retcode: int，SymCC 进程返回码（超时/被杀为负）。
+      - elapsed: float，执行耗时（秒）。
+      - killed: bool，是否因超时被杀。
+
+    若提供 streaming_showmap 与 worker_coverage，会在 worker 端为每个输出运行
+    afl-showmap（流式 fork server）收集稀疏边，并用 worker_coverage 本地 dedup，
+    仅回传发现新覆盖的用例，master 只需内存中比较稀疏边列表。
     """
     os.makedirs(output_dir, exist_ok=True)
 
@@ -341,6 +449,7 @@ def run_symcc_worker(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
         env = os.environ.copy()
     env["SYMCC_OUTPUT_DIR"] = output_dir
     env["SYMCC_ENABLE_LINEARIZATION"] = "1"
+    env["SYMCC_EMIT_HINTS"] = "1"  # 输出约束 hint 文件
 
     if use_stdin:
         cmd = ["timeout", "-k", "5", str(timeout_sec)] + target_cmd
@@ -371,7 +480,7 @@ def run_symcc_worker(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
         print(f"[Worker {MPI.COMM_WORLD.Get_rank()}] Python-level timeout "
               f"({python_timeout}s)", file=sys.stderr, flush=True)
         retcode = 124
-    except Exception as e:
+    except (OSError, subprocess.SubprocessError) as e:
         print(f"[Worker {MPI.COMM_WORLD.Get_rank()}] Error: {e}", file=sys.stderr)
         retcode = -1
 
@@ -389,8 +498,32 @@ def run_symcc_worker(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
         except OSError:
             entries = []
 
+        # 先收集 hint 文件
+        hint_map: dict[str, list[tuple[int, int, int]]] = {}  # base_name -> [(offset, old, new)]
         for entry in entries:
-            if entry.name.startswith(".") or not entry.is_file():
+            if entry.name.endswith(".hints") and entry.is_file():
+                base = entry.name[:-6]  # 去掉 .hints 后缀
+                try:
+                    hints = []
+                    with open(entry.path, "r") as hf:
+                        for line in hf:
+                            line = line.strip()
+                            if not line:
+                                continue
+                            parts = line.split(":")
+                            if len(parts) == 3:
+                                hints.append((
+                                    int(parts[0]),
+                                    int(parts[1], 16),
+                                    int(parts[2], 16),
+                                ))
+                    if hints:
+                        hint_map[base] = hints
+                except (IOError, OSError, ValueError):
+                    pass
+
+        for entry in entries:
+            if entry.name.startswith(".") or entry.name.endswith(".hints") or not entry.is_file():
                 continue
             total_generated += 1
             try:
@@ -403,15 +536,20 @@ def run_symcc_worker(target_cmd, input_file, output_dir, timeout_sec, use_stdin,
                     if edges is not None:
                         is_new = worker_coverage.merge(edges)
                         if is_new:
-                            # 只传 interesting 的 TC
-                            new_tests.append({
+                            tc_entry = {
                                 "content": content,
                                 "bitmap": edges,
-                            })
+                            }
+                            # 附加约束 hint 信息
+                            if entry.name in hint_map:
+                                tc_entry["hints"] = hint_map[entry.name]
+                            new_tests.append(tc_entry)
                     # 不 interesting 的直接跳过，不传
                 else:
-                    # 回退：没有 streaming showmap 时传所有 TC
-                    new_tests.append({"content": content})
+                    tc_entry = {"content": content}
+                    if entry.name in hint_map:
+                        tc_entry["hints"] = hint_map[entry.name]
+                    new_tests.append(tc_entry)
             except (IOError, OSError):
                 pass
 
@@ -425,6 +563,8 @@ class StreamingShowmap:
     每次调用 ~0.6ms（vs fork 模式 ~12ms，19x 加速）。
     """
 
+    _MAX_EDGES = 1 << 20   # edge count 上限，防止损坏 count 导致超长循环
+
     def __init__(self, afl_showmap: str, target_cmd: list[str]):
         cmd = [afl_showmap, "-S", "-t", "5000", "-m", "none", "--"]
         cmd.extend(target_cmd)
@@ -432,87 +572,72 @@ class StreamingShowmap:
             cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
         )
+        self._dead = False   # 协议 EOF/进程死亡后置位，避免复用被截断的管道
+
+    def _read_exact(self, n: int) -> bytes | None:
+        """精确读取 n 字节；EOF/进程死亡返回 None 并标记 oracle 已死。"""
+        buf = bytearray()
+        rd = self._proc.stdout
+        while len(buf) < n:
+            chunk = rd.read(n - len(buf))
+            if not chunk:
+                self._dead = True
+                return None
+            buf += chunk
+        return bytes(buf)
 
     def get_edges(self, content: bytes) -> list[tuple[int, int]] | None:
-        """发送测试用例内容，返回稀疏边列表 [(edge_id, count), ...]。"""
-        import struct
+        """发送测试用例内容，返回稀疏边列表 [(edge_id, count), ...]。
+        崩溃/超时输入仍返回其（可能为空的）边列表；仅进程死亡才返回 None（且不再复用）。"""
+        if self._dead:
+            return None
         try:
-            # 发送: [u32 len][data]
             self._proc.stdin.write(struct.pack("<I", len(content)))
             self._proc.stdin.write(content)
             self._proc.stdin.flush()
-
-            # 接收: [u16 status][u32 edges_count][(u32 eid, u8 count) × N]
-            #        [u32 stdout_len][stdout][u32 stderr_len][stderr]
-            raw = self._proc.stdout.read(2)
-            if len(raw) < 2:
-                return None
-            _status = struct.unpack("<H", raw)[0]
-
-            raw = self._proc.stdout.read(4)
-            edges_count = struct.unpack("<I", raw)[0]
-
-            edges = []
-            for _ in range(edges_count):
-                eid = struct.unpack("<I", self._proc.stdout.read(4))[0]
-                cnt = struct.unpack("<B", self._proc.stdout.read(1))[0]
-                edges.append((eid, cnt))
-
-            # 消费 stdout/stderr 输出
-            slen = struct.unpack("<I", self._proc.stdout.read(4))[0]
-            if slen > 0:
-                self._proc.stdout.read(slen)
-            elen = struct.unpack("<I", self._proc.stdout.read(4))[0]
-            if elen > 0:
-                self._proc.stdout.read(elen)
-
-            return edges
-        except Exception:
+        except (BrokenPipeError, OSError):
+            self._dead = True
             return None
+        # 接收: [u16 status][u32 edges_count][(u32 eid, u8 count) × N]
+        #        [u32 stdout_len][stdout][u32 stderr_len][stderr]
+        if self._read_exact(2) is None:                       # status
+            return None
+        raw = self._read_exact(4)                             # edges_count
+        if raw is None:
+            return None
+        edges_count = struct.unpack("<I", raw)[0]
+        if edges_count > self._MAX_EDGES:                     # 损坏 count 防护
+            self._dead = True
+            return None
+        pair = self._read_exact(5 * edges_count)              # (u32 eid, u8 cnt) × N
+        if pair is None:
+            return None
+        edges = [(struct.unpack_from("<I", pair, i * 5)[0], pair[i * 5 + 4])
+                 for i in range(edges_count)]
+        for _ in range(2):                                    # 排空 stdout/stderr
+            lraw = self._read_exact(4)
+            if lraw is None:
+                return None
+            blen = struct.unpack("<I", lraw)[0]
+            if blen and self._read_exact(blen) is None:
+                return None
+        return edges
 
-    def close(self):
+    def close(self) -> None:
         try:
-            self._proc.stdin.close()
+            if self._proc.stdin:
+                self._proc.stdin.close()
             self._proc.wait(timeout=5)
-        except Exception:
+        except (OSError, subprocess.TimeoutExpired):
             self._proc.kill()
+            try:
+                self._proc.wait(timeout=2)
+            except (OSError, subprocess.TimeoutExpired):
+                pass
 
     def __del__(self):
         self.close()
 
-
-def _run_showmap_fast(afl_showmap, target_cmd, testcase, bitmap_path,
-                      use_stdin=False):
-    """回退方案：逐个 fork afl-showmap（当 streaming 不可用时）。"""
-    cmd = [afl_showmap, "-t", "5000", "-m", "none",
-           "-o", bitmap_path]
-    cmd.extend(target_cmd)
-    # 替换 @@ 为实际文件路径
-    cmd = [testcase if a == "@@" else a for a in cmd]
-    try:
-        if use_stdin:
-            with open(testcase, "rb") as inf:
-                subprocess.run(
-                    cmd, stdin=inf,
-                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                    timeout=10
-                )
-        else:
-            subprocess.run(
-                cmd, stdin=subprocess.DEVNULL,
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                timeout=10
-            )
-        edges = []
-        with open(bitmap_path, "r") as f:
-            for line in f:
-                line = line.strip()
-                if ":" in line:
-                    parts = line.split(":")
-                    edges.append((int(parts[0]), int(parts[1])))
-        return edges
-    except Exception:
-        return None
 
 
 def _batch_triage(
@@ -527,19 +652,27 @@ def _batch_triage(
     save_all_dir: str | None,
     symcc_dir: str,
     bitmap_path_triage: str,
-    symcc_feedback_queue: list[str],
+    symcc_feedback_queue: list[tuple[str, int]],
     queue_id_ref: list[int],
+    file_generation: dict[str, int] | None = None,
+    afl_extras_dir: str | None = None,
+    hint_id_ref: list[int] | None = None,
+    recent_byte_offsets: list[int] | None = None,
+    focus_bytes_window: int = 200,
+    yield_callback: "typing.Callable[[str, bool], None] | None" = None,
 ) -> bool:
     """批量 triage worker 返回的结果。返回 bitmap 是否有变化。"""
     queue_id = queue_id_ref[0]
     bitmap_changed = False
-    num_interesting = 0
-    total_tcs = 0
 
     for worker_rank, input_path, new_tests, retcode, elapsed, killed in batch_results:
-        stats.add_execution(elapsed, killed)
+        input_produced_interesting = False
+        # 跳过 worker 端"非执行"错误结果（文件缺失/派发前异常：elapsed==0 且
+        # retcode==-1 且无输出），否则会以 0 耗时的"成功执行"稀释平均耗时统计。
+        # 注：run_symcc_worker 内部异常虽也置 retcode=-1，但 elapsed 已计量（>0）。
+        if not (elapsed == 0 and retcode == -1 and not new_tests):
+            stats.add_execution(elapsed, killed)
         # new_tests 现在只含 interesting 的 TC（worker 端已做 dedup）
-        total_tcs += len(new_tests)
 
         for tc in new_tests:
             tc_content = tc["content"]
@@ -578,27 +711,85 @@ def _batch_triage(
                 is_new = coverage.merge(bitmap_data)
                 if is_new:
                     bitmap_changed = True
+                    input_produced_interesting = True
                     orig_name = os.path.basename(input_path)
                     src_id = "000000"
                     if orig_name.startswith("id:") and len(orig_name) >= 9:
                         src_id = orig_name[3:9]
                     new_name = f"id:{queue_id:06d},src:{src_id}"
                     dest = os.path.join(queue_dir, new_name)
-                    with open(dest, "wb") as f:
+                    # 原子写入：先写临时文件再 rename，避免消费者（AFL/master）读到半截种子
+                    _dtmp = dest + ".tmp"
+                    with open(_dtmp, "wb") as f:
                         f.write(tc_content)
-                    symcc_feedback_queue.append(dest)
+                    os.replace(_dtmp, dest)
+                    # 计算迭代代数：输入的代数 + 1
+                    parent_gen = 0
+                    if file_generation is not None:
+                        parent_gen = file_generation.get(input_path, 0)
+                    child_gen = parent_gen + 1
+                    if file_generation is not None:
+                        file_generation[dest] = child_gen
+                    # 深度限制检查
+                    if MAX_GENERATION_DEPTH <= 0 or child_gen <= MAX_GENERATION_DEPTH:
+                        symcc_feedback_queue.append((dest, child_gen))
                     if os.path.isdir(afl_sync_queue):
                         try:
-                            with open(os.path.join(
+                            _sdest = os.path.join(
                                 afl_sync_queue,
-                                f"id:symcc_{queue_id:06d},src:{src_id}"
-                            ), "wb") as f:
+                                f"id:symcc_{queue_id:06d},src:{src_id}")
+                            _stmp = _sdest + ".tmp"
+                            with open(_stmp, "wb") as f:
                                 f.write(tc_content)
+                            os.replace(_stmp, _sdest)  # 原子：AFL 不会读到半截
                         except OSError:
                             pass
                     queue_id += 1
-                    num_interesting += 1
                     stats.interesting_count += 1
+
+                    # 将约束 hint 写入 AFL extras 目录（多字节聚合）
+                    # 将连续偏移的 hint 聚合为多字节 token，
+                    # AFL extras 期望多字节 token（如 "SELECT"）而非单字节
+                    tc_hints = tc.get("hints")
+                    if tc_hints and afl_extras_dir and hint_id_ref is not None:
+                        sorted_hints = sorted(tc_hints, key=lambda h: h[0])
+                        tokens: list[bytes] = []
+                        cur_token = bytearray()
+                        prev_off = -2
+                        for _off, _old, _new in sorted_hints:
+                            if _off == prev_off + 1:
+                                cur_token.append(_new)
+                            else:
+                                if cur_token:
+                                    tokens.append(bytes(cur_token))
+                                cur_token = bytearray([_new])
+                            prev_off = _off
+                        if cur_token:
+                            tokens.append(bytes(cur_token))
+                        for token in tokens:
+                            # 循环复用固定文件池，上限 MAX_HINT_FILES，避免 inode 耗尽
+                            hint_path = os.path.join(
+                                afl_extras_dir,
+                                f"hint_{hint_id_ref[0] % MAX_HINT_FILES:06d}"
+                            )
+                            try:
+                                with open(hint_path, "wb") as hf:
+                                    hf.write(token)
+                                hint_id_ref[0] += 1
+                            except OSError:
+                                pass
+
+                    # 仅从 interesting TC 收集偏移用于 focus_bytes
+                    if tc_hints and recent_byte_offsets is not None:
+                        for _off, _old, _new in tc_hints:
+                            recent_byte_offsets.append(_off)
+                        # 滑动窗口：只保留最近的偏移
+                        if len(recent_byte_offsets) > focus_bytes_window:
+                            del recent_byte_offsets[:-focus_bytes_window]
+
+        # 更新种子类型产出率
+        if yield_callback is not None:
+            yield_callback(input_path, input_produced_interesting)
 
         if killed:
             orig_name = os.path.basename(input_path)
@@ -611,21 +802,29 @@ def _batch_triage(
                 queue_id += 1
             except (IOError, OSError):
                 pass
+        elif retcode > 128 and retcode != 137:
+            # 目标在 timeout 包装下被致命信号终止（SIGSEGV=139/SIGABRT=134/
+            # SIGFPE=136 等；排除超时的 SIGKILL=137，那已由 killed 归入 hangs）
+            # → 保存触发崩溃的输入供分析，否则 concolic 发现的崩溃种子被静默丢弃。
+            orig_name = os.path.basename(input_path)
+            src_id = "000000"
+            if orig_name.startswith("id:") and len(orig_name) >= 9:
+                src_id = orig_name[3:9]
+            crash_name = f"id:{queue_id:06d},src:{src_id}"
+            try:
+                shutil.copy2(input_path, os.path.join(crashes_dir, crash_name))
+                queue_id += 1
+            except (IOError, OSError):
+                pass
 
     queue_id_ref[0] = queue_id
-
-    if total_tcs > 0:
-        worker_info = ", ".join(
-            f"W{r[0]}={len(r[2])}tc/{r[4]:.1f}s"
-            for r in batch_results
-        )
-        print(f"[Master] Triage: {total_tcs} tc -> {num_interesting} interesting "
-              f"[{worker_info}]")
-
+    # 注：不再每批 print 三元组统计（热路径去除 f-string 格式化 + stdout I/O，
+    # 与 mpi_concolic_execution 的 master 修复一致）；进度由 master 循环中每 2s 的
+    # 轻量汇总行 + 周期性完整 Stats 行输出，聚合计数走全局 stats。
     return bitmap_changed
 
 
-def master(comm, args):
+def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
     """Master process: monitors AFL queue, distributes work, triages results."""
     size = comm.Get_size()
     num_workers = size - 1
@@ -658,13 +857,24 @@ def master(comm, args):
     # AFL 反馈目录：将有趣的 SymCC 输出同步回 AFL 的 queue，形成双向反馈环
     afl_sync_queue = os.path.join(afl_queue_dir, "queue")  # fuzzer01/queue/
 
+    # AFL extras 目录：约束 hint 写入此处，AFL 自动作为字典 token 使用
+    afl_extras_dir = os.path.join(afl_queue_dir, "..", "extras")
+    os.makedirs(afl_extras_dir, exist_ok=True)
+    hint_id_ref = [0]
+
+    # 选择性符号化：跟踪近期产出 interesting 结果的字节偏移范围
+    # 使用滑动窗口避免范围无限膨胀（只保留最近 200 个偏移）
+    recent_byte_offsets: list[int] = []
+    FOCUS_BYTES_WINDOW = 200
+    focus_bytes_str = ""
+
     stats_file = open(os.path.join(symcc_dir, "stats"), "w")
     bitmap_path_triage = os.path.join(symcc_dir, ".triage_bitmap")
 
     # Load AFL config
     try:
         afl_config = AflConfig(afl_queue_dir)
-    except Exception as e:
+    except (OSError, RuntimeError, ValueError, IndexError) as e:
         print(f"Error loading AFL config: {e}", file=sys.stderr)
         stats_file.close()
         for rank in range(1, size):
@@ -684,17 +894,64 @@ def master(comm, args):
     # 代价是初期可能有少量假阳性 (interesting)，但不影响正确性
     stats = Stats()
     processed_files = set()
+    processed_content_hashes = set()  # SHA-256 of already-analyzed file contents
     active_workers = {}  # rank -> input_path
-    queue_id = 0
     queue_id_ref = [0]  # 可变引用，供 _batch_triage 更新
     last_stats_time = time.monotonic()
+    # 轻量进度汇总节流（替代每批 triage print）：每 2s 一行，聚合计数走全局 stats
+    last_progress_time = time.monotonic()
+    prog_prev_generated = 0
+    PROGRESS_INTERVAL = 2.0
 
     # SymCC 产生的有趣测试用例队列，会被重新分发给 workers
-    symcc_feedback_queue: list[str] = []
+    # 每个元素是 (path, generation_depth)，depth=0 为 AFL 种子，depth=N 为第 N 代 SymCC 输出
+    symcc_feedback_queue: list[tuple[str, int]] = []
+    # 记录每个文件的迭代代数
+    file_generation: dict[str, int] = {}
+    max_generation_reached = 0
+
+    # GRIMOIRE 高价值输入直连 SymCC：master 扫描 grimoire-feed 目录，把新文件注入
+    # 反馈队列，让 concolic 直接从结构有效的深层输入继续挖（结构合成 × 约束求解协同）。
+    grimoire_feed_dir = args.grimoire_feed
+    grimoire_seen: set[str] = set()
+    last_grimoire_scan = 0.0
+
+    # 边产出率在线学习（CoFuzz + T-Scheduler 风格）：
+    # 跟踪每种种子类型被 concolic 分析后产出 interesting 结果的概率
+    # 使用 Beta-Bernoulli Thompson Sampling（T-Scheduler AsiaCCS'24）
+    edge_yield_counts: dict[str, list[int]] = {
+        "cov": [1, 1],     # [alpha (successes+1), beta (failures+1)]，先验 Beta(1,1)
+        "symcc": [1, 1],
+        "normal": [1, 1],
+    }
+
+    def _update_edge_yield(input_path: str, produced_interesting: bool) -> None:
+        """更新种子类型的 Beta 分布参数。"""
+        name = os.path.basename(input_path)
+        if "+cov" in name:
+            seed_type = "cov"
+        elif "symcc_" in name:
+            seed_type = "symcc"
+        else:
+            seed_type = "normal"
+        if produced_interesting:
+            edge_yield_counts[seed_type][0] += 1  # alpha++
+        else:
+            edge_yield_counts[seed_type][1] += 1  # beta++
+
+    def _get_edge_yield() -> dict[str, float]:
+        """Thompson Sampling：从各类型的 Beta 分布中采样，作为优先级分数。
+
+        比 Laplace 平滑更优：自动在探索（数据少时高方差）
+        和利用（数据多时收敛到真实率）之间平衡。
+        """
+        result = {}
+        for k, (alpha, beta) in edge_yield_counts.items():
+            result[k] = random.betavariate(alpha, beta)
+        return result
 
     # --save-all: 保存所有生成的测试用例（不经过滤）
     save_all_dir = None
-    save_all_id = 0
     if args.save_all:
         save_all_dir = args.save_all
         os.makedirs(save_all_dir, exist_ok=True)
@@ -703,7 +960,7 @@ def master(comm, args):
     # 信号处理：收到 SIGTERM/SIGINT 时优雅退出
     shutdown_requested = False
 
-    def _signal_handler(signum, frame):
+    def _signal_handler(signum: int, frame: object) -> None:
         nonlocal shutdown_requested
         shutdown_requested = True
         print(f"\n[Master] Received signal {signum}, shutting down...",
@@ -729,20 +986,130 @@ def master(comm, args):
     _n_triage = 0
     _n_recv_bytes = 0   # 估算 MPI recv 数据量
 
+    # 注：曾尝试"多样性调度"（避免并发下发相似种子以降低冗余），但 A/B 实测
+    # 14 workers 下 useful 比率 18.0%(off) vs 17.9%(on) 无差异——并行 concolic 冗余
+    # 主要是结构性的（不同种子翻转分支后仍产出覆盖公共下游代码的输入），
+    # 与文献一致（concolic 并行本质亚线性扩展）。故不采用调度层去冗余，
+    # 转而通过 SYMCC_WORKER_CAP 限制 concolic worker 数、把富余核心给扩展性更好的 AFL。
+
+    # 运行时自适应分配（KRAKEN/Boian 风格）：
+    #  - control_file (.active_workers)：run_hybrid 控制器写入期望活跃 worker 数 K，
+    #    master 只向 rank 1..K 派发，rank K+1..N 被"停泊"（消费其 READY 后不派发，
+    #    worker 阻塞在 recv 上，~0 CPU，释放核心给 AFL）。K 增大时主动直接派发唤醒。
+    #    停泊可逆、不丢弃任何种子 → 不丢覆盖率。
+    #  - stats_out_file (.symcc_stats)：master 周期性写出累计产出，供控制器读取产出率。
+    control_file = os.path.join(symcc_dir, ".active_workers")
+    stats_out_file = os.path.join(symcc_dir, ".symcc_stats")
+    max_active_workers = num_workers      # 默认全部活跃
+    # idle_ranks：已发 READY、正阻塞在 recv 等待工作的 worker。
+    # 其中 rank > max_active_workers 者被"停泊"（不派发 → ~0 CPU）；
+    # K 增大时它们自动变为可派发（无需额外唤醒逻辑）。
+    idle_ranks: set[int] = set()
+    last_control_check = 0.0
+    last_stats_out = 0.0                   # .symcc_stats 快速写出节流（供控制器）
+    last_scan_time = 0.0                   # AFL queue 扫描节流
+    SCAN_MIN_INTERVAL = 0.1                # worker 都在忙时，最多每 100ms 扫一次队列
+    # BSFuzz 跨-worker 超时分支共享聚合
+    branch_share_master = os.environ.get("SYMCC_BRANCH_SHARE") == "1"
+    skip_sites_master_path = os.path.join(symcc_dir, ".skip_sites")
+    global_timeout_sites: set[int] = set()
+
+    def _read_active_workers() -> int:
+        try:
+            with open(control_file) as cf:
+                k = int(cf.read().strip())
+            return max(1, min(num_workers, k))
+        except (IOError, OSError, ValueError):
+            return max_active_workers  # 无文件/无效 → 保持
+
+    def _write_symcc_stats() -> None:
+        try:
+            tmp = stats_out_file + ".tmp"
+            with open(tmp, "w") as sf:
+                sf.write("%d %d %d %d\n" % (
+                    stats.interesting_count, stats.generated_count,
+                    len(coverage.edges), max_active_workers))
+            os.replace(tmp, stats_out_file)
+        except OSError:
+            pass
+
     try:
         while not shutdown_requested:
+            # 读取自适应控制：期望活跃 worker 数（限流，避免每轮 IO）
+            _now = time.monotonic()
+            if _now - last_control_check > 1.0:
+                max_active_workers = _read_active_workers()
+                last_control_check = _now
+                # 内存安全阀：去重/跟踪容器超限时清空以限制内存（有界重复分析，
+                # 不影响正确性）。~1s 一次的廉价 len 检查。
+                for _c, _nm in ((processed_files, "processed_files"),
+                                (processed_content_hashes,
+                                 "processed_content_hashes"),
+                                (grimoire_seen, "grimoire_seen"),
+                                (file_generation, "file_generation")):
+                    if len(_c) > MAX_DEDUP_ENTRIES:
+                        _c.clear()
+                        print(f"[Master] {_nm} 超过 {MAX_DEDUP_ENTRIES} 条，"
+                              f"已清空以限制内存", flush=True)
+            # 快速写出产出统计（每 ~5s），供 run_hybrid 控制器及时响应
+            if _now - last_stats_out > 5.0:
+                _write_symcc_stats()
+                last_stats_out = _now
+            # 扫描 GRIMOIRE 高价值馈送目录，新文件注入反馈队列（限流 ~3s）
+            if grimoire_feed_dir and _now - last_grimoire_scan > 3.0:
+                last_grimoire_scan = _now
+                _gnew = 0
+                try:
+                    for gname in os.listdir(grimoire_feed_dir):
+                        gp = os.path.join(grimoire_feed_dir, gname)
+                        if gp in grimoire_seen or not os.path.isfile(gp):
+                            continue
+                        grimoire_seen.add(gp)
+                        # 代数记为 0（视作新种子级）；结构有效 → concolic 深挖
+                        file_generation.setdefault(gp, 0)
+                        symcc_feedback_queue.append((gp, 0))
+                        _gnew += 1
+                except OSError:
+                    pass
+                if _gnew:
+                    print(f"[Master] GRIMOIRE feed: +{_gnew} structured inputs -> "
+                          f"SymCC ({len(grimoire_seen)} total)", flush=True)
             # 合并输入源：SymCC 反馈用例优先，然后是 AFL queue 的新文件
-            pending_feedback = list(symcc_feedback_queue)
+            # 提取反馈队列：(path, generation) 元组
+            pending_feedback_tuples = list(symcc_feedback_queue)
             symcc_feedback_queue.clear()
+            # 按代数降序排列：深度优先，优先探索最新一代的输出
+            pending_feedback_tuples.sort(key=lambda x: x[1], reverse=True)
+            pending_feedback = [p for p, _g in pending_feedback_tuples]
+            # 记录最大代数
+            for _p, _g in pending_feedback_tuples:
+                if _g > max_generation_reached:
+                    max_generation_reached = _g
 
-            # 有反馈用例时优先分发，不扫描 AFL queue（节省 ~10ms/次）
-            if pending_feedback and len(pending_feedback) >= num_workers:
+            # 扫描 AFL queue 的条件（避免 worker 全忙时忙等式重复 scandir）：
+            #  - 有足够反馈用例可分发 → 跳过扫描；
+            #  - 有空闲 worker 需要喂 → 立即扫描（响应性）；
+            #  - 否则按 SCAN_MIN_INTERVAL 节流（worker 都在忙时最多 10 次/秒）。
+            idle_worker_waiting = len(active_workers) < max_active_workers
+            scan_due = (_now - last_scan_time) >= SCAN_MIN_INTERVAL
+            # 阈值/批量都以"活跃" worker 数为准：停泊的 worker 不消费候选，
+            # 用 num_workers 会在停泊时过度取用并过度扫描。
+            if pending_feedback and len(pending_feedback) >= max_active_workers:
                 new_inputs = []
+            elif not (idle_worker_waiting or scan_due):
+                new_inputs = []  # 节流：worker 都在忙且刚扫过 → 跳过
             else:
                 _t0 = time.monotonic()
                 new_inputs = afl_config.best_new_testcases(
-                    processed_files, batch_size=num_workers * 4
+                    processed_files, batch_size=max_active_workers * 4,
+                    analyzed_hashes=processed_content_hashes,
+                    edge_yield=_get_edge_yield(),
                 )
+                last_scan_time = _now
+                # AFL 种子代数为 0
+                for inp in new_inputs:
+                    if inp not in file_generation:
+                        file_generation[inp] = 0
                 if _prof:
                     _t_scan += time.monotonic() - _t0
                     _n_scan += 1
@@ -750,35 +1117,54 @@ def master(comm, args):
             work_queue = pending_feedback + new_inputs
 
             # 交替处理 READY 和 RESULT 消息，避免单方向阻塞
-            dispatched = 0
             work_idx = 0
             any_progress = True
+
+            def _dispatch_to(wr: int, input_file: str) -> None:
+                # 只发路径 + bitmap 版本号，不发内容（worker 自己读文件）
+                comm.send({
+                    "path": input_file,
+                    "bitmap_version": bitmap_version,
+                    "bitmap_path": bitmap_shared_path,
+                    "focus_bytes": focus_bytes_str,
+                }, dest=wr, tag=TAG_WORK)
+                active_workers[wr] = input_file
+                processed_files.add(input_file)
+                try:
+                    with open(input_file, "rb") as _f:
+                        processed_content_hashes.add(
+                            hashlib.sha256(_f.read()).hexdigest())
+                except (IOError, OSError):
+                    pass
+
             while any_progress:
                 any_progress = False
 
-                # 分发工作给空闲 workers
-                while work_idx < len(work_queue) and comm.iprobe(
-                    source=MPI.ANY_SOURCE, tag=TAG_READY
-                ):
-                    status = MPI.Status()
-                    comm.recv(source=MPI.ANY_SOURCE, tag=TAG_READY, status=status)
-                    worker_rank = status.Get_source()
-                    input_file = work_queue[work_idx]
-                    work_idx += 1
+                # 排空所有 READY 到 idle 集合（一并消费，避免遗留缓冲）
+                _rstatus = MPI.Status()
+                while comm.iprobe(source=MPI.ANY_SOURCE, tag=TAG_READY,
+                                  status=_rstatus):
+                    wr = _rstatus.Get_source()
+                    comm.recv(source=wr, tag=TAG_READY)
+                    idle_ranks.add(wr)
+                    any_progress = True
 
-                    # 只发路径 + bitmap 版本号，不发内容（worker 自己读文件）
+                # 仅向"活跃"（rank <= max_active_workers）的空闲 worker 派发；
+                # 超额 rank 保持在 idle_ranks 中停泊（不占 CPU）。
+                if work_idx < len(work_queue) and idle_ranks:
                     _t0 = time.monotonic()
-                    comm.send({
-                        "path": input_file,
-                        "bitmap_version": bitmap_version,
-                    }, dest=worker_rank, tag=TAG_WORK)
+                    for wr in sorted(idle_ranks):
+                        if work_idx >= len(work_queue):
+                            break
+                        if wr > max_active_workers:
+                            continue  # 停泊
+                        _dispatch_to(wr, work_queue[work_idx])
+                        work_idx += 1
+                        idle_ranks.discard(wr)
+                        any_progress = True
                     if _prof:
                         _t_dispatch += time.monotonic() - _t0
                         _n_dispatch += 1
-                    active_workers[worker_rank] = input_file
-                    processed_files.add(input_file)
-                    dispatched += 1
-                    any_progress = True
 
                 # 收集已完成 workers 的结果（非阻塞）
                 if comm.iprobe(source=MPI.ANY_SOURCE, tag=TAG_RESULT):
@@ -796,6 +1182,21 @@ def master(comm, args):
                         new_tcs = result.get("new_tests", [])
                         total_gen = result.get("total_generated", len(new_tcs))
                         stats.generated_count += total_gen
+                        # BSFuzz：聚合超时分支 site_id，增长时写出共享跳过集
+                        if branch_share_master:
+                            ts = result.get("timeout_sites")
+                            if ts:
+                                before_n = len(global_timeout_sites)
+                                global_timeout_sites.update(ts)
+                                if len(global_timeout_sites) > before_n:
+                                    try:
+                                        _tmp = skip_sites_master_path + ".tmp"
+                                        with open(_tmp, "w") as _sf:
+                                            _sf.write("\n".join(
+                                                str(s) for s in global_timeout_sites))
+                                        os.replace(_tmp, skip_sites_master_path)
+                                    except OSError:
+                                        pass
                         if _prof:
                             _n_recv_bytes += sum(
                                 len(tc.get("content", b"")) for tc in new_tcs
@@ -818,8 +1219,13 @@ def master(comm, args):
                             queue_dir, crashes_dir, hangs_dir, afl_sync_queue,
                             save_all_dir, symcc_dir, bitmap_path_triage,
                             symcc_feedback_queue, queue_id_ref,
+                            file_generation=file_generation,
+                            afl_extras_dir=afl_extras_dir,
+                            hint_id_ref=hint_id_ref,
+                            recent_byte_offsets=recent_byte_offsets,
+                            focus_bytes_window=FOCUS_BYTES_WINDOW,
+                            yield_callback=_update_edge_yield,
                         )
-                        queue_id = queue_id_ref[0]
                         if bitmap_changed:
                             bitmap_version += 1
                             if coverage.data:
@@ -827,28 +1233,55 @@ def master(comm, args):
                                 with open(tmp_path, "wb") as f:
                                     f.write(bytes(coverage.data))
                                 os.replace(tmp_path, bitmap_shared_path)
+                        # 更新 focus_bytes：仅从 interesting TCs 收集偏移
+                        if len(recent_byte_offsets) >= 5:
+                            min_off = max(0, min(recent_byte_offsets) - 32)
+                            max_off = max(recent_byte_offsets) + 32
+                            focus_bytes_str = f"{min_off}-{max_off}"
+
                     if _prof:
                         _t_triage += time.monotonic() - _t0
                         _n_triage += 1
 
-            # 未分发完的 SymCC 反馈用例放回队列
-            undispatched_feedback = [
-                f for f in pending_feedback
-                if f not in processed_files
-            ]
-            symcc_feedback_queue.extend(undispatched_feedback)
+            # 未分发完的 SymCC 反馈用例放回队列（保留代数信息）
+            for f in pending_feedback:
+                if f not in processed_files:
+                    gen = file_generation.get(f, 0)
+                    symcc_feedback_queue.append((f, gen))
 
             # 旧的 collect/triage 代码已移到 while 循环内的交替处理中
+
+            # 轻量进度汇总（每 2s，替代每批 triage print）：热路径外、走全局计数
+            _pnow = time.monotonic()
+            if _pnow - last_progress_time >= PROGRESS_INTERVAL:
+                _dt = _pnow - last_progress_time
+                _rate = (stats.generated_count - prog_prev_generated) / _dt if _dt > 0 else 0
+                print(f"[Master] {stats.interesting_count} interesting / "
+                      f"{stats.generated_count} generated, "
+                      f"{len(active_workers)} busy ({_rate:.0f} tc/s)", flush=True)
+                last_progress_time = _pnow
+                prog_prev_generated = stats.generated_count
 
             # Periodic stats output
             stats_interval = 15 if _prof else STATS_INTERVAL_SEC
             if time.monotonic() - last_stats_time > stats_interval:
                 stats.log(stats_file)
                 last_stats_time = time.monotonic()
+                yields = _get_edge_yield()
+                yield_str = " ".join(
+                    f"{k}={v:.2f}(a={edge_yield_counts[k][0]},b={edge_yield_counts[k][1]})"
+                    for k, v in yields.items()
+                )
+                _active_now = min(max_active_workers, num_workers)
                 print(f"[Master] Stats: {stats.total_count} ok, "
                       f"{stats.failed_count} failed, "
                       f"{stats.interesting_count} interesting / "
-                      f"{stats.generated_count} total")
+                      f"{stats.generated_count} total, "
+                      f"max_depth={max_generation_reached}, "
+                      f"active_workers={_active_now}/{num_workers}, "
+                      f"yield=[{yield_str}]")
+                # 写出产出统计供 run_hybrid 自适应控制器读取
+                _write_symcc_stats()
                 if _prof and _n_scan > 0:
                     print(f"[PROF] scan={_t_scan:.2f}s/{_n_scan}x "
                           f"dispatch={_t_dispatch:.2f}s/{_n_dispatch}x "
@@ -859,10 +1292,15 @@ def master(comm, args):
 
             # 无输入且无活跃 worker 时等待 AFL 产生新用例
             _t0 = time.monotonic()
+            # 是否存在可立即派发的空闲"活跃"worker（rank<=上限；停泊 rank 不算）。
+            # 上面的派发循环已把所有可派发的工作排空，故若反馈仍被放回队列，
+            # 通常意味着无空闲活跃 worker——此时必须 sleep，否则 100% 忙等空转
+            # 直到某 worker 返回（最长 TIMEOUT_SEC）。
+            _dispatchable_idle = any(r <= max_active_workers for r in idle_ranks)
             if not work_queue and not active_workers and not symcc_feedback_queue:
                 time.sleep(2)
-            elif symcc_feedback_queue:
-                pass  # 有反馈用例时立即分发
+            elif symcc_feedback_queue and _dispatchable_idle:
+                pass  # 有反馈且有空闲活跃 worker → 立即分发，不睡
             else:
                 time.sleep(0.05)
             if _prof:
@@ -881,6 +1319,7 @@ def master(comm, args):
                   f"~{_n_recv_bytes/1024/1024:.1f}MB total)")
             print(f"[PROF] triage:   {_t_triage:>7.2f}s ({_n_triage} batches)")
             print(f"[PROF] idle:     {_t_idle:>7.2f}s")
+            print(f"[PROF] wall:     {wall:>7.2f}s (总墙钟，含各阶段与 idle)")
             sys.stdout.flush()
 
         # 先输出最终统计（在尝试与 worker 通信之前，因为 worker 可能已被 SIGTERM 杀死）
@@ -890,23 +1329,32 @@ def master(comm, args):
               f"{stats.interesting_count} interesting / "
               f"{stats.generated_count} total")
         sys.stdout.flush()
-        stats_file.close()
+        try:
+            stats_file.close()
+        except OSError:
+            pass
 
         # 尝试发送 TAG_STOP（worker 可能已经死了，忽略错误）
         print("[Master] Shutting down workers...")
         for rank in range(1, size):
             try:
-                # 排空该 worker 的 TAG_READY 和 TAG_RESULT
                 while comm.iprobe(source=rank, tag=TAG_READY):
                     comm.recv(source=rank, tag=TAG_READY)
                 while comm.iprobe(source=rank, tag=TAG_RESULT):
                     comm.recv(source=rank, tag=TAG_RESULT)
                 comm.send(None, dest=rank, tag=TAG_STOP)
+            except MPI.Exception:
+                pass
+        # 排空 TAG_STOP 后可能到达的 TAG_READY
+        for rank in range(1, size):
+            try:
+                while comm.iprobe(source=rank, tag=TAG_READY):
+                    comm.recv(source=rank, tag=TAG_READY)
             except Exception:
-                pass  # worker 可能已经被 SIGTERM 杀死
+                pass
 
 
-def worker(comm, args):
+def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
     """Worker process: receives inputs, runs SymCC, sends back results."""
     rank = comm.Get_rank()
     target_cmd = args.target
@@ -919,9 +1367,28 @@ def worker(comm, args):
     worker_env = os.environ.copy()
     worker_env["SYMCC_AFL_COVERAGE_MAP"] = bitmap_file
 
+    # BSFuzz 跨-worker 超时分支共享（opt-in，SYMCC_BRANCH_SHARE=1）：
+    #  - SYMCC_SKIP_SITES：master 聚合的全局超时 site_id 文件（每次 SymCC 进程新起，
+    #    自动重读最新版，无需版本广播）；
+    #  - SYMCC_TIMEOUT_OUT：本 worker 本次运行导出的超时 site_id（随后回传 master 聚合）。
+    branch_share = os.environ.get("SYMCC_BRANCH_SHARE") == "1"
+    symcc_dir_w = os.path.join(args.output_dir, args.name)
+    skip_sites_path = os.path.join(symcc_dir_w, ".skip_sites")
+    timeout_out_file = os.path.join(worker_dir, "timeout_sites")
+    if branch_share:
+        worker_env["SYMCC_SKIP_SITES"] = skip_sites_path
+
     # 初始化 streaming showmap（持久 fork server，~0.6ms/call）
     afl_showmap_path = shutil.which("afl-showmap")
     streaming_sm: StreamingShowmap | None = None
+    _sm_init_tries = 0
+    _sm_disabled_logged = False
+    _SM_MAX_INIT_TRIES = 5   # AFL 首次尚未就绪时给几次重试，之后放弃（避免每轮重建）
+    if afl_showmap_path is None:
+        # 无 afl-showmap → 无法本地 dedup，每个 TC 全量回传 master 且走全量 showmap
+        # triage（MPI/CPU 开销显著上升）。显式告警，避免静默降级不可见。
+        print(f"[Worker {rank}] WARNING: afl-showmap 不在 PATH，"
+              f"流式 dedup 关闭（每个 TC 全量回传 master，开销上升）", flush=True)
     # Worker 端 coverage bitmap 副本 — 用于本地 dedup
     worker_cov = CoverageBitmap()
     current_bitmap_version = -1
@@ -945,29 +1412,28 @@ def worker(comm, args):
 
         # 仅在 bitmap 版本更新时重读共享 bitmap 文件
         if bm_version > current_bitmap_version:
-            # 共享 bitmap 路径由 symcc_dir/.shared_bitmap 约定
-            # 从 input_path 推断 symcc_dir
-            shared_bm = os.path.join(
-                os.path.dirname(os.path.dirname(input_path))
-                if "/queue/" in input_path
-                else os.path.dirname(input_path),
-                ".shared_bitmap"
-            )
-            # 查找正确的 shared bitmap 路径
-            for candidate in [
-                shared_bm,
-                os.path.join(args.output_dir, args.name, ".shared_bitmap"),
-            ]:
-                if os.path.isfile(candidate):
-                    try:
-                        shutil.copy2(candidate, bitmap_file)
-                        current_bitmap_version = bm_version
-                    except (IOError, OSError):
-                        pass
-                    break
+            shared_bm = msg.get("bitmap_path", "")
+            if shared_bm and os.path.isfile(shared_bm):
+                try:
+                    shutil.copy2(shared_bm, bitmap_file)
+                    current_bitmap_version = bm_version
+                    # 用全局已覆盖边播种本地 dedup（worker_cov）。共享 bitmap 与
+                    # streaming showmap 的 get_edges() 同属 afl-showmap 边空间
+                    #（同一目标二进制），byte i 非零 ⇔ 边 i 已覆盖。否则新进程的
+                    # worker_cov 从空开始，会把全局已知边误判为"新"而重复回传 master。
+                    with open(bitmap_file, "rb") as _bmf:
+                        _bm_data = _bmf.read()
+                    worker_cov.edges.update(
+                        i for i, b in enumerate(_bm_data) if b)
+                except (IOError, OSError):
+                    pass
 
-        # 延迟初始化 streaming showmap（首次需要知道 AFL target command）
-        if streaming_sm is None and afl_showmap_path:
+        # 延迟初始化 streaming showmap（首次需要 AFL 已写出 fuzzer_stats/命令行）。
+        # 限制重试次数：AFL 就绪前给几次机会，之后放弃并告警，避免每个工作项都
+        # 重新读盘构造 AflConfig（永久失败时会变成 worker 热路径上的反复 I/O）。
+        if (streaming_sm is None and afl_showmap_path
+                and _sm_init_tries < _SM_MAX_INIT_TRIES):
+            _sm_init_tries += 1
             try:
                 afl_cfg = AflConfig(os.path.join(
                     args.output_dir, args.fuzzer_name
@@ -975,8 +1441,14 @@ def worker(comm, args):
                 streaming_sm = StreamingShowmap(
                     afl_showmap_path, afl_cfg.target_command
                 )
-            except Exception:
-                pass
+            except (OSError, RuntimeError, ValueError, IndexError,
+                    subprocess.SubprocessError) as e:
+                if (_sm_init_tries >= _SM_MAX_INIT_TRIES
+                        and not _sm_disabled_logged):
+                    _sm_disabled_logged = True
+                    print(f"[Worker {rank}] WARNING: 流式 showmap 初始化连续 "
+                          f"{_SM_MAX_INIT_TRIES} 次失败（{e}），退化为全量 showmap "
+                          f"triage（MPI/CPU 开销上升）", flush=True)
 
         # 直接读取文件（路径协议，无需通过 MPI 传输内容）
         local_input = os.path.join(worker_dir, "current_input")
@@ -988,8 +1460,22 @@ def worker(comm, args):
             comm.send(result, dest=0, tag=TAG_RESULT)
             continue
 
+        # 选择性符号化：如果 Master 指定了关注字节范围，传递给 SymCC
+        focus = msg.get("focus_bytes", "")
+        if focus:
+            worker_env["SYMCC_FOCUS_BYTES"] = focus
+        elif "SYMCC_FOCUS_BYTES" in worker_env:
+            del worker_env["SYMCC_FOCUS_BYTES"]
+
         # Run SymCC
         run_output = os.path.join(worker_dir, f"output_{time.monotonic_ns()}")
+
+        if branch_share:
+            try:
+                os.unlink(timeout_out_file)  # 清除上次残留
+            except OSError:
+                pass
+            worker_env["SYMCC_TIMEOUT_OUT"] = timeout_out_file
 
         try:
             new_tests, total_gen, retcode, elapsed, killed = run_symcc_worker(
@@ -999,14 +1485,27 @@ def worker(comm, args):
                 worker_coverage=worker_cov,
             )
 
+            # 读取本次超时分支 site_id，回传 master 聚合
+            timeout_sites = []
+            if branch_share:
+                try:
+                    with open(timeout_out_file) as tf:
+                        timeout_sites = [int(x) for x in tf.read().split()]
+                except (IOError, OSError, ValueError):
+                    pass
+
             result = {
                 "new_tests": new_tests,    # 只含 interesting 的 TC
                 "total_generated": total_gen,  # 总生成数（含被过滤的）
                 "retcode": retcode,
                 "elapsed": elapsed,
                 "killed": killed,
+                "timeout_sites": timeout_sites,
             }
-        except Exception as e:
+        except (OSError, subprocess.SubprocessError, ValueError,
+                RuntimeError) as e:
+            # worker 弹性边界：I/O / 子进程 / 解析 / 运行时错误不应拖垮整个 MPI 作业，
+            # 回传错误结果并继续。真正意外的异常（编程 bug）仍会向上抛出以暴露问题。
             print(f"[Worker {rank}] Error: {e}", file=sys.stderr)
             result = {
                 "new_tests": [],
@@ -1027,7 +1526,7 @@ def worker(comm, args):
     shutil.rmtree(worker_dir, ignore_errors=True)
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="MPI-parallel SymCC + AFL fuzzing helper",
         usage="mpirun -np <N> python3 %(prog)s -a FUZZER -o DIR -n NAME -- TARGET [ARGS...]",
@@ -1042,6 +1541,9 @@ def parse_args():
                         help="Verbose output")
     parser.add_argument("--save-all", default=None, metavar="DIR",
                         help="保存所有 SymCC 生成的测试用例到指定目录（不经 afl-showmap 过滤）")
+    parser.add_argument("--grimoire-feed", default=None, metavar="DIR",
+                        help="GRIMOIRE 高价值（结构有效、覆盖率增益）输入目录；master 会把其中"
+                             "新文件直接注入 SymCC 反馈队列，让 concolic 从深层结构输入继续挖")
     parser.add_argument("target", nargs=argparse.REMAINDER,
                         help="Target command (after '--')")
 
@@ -1056,9 +1558,12 @@ def parse_args():
     return args
 
 
-def main():
+def main() -> None:
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
+
+    # 高并行度下把本 rank 钉到编排层预留的核（与 AFL 自动绑核互斥），消除核争用/迁移
+    _pin_self_to_reserved_core(rank)
 
     args = parse_args()
 
