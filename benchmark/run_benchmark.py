@@ -567,7 +567,8 @@ def measure_coverage_afl(afl_binary: str, test_case_dir: str,
     if max_cases > 0 and total_cases > max_cases:
         sampled = True
         sample_dir = tempfile.mkdtemp(prefix=".afl_cov_sample_")
-        sample_files = random.sample(test_files, max_cases)
+        # 固定种子 + 排序 → 大语料抽样可复现（覆盖率数值与"最佳配置"排名不再随运行抖动）
+        sample_files = random.Random(1337).sample(sorted(test_files), max_cases)
         for f in sample_files:
             src = os.path.join(test_case_dir, f)
             shutil.copy2(src, os.path.join(sample_dir, f))

@@ -353,7 +353,7 @@ static int process(const uint8_t *data, size_t sz) {
     png_read_info(pp, ip);
     png_uint_32 w, h; int bd, ct;
     png_get_IHDR(pp, ip, &w, &h, &bd, &ct, NULL, NULL, NULL);
-    if (h * w > 1000000) { png_destroy_read_struct(&pp, &ip, NULL); return 0; }
+    if ((uint64_t)h * w > 1000000) { png_destroy_read_struct(&pp, &ip, NULL); return 0; }
     /* 启用颜色变换以覆盖 pngrtran.c 代码路径 */
     png_set_expand(pp);           /* palette→RGB, gray 1/2/4→8, tRNS→alpha */
     png_set_gray_to_rgb(pp);      /* grayscale→RGB */
@@ -698,7 +698,7 @@ static int process(const uint8_t *data, size_t sz) {
     png_read_info(pp, ip);
     png_uint_32 w, h; int bd, ct;
     png_get_IHDR(pp, ip, &w, &h, &bd, &ct, NULL, NULL, NULL);
-    if (h * w > 1000000) { png_destroy_read_struct(&pp, &ip, NULL); return 0; }
+    if ((uint64_t)h * w > 1000000) { png_destroy_read_struct(&pp, &ip, NULL); return 0; }
     /* 启用颜色变换以覆盖 pngrtran.c 代码路径 */
     png_set_expand(pp);           /* palette→RGB, gray 1/2/4→8, tRNS→alpha */
     png_set_gray_to_rgb(pp);      /* grayscale→RGB */

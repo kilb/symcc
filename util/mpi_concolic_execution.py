@@ -256,15 +256,28 @@ def master_loop(global_comm: "MPI.Intracomm", group_comm: "MPI.Intracomm",
         count = 0
         if not os.path.isdir(src_dir):
             return count
-        for fname in sorted(os.listdir(src_dir)):
+        # os.scandir 免排序（去重按内容哈希，顺序无关）+ 先按名跳过已导入项再 stat：避免
+        # 每秒对增长的输入目录（迭代 concolic 产物不断回灌）做 O(n log n) 的 listdir+sort。
+        # 沿用 AflConfig._file_cache 已验证的扫描优化（其文档记录该模式曾致 34s/58s@15w）。
+        try:
+            scan = os.scandir(src_dir)
+        except OSError:
+            return count
+        for entry in scan:
+            fname = entry.name
             if fname in imported_files:
                 continue
-            fpath = os.path.join(src_dir, fname)
-            if not os.path.isfile(fpath):
+            try:
+                if not entry.is_file(follow_symlinks=False):
+                    continue
+            except OSError:
                 continue
             imported_files.add(fname)
-            with open(fpath, "rb") as f:
-                content = f.read()
+            try:
+                with open(entry.path, "rb") as f:
+                    content = f.read()
+            except OSError:
+                continue     # 文件在扫描后消失/不可读 → 跳过而非崩溃 master
             h = hashlib.sha256(content).hexdigest()
             if h not in analyzed_hashes:
                 analyzed_hashes.add(h)

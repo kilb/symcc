@@ -1001,8 +1001,10 @@ def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
     # AFL 反馈目录：将有趣的 SymCC 输出同步回 AFL 的 queue，形成双向反馈环
     afl_sync_queue = os.path.join(afl_queue_dir, "queue")  # fuzzer01/queue/
 
-    # AFL extras 目录：约束 hint 写入此处，AFL 自动作为字典 token 使用
-    afl_extras_dir = os.path.join(afl_queue_dir, "..", "extras")
+    # 约束 hint 目录：写到 symcc_dir/extras，与 run_hybrid 传给 grimoire_gen 的 --extras
+    # 路径一致（此前写到 output_dir/extras 与之不符 → GRIMOIRE 读空、hint 同步静默失效）。
+    # 注：AFL 不会自动加载此目录，需显式 -x 才作字典；GRIMOIRE 经 --extras 消费这些 token。
+    afl_extras_dir = os.path.join(symcc_dir, "extras")
     os.makedirs(afl_extras_dir, exist_ok=True)
     hint_id_ref = [0]
 
