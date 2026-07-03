@@ -16,7 +16,7 @@
 #   ./setup.sh --check         # 只检查依赖，报告缺什么，不做任何改动
 #   ./setup.sh --skip-apt      # 跳过系统包安装（无 sudo / 依赖已装好时）
 #   ./setup.sh --skip-afl      # 跳过 AFL++ 安装（只用纯符号执行/MPI，不用混合模糊）
-#   ./setup.sh --venv <path>   # 指定虚拟环境路径（默认 ./.venv）
+#   ./setup.sh --venv <path>   # 指定虚拟环境路径（默认 ./.venv；若已激活 venv 则复用之）
 #
 set -uo pipefail   # 注意：此处不用 -e，个别可选步骤失败不应中断整个部署
 
@@ -57,7 +57,7 @@ while [ $# -gt 0 ]; do
         --skip-apt) SKIP_APT=true; shift ;;
         --skip-afl) SKIP_AFL=true; shift ;;
         --venv)     VENV_DIR="$2"; shift 2 ;;
-        -h|--help)  sed -n '2,26p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        -h|--help)  sed -n '3,19p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) error "未知参数: $1（用 --help 查看用法）"; exit 1 ;;
     esac
 done
@@ -171,6 +171,10 @@ else
     (
         set -e
         mkdir -p "$SCRIPT_DIR/third_party"
+        # 上次 clone 若被中断，会留下无 .git 的残目录，导致 git clone 报 "already exists"——先清掉
+        if [ -e "$AFL_SRC" ] && [ ! -d "$AFL_SRC/.git" ]; then
+            rm -rf "$AFL_SRC"
+        fi
         if [ ! -d "$AFL_SRC/.git" ]; then
             git clone --depth 1 https://github.com/AFLplusplus/AFLplusplus.git "$AFL_SRC"
         fi
@@ -179,8 +183,12 @@ else
         make -j"$(nproc)" all LLVM_CONFIG="$(command -v llvm-config-${LLVM_VER} llvm-config 2>/dev/null | head -1)"
         $SUDO make install
     )
-    if command -v afl-fuzz >/dev/null 2>&1; then
-        info "AFL++ 安装完成。"
+    # make all 用 `-$(MAKE) -C utils/aflpp_driver` 构建驱动，前导 `-` 会吞掉其失败并仍返回 0，
+    # 故此处显式校验 libAFLDriver.a，避免"afl-fuzz 在、但驱动缺失"被误报为成功。
+    if command -v afl-fuzz >/dev/null 2>&1 && find_afldriver >/dev/null; then
+        info "AFL++ 安装完成（含 libAFLDriver.a）。"
+    elif command -v afl-fuzz >/dev/null 2>&1; then
+        warn "afl-fuzz 已装，但未找到 libAFLDriver.a——持久模式基准不可用（普通混合模糊仍可用）。"
     else
         warn "AFL++ 安装未成功——混合模糊测试将不可用，但项目其余部分不受影响。"
     fi

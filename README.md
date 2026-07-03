@@ -191,8 +191,8 @@ make -C AFLplusplus -j"$(nproc)" all && sudo make -C AFLplusplus install
 
 This prints a checklist of every dependency and whether `build/symcc` exists.
 The build's own smoke test compiles a small program, runs it under SymCC, and
-confirms it generates a new test case — you'll see `冒烟测试通过` / *smoke test
-passed* at the end of a successful `./setup.sh` or `./build.sh`.
+confirms it generates a new test case — you'll see `冒烟测试通过` (Chinese for
+"smoke test passed") at the end of a successful `./setup.sh` or `./build.sh`.
 
 ---
 
@@ -259,8 +259,14 @@ build/symcc benchmark/targets/maze.c -o /tmp/maze
 mkdir -p /tmp/seeds && printf 'aaaaaaaaaaaaaaaa' > /tmp/seeds/seed
 
 mpirun -np 8 python3 util/mpi_concolic_execution.py \
-    -i /tmp/seeds -o /tmp/out -- /tmp/maze @@
+    -i /tmp/seeds -o /tmp/out -t 15 --wall-timeout 60 -- /tmp/maze @@
 ```
+
+> New inputs accumulate in `/tmp/out` as they are found. This example stops
+> itself after 60s (`--wall-timeout 60`, with `-t 15` capping each execution);
+> the first solved inputs take ~10–20s to appear, then throughput climbs to
+> thousands per second. Omit the timeouts to run until no new input appears for
+> `--max-idle` seconds (default 60).
 
 Key options (`python3 util/mpi_concolic_execution.py --help`):
 
@@ -455,12 +461,13 @@ symcc/
 ├── CMakeLists.txt            ← top-level build (compiler pass)
 ├── compiler/                 ← the LLVM compiler pass (injects symbolic tracking)
 ├── runtime/                  ← SymCC runtime support library (git submodule)
-│   └── src/backends/qsym/    ← QSYM/Z3 solving backend (nested submodule)
+│   └── src/backends/qsym/qsym/  ← QSYM/Z3 solving backend (nested submodule)
 ├── util/
-│   ├── symcc / sym++ helpers
 │   ├── pure_concolic_execution.sh    ← single-core concolic loop (Mode B)
 │   ├── mpi_concolic_execution.py     ← MPI parallel concolic driver (Mode C)
-│   └── mpi_fuzzing_helper.py         ← MPI AFL++⨉SymCC hybrid driver (Mode D)
+│   ├── mpi_fuzzing_helper.py         ← MPI AFL++⨉SymCC hybrid driver (Mode D)
+│   ├── grimoire_gen.py               ← GRIMOIRE structure-aware input generator
+│   └── symcc_fuzzing_helper/         ← original single-node SymCC+AFL helper (Rust)
 ├── benchmark/
 │   ├── run_benchmark.py              ← the benchmark harness (start here)
 │   ├── targets/                      ← synthetic benchmark programs
@@ -468,7 +475,8 @@ symcc/
 │   ├── make_afl_targets_persistent.sh← relink targets for fast persistent mode
 │   └── compile_public_benchmarks.sh  ← build the real-world targets
 ├── docs/                     ← design notes, reports, upstream README
-└── build/                    ← build output (symcc, sym++, libsymcc-rt.so)
+└── build/                    ← build output: symcc, sym++, libsymcc.so
+                                 (runtime libsymcc-rt.so lives in a nested subdir)
 ```
 
 ---

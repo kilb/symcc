@@ -34,7 +34,7 @@ while [ $# -gt 0 ]; do
         --no-test) RUN_TEST=false; shift ;;
         --dir)     BUILD_DIR="$2"; shift 2 ;;
         -h|--help)
-            sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'
+            sed -n '3,12p' "$0" | sed 's/^# \{0,1\}//'
             exit 0 ;;
         *) error "未知参数: $1"; exit 1 ;;
     esac
