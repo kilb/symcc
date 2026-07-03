@@ -44,12 +44,34 @@ compile_commands.json
 
 # Build directories
 *build*
+# 但保留部署脚本 build.sh（上面的 *build* 会误伤它）
+!build.sh
 
 # Python
 __pycache__/
 *.pyc
 
+# setup.sh 生成的本地环境（不应提交）
+.venv/
+venv/
+third_party/
+
 # Benchmark results (generated at runtime)
 benchmark_results/
+benchmark/benchmark_results*/
 
 benchmark/public
+
+# Local environment config
+.env
+
+# Linter / tooling caches
+.ruff_cache/
+
+# AFL / fuzzer transient artifacts
+# NOTE: 早期 sqlite fuzzer 曾以仓库根/benchmark 为 CWD 运行，向工作树写入
+# 上万个随机命名的 SQL 片段垃圾文件。根因修复是让 fuzzer 在临时目录中运行
+# （run_benchmark.py 现已使用 tempdir 工作目录）；以下仅覆盖可命名的临时文件。
+.afl-showmap-temp-*
+.state/
+*.cur_input

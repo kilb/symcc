@@ -1,0 +1,12 @@
+# Python 依赖 —— 本项目的驱动脚本仅依赖极少的第三方库，其余全部使用标准库。
+# 安装：pip install -r requirements.txt  （setup.sh 会在虚拟环境中自动完成）
+
+# MPI 并行驱动（util/mpi_concolic_execution.py、util/mpi_fuzzing_helper.py、
+# benchmark/run_benchmark.py 的并行/混合模式）必需。需要系统已安装 OpenMPI。
+mpi4py>=3.1
+
+# 运行 SymCC 的 LLVM lit 测试套件（ninja check）所需；某些 LLVM 发行版未自带 lit。
+lit>=15.0
+
+# 代码风格检查与格式化（可选，仅开发时需要）。
+ruff>=0.4

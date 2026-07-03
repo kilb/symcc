@@ -1,304 +1,507 @@
-[![Compile and test SymCC](https://github.com/eurecom-s3/symcc/actions/workflows/run_tests.yml/badge.svg)](https://github.com/eurecom-s3/symcc/actions/workflows/run_tests.yml)
+# SymCC-Parallel — Distributed Concolic Execution & Hybrid Fuzzing
 
-Note: The SymCC project is currently understaffed and therefore maintained in a 
-best effort mode. In fact, we are hiring, in case you are interested to join 
-the [S3 group at Eurecom](https://www.s3.eurecom.fr/) to work on this (and other
-projects in the group) please [contact us](mailto:aurelien.francillon@eurecom.fr). 
-We nevertheless appreciate PRs and apologize in advance for the slow processing 
-of PRs, we will try to merge them when possible.
+This repository is a fork of [**SymCC**](https://github.com/eurecom-s3/symcc)
+(compiler-based *concolic* execution) extended into a **parallel, multi-core
+vulnerability-finding toolkit**:
 
-# SymCC: efficient compiler-based symbolic execution
+- 🧩 **Concolic execution** — a compiler pass injects symbolic tracking into your
+  program at build time; at run time it solves branch conditions to generate new
+  inputs that reach new code (SymCC + QSYM/Z3 backend).
+- ⚡ **MPI parallelism** — a master/worker driver spreads concolic execution
+  across as many CPU cores (or machines) as you have.
+- 🔀 **Hybrid fuzzing** — combines [AFL++](https://github.com/AFLplusplus/AFLplusplus)
+  coverage-guided fuzzing with SymCC concolic execution, with adaptive core
+  allocation between the two.
+- 📊 **Benchmark harness** — one command builds targets, runs every mode, and
+  measures edge coverage so you can reproduce results.
 
-SymCC is a compiler pass which embeds symbolic execution into the program
-during compilation, and an associated run-time support library. In essence, the
-compiler inserts code that computes symbolic expressions for each value in the
-program. The actual computation happens through calls to the support library at
-run time.
+> **CPU-only.** No GPU is required or used. More CPU cores ⇒ more parallelism.
 
-To build the pass and the support library, install LLVM (any version between 8
-and 18) and Z3 (version 4.5 or later), as well as a C++ compiler with support
-for C++17. LLVM lit is only needed to run the tests; if it's not packaged with
-your LLVM, you can get it with `pip install lit`.
+---
 
-Under Ubuntu Groovy the following one-liner should install all required
-packages:
+## ⏱️ TL;DR — get it running in three commands
 
-```
-sudo apt install -y git cargo clang-14 cmake g++ git libz3-dev llvm-14-dev llvm-14-tools ninja-build python3-pip zlib1g-dev && sudo pip3 install lit
-```
+On a fresh **Ubuntu 22.04 / 24.04** machine:
 
-Alternatively, see below for using the provided Dockerfile, or the file
-`util/quicktest.sh` for exact steps to perform under Ubuntu (or use with the
-provided Vagrant file).
-
-Make sure to pull the SymCC Runtime:
-
-```
-$ git submodule update --init --recursive
+```bash
+git clone --recursive https://github.com/kilb/symcc.git
+cd symcc
+./setup.sh                       # installs all dependencies + builds everything (~10 min)
 ```
 
-Note that it is not necessary or recommended to build the QSYM submodule - our
-build system will automatically extract the right source files and include them
-in the build.
+Then try it:
 
-Create a build directory somewhere, and execute the following commands inside
-it:
-
-```
-$ cmake -G Ninja -DSYMCC_RT_BACKEND=qsym /path/to/compiler/sources
-$ ninja check
+```bash
+source .venv/bin/activate                                  # activate the Python env
+python benchmark/run_benchmark.py --targets maze --np-list 1,4 \
+       --rounds 1 --timeout 30 --no-public                 # runs a quick benchmark
 ```
 
-If LLVM is installed in a non-standard location, add the CMake parameter
-`-DLLVM_DIR=/path/to/llvm/cmake/module`. Similarly, you can point to a
-non-standard Z3 installation with `-DZ3_DIR=/path/to/z3/cmake/module` (which
-requires Z3 to be built with CMake).
+That's it. The rest of this document explains each piece in detail — **you do not
+need any prior knowledge of symbolic execution, MPI, or fuzzing to follow it.**
 
-The main build artifact from the user's point of view is `symcc`, a wrapper
-script around clang that sets the right options to load our pass and link
-against the run-time library. (See below for additional C++ support.)
+---
 
-To try the compiler, take some simple C code like the following:
+## Table of contents
 
-``` c
+1. [What this project does](#1-what-this-project-does)
+2. [Requirements](#2-requirements)
+3. [Installation](#3-installation)
+4. [Verifying the install](#4-verifying-the-install)
+5. [Running — four modes](#5-running--four-modes)
+   - [Mode A — Compile & run one program](#mode-a--compile--run-one-program-the-basics)
+   - [Mode B — Concolic loop on one core](#mode-b--concolic-loop-on-one-core)
+   - [Mode C — MPI parallel concolic execution](#mode-c--mpi-parallel-concolic-execution)
+   - [Mode D — Hybrid AFL++ + SymCC fuzzing](#mode-d--hybrid-afl--symcc-fuzzing)
+6. [One-command benchmark](#6-one-command-benchmark)
+7. [Environment-variable reference](#7-environment-variable-reference)
+8. [Troubleshooting](#8-troubleshooting)
+9. [Repository layout](#9-repository-layout)
+10. [Further documentation](#10-further-documentation)
+11. [Upstream, license & citation](#11-upstream-license--citation)
+
+---
+
+## 1. What this project does
+
+Imagine you have a program that parses some input (a file format, a network
+packet, etc.) and you want to find inputs that reach deep, hard-to-hit code
+paths or trigger bugs.
+
+- A plain **fuzzer** (like AFL++) mutates inputs randomly and keeps the ones that
+  reach new code. It's fast but gets stuck on "magic" checks like
+  `if (x == 0xDEADBEEF)`.
+- A **concolic executor** (SymCC) runs the program on one concrete input while
+  recording the exact mathematical conditions on each branch, then asks an SMT
+  solver (Z3): *"what input would flip this branch?"* It's precise but slower.
+
+**Hybrid fuzzing** runs both together: the fuzzer explores broadly and fast,
+while concolic execution solves the hard checks the fuzzer can't. This project
+makes that hybrid approach **run in parallel across all your CPU cores** via MPI,
+plus a number of solver/scheduler optimizations on top of stock SymCC.
+
+You end up with three things you can build and run:
+
+| Artifact | What it is |
+|----------|-----------|
+| `build/symcc`, `build/sym++` | Drop-in replacements for `clang` / `clang++` that build concolic execution into your program. |
+| `util/mpi_concolic_execution.py` | Runs pure concolic execution in parallel across cores (MPI). |
+| `util/mpi_fuzzing_helper.py` | Runs the AFL++ + SymCC hybrid in parallel across cores (MPI). |
+
+---
+
+## 2. Requirements
+
+**Operating system.** Ubuntu 22.04 or 24.04 (or another Debian-based distro).
+`setup.sh` installs dependencies via `apt`. On other systems, install the
+equivalents by hand (see [manual install](#manual-installation) below) and run
+`./setup.sh --skip-apt`.
+
+**Hardware.** Any x86-64 machine. Everything runs on CPU; the more cores you
+have, the more parallel workers you can launch.
+
+**Software** — all installed automatically by `setup.sh`:
+
+| Dependency | Version | Used for |
+|------------|---------|----------|
+| clang / LLVM | 8–18 (18 recommended & tested) | the SymCC compiler pass |
+| Z3 | ≥ 4.5 (`libz3-dev`) | the SMT solver backend |
+| CMake | ≥ 3.16 | build system |
+| Ninja | any | build system |
+| OpenMPI + `mpi4py` | 4.x / ≥ 3.1 | MPI parallel drivers |
+| Python | ≥ 3.10 | drivers & benchmark harness |
+| AFL++ | ≥ 4.0 | hybrid fuzzing (optional but recommended) |
+
+> Only **`mpi4py`** is a third-party Python package (plus `lit`/`ruff` for tests
+> and linting). Everything else in the drivers uses the Python standard library.
+
+---
+
+## 3. Installation
+
+### The one-command way (recommended)
+
+```bash
+git clone --recursive https://github.com/kilb/symcc.git
+cd symcc
+./setup.sh
+```
+
+`setup.sh` is **idempotent** — safe to re-run any time. It will:
+
+1. Install the system packages listed above (`apt`, needs `sudo`).
+2. Install **AFL++** from source if it isn't already present (skipped if found).
+3. Create a Python virtual environment at `./.venv` and install
+   `requirements.txt`.
+4. Pull the git submodules (SymCC runtime + QSYM backend).
+5. Build SymCC (via `build.sh`).
+6. Run a smoke test to confirm everything works.
+
+Useful flags:
+
+```bash
+./setup.sh --check       # only report what's installed/missing — changes nothing
+./setup.sh --skip-apt    # you already have the system deps (or have no sudo)
+./setup.sh --skip-afl    # you only need pure/MPI concolic, not hybrid fuzzing
+./setup.sh --venv PATH   # put the virtualenv somewhere other than ./.venv
+```
+
+If you already have all dependencies and only want to (re)compile SymCC:
+
+```bash
+./build.sh               # incremental build into ./build
+./build.sh --clean       # wipe ./build and rebuild from scratch
+```
+
+### Manual installation
+
+If you can't use `setup.sh`, install the dependencies and build by hand:
+
+```bash
+# 1. System packages (Ubuntu 24.04)
+sudo apt-get update
+sudo apt-get install -y build-essential git curl cmake ninja-build \
+    clang-18 llvm-18-dev llvm-18-tools libz3-dev zlib1g-dev \
+    python3 python3-venv python3-pip libopenmpi-dev openmpi-bin
+
+# 2. Python environment
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+
+# 3. Submodules
+git submodule update --init --recursive
+
+# 4. Build SymCC (system Z3 needs Z3_TRUST_SYSTEM_VERSION=ON)
+cmake -G Ninja -DSYMCC_RT_BACKEND=qsym -DZ3_TRUST_SYSTEM_VERSION=ON \
+      -DLLVM_DIR=/usr/lib/llvm-18/lib/cmake/llvm -S . -B build
+ninja -C build
+
+# 5. (Optional) AFL++ for hybrid fuzzing
+git clone --depth 1 https://github.com/AFLplusplus/AFLplusplus.git
+make -C AFLplusplus -j"$(nproc)" all && sudo make -C AFLplusplus install
+```
+
+---
+
+## 4. Verifying the install
+
+```bash
+./setup.sh --check
+```
+
+This prints a checklist of every dependency and whether `build/symcc` exists.
+The build's own smoke test compiles a small program, runs it under SymCC, and
+confirms it generates a new test case — you'll see `冒烟测试通过` / *smoke test
+passed* at the end of a successful `./setup.sh` or `./build.sh`.
+
+---
+
+## 5. Running — four modes
+
+Pick the mode that matches what you want. **Remember to activate the environment
+in every new shell:**
+
+```bash
+source .venv/bin/activate
+```
+
+### Mode A — Compile & run one program (the basics)
+
+`build/symcc` is a drop-in replacement for `clang`. Compile any C program with
+it and symbolic tracking is built in. Save this as `test.c`:
+
+```c
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
-
-int foo(int a, int b) {
-    if (2 * a < b)
-        return a;
-    else if (a % b)
-        return b;
-    else
-        return a + b;
-}
-
-int main(int argc, char* argv[]) {
+int main(void) {
     int x;
-    if (read(STDIN_FILENO, &x, sizeof(x)) != sizeof(x)) {
-        printf("Failed to read x\n");
-        return -1;
-    }
-    printf("%d\n", foo(x, 7));
+    if (read(STDIN_FILENO, &x, sizeof(x)) != sizeof(x)) return -1;
+    if (x == 0xCAFE) printf("secret path!\n");   // hard for a fuzzer, easy for concolic
+    else             printf("normal path\n");
     return 0;
 }
 ```
 
-Save the code as `test.c`. To compile it with symbolic execution built in, we
-call symcc as we would normally call clang:
-
-```
-$ ./symcc test.c -o test
-```
-
-Before starting the analysis, create a directory for the results and tell SymCC
-about it:
-
-```
-$ mkdir results
-$ export SYMCC_OUTPUT_DIR=`pwd`/results
+```bash
+build/symcc test.c -o test               # compile with concolic execution built in
+mkdir -p results
+export SYMCC_OUTPUT_DIR="$PWD/results"    # where new inputs are written
+echo 'aaaa' | ./test                      # run once; SymCC solves the branch on x
+ls results/                               # -> a new input that makes x == 0xCAFE
 ```
 
-Then run the program like any other binary, providing arbitrary input:
+SymCC treats data read from **stdin** as symbolic by default. To make a **file**
+symbolic instead, set `SYMCC_INPUT_FILE=/path/to/file`. C++ programs: use
+`build/sym++` in place of `clang++`.
 
-```
-$ echo 'aaaa' | ./test
-```
+### Mode B — Concolic loop on one core
 
-The program will execute the same computations as an uninstrumented version
-would, but additionally the injected code will track computations symbolically
-and attempt to compute diverging inputs at each branch point. All data that the
-program reads from standard input is treated as symbolic; alternatively, you can
-set the environment variable SYMCC_INPUT_FILE to the name of a file whose
-contents will be treated as symbolic when read.
+`util/pure_concolic_execution.sh` repeatedly feeds newly generated inputs back
+into the target — a self-contained concolic exploration loop:
 
-Note that due to how the QSYM backend is implemented, all input has to be available
-from the start. In particular, when providing symbolic data on standard input
-interactively, you need to terminate your input by pressing Ctrl+D before the
-program starts to execute.
-
-When execution is finished, the result directory will contain the new test cases
-generated during program execution. Try running the program again on one of
-those (or use [util/pure_concolic_execution.sh](util/pure_concolic_execution.sh)
-to automate the process). For better results, combine SymCC with a fuzzer (see
-[docs/Fuzzing.txt](docs/Fuzzing.txt)).
-
-
-## Documentation
-
-The directory [docs](docs) contains documentation on several internal aspects of
-SymCC, as well as [building C++ code](docs/C++.txt), [compiling 32-bit binaries
-on a 64-bit host](docs/32-bit.txt), and [running SymCC with a
-fuzzer](docs/Fuzzing.txt). There is also a [list of all configuration
-options](docs/Configuration.txt).
-
-If you're interested in the research paper that we wrote about SymCC, have a
-look at our group's
-[website](http://www.s3.eurecom.fr/tools/symbolic_execution/symcc.html). It also
-contains detailed instructions to replicate our experiments, as well as the raw
-results that we obtained.
-
-### Video demonstration
-On YouTube you can find [a practical introduction to
-SymCC](https://www.youtube.com/watch?v=htDrNBiL7Y8) as well as a video on [how
-to combine AFL and SymCC](https://www.youtube.com/watch?v=zmC-ptp3W3k)
-
-## Building a Docker image
-
-If you prefer a Docker container over building SymCC natively, just tell Docker
-to build the image after pulling the QSYM code as above. (Be warned though: the
-Docker image enables optional C++ support from source, so creating the image can
-take quite some time!)
-
-```
-$ docker build -t symcc .
-$ docker run -it --rm symcc
+```bash
+build/symcc benchmark/targets/maze.c -o /tmp/maze
+mkdir -p /tmp/seeds && printf 'aaaaaaaaaaaaaaaa' > /tmp/seeds/seed   # 16-byte seed
+util/pure_concolic_execution.sh -i /tmp/seeds -o /tmp/out -- /tmp/maze @@
 ```
 
-Alternatively, you can pull an existing image (current master branch) from
-Docker Hub:
+`@@` is replaced with the current input file. New inputs accumulate in `/tmp/out`.
 
-```
-$ docker pull eurecoms3/symcc
-$ docker run -it --rm symcc
-```
+### Mode C — MPI parallel concolic execution
 
-This will build a Docker image and run an ephemeral container to try out SymCC.
-Inside the container, `symcc` is available as a drop-in replacement for `clang`,
-using the QSYM backend; similarly, `sym++` can be used instead of `clang++`. Now
-try something like the following inside the container:
+The same idea as Mode B, but spread across many cores using MPI. The `-np N`
+argument to `mpirun` sets the total number of MPI processes; the driver
+automatically splits them into masters and workers.
 
-```
-container$ cat sample.cpp
-(Note that "root" is the input we're looking for.)
-container$ sym++ -o sample sample.cpp
-container$ echo test | ./sample
-...
-container$ cat /tmp/output/000008-optimistic
-root
+```bash
+build/symcc benchmark/targets/maze.c -o /tmp/maze
+mkdir -p /tmp/seeds && printf 'aaaaaaaaaaaaaaaa' > /tmp/seeds/seed
+
+mpirun -np 8 python3 util/mpi_concolic_execution.py \
+    -i /tmp/seeds -o /tmp/out -- /tmp/maze @@
 ```
 
-The Docker image also has AFL and `symcc_fuzzing_helper` preinstalled, so you
-can use it to run SymCC with a fuzzer as described in [the
-docs](docs/Fuzzing.txt). (The AFL binaries are located in `/afl`.)
+Key options (`python3 util/mpi_concolic_execution.py --help`):
 
-While the Docker image is very convenient for _using_ SymCC, I recommend a local
-build outside Docker for _development_. Docker will rebuild most of the image on
-every change to SymCC (which is, in principle the right thing to do), whereas in
-many cases it is sufficient to let the build system figure out what to rebuild
-(and recompile, e.g., libc++ only when necessary).
+| Option | Meaning |
+|--------|---------|
+| `-i DIR` | directory of initial seed inputs (**required**) |
+| `-o DIR` | where to store all generated test cases |
+| `-t SEC` | timeout per SymCC execution (default 90) |
+| `--wall-timeout SEC` | total wall-clock budget (0 = unlimited) |
+| `--max-idle SEC` | stop after this long with no new inputs (default 60) |
+| `-- TARGET [ARGS]` | the program to analyze; use `@@` for the input file, or omit it to feed via stdin |
 
-## FAQ / BUGS / TODOs
+> Rule of thumb: use `-np` up to your core count (`nproc`). The driver
+> auto-scales the number of masters (~1 master per 90 workers).
 
-### Why is SymCC only exploring one path and not all paths?
+### Mode D — Hybrid AFL++ + SymCC fuzzing
 
-SymCC is currently a concolic executor. As such, it follows the concrete
-path. In theory, it would be possible to make it a forking executor -
-see [issue #14](https://github.com/eurecom-s3/symcc/issues/14)
+This is the most powerful mode: AFL++ and SymCC run **together**, sharing a
+corpus. The **easiest and fully-wired way to run it is through the benchmark
+harness** (next section) with `--hybrid`, which handles building the AFL and
+SymCC binaries, launching everything, and cleaning up:
 
-### Why does SymCC not generate some test cases?
+```bash
+python benchmark/run_benchmark.py --hybrid --hybrid-adaptive \
+    --targets maze --np-list 8 --rounds 1 --timeout 120 --no-public
+```
 
-There are multiple possible reasons:
+Under the hood this uses `util/mpi_fuzzing_helper.py` (the MPI SymCC⨉AFL driver).
+If you want to drive it directly, its interface is:
 
-#### QSym backend performs pruning
+```bash
+mpirun -np <N> python3 util/mpi_fuzzing_helper.py \
+    -a <afl-fuzzer-name> -o <afl-output-dir> -n <symcc-instance-name> \
+    -- <target> [args]
+```
 
-When built with the QSym backend exploration (e.g., loops) symcc is
-subject to path pruning, this is part of the optimizations that makes
-SymCC/QSym fast, it isn't sound. This is not a problem for using in
-hybrid fuzzing, but this may be a problem for other uses. See for
-example [issue #88](https://github.com/eurecom-s3/symcc/issues/88).
+but note it expects an AFL++ session laid out the way `run_benchmark.py`'s
+hybrid path sets it up (persistent-mode binaries, a running `afl-fuzz` main
+node, matching cmplog companions). Reading
+[`benchmark/run_benchmark.py`](benchmark/run_benchmark.py) (`run_hybrid`) is the
+reference for a correct manual setup. **If in doubt, use the harness.**
 
-When building with the simple backend the paths should be found. If
-the paths are not found with the simple backend this may be a bug (or
-possibly a limitation of the simple backend).
+---
 
-#### Incomplete symbolic handing of functions, systems interactions.
+## 6. One-command benchmark
 
-The current symbolic understanding of libc is incomplete. So when an
-unsupported libc function is called SymCC can't trace the computations
-that happen in the function.
+The benchmark harness is the single best way to see the whole system working and
+to reproduce results. It builds the synthetic targets, runs the selected modes,
+measures **edge coverage**, and writes a report.
 
-1. Adding the function to the [collection of wrapped libc
-   functions](https://github.com/eurecom-s3/symcc-rt/blob/main/src/LibcWrappers.cpp)
-   and [register the
-   wrapper](https://github.com/eurecom-s3/symcc/blob/b29dc4db2803830ebf50798e72b336473a567655/compiler/Runtime.cpp#L159)
-   in the compiler.
-2. Build a fully instrumented libc.
-3. Cherry-pick individual libc functions from a libc implementation (e.g., musl) 
+Quick run (a couple of minutes):
 
-See [issue #23](https://github.com/eurecom-s3/symcc/issues/23) for more details.
+```bash
+python benchmark/run_benchmark.py \
+    --targets maze,deep_branches --np-list 1,4 \
+    --rounds 1 --timeout 30 --no-public
+```
 
+Full default run (serial + MPI at 1/2/4/8 procs, 3 rounds, all synthetic
+targets):
 
-### Rust support ?
+```bash
+python benchmark/run_benchmark.py
+```
 
-This would be possible to support RUST, see [issue
-#1](https://github.com/eurecom-s3/symcc/issues/1) for tracking this.
+Results are written to `benchmark_results/` (override with `--output DIR`):
 
-### Bug reporting
+- `benchmark_data.csv` / `benchmark_data.json` — raw per-run measurements
+- `benchmark_report.txt` — human-readable summary (coverage, speedup, etc.)
 
-We appreciate bugs with test cases and steps to reproduce, PR with
-corresponding test cases. SymCC is currently understaffed, we hope to
-catch up and get back to active development at some point.
+Built-in synthetic targets: **`maze`**, **`parser`**, **`deep_branches`**,
+**`crypto_check`** (source in `benchmark/targets/`). Useful flags:
 
-## Contact
+| Flag | Effect |
+|------|--------|
+| `--targets a,b` | only run these targets |
+| `--np-list 1,4,8` | MPI process counts to sweep |
+| `--rounds N` | repeat each config N times (averages out noise) |
+| `--timeout SEC` | per-run time budget |
+| `--hybrid` `--hybrid-adaptive` | run the AFL++⨉SymCC hybrid with adaptive core split |
+| `--afl-only` | AFL++ baseline only (for comparison) |
+| `--no-serial` / `--no-mpi` / `--no-public` | skip a category of runs |
+| `--skip-build` | reuse already-built targets |
+| `--simulation` | dry-run wiring without real solving |
 
-Feel free to use GitHub issues and pull requests for improvements, bug reports,
-etc. Alternatively, you can send an email to Sebastian Poeplau
-(sebastian.poeplau@eurecom.fr) and Aurélien Francillon
-(aurelien.francillon@eurecom.fr).
+Run `python benchmark/run_benchmark.py --help` for the complete list.
 
+### Real-world (public) benchmark targets
 
-## Reference
+To benchmark on real software (LAVA-M, libarchive, pcre2, sqlite, …) instead of
+the synthetic targets:
 
-To cite SymCC in scientific work, please use the following BibTeX:
+```bash
+benchmark/setup_public_benchmarks.sh --all      # download & build target suites
+benchmark/make_afl_targets_persistent.sh        # relink for fast persistent mode
+python benchmark/run_benchmark.py               # public targets are auto-discovered
+```
 
-``` bibtex
+---
+
+## 7. Environment-variable reference
+
+You rarely need to set these by hand — the drivers and the benchmark harness set
+them for you. They're documented here for tuning and for running the binaries
+directly.
+
+### Core SymCC (run time)
+
+| Variable | Default | Meaning |
+|----------|---------|---------|
+| `SYMCC_OUTPUT_DIR` | `/tmp/output` | directory for newly generated test cases |
+| `SYMCC_INPUT_FILE` | *(stdin)* | treat this file's contents as symbolic instead of stdin |
+| `SYMCC_NO_SYMBOLIC_INPUT` | `0` | `1` = run like an uninstrumented program (no solving) |
+| `SYMCC_ENABLE_LINEARIZATION` | `0` | `1` = QSYM basic-block pruning; recommended for fuzzing (the fuzzing helper enables it automatically) |
+| `SYMCC_AFL_COVERAGE_MAP` | *(empty)* | path to a coverage map to skip already-covered paths |
+
+(Full list, including compile-time options, in
+[`docs/Configuration.txt`](docs/Configuration.txt).)
+
+### This fork's optimizations (opt-in tuning)
+
+| Variable | Meaning |
+|----------|---------|
+| `SYMCC_FAST_SOLVE` | enable the Fuzzy-Sat fast path for simple byte comparisons |
+| `SYMCC_MULTI_SOLVE` | solve consecutive/related branch groups together |
+| `SYMCC_EXPR_CACHE_SIZE` | expression hash-cons cache size (default 65536) |
+| `SYMCC_KSCHED` | enable K-Scheduler rarity-weighted frontier scheduling |
+| `SYMCC_TIMEOUT` | per-execution solver/exec timeout (seconds) |
+| `SYMCC_BRANCH_SHARE` | share timed-out branches across workers (BSFuzz) |
+| `SYMCC_FOCUS_BYTES` | restrict symbolization to specific input byte offsets |
+| `SYMCC_DENSITY_OUT` / `SYMCC_DENSITY_BALANCE` | branch-density profiling & balancing |
+
+### AFL++ (hybrid mode)
+
+| Variable | Meaning |
+|----------|---------|
+| `AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1` | **often required on desktop Linux** — see Troubleshooting |
+| `AFL_SKIP_CPUFREQ=1` | skip the CPU-frequency governor check |
+
+---
+
+## 8. Troubleshooting
+
+**`afl-fuzz` aborts with "Pipe at the beginning of core_pattern" / missing
+crashes.** Desktop Ubuntu routes core dumps to the `apport` crash handler via a
+piped `core_pattern`, which AFL++ refuses by default. Either tell AFL to ignore
+it (the harness does this automatically):
+
+```bash
+export AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1
+export AFL_SKIP_CPUFREQ=1
+```
+
+or fix the system setting (needs `sudo`, resets on reboot):
+
+```bash
+echo core | sudo tee /proc/sys/kernel/core_pattern
+```
+
+**`afl-fuzz` aborts with "Fork server handshake failed"** in hybrid mode. The
+main binary and its cmplog companion must have **matching persistence** (both
+persistent or both fork-mode). Rebuild the persistent variants with
+`benchmark/make_afl_targets_persistent.sh`.
+
+**CMake can't find LLVM.** Point it at your install:
+`export LLVM_DIR=/usr/lib/llvm-18/lib/cmake/llvm` and re-run `./build.sh` (or
+pass `-DLLVM_DIR=...` to `cmake`).
+
+**`pip install mpi4py` fails.** Install the OpenMPI development headers first:
+`sudo apt-get install -y libopenmpi-dev openmpi-bin`, then re-run
+`pip install -r requirements.txt`.
+
+**SymCC generates no new test cases for some input.** This can be normal — the
+QSYM backend prunes paths for speed and isn't exhaustive (see the FAQ in
+[`docs/SymCC_Upstream_README.md`](docs/SymCC_Upstream_README.md)). Try a
+different seed, or a target with reachable branches on the symbolic input.
+
+**All input must be available up front.** Because of how the QSYM backend works,
+when feeding symbolic data on stdin interactively you must terminate input with
+`Ctrl+D` before the program executes.
+
+---
+
+## 9. Repository layout
+
+```
+symcc/
+├── README.md                 ← you are here (project getting-started guide)
+├── setup.sh                  ← one-command dependency install + build
+├── build.sh                  ← build SymCC only (deps already present)
+├── requirements.txt          ← Python dependencies
+├── CMakeLists.txt            ← top-level build (compiler pass)
+├── compiler/                 ← the LLVM compiler pass (injects symbolic tracking)
+├── runtime/                  ← SymCC runtime support library (git submodule)
+│   └── src/backends/qsym/    ← QSYM/Z3 solving backend (nested submodule)
+├── util/
+│   ├── symcc / sym++ helpers
+│   ├── pure_concolic_execution.sh    ← single-core concolic loop (Mode B)
+│   ├── mpi_concolic_execution.py     ← MPI parallel concolic driver (Mode C)
+│   └── mpi_fuzzing_helper.py         ← MPI AFL++⨉SymCC hybrid driver (Mode D)
+├── benchmark/
+│   ├── run_benchmark.py              ← the benchmark harness (start here)
+│   ├── targets/                      ← synthetic benchmark programs
+│   ├── setup_public_benchmarks.sh    ← download real-world target suites
+│   ├── make_afl_targets_persistent.sh← relink targets for fast persistent mode
+│   └── compile_public_benchmarks.sh  ← build the real-world targets
+├── docs/                     ← design notes, reports, upstream README
+└── build/                    ← build output (symcc, sym++, libsymcc-rt.so)
+```
+
+---
+
+## 10. Further documentation
+
+- [`docs/Configuration.txt`](docs/Configuration.txt) — every SymCC configuration option (compile-time & run-time).
+- [`docs/Fuzzing.txt`](docs/Fuzzing.txt) — combining SymCC with a fuzzer (background).
+- [`docs/MPI_Parallelization.txt`](docs/MPI_Parallelization.txt) — the MPI architecture.
+- [`docs/Parallel_Architecture_Report.md`](docs/Parallel_Architecture_Report.md) — parallel design deep-dive.
+- [`docs/SymCC_Upstream_README.md`](docs/SymCC_Upstream_README.md) — the original upstream SymCC README (build details, FAQ, C++/32-bit support, Docker).
+
+---
+
+## 11. Upstream, license & citation
+
+This project builds on **SymCC** by Sebastian Poeplau and Aurélien Francillon
+(EURECOM). SymCC and this fork are distributed under the **GNU General Public
+License v3** (the runtime under the LGPL). See
+[`docs/SymCC_Upstream_README.md`](docs/SymCC_Upstream_README.md) for full license
+notes and the list of components with additional copyrights.
+
+To cite SymCC in academic work:
+
+```bibtex
 @inproceedings {poeplau2020symcc,
-  author =       {Sebastian Poeplau and Aurélien Francillon},
-  title =        {Symbolic execution with {SymCC}: Don't interpret, compile!},
-  booktitle =    {29th {USENIX} Security Symposium ({USENIX} Security 20)},
-  isbn =         {978-1-939133-17-5},
-  pages =        {181--198},
-  year =         2020,
-  url =          {https://www.usenix.org/conference/usenixsecurity20/presentation/poeplau},
-  publisher =    {{USENIX} Association},
-  month =        aug,
+  author =    {Sebastian Poeplau and Aurélien Francillon},
+  title =     {Symbolic execution with {SymCC}: Don't interpret, compile!},
+  booktitle = {29th {USENIX} Security Symposium ({USENIX} Security 20)},
+  pages =     {181--198},
+  year =      2020,
+  url =       {https://www.usenix.org/conference/usenixsecurity20/presentation/poeplau},
+  publisher = {{USENIX} Association},
+  month =     aug,
 }
 ```
-
-More information on the paper is available
-[here](http://www.s3.eurecom.fr/tools/symbolic_execution/symcc.html).
-
-
-## Other projects using SymCC
-
-[SymQEMU](https://github.com/eurecom-s3/symqemu) relies on SymCC.
-
-LibAFL supports concolic execution with [SymCC](https://aflplus.plus/libafl-book/advanced_features/concolic/concolic.html), 
-requires external patches (for now).
-
-[AdaCore](https://www.adacore.com/) published [a paper describing](https://dl.acm.org/doi/10.1145/3631483.3631500) 
-SymCC integration in GNATfuzz for test case generation and [plans to release this
-as part of GNATfuzz beta release](https://docs.adacore.com/live/wave/roadmap/html/roadmap/roadmap_25_GNAT%20Pro.html#symbolic-execution-to-retrieve-input-values).
-
-## License
-
-SymCC is free software: you can redistribute it and/or modify it under the terms
-of the GNU General Public License as published by the Free Software Foundation,
-either version 3 of the License, or (at your option) any later version.
-
-SymCC is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License and the GNU
-Lesser General Public License along with SymCC. If not, see
-<https://www.gnu.org/licenses/>.
-
-The following pieces of software have additional or alternate copyrights,
-licenses, and/or restrictions:
-
-| Program       | Directory                   |
-|---------------|-----------------------------|
-| SymCC Runtime | `runtime`                   |
