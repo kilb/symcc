@@ -8,9 +8,15 @@
 # 脚本】，自动排除 .git、build/、.venv/、third_party/、benchmark/public/、__pycache__ 及
 # 各类临时文件（遵循 .gitignore）。解压后 ./setup.sh 或 ./build.sh 均可直接使用，无需 git。
 #
+# 另外默认剔除两块【本项目构建不使用】的巨型 vendored 二进制/源码：qsym 子模块自带的
+# Intel PIN 2.14 发行版（约 200M——SymCC 用假的 pin.H 桩，不链接真 PIN）与内置 Z3 源码
+# （约 27M——构建走系统 libz3-dev，即 Z3_TRUST_SYSTEM_VERSION）。实测剔除二者后仍能完整
+# 构建并生成测试用例，包体积从 ~245M 降到 ~18M。如确需保留，加 --keep-vendored。
+#
 # 用法:
-#   ./package.sh                 # 打包所有【已提交】文件（含子模块源码）
+#   ./package.sh                 # 打包已提交源码（含子模块），剔除未使用的 PIN/Z3 大块
 #   ./package.sh --all           # 额外包含未提交但未被忽略的文件（如 docs/ 下的报告、PDF）
+#   ./package.sh --keep-vendored # 保留 qsym 自带的 PIN 发行版与内置 Z3 源码（体积大很多）
 #   ./package.sh -o <file>       # 指定输出文件名；格式由扩展名决定：
 #                                #   .zip -> zip 包；.tar.gz / .tgz -> tar 包（默认 symcc-package.tar.gz）
 #
@@ -27,11 +33,13 @@ error() { echo -e "${RED}[错误]${NC} $*" >&2; }
 
 OUT="symcc-package.tar.gz"
 INCLUDE_UNTRACKED=false
+KEEP_VENDORED=false
 while [ $# -gt 0 ]; do
     case "$1" in
-        --all)     INCLUDE_UNTRACKED=true; shift ;;
-        -o|--output) OUT="$2"; shift 2 ;;
-        -h|--help) sed -n '3,20p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        --all)           INCLUDE_UNTRACKED=true; shift ;;
+        --keep-vendored) KEEP_VENDORED=true; shift ;;
+        -o|--output)     OUT="$2"; shift 2 ;;
+        -h|--help) sed -n '3,22p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) error "未知参数: $1（用 --help 查看用法）"; exit 1 ;;
     esac
 done
@@ -77,6 +85,19 @@ else
         warn "（如需一并发送，加 --all 重新打包，或先 git add）："
         printf '    %s\n' "${untracked[@]}"
     fi
+fi
+
+# 剔除本项目构建【不使用】的 vendored 大块：qsym 自带的 Intel PIN 发行版（SymCC 用假 pin.H
+# 桩，剔除后经实测仍可完整构建）与内置 Z3 源码（构建走系统 Z3）。--keep-vendored 可保留。
+# 注意模式只匹配 third_party/ 下的 pin-*/ 与 z3/，不会误伤 SymCC 的假 pin.H（在 qsym/ 根下）。
+if ! $KEEP_VENDORED; then
+    before=$(tr -cd '\0' < "$filelist" | wc -c)
+    if grep -zvE 'third_party/(pin-[^/]*|z3)/' "$filelist" > "$filelist.f"; then
+        mv "$filelist.f" "$filelist"
+    fi
+    rm -f "$filelist.f"
+    after=$(tr -cd '\0' < "$filelist" | wc -c)
+    info "剔除未使用的 PIN/Z3 vendored 文件：$((before - after)) 个（如需保留：--keep-vendored）"
 fi
 
 step "生成压缩包：$OUT（格式：$FORMAT）"

@@ -505,8 +505,12 @@ runtime, QSYM, and Z3 sources). `git archive` silently drops them, and a naïve
 a stale machine-specific `build/`, and temporary files. `package.sh` uses
 `git ls-files --recurse-submodules` to include **all source (submodules included)
 + docs + scripts**, while excluding `.git`, `build/`, `.venv/`, `third_party/`,
-the `benchmark/public/` downloads, and caches. The result is ~54 MB and
-self-verifies (it lists what it included and confirms nothing bulky slipped in).
+the `benchmark/public/` downloads, and caches. It also drops two large vendored
+blobs the build never uses — the QSYM submodule's bundled Intel **PIN 2.14**
+distribution (~200 MB; SymCC compiles against a stub `pin.H`, not real PIN) and
+the bundled **Z3 source** (~27 MB; the build links system Z3 via
+`Z3_TRUST_SYSTEM_VERSION`). The result is **~15 MB** and self-verifies. Pass
+`--keep-vendored` if you specifically need to build PIN/Z3 from source.
 
 The recipient then needs **no git at all**:
 
