@@ -21,8 +21,6 @@ import argparse
 import os
 import shutil
 import subprocess
-import signal
-import sys
 import tempfile
 import time
 from pathlib import Path
@@ -294,7 +292,7 @@ def main():
     print(f"\n  全部完成: {total_time:.1f}s")
 
     # ──── 测量覆盖率 ────
-    print(f"\n  测量覆盖率...")
+    print("\n  测量覆盖率...")
     afl_bin = config["afl_binary"]
 
     # 每个实例的单独覆盖率
@@ -360,7 +358,7 @@ def main():
     total_tp = sum(r["throughput"] for r in results)
 
     print(f"\n{'=' * 65}")
-    print(f"  结果汇总")
+    print("  结果汇总")
     print(f"{'=' * 65}")
     print(f"  多实例 ({n_instances} × np={np_per}):")
     print(f"    总 tc: {total_tc:,}")
@@ -373,12 +371,12 @@ def main():
         print(f"\n  单实例 (np={np_per}, 全部种子):")
         print(f"    覆盖: {single_cov['edges']}/{single_cov['total']} "
               f"({single_cov['pct']:.2f}%)")
-        print(f"\n  多实例 vs 单实例:")
+        print("\n  多实例 vs 单实例:")
         print(f"    覆盖率差: {diff:+d} edges ({pct_diff:+.2f}%)")
         if diff > 0:
             print(f"    ✓ 多实例多发现了 {diff} 条边")
         else:
-            print(f"    → 覆盖率相同或更低")
+            print("    → 覆盖率相同或更低")
 
     # 保存结果
     import json

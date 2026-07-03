@@ -31,6 +31,7 @@ Example:
 
 import argparse
 import hashlib
+import heapq
 import math
 import os
 import random
@@ -50,7 +51,7 @@ TAG_WORK = 1
 TAG_RESULT = 2
 TAG_STOP = 3
 TAG_READY = 4
-TAG_BITMAP_VERSION = 5  # master 通知 workers bitmap 已更新
+# 注：bitmap 版本经 TAG_WORK 消息载荷（"bitmap_version"）随派发传播，无需独立 tag。
 
 TIMEOUT_SEC = int(os.environ.get("SYMCC_TIMEOUT", "30"))  # SymCC 执行超时（秒），默认 30s
 SHOWMAP_TIMEOUT_MS = "5000"
@@ -65,6 +66,15 @@ MAX_FILE_CACHE = 200000
 # 硬上限：超长 campaign 下这些集合随派发数无界增长。超限清空（代价是少量重复分析，
 # 有界且不影响正确性）。基准运行通常远达不到，仅为病态长运行兜底。
 MAX_DEDUP_ENTRIES = 5000000
+
+# AFL 覆盖率 bitmap 的初始大小（afl-showmap 自动按目标实际边数调整 map size，实测这些
+# 目标为几千到几万；此为惰性分配的初值，_merge_sparse 遇到更大的 edge_id 会自动增长）。
+_AFL_MAP_SIZE = 65536
+
+# showmap 稀疏边记录：u32 edge_id + u8 hit-count（'<' 无填充 → 每条恰 5 字节）。
+# 用 Struct.iter_unpack 一次性 C 层批量解码整段，替代逐边 unpack_from 的 Python 热循环
+# （实测 3.5-3.9x，此为 get_edges 每个 concolic 产出的用例都跑的最热函数）。
+_EDGE_STRUCT = struct.Struct("<IB")
 
 # 细粒度并行分解（opt-in，SYMCC_WORKER_DIVERSITY=1）：给每个 worker 一个不同的 concolic
 # 策略画像 + 不相交的符号化字节区间，使相似种子在不同 worker 上产出发散（非重叠）的输入。
@@ -122,6 +132,16 @@ def _balanced_regions(density: "list[int]", per: int) -> "list[tuple[int, int]]"
             regions.append((lo, i))
             lo = i + 1
     regions.append((lo, L - 1))
+    # 密度集中在尾部时贪心可能切不满 per 个区间（早期未越过目标线、末尾已无空间下刀）。
+    # 补切最宽区间直到凑够 per 个，保证工作项数可预期、不让分到该种子的 worker 空闲。
+    while len(regions) < per:
+        widest = max(range(len(regions)),
+                     key=lambda k: regions[k][1] - regions[k][0])
+        wlo, whi = regions[widest]
+        if whi <= wlo:
+            break  # 全为单字节区间，无法再细分
+        mid = (wlo + whi) // 2
+        regions[widest:widest + 1] = [(wlo, mid), (mid + 1, whi)]
     return regions
 
 
@@ -135,31 +155,39 @@ def _build_work_items(paths: "list[str]", target_count: int, diversity: bool,
     当整-种子项数 < target_count（=活跃 worker 数）即出现空闲产能时，把种子按不相交字节
     区间细分为子项来填满空闲 worker——种子充足时不细分，避免种子够用时 P 倍重复执行的浪费。
     实测（pcre2）：等宽字节分区负载不均（符号化工作集中在少数驱动分支的字节），故仅用它
-    填补"本会空闲"的产能，而非无条件细分。细分度 per=ceil(target/种子数)，上限 focus_parts。"""
+    填补"本会空闲"的产能，而非无条件细分。target 个工作项按种子近似均分（前 rem 个种子多
+    分一段），仅按需细分，每种子上限 focus_parts 段。"""
     base: "list[tuple[str, str | None]]" = [(p, None) for p in paths]
     if not diversity or not base or len(base) >= target_count:
         return base
-    per = max(1, min(focus_parts, -(-target_count // len(base))))  # ceil 除法
-    if per <= 1:
-        return base
+    n = len(base)
+    # 只细分到"恰好填满空闲产能"的程度：把 target_count 个工作项尽量均匀分到 n 个种子——
+    # 前 rem 个种子多分一段（k=base_k+1），其余分 base_k 段。避免此前 per=ceil(target/n)
+    # 一刀切导致"种子略少于 target 时全部 2 倍细分"的浪费（seeds=23、target=24 → 46 项）。
+    base_k = target_count // n
+    rem = target_count % n
     items: "list[tuple[str, str | None]]" = []
-    for path in paths:
+    for idx, path in enumerate(paths):
+        k = min(focus_parts, base_k + (1 if idx < rem else 0))
+        if k <= 1:                         # 该种子无需细分（整段一项即可填满其份额）
+            items.append((path, None))
+            continue
         try:
             flen = os.path.getsize(path)
         except OSError:
             flen = 0
-        if flen <= per:                    # 太短，不细分（避免空/退化区间）
+        if flen <= k:                      # 太短，不细分（避免空/退化区间）
             items.append((path, None))
             continue
         # 优先按分支密度均衡划分（热点字节隔离到窄区间），无密度信息则退回等宽。
         density = density_fn(path) if density_fn is not None else None
         if density and len(density) == flen and sum(density) > 0:
-            for lo, hi in _balanced_regions(density, per):
+            for lo, hi in _balanced_regions(density, k):
                 items.append((path, f"{lo}-{hi}"))
         else:
-            for i in range(per):
-                lo = (i * flen) // per
-                hi = ((i + 1) * flen) // per - 1   # 闭区间，减 1 使相邻不重叠
+            for i in range(k):
+                lo = (i * flen) // k
+                hi = ((i + 1) * flen) // k - 1   # 闭区间，减 1 使相邻不重叠
                 items.append((path, f"{lo}-{max(lo, hi)}"))
     return items
 
@@ -212,7 +240,8 @@ class AflConfig:
 
     def best_new_testcases(self, seen: set[str], batch_size: int | None = None,
                            analyzed_hashes: set[str] | None = None,
-                           edge_yield: dict[str, float] | None = None
+                           edge_yield: dict[str, float] | None = None,
+                           frontier_fn: "typing.Callable[[str], float] | None" = None
                            ) -> list[str]:
         """
         Return a list of unseen test cases from the AFL queue, scored by priority.
@@ -292,17 +321,22 @@ class AflConfig:
                 score = attrs["static"]
                 if edge_yield is not None:
                     score += edge_yield.get(attrs["type"], 0.0) * 30.0
+                # K-Scheduler 风格前沿加权（opt-in，SYMCC_KSCHED=1）：优先覆盖当前稀有边
+                # （≈ 覆盖前沿/CFG 中心性）的种子，把 concolic 预算投向最可能触达未探索区域处。
+                if frontier_fn is not None:
+                    score += frontier_fn(fpath) * 40.0
 
                 new_candidates.append((score, attrs["name"], fpath))
         except OSError:
             return []
 
-        new_candidates.sort(key=lambda c: -c[0])
-        paths = [c[2] for c in new_candidates]
-
+        # 只需取分数最高的 batch_size 个：heapq.nlargest 是 O(U) 选择，优于 O(U log U)
+        # 全排序（U=本轮未派发候选数；队列大/爆发后 U 可能很大，而消费的 batch_size 恒小）。
         if batch_size is not None:
-            return paths[:batch_size]
-        return paths
+            top = heapq.nlargest(batch_size, new_candidates, key=lambda c: c[0])
+        else:
+            top = sorted(new_candidates, key=lambda c: -c[0])
+        return [c[2] for c in top]
 
     def run_showmap(self, testcase: str,
                     bitmap_path: str) -> tuple[str, bytes | None]:
@@ -444,19 +478,30 @@ class CoverageBitmap:
         return interesting
 
     def _merge_sparse(self, edges: list) -> bool:
-        """合并稀疏边列表 [(edge_id, hit_count), ...]。极快。"""
+        """合并稀疏边列表 [(edge_id, hit_count), ...]。极快。
+
+        始终维护稠密 data（惰性分配 + 按需增长），data[edge_id] 累积各边的命中桶。
+        这样 (1) master 能把全局 bitmap 写入共享文件供 worker 播种本地 dedup；(2) 已知
+        边上的新命中桶（AFL 视为新覆盖）也能被判为 interesting。此前 data 为 None 时只按
+        边"存在"去重，既漏掉新桶覆盖，又使共享 bitmap 永不写出（worker 无法播种全局边）。
+        """
+        if self.data is None:
+            self.data = bytearray(_AFL_MAP_SIZE)
         interesting = False
         for edge_id, hit in edges:
-            if edge_id not in self.edges:
+            if edge_id >= len(self.data):     # 目标 map 大于初值 → 增长以容纳
+                self.data.extend(b"\x00" * (edge_id + 1 - len(self.data)))
+            old = self.data[edge_id]
+            # 用 data 判"是否见过"（byte==0 即未覆盖）而非 edges 集：worker 从共享 bitmap
+            # 播种时只需批量拷贝 data，免去每次版本更新 O(map) 的 edges 集重建（showmap 桶
+            # 恒 >=1，故 data==0 严格等价于未覆盖）。edges 仍维护，供 master 报告边数。
+            if old == 0:
                 interesting = True
                 self.edges.add(edge_id)
-                if self.data and edge_id < len(self.data):
-                    self.data[edge_id] |= hit
-            elif self.data and edge_id < len(self.data):
-                old = self.data[edge_id]
-                if old | hit != old:
-                    interesting = True
-                    self.data[edge_id] = old | hit
+                self.data[edge_id] = hit
+            elif old | hit != old:
+                interesting = True
+                self.data[edge_id] = old | hit
         return interesting
 
 
@@ -500,8 +545,7 @@ def run_symcc_worker(target_cmd: list[str], input_file: str, output_dir: str,
                      timeout_sec: int, use_stdin: bool,
                      base_env: "dict[str, str] | None" = None,
                      streaming_showmap: "StreamingShowmap | None" = None,
-                     worker_coverage: "CoverageBitmap | None" = None,
-                     save_dir: str | None = None
+                     worker_coverage: "CoverageBitmap | None" = None
                      ) -> "tuple[list[dict], int, int, float, bool]":
     """在单个输入上运行 SymCC。
 
@@ -642,6 +686,8 @@ class StreamingShowmap:
     _MAX_EDGES = 1 << 20   # edge count 上限，防止损坏 count 导致超长循环
 
     def __init__(self, afl_showmap: str, target_cmd: list[str]):
+        self._proc = None    # 先置空：若下方 Popen 抛异常，__del__→close() 也能安全跳过
+        self._dead = True
         cmd = [afl_showmap, "-S", "-t", "5000", "-m", "none", "--"]
         cmd.extend(target_cmd)
         self._proc = subprocess.Popen(
@@ -688,8 +734,7 @@ class StreamingShowmap:
         pair = self._read_exact(5 * edges_count)              # (u32 eid, u8 cnt) × N
         if pair is None:
             return None
-        edges = [(struct.unpack_from("<I", pair, i * 5)[0], pair[i * 5 + 4])
-                 for i in range(edges_count)]
+        edges = list(_EDGE_STRUCT.iter_unpack(pair))
         for _ in range(2):                                    # 排空 stdout/stderr
             lraw = self._read_exact(4)
             if lraw is None:
@@ -700,6 +745,8 @@ class StreamingShowmap:
         return edges
 
     def close(self) -> None:
+        if self._proc is None:   # Popen 未成功创建 → 无需清理
+            return
         try:
             if self._proc.stdin:
                 self._proc.stdin.close()
@@ -736,6 +783,7 @@ def _batch_triage(
     recent_byte_offsets: list[int] | None = None,
     focus_bytes_window: int = 200,
     yield_callback: "typing.Callable[[str, bool], None] | None" = None,
+    analyzed_hashes_ref: "set[str] | None" = None,
 ) -> bool:
     """批量 triage worker 返回的结果。返回 bitmap 是否有变化。"""
     queue_id = queue_id_ref[0]
@@ -753,11 +801,13 @@ def _batch_triage(
         for tc in new_tests:
             tc_content = tc["content"]
             tc_bitmap = tc.get("bitmap")  # 稀疏边列表 [(edge_id, count)]
+            # 内容哈希只算一次，供 save-all / 回退临时名 / AFL-sync 去重复用
+            # （避免对同一内容重复 SHA-256 2~3 次）。
+            _tc_hash = hashlib.sha256(tc_content).hexdigest()
 
             # --save-all
             if save_all_dir is not None:
-                h = hashlib.sha256(tc_content).hexdigest()
-                save_path = os.path.join(save_all_dir, h)
+                save_path = os.path.join(save_all_dir, _tc_hash)
                 if not os.path.exists(save_path):
                     try:
                         with open(save_path, "wb") as sf:
@@ -771,7 +821,7 @@ def _batch_triage(
                 result_type = "success"
             else:
                 # 回退：写临时文件并运行 showmap
-                tc_id = hashlib.sha256(tc_content).hexdigest()[:16]
+                tc_id = _tc_hash[:16]
                 tc_path = os.path.join(symcc_dir, f".tc_{tc_id}")
                 with open(tc_path, "wb") as f:
                     f.write(tc_content)
@@ -796,9 +846,17 @@ def _batch_triage(
                     dest = os.path.join(queue_dir, new_name)
                     # 原子写入：先写临时文件再 rename，避免消费者（AFL/master）读到半截种子
                     _dtmp = dest + ".tmp"
-                    with open(_dtmp, "wb") as f:
-                        f.write(tc_content)
-                    os.replace(_dtmp, dest)
+                    try:
+                        with open(_dtmp, "wb") as f:
+                            f.write(tc_content)
+                        os.replace(_dtmp, dest)
+                    except OSError as _e:
+                        # 磁盘满/FS 错误 → 跳过该 TC，绝不让异常冒泡出 _batch_triage 杀死
+                        # master（否则所有 worker 阻塞在 recv 上挂死）。与本函数其余写操作
+                        # （save-all / crash / hang）的容错一致。
+                        print(f"[Master] 队列写入失败，跳过 {new_name}: {_e}",
+                              flush=True)
+                        continue
                     # 计算迭代代数：输入的代数 + 1
                     parent_gen = 0
                     if file_generation is not None:
@@ -818,6 +876,12 @@ def _batch_triage(
                             with open(_stmp, "wb") as f:
                                 f.write(tc_content)
                             os.replace(_stmp, _sdest)  # 原子：AFL 不会读到半截
+                            # 登记内容哈希：best_new_testcases 扫描 AFL 队列时据此跳过
+                            # SymCC 刚同步进去的自身输出，避免把 concolic 产物当"新种子"
+                            # 重扫再分析（它们已在 symcc_feedback_queue 中处理）——省一次
+                            # 冗余 concolic 执行。
+                            if analyzed_hashes_ref is not None:
+                                analyzed_hashes_ref.add(_tc_hash)
                         except OSError:
                             pass
                     queue_id += 1
@@ -874,7 +938,9 @@ def _batch_triage(
                 src_id = orig_name[3:9]
             hang_name = f"id:{queue_id:06d},src:{src_id}"
             try:
-                shutil.copy2(input_path, os.path.join(hangs_dir, hang_name))
+                _hdest = os.path.join(hangs_dir, hang_name)
+                shutil.copy2(input_path, _hdest + ".tmp")
+                os.replace(_hdest + ".tmp", _hdest)  # 原子落盘，避免外部观察者读到半截
                 queue_id += 1
             except (IOError, OSError):
                 pass
@@ -888,7 +954,9 @@ def _batch_triage(
                 src_id = orig_name[3:9]
             crash_name = f"id:{queue_id:06d},src:{src_id}"
             try:
-                shutil.copy2(input_path, os.path.join(crashes_dir, crash_name))
+                _cdest = os.path.join(crashes_dir, crash_name)
+                shutil.copy2(input_path, _cdest + ".tmp")
+                os.replace(_cdest + ".tmp", _cdest)  # 原子落盘
                 queue_id += 1
             except (IOError, OSError):
                 pass
@@ -1002,6 +1070,9 @@ def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
     _target_cmd = args.target
     _use_stdin = "@@" not in _target_cmd
     _density_cache: "dict[str, list[int] | None]" = {}
+    # 每轮冷剖析预算：限制单轮 _build_work_items 内"新种子"的阻塞式 profile 数，避免
+    # master 在一批全新种子上串行剖析而停服 MPI（超预算的种子本轮退回等宽，下轮再试）。
+    _profile_budget = [8]
     _prof_dir = (tempfile.mkdtemp(prefix="symcc_dprof_")
                  if _density_balance else None)
 
@@ -1016,6 +1087,9 @@ def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
         h = hashlib.sha256(content).hexdigest()
         if h in _density_cache:
             return _density_cache[h]
+        if _profile_budget[0] <= 0:
+            return None  # 本轮冷剖析预算耗尽 → 退回等宽（不写缓存，下轮可再试）
+        _profile_budget[0] -= 1
         flen = len(content)
         dfile = os.path.join(_prof_dir, "density.txt")
         try:
@@ -1185,6 +1259,51 @@ def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
         except OSError:
             pass
 
+    # 动态工作窃取的"未派发工作项"跨轮结转：一轮内因 worker 全忙而未及派发的（细分）
+    # 工作项原样保留到下一轮，避免按路径去重误将同种子的其余字节区间丢弃（否则该种子
+    # 只分析了首个区间就再不复访）。carried_paths 用于把已在结转队列中的路径排除出本轮
+    # 重新细分，避免与 AFL 队列重扫产生重复项。
+    carried_items: "list[tuple[str, str | None]]" = []
+    carried_paths: set[str] = set()
+
+    # K-Scheduler 风格前沿调度（opt-in，SYMCC_KSCHED=1）：按"覆盖当前稀有边（≈覆盖前沿/
+    # CFG 中心性）"给 AFL 候选种子加权，把 concolic 预算投向最可能触达未探索区域处
+    # （She et al. S&P'22）。用 afl-showmap 取每种子边集（按内容哈希缓存、每轮限流预算），
+    # rarity=Σ 1/(freq+1)。默认关闭：零成本、不影响既有调度。失败一律返回 0（优雅退化）。
+    _ksched = os.environ.get("SYMCC_KSCHED") == "1"
+    _edge_freq: dict[int, int] = {}
+    _frontier_cache: dict[str, float] = {}
+    _frontier_budget = [16]
+    _frontier_bm = os.path.join(symcc_dir, ".frontier_bm")
+
+    def _frontier_score(path: str) -> float:
+        try:
+            with open(path, "rb") as _ff:
+                h = hashlib.sha256(_ff.read()).hexdigest()
+        except OSError:
+            return 0.0
+        cached = _frontier_cache.get(h)
+        if cached is not None:
+            return cached
+        if _frontier_budget[0] <= 0:
+            return 0.0                       # 本轮 showmap 预算耗尽 → 暂记 0，下轮再算
+        _frontier_budget[0] -= 1
+        try:
+            rtype, data = afl_config.run_showmap(path, _frontier_bm)
+        except (OSError, subprocess.SubprocessError):
+            data, rtype = None, "err"
+        if rtype != "success" or not data:
+            _frontier_cache[h] = 0.0
+            return 0.0
+        score = 0.0
+        for e, b in enumerate(data):
+            if b:
+                f = _edge_freq.get(e, 0)
+                score += 1.0 / (f + 1)       # 稀有边贡献大（前沿）
+                _edge_freq[e] = f + 1
+        _frontier_cache[h] = score
+        return score
+
     try:
         while not shutdown_requested:
             # 读取自适应控制：期望活跃 worker 数（限流，避免每轮 IO）
@@ -1198,6 +1317,8 @@ def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
                                 (processed_content_hashes,
                                  "processed_content_hashes"),
                                 (grimoire_seen, "grimoire_seen"),
+                                (_density_cache, "_density_cache"),
+                                (_frontier_cache, "_frontier_cache"),
                                 (file_generation, "file_generation")):
                     if len(_c) > MAX_DEDUP_ENTRIES:
                         _c.clear()
@@ -1252,10 +1373,12 @@ def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
                 new_inputs = []  # 节流：worker 都在忙且刚扫过 → 跳过
             else:
                 _t0 = time.monotonic()
+                _frontier_budget[0] = 16       # 重置本轮前沿 showmap 预算（见 _frontier_score）
                 new_inputs = afl_config.best_new_testcases(
                     processed_files, batch_size=max_active_workers * 4,
                     analyzed_hashes=processed_content_hashes,
                     edge_yield=_get_edge_yield(),
+                    frontier_fn=_frontier_score if _ksched else None,
                 )
                 last_scan_time = _now
                 # AFL 种子代数为 0
@@ -1267,9 +1390,15 @@ def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
                     _n_scan += 1
 
             # 动态工作窃取：整-种子项不足以填满活跃 worker 时，把种子细分为不相交字节
-            # 区间子项填补空闲产能（多样性模式；否则等价于原来的整-种子列表）。
-            work_queue = _build_work_items(
-                pending_feedback + new_inputs, max_active_workers,
+            # 区间子项填补空闲产能（多样性模式；否则等价于原来的整-种子列表）。上一轮
+            # 未派发完的工作项（carried_items）优先结转到本轮队首，且其路径不再参与本轮
+            # 细分，避免重复；剩余待填产能 = 活跃 worker 数 - 已结转项数。
+            _profile_budget[0] = 8         # 重置本轮冷剖析预算（见 _profile_density）
+            _src = [p for p in (pending_feedback + new_inputs)
+                    if p not in carried_paths]
+            _remaining_target = max(1, max_active_workers - len(carried_items))
+            work_queue = carried_items + _build_work_items(
+                _src, _remaining_target,
                 _diversity, _focus_parts,
                 density_fn=_profile_density if _density_balance else None)
 
@@ -1290,12 +1419,17 @@ def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
                 }, dest=wr, tag=TAG_WORK)
                 active_workers[wr] = input_file
                 processed_files.add(input_file)
-                try:
-                    with open(input_file, "rb") as _f:
-                        processed_content_hashes.add(
-                            hashlib.sha256(_f.read()).hexdigest())
-                except (IOError, OSError):
-                    pass
+                # 复用 best_new_testcases 已缓存的内容哈希（AFL 种子在 _file_cache 中已算过）
+                # → 派发热路径上省去重复 open+read+SHA-256；反馈用例不在缓存则回退现算。
+                _ch = afl_config._file_cache.get(input_file, {}).get("hash")
+                if _ch is None:
+                    try:
+                        with open(input_file, "rb") as _f:
+                            _ch = hashlib.sha256(_f.read()).hexdigest()
+                    except (IOError, OSError):
+                        _ch = None
+                if _ch is not None:
+                    processed_content_hashes.add(_ch)
 
             while any_progress:
                 any_progress = False
@@ -1385,6 +1519,7 @@ def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
                             recent_byte_offsets=recent_byte_offsets,
                             focus_bytes_window=FOCUS_BYTES_WINDOW,
                             yield_callback=_update_edge_yield,
+                            analyzed_hashes_ref=processed_content_hashes,
                         )
                         if bitmap_changed:
                             bitmap_version += 1
@@ -1403,11 +1538,19 @@ def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
                         _t_triage += time.monotonic() - _t0
                         _n_triage += 1
 
-            # 未分发完的 SymCC 反馈用例放回队列（保留代数信息）
-            for f in pending_feedback:
-                if f not in processed_files:
-                    gen = file_generation.get(f, 0)
-                    symcc_feedback_queue.append((f, gen))
+            # 未派发完的工作项（含细分字节区间）按项结转到下一轮，避免按路径去重把同
+            # 种子的其余区间丢弃。代数信息保留在 file_generation 中，派发时可查。
+            carried_items = work_queue[work_idx:]
+            # 安全阀：持续高产饱和时积压可能增长，超上限则截断以限制内存。被截断的项不会
+            # 永久丢失覆盖率——其内容也已写入 AFL 队列/同步副本，会被后续扫描重新纳入（仅
+            # 丢失代数深度、多做少量重扫）。carried_items 仅存 (path, focus) 小元组，故上限
+            # 设得较宽，正常运行几乎不触发。
+            _carry_cap = max(4096, max_active_workers * (_focus_parts + 1) * 4)
+            if len(carried_items) > _carry_cap:
+                print(f"[Master] carried_items 积压 {len(carried_items)} 超 "
+                      f"{_carry_cap}，截断以限制内存", flush=True)
+                carried_items = carried_items[:_carry_cap]
+            carried_paths = {p for p, _ in carried_items}
 
             # 旧的 collect/triage 代码已移到 while 循环内的交替处理中
 
@@ -1462,11 +1605,17 @@ def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
             elif symcc_feedback_queue and _dispatchable_idle:
                 pass  # 有反馈且有空闲活跃 worker → 立即分发，不睡
             else:
-                time.sleep(0.05)
+                # 有活跃 worker 在跑 → RESULT 很快到达：用更短轮询间隔把"结果到达→再派发"
+                # 的服务延迟从 50ms 降到 5ms（master 负载 <10%、idle 57%，多轮询开销可忽略；
+                # fastSolve 让许多求解变快后，50ms 占单个工作项比例更大）。否则用较长间隔省 CPU。
+                time.sleep(0.005 if active_workers else 0.05)
             if _prof:
                 _t_idle += time.monotonic() - _t0
     finally:
         # --- 优雅关闭 ---
+        # 清理密度剖析临时目录
+        if _prof_dir:
+            shutil.rmtree(_prof_dir, ignore_errors=True)
         # 输出 profiling 数据
         if _prof:
             wall = time.monotonic() - last_stats_time + STATS_INTERVAL_SEC
@@ -1595,8 +1744,14 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
                     # worker_cov 从空开始，会把全局已知边误判为"新"而重复回传 master。
                     with open(bitmap_file, "rb") as _bmf:
                         _bm_data = _bmf.read()
-                    worker_cov.edges.update(
-                        i for i, b in enumerate(_bm_data) if b)
+                    # 播种稠密 data（保留命中桶）+ edges 集合（存在性）。只播种 edges 会
+                    # 丢桶信息，使 worker 把"已知边的新命中桶"误判为非 interesting 而丢弃。
+                    # SYMCC_NO_WORKER_SEED=1 关闭播种（仅用于 A/B：复现"修复前"worker 从空
+                    # dedup 起步、把全局已知边误报为新而过量回传 master 的行为）。
+                    if os.environ.get("SYMCC_NO_WORKER_SEED") != "1":
+                        # 只需批量拷贝 data；_merge_sparse 用 data==0 判存在，无需 O(map)
+                        # 重建 edges 集（worker 不读 worker_cov.edges）。
+                        worker_cov.data = bytearray(_bm_data)
                 except (IOError, OSError):
                     pass
 
@@ -1628,7 +1783,8 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
             shutil.copy2(input_path, local_input)
         except (IOError, OSError):
             # 文件可能被 AFL 删除，跳过
-            result = {"new_tests": [], "retcode": -1, "elapsed": 0, "killed": False}
+            result = {"new_tests": [], "retcode": -1, "elapsed": 0,
+                      "killed": False, "total_generated": 0}
             comm.send(result, dest=0, tag=TAG_RESULT)
             continue
 

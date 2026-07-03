@@ -381,7 +381,7 @@ def generate_report(all_results: list[dict], target_name: str,
     with open(report_path, "w") as f:
         _write_report(f, all_results, target_name)
 
-    print(f"\n  报告已保存:")
+    print("\n  报告已保存:")
     print(f"    Text:  {report_path}")
     print(f"    CSV:   {csv_path}")
     print(f"    JSON:  {json_path}")
@@ -564,7 +564,7 @@ def _write_diagnosis(f, runs: list[dict], mode: str) -> None:
                 f.write(f"    ℹ np={r['np']}: SymCC/AFL 比率 = {ratio:.1f}x "
                         f"(AFL={afl}, SymCC_all={symcc_all})\n")
                 if symcc_all < afl:
-                    f.write(f"      → SymCC 产量低于 AFL，考虑增加 SymCC workers\n")
+                    f.write("      → SymCC 产量低于 AFL，考虑增加 SymCC workers\n")
 
     f.write("\n")
 

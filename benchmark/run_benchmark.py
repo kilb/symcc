@@ -36,6 +36,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import typing
 import threading
 import time
 from collections import defaultdict
@@ -291,7 +292,6 @@ def _measure_with_lcov(all_cov_dirs: list[str]) -> tuple[float, float]:
     lcov 能聚合所有 --coverage 编译的源文件（harness + 库），
     比 gcov 单文件测量更全面。
     """
-    import tempfile
     line_cov = 0.0
     branch_cov = 0.0
 
@@ -594,6 +594,7 @@ def measure_coverage_afl(afl_binary: str, test_case_dir: str,
     if uses_file and not _afl_binary_uses_shmem(afl_binary):
         cmd.append("@@")
 
+    measure_ok = False  # 是否成功解析到覆盖率（区分"真 0 覆盖"与"showmap 失败"）
     try:
         batch_timeout = max(60, total_cases * 2)
         # 在临时目录中运行 showmap：目标（如 sqlite_fuzzer）会向 CWD 写临时文件，
@@ -621,6 +622,7 @@ def measure_coverage_afl(afl_binary: str, test_case_dir: str,
             edges_found = int(m.group(1))
             edges_total = int(m.group(2))
             edge_cov = float(m.group(3))
+            measure_ok = True
         else:
             # 备用：从 "Captured N tuples" 解析
             m2 = re.search(r"Captured (\d+) tuples \(map size (\d+)", stderr)
@@ -629,6 +631,13 @@ def measure_coverage_afl(afl_binary: str, test_case_dir: str,
                 edges_total = int(m2.group(2))
                 if edges_total > 0:
                     edge_cov = edges_found / edges_total * 100.0
+                measure_ok = True
+        if not measure_ok:
+            # 既无 coverage 行也无 Captured 行 → showmap 未正常完成（fork server 握手
+            # 失败/启动即崩溃/map 不匹配等）。区别于"真 0 覆盖"：告警 + 返回码，供调用方据
+            # measure_ok 丢弃该点，而非把 0.0 当真实数据污染均值/最佳配置选择。
+            print(f"[warn] afl-showmap 未产出覆盖率 (rc={result.returncode}); "
+                  f"输出尾部: {stderr[-300:]!r}", file=sys.stderr)
 
     except subprocess.TimeoutExpired:
         edge_cov = 0.0
@@ -655,6 +664,7 @@ def measure_coverage_afl(afl_binary: str, test_case_dir: str,
         "crashes": 0,  # afl-showmap -C 不单独报告 crash 数
         "total_cases": total_cases,
         "sampled": sampled,
+        "measure_ok": measure_ok,  # False = showmap 失败（非真 0 覆盖），调用方应丢弃
     }
 
 
@@ -735,18 +745,22 @@ def measure_coverage_timeseries_afl(
             cov_data = measure_coverage_afl(
                 afl_binary, test_case_dir, uses_file=uses_file,
             )
-            timeseries.append({
-                "timestamp_sec": round(elapsed, 1),
-                "edge_cov": cov_data["edge_cov"],
-                "edges_found": cov_data["edges_found"],
-                "edges_total": cov_data["edges_total"],
-                "total_cases": cov_data["total_cases"],
-            })
+            if cov_data.get("measure_ok", True):   # 跳过 showmap 失败的采样点，不污染序列
+                timeseries.append({
+                    "timestamp_sec": round(elapsed, 1),
+                    "edge_cov": cov_data["edge_cov"],
+                    "edges_found": cov_data["edges_found"],
+                    "edges_total": cov_data["edges_total"],
+                    "total_cases": cov_data["total_cases"],
+                })
         except (OSError, KeyError, ValueError, subprocess.SubprocessError):
             pass
-        # 等待到下一个采样点
-        next_sample = start_time + len(timeseries) * interval
-        sleep_time = next_sample - time.monotonic()
+        # 等到下一个 interval 边界（按墙钟对齐，而非样本计数）：采样失败或 showmap 慢于
+        # interval 时也照常前进到未来的边界，避免"失败→next_sample 不变→紧忙循环空转"
+        # 与"showmap 比 interval 慢→sleep<=0→背靠背采样、节奏塌陷"两种问题。
+        now = time.monotonic()
+        next_tick = int((now - start_time) // interval) + 1
+        sleep_time = start_time + next_tick * interval - now
         if sleep_time > 0:
             time.sleep(sleep_time)
 
@@ -808,7 +822,10 @@ def run_with_timeseries(
         uses_file=uses_file,
     )
 
-    bench_thread.join(timeout=60)
+    # 与上面的 join 一致用 timeout+60：run_hybrid 的清理最坏情况随 AFL 实例数递增
+    # （每个存活进程 SIGTERM 等 10s + SIGKILL 等 5s），固定 60s 在高 np 下可能过短而
+    # 丢弃/截断结果。
+    bench_thread.join(timeout=timeout + 60)
     result = result_container[0]
     if error_container[0]:
         raise error_container[0]
@@ -835,25 +852,40 @@ def _compute_symcc_cpu_list(afl_instances: int, symcc_np: int) -> "str | None":
     return ",".join(str(c) for c in range(base, total))
 
 
-def _afl_binary_uses_shmem(afl_binary: str) -> bool:
-    """检测 AFL 目标是否为持久模式 + 共享内存输入（dual-mode 目标）。
+_shmem_detect_cache: "dict[tuple[str, float, int], bool]" = {}
 
-    __AFL_FUZZ_INIT() 会把 __afl_sharedmem_fuzzing 定义为强符号（nm 显示 'D'，值=1）；
-    普通 fork/文件目标只有 afl 运行时的弱默认（'V'/'W'，值=0）。这类 shmem 目标必须
-    "不带 @@" 运行，afl-fuzz 才会经共享内存喂输入并进入 __AFL_LOOP 持久循环——带 @@
-    会让目标落入一次性文件模式、退化为 fork-per-exec（实测慢约 35x）。
-    检测失败一律返回 False（保持带 @@ 的现有行为，安全无回归）。"""
-    try:
-        out = subprocess.run(["nm", afl_binary], capture_output=True,
-                             text=True, timeout=10)
-    except (OSError, subprocess.SubprocessError):
+
+def _afl_binary_uses_shmem(afl_binary: str) -> bool:
+    """检测 AFL 目标是否为持久模式（→ 不带 @@ 运行；且 cmplog 伴随二进制须同为持久）。
+
+    判据用 afl-fuzz 自身识别持久模式的标记字符串 ##SIG_AFL_PERSISTENT##（由 __AFL_LOOP
+    宏注入二进制），这与 afl-fuzz 的 check_binary 完全一致，是可靠信号。
+
+    切勿改用 __afl_sharedmem_fuzzing 符号判断：该符号由 AFL 运行时在 *fork 与持久* 二进制
+    中都定义（binding/section/静态值静态不可辨），会把 fork 模式的 cmplog 伴随二进制（本仓库
+    pcre2-cmplog / sqlite-cmplog 实测 ##SIG_AFL_PERSISTENT## 缺失=fork）误判为持久 → 持久性
+    匹配门禁放行 cmplog → 持久主二进制 + fork cmplog 不匹配 → afl-fuzz "Fork server handshake
+    failed"、所有 hybrid/afl-only 轮次覆盖率归零。用 SIG 字符串则正确判 cmplog 为非持久、
+    优雅关闭 cmplog（afl 正常跑）。<binary>.forkmode 标记可强制判为非持久。
+    结果按 (路径, mtime, size) 记忆化；读文件/异常一律返回 False（安全默认：带 @@）。"""
+    if os.path.exists(afl_binary + ".forkmode"):
         return False
-    for line in out.stdout.splitlines():
-        parts = line.split()
-        if (len(parts) == 3 and parts[2] == "__afl_sharedmem_fuzzing"
-                and parts[1] in ("D", "d")):
-            return True
-    return False
+    try:
+        st = os.stat(afl_binary)
+    except OSError:
+        return False
+    key = (afl_binary, st.st_mtime, st.st_size)
+    cached = _shmem_detect_cache.get(key)
+    if cached is not None:
+        return cached
+    verdict = False
+    try:
+        with open(afl_binary, "rb") as f:
+            verdict = b"##SIG_AFL_PERSISTENT##" in f.read()
+    except OSError:
+        verdict = False
+    _shmem_detect_cache[key] = verdict
+    return verdict
 
 
 def _link_or_copy(src: str, dst: str) -> None:
@@ -865,11 +897,13 @@ def _link_or_copy(src: str, dst: str) -> None:
     try:
         os.link(src, dst)
     except OSError:
-        # 跨文件系统 / 目标已存在 / 不支持硬链接 → 退回复制
+        # 跨文件系统 / 目标已存在 / 不支持硬链接 → 退回复制（copy2 覆盖既有）
         try:
             shutil.copy2(src, dst)
-        except OSError:
-            pass
+        except OSError as e:
+            # 硬链接与复制双双失败（源消失/磁盘满/权限）→ 该文件缺席会低估合并语料的
+            # 覆盖率；告警而非静默吞掉，便于发现数据质量问题。
+            print(f"[warn] _link_or_copy 跳过 {src}: {e}", file=sys.stderr)
 
 
 def count_output_files(directory):
@@ -978,8 +1012,8 @@ def _simulate_serial(binary, seed_dir, output_dir, timeout, uses_file,
                 file_count += 1
 
 
-def run_serial(binary, target_name, seed_dir, timeout, work_dir,
-               simulate=False):
+def run_serial(binary: str, target_name: str, seed_dir: str, timeout: int,
+               work_dir: str, simulate: bool = False):
     """Run the serial pure_concolic_execution.sh baseline."""
     output_dir = os.path.join(work_dir, "serial_output")
     os.makedirs(output_dir, exist_ok=True)
@@ -1061,8 +1095,9 @@ def run_serial(binary, target_name, seed_dir, timeout, work_dir,
     }
 
 
-def run_mpi(binary, target_name, seed_dir, np, timeout, work_dir,
-            simulate=False, extra_args=None):
+def run_mpi(binary: str, target_name: str, seed_dir: str, np: int, timeout: int,
+            work_dir: str, simulate: bool = False,
+            extra_args: list[str] | None = None):
     """Run MPI-parallel concolic execution."""
     output_dir = os.path.join(work_dir, f"mpi_np{np}_output")
     os.makedirs(output_dir, exist_ok=True)
@@ -1112,25 +1147,34 @@ def run_mpi(binary, target_name, seed_dir, np, timeout, work_dir,
     start = time.monotonic()
     timed_out_hard = False
     with open(mpi_log_path, "wb") as _log:
-        proc = subprocess.Popen(
-            cmd, stdout=_log, stderr=subprocess.STDOUT,
-            start_new_session=True, env=env,
-        )
         try:
-            proc.wait(timeout=timeout + 30)
-            retcode = proc.returncode
-        except subprocess.TimeoutExpired:
-            try:
-                os.killpg(proc.pid, signal.SIGTERM)
-                proc.wait(timeout=10)
-            except (OSError, subprocess.TimeoutExpired):
-                try:
-                    os.killpg(proc.pid, signal.SIGKILL)
-                    proc.wait(timeout=5)
-                except (OSError, subprocess.TimeoutExpired):
-                    proc.kill()
+            proc = subprocess.Popen(
+                cmd, stdout=_log, stderr=subprocess.STDOUT,
+                start_new_session=True, env=env,
+            )
+        except (OSError, subprocess.SubprocessError) as e:
+            # mpirun 不在 PATH / fork 资源耗尽等 → 本轮记为失败，不让整个 sweep 崩溃退出
+            print(f"[error] run_mpi 无法启动 mpirun（{e}）；本轮记为失败",
+                  file=sys.stderr)
+            proc = None
+        if proc is None:
             retcode = -1
-            timed_out_hard = True
+        else:
+            try:
+                proc.wait(timeout=timeout + 30)
+                retcode = proc.returncode
+            except subprocess.TimeoutExpired:
+                try:
+                    os.killpg(proc.pid, signal.SIGTERM)
+                    proc.wait(timeout=10)
+                except (OSError, subprocess.TimeoutExpired):
+                    try:
+                        os.killpg(proc.pid, signal.SIGKILL)
+                        proc.wait(timeout=5)
+                    except (OSError, subprocess.TimeoutExpired):
+                        proc.kill()
+                retcode = -1
+                timed_out_hard = True
 
     elapsed = time.monotonic() - start
     # 读回日志（含 stdout+stderr）供统计解析；hard-timeout 也能拿到已产出的部分统计
@@ -1270,9 +1314,13 @@ def _read_afl_edges(afl_out_dir: str) -> int:
     return best
 
 
-def _adaptive_controller(mpi_proc, afl_procs, symcc_dir, afl_out_dir, np,
-                         timeout, start, symcc_worker_launch, next_afl_idx,
-                         spawn_afl):
+def _adaptive_controller(mpi_proc: "subprocess.Popen | None",
+                         afl_procs: "list[subprocess.Popen]",
+                         symcc_dir: str, afl_out_dir: str, np: int,
+                         timeout: int, start: float, symcc_worker_launch: int,
+                         next_afl_idx: int,
+                         spawn_afl: "typing.Callable[[int], subprocess.Popen]"
+                         ) -> None:
     """KRAKEN 风格运行时自适应分配控制器。
 
     信号：SymCC 近窗 useful 比率（interesting/generated 增量）——直接度量 concolic
@@ -1295,6 +1343,11 @@ def _adaptive_controller(mpi_proc, afl_procs, symcc_dir, afl_out_dir, np,
             return
         time.sleep(0.2)
 
+    # 等待超时仍未出现 symcc_dir（helper 未就绪/已挂）→ 直接返回：不向一个不会读控制文件
+    # 的作业写控制文件，更不要为它铺满 AFL 实例（那些实例随后被统一清理，只是白耗核）。
+    if not os.path.isdir(symcc_dir):
+        return
+
     # 初始 K = 封顶默认（起步即处于已验证的良好稳态）
     K = max(K_MIN, min(K_MAX, SYMCC_WORKER_CAP))
     try:
@@ -1310,7 +1363,15 @@ def _adaptive_controller(mpi_proc, afl_procs, symcc_dir, afl_out_dir, np,
         afl_procs.append(spawn_afl(afl_idx))
         afl_idx += 1
 
+    # 等 helper 首次写出 .symcc_stats 再取基线（它每 ~5s 写一次；文件未就绪时 prev 为
+    # None）。否则首个调节 tick 会把"从 0 到首读"的整段累计当成一次 INTERVAL 增量，单侧
+    # 夸大 SymCC 每核产出、令第一次再平衡决策失真。有界重试，最多 ~5s。
     prev = _read_symcc_stats(symcc_dir)
+    for _ in range(50):
+        if prev is not None or mpi_proc.poll() is not None:
+            break
+        time.sleep(0.1)
+        prev = _read_symcc_stats(symcc_dir)
     prev_i = prev[0] if prev else 0
     prev_afl = _read_afl_edges(afl_out_dir)
     last_adjust = time.monotonic()
@@ -1646,19 +1707,26 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
     # 写文件无容量上限、事后可完整读回。
     mpi_log_path = os.path.join(work_dir, "mpi_master.log")
     mpi_log_fh = open(mpi_log_path, "wb")
+    mpi_proc = None
     try:
-        mpi_proc = subprocess.Popen(
-            mpi_cmd, stdout=mpi_log_fh, stderr=subprocess.DEVNULL,
-            start_new_session=True, env=mpi_env, cwd=target_cwd,
-        )
-        if adaptive:
+        try:
+            mpi_proc = subprocess.Popen(
+                mpi_cmd, stdout=mpi_log_fh, stderr=subprocess.DEVNULL,
+                start_new_session=True, env=mpi_env, cwd=target_cwd,
+            )
+        except (OSError, subprocess.SubprocessError) as e:
+            # MPI helper 启动失败时不抛出（否则跳过下方统一清理 → 已启动的 AFL/ensemble
+            # 进程沦为占满 CPU 的孤儿）；置 None，走正常清理回收所有兄弟进程。
+            print(f"[error] run_hybrid 无法启动 MPI helper（{e}）；"
+                  f"将回收已启动的 AFL/ensemble 进程", file=sys.stderr)
+        if mpi_proc is not None and adaptive:
             # 不预建 symcc_dir：helper 若发现其已存在会判定为 resume 并立即退出。
             # 控制器会等待 helper 创建该目录后再写控制文件。
             _adaptive_controller(
                 mpi_proc, afl_procs, symcc_dir, afl_out_dir, np, timeout, start,
                 symcc_worker_launch, next_afl_idx, _spawn_afl,
             )
-        else:
+        elif mpi_proc is not None:
             # helper 不会自退，让它运行满剩余时间，到时由下方统一 SIGTERM 终止；
             # 期间若意外早退则提前结束等待。
             deadline = time.monotonic() + max(
@@ -1678,8 +1746,9 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
         pass
 
     # 终止进程：MPI + 所有 AFL 实例 + honggfuzz + GRIMOIRE
-    for proc in ([mpi_proc] + afl_procs
-                 + [p for p in (honggfuzz_proc, grimoire_proc) if p is not None]):
+    for proc in (afl_procs
+                 + [p for p in (mpi_proc, honggfuzz_proc, grimoire_proc)
+                    if p is not None]):
         if proc.poll() is None:
             try:
                 os.killpg(proc.pid, signal.SIGTERM)
@@ -1805,7 +1874,7 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
         "generated": total_generated,
         "unique": total_generated,
         "output_dir": combined_dir,
-        "retcode": mpi_proc.returncode or 0,
+        "retcode": (mpi_proc.returncode or 0) if mpi_proc is not None else -1,
         "timed_out": elapsed >= timeout * 0.95,
         "throughput": total_generated / elapsed if elapsed > 0 else 0,
         "stdout": mpi_stdout[-500:] if mpi_stdout else "",
