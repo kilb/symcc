@@ -142,7 +142,11 @@ else
     # 必须在 apt-get update【之后】再判断目标 LLVM 版本是否可用：全新机器上包列表陈旧/为空，
     # 明明可装的 clang-${LLVM_VER} 会被误判为不可用（Candidate: none），从而无谓退回默认 clang
     # （在非 24.04 发行版上默认 clang 未必是 ${LLVM_VER}，可能导致构建异常）。
-    if ! apt-cache policy "clang-${LLVM_VER}" 2>/dev/null | grep -q "Candidate: [0-9]"; then
+    # 不能写成 `apt-cache ... | grep -q`：grep -q 命中后立即关闭管道，上游 apt-cache 收到
+    # SIGPIPE 退出 141，在 set -o pipefail 下整条管道被判为“失败”→ 明明命中却误判为不可用而退回。
+    # 故先把输出捕获到变量，再用 here-string 喂给 grep（无管道，无 SIGPIPE）。
+    llvm_policy="$(apt-cache policy "clang-${LLVM_VER}" 2>/dev/null || true)"
+    if ! grep -q "Candidate: [0-9]" <<<"$llvm_policy"; then
         warn "当前 apt 源没有 clang-${LLVM_VER}；改用发行版默认的 clang / llvm-dev。"
         warn "（若构建失败，请从 https://apt.llvm.org 安装 LLVM ${LLVM_VER} 后用 --skip-apt 重跑）"
         APT_PACKAGES=("${APT_PACKAGES[@]/clang-${LLVM_VER}/clang}")
