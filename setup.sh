@@ -137,7 +137,11 @@ else
         error "请参考 README.md『先决条件』一节手动安装依赖，然后用 --skip-apt 重跑。"
         exit 1
     fi
-    # 若目标 LLVM 版本在当前源中不可用，退回系统默认 clang/llvm 并给出提示
+    info "更新包索引..."
+    $SUDO apt-get update -qq || warn "apt-get update 失败，继续尝试安装..."
+    # 必须在 apt-get update【之后】再判断目标 LLVM 版本是否可用：全新机器上包列表陈旧/为空，
+    # 明明可装的 clang-${LLVM_VER} 会被误判为不可用（Candidate: none），从而无谓退回默认 clang
+    # （在非 24.04 发行版上默认 clang 未必是 ${LLVM_VER}，可能导致构建异常）。
     if ! apt-cache policy "clang-${LLVM_VER}" 2>/dev/null | grep -q "Candidate: [0-9]"; then
         warn "当前 apt 源没有 clang-${LLVM_VER}；改用发行版默认的 clang / llvm-dev。"
         warn "（若构建失败，请从 https://apt.llvm.org 安装 LLVM ${LLVM_VER} 后用 --skip-apt 重跑）"
@@ -145,8 +149,6 @@ else
         APT_PACKAGES=("${APT_PACKAGES[@]/llvm-${LLVM_VER}-dev/llvm-dev}")
         APT_PACKAGES=("${APT_PACKAGES[@]/llvm-${LLVM_VER}-tools/llvm}")
     fi
-    info "更新包索引..."
-    $SUDO apt-get update -qq || warn "apt-get update 失败，继续尝试安装..."
     info "安装: ${APT_PACKAGES[*]}"
     if $SUDO apt-get install -y "${APT_PACKAGES[@]}"; then
         info "系统依赖安装完成。"
