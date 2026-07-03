@@ -80,10 +80,17 @@ if [ -z "$LLVM_CMAKE_DIR" ]; then
 fi
 info "使用 LLVM: $LLVM_CMAKE_DIR"
 
-# ---- 3. 拉取子模块（运行时 + QSYM 后端），若尚未初始化 ----
-if [ -f .gitmodules ] && [ ! -e runtime/CMakeLists.txt ]; then
-    step "初始化 git 子模块（运行时 / QSYM 后端）..."
-    git submodule update --init --recursive
+# ---- 3. 准备运行时源码（运行时 + QSYM 后端）----
+# 源码可能来自压缩包（随包提供，无需 git）或需要从子模块拉取。
+if [ ! -e runtime/CMakeLists.txt ]; then
+    if [ -d .git ] && [ -f .gitmodules ]; then
+        step "初始化 git 子模块（运行时 / QSYM 后端）..."
+        git submodule update --init --recursive
+    else
+        error "缺少运行时源码 runtime/，且当前不是 git 仓库，无法自动获取。"
+        error "若从压缩包解压，请让分发者用 ./package.sh 重新打包（应包含 runtime/ 子目录）。"
+        exit 1
+    fi
 fi
 
 # ---- 4. 配置并构建 ----

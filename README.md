@@ -57,8 +57,9 @@ need any prior knowledge of symbolic execution, MPI, or fuzzing to follow it.**
 7. [Environment-variable reference](#7-environment-variable-reference)
 8. [Troubleshooting](#8-troubleshooting)
 9. [Repository layout](#9-repository-layout)
-10. [Further documentation](#10-further-documentation)
-11. [Upstream, license & citation](#11-upstream-license--citation)
+10. [Packaging for distribution (no git)](#10-packaging-for-distribution-no-git)
+11. [Further documentation](#11-further-documentation)
+12. [Upstream, license & citation](#12-upstream-license--citation)
 
 ---
 
@@ -118,6 +119,11 @@ have, the more parallel workers you can launch.
 ---
 
 ## 3. Installation
+
+> **Got a tarball instead of git access?** If a colleague sent you a
+> `symcc-package.tar.gz` (produced by [`package.sh`](#10-packaging-for-distribution-no-git)),
+> just `tar xzf symcc-package.tar.gz && cd symcc-package` — then the steps below
+> work **identically, with no git required** (the runtime source is bundled).
 
 ### The one-command way (recommended)
 
@@ -457,6 +463,7 @@ symcc/
 ├── README.md                 ← you are here (project getting-started guide)
 ├── setup.sh                  ← one-command dependency install + build
 ├── build.sh                  ← build SymCC only (deps already present)
+├── package.sh                ← make a self-contained tarball for offline (no-git) distribution
 ├── requirements.txt          ← Python dependencies
 ├── CMakeLists.txt            ← top-level build (compiler pass)
 ├── compiler/                 ← the LLVM compiler pass (injects symbolic tracking)
@@ -481,7 +488,43 @@ symcc/
 
 ---
 
-## 10. Further documentation
+## 10. Packaging for distribution (no git)
+
+To hand this project to someone **without giving them git access**, use
+[`package.sh`](package.sh) — it produces one self-contained tarball that builds
+and runs with no git required:
+
+```bash
+./package.sh              # -> symcc-package.tar.gz (tracked source + all submodules)
+./package.sh --all        # also include uncommitted-but-not-ignored files (docs, PDFs)
+```
+
+Why not a plain `tar` or `git archive`? This project nests git submodules (the
+runtime, QSYM, and Z3 sources). `git archive` silently drops them, and a naïve
+`tar` of the directory would sweep in the 1.6 GB of downloaded benchmark targets,
+a stale machine-specific `build/`, and temporary files. `package.sh` uses
+`git ls-files --recurse-submodules` to include **all source (submodules included)
++ docs + scripts**, while excluding `.git`, `build/`, `.venv/`, `third_party/`,
+the `benchmark/public/` downloads, and caches. The result is ~54 MB and
+self-verifies (it lists what it included and confirms nothing bulky slipped in).
+
+The recipient then needs **no git at all**:
+
+```bash
+tar xzf symcc-package.tar.gz
+cd symcc-package
+./setup.sh                # fresh machine: installs dependencies + builds
+# ...or, if the dependencies are already present:
+./build.sh
+```
+
+`setup.sh`/`build.sh` detect that the runtime source is already bundled and skip
+the git-submodule step automatically. For subsequent development the recipient
+can run `git init` in the extracted tree if they want version control.
+
+---
+
+## 11. Further documentation
 
 - [`docs/Configuration.txt`](docs/Configuration.txt) — every SymCC configuration option (compile-time & run-time).
 - [`docs/Fuzzing.txt`](docs/Fuzzing.txt) — combining SymCC with a fuzzer (background).
@@ -491,7 +534,7 @@ symcc/
 
 ---
 
-## 11. Upstream, license & citation
+## 12. Upstream, license & citation
 
 This project builds on **SymCC** by Sebastian Poeplau and Aurélien Francillon
 (EURECOM). SymCC and this fork are distributed under the **GNU General Public

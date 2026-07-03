@@ -217,10 +217,18 @@ fi
 # ============================================================
 #  4. 拉取子模块
 # ============================================================
-step "初始化 git 子模块（SymCC 运行时 + QSYM 后端）"
-if [ -f "$SCRIPT_DIR/.gitmodules" ]; then
+step "准备运行时源码（SymCC 运行时 + QSYM 后端）"
+if [ -e "$SCRIPT_DIR/runtime/CMakeLists.txt" ]; then
+    # 源码已就绪：可能来自压缩包解压（子模块随包提供）或子模块已初始化——无需 git
+    info "运行时源码已就绪（随包提供或子模块已初始化）。"
+elif [ -d "$SCRIPT_DIR/.git" ] && [ -f "$SCRIPT_DIR/.gitmodules" ]; then
+    # 是 git 仓库但子模块尚未拉取
     git -C "$SCRIPT_DIR" submodule update --init --recursive && info "子模块就绪。" \
-        || warn "子模块拉取出现问题，请检查网络后重试 git submodule update --init --recursive"
+        || warn "子模块拉取失败，请检查网络后重试：git submodule update --init --recursive"
+else
+    error "缺少运行时源码（runtime/），且当前不是 git 仓库，无法自动获取。"
+    error "若你是从压缩包解压的，说明打包不完整——请让分发者用 ./package.sh 重新打包。"
+    exit 1
 fi
 
 # ============================================================

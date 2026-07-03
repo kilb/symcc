@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+#
+# package.sh —— 把整个项目打包成一个自包含压缩包，供他人【无需 git】解压后直接构建/开发。
+#
+# 为什么需要它：本项目用到 git 子模块（运行时 / QSYM / Z3），直接 `git archive` 会漏掉
+# 子模块源码，而 `tar` 整个目录又会带上 1.6G 的下载物、85M 的旧 build/ 和临时垃圾文件。
+# 本脚本用 `git ls-files --recurse-submodules` 精确收集【全部源码（含子模块）+ 文档 +
+# 脚本】，自动排除 .git、build/、.venv/、third_party/、benchmark/public/、__pycache__ 及
+# 各类临时文件（遵循 .gitignore）。解压后 ./setup.sh 或 ./build.sh 均可直接使用，无需 git。
+#
+# 用法:
+#   ./package.sh                 # 打包所有【已提交】文件（含子模块源码）
+#   ./package.sh --all           # 额外包含未提交但未被忽略的文件（如 docs/ 下的报告、PDF）
+#   ./package.sh -o <file>       # 指定输出文件名（默认 symcc-package.tar.gz）
+#
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; BOLD='\033[1m'; NC='\033[0m'
+info()  { echo -e "${GREEN}[打包]${NC} $*"; }
+step()  { echo -e "\n${BLUE}${BOLD}==> $*${NC}"; }
+warn()  { echo -e "${YELLOW}[警告]${NC} $*"; }
+error() { echo -e "${RED}[错误]${NC} $*" >&2; }
+
+OUT="symcc-package.tar.gz"
+INCLUDE_UNTRACKED=false
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --all)     INCLUDE_UNTRACKED=true; shift ;;
+        -o|--output) OUT="$2"; shift 2 ;;
+        -h|--help) sed -n '3,20p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        *) error "未知参数: $1（用 --help 查看用法）"; exit 1 ;;
+    esac
+done
+
+# 必须在 git 仓库内运行——打包依赖 git 正确处理子模块与 .gitignore 排除规则
+if ! git rev-parse --git-dir >/dev/null 2>&1; then
+    error "请在项目的 git 仓库根目录运行本脚本（打包需要 git 来收集子模块源码）。"
+    exit 1
+fi
+
+# 顶层目录名（解压后得到 <name>/，避免文件散落到当前目录）；去掉 .tar.gz 后缀
+TOPDIR="$(basename "$OUT")"; TOPDIR="${TOPDIR%.tar.gz}"; TOPDIR="${TOPDIR%.tgz}"
+
+step "收集文件清单"
+filelist="$(mktemp)"
+trap 'rm -f "$filelist"' EXIT
+
+# 已提交文件（含所有层级子模块的源码）
+git ls-files --recurse-submodules -z > "$filelist"
+n_tracked=$(tr -cd '\0' < "$filelist" | wc -c)
+info "已提交文件（含子模块源码）：$n_tracked"
+
+# 未提交但未被忽略的文件（默认不含；--all 纳入）
+mapfile -t untracked < <(git ls-files --others --exclude-standard)
+if $INCLUDE_UNTRACKED; then
+    if [ "${#untracked[@]}" -gt 0 ]; then
+        git ls-files --others --exclude-standard -z >> "$filelist"
+        info "额外纳入 ${#untracked[@]} 个未提交文件："
+        printf '    %s\n' "${untracked[@]}"
+    fi
+else
+    if [ "${#untracked[@]}" -gt 0 ]; then
+        warn "以下 ${#untracked[@]} 个未提交且未被忽略的文件【未】包含"
+        warn "（如需一并发送，加 --all 重新打包，或先 git add）："
+        printf '    %s\n' "${untracked[@]}"
+    fi
+fi
+
+step "生成压缩包：$OUT"
+# --transform 让所有成员落入顶层目录 $TOPDIR/，解压得到干净的一个目录。
+# 标志 rhS：改写普通成员名(r)与硬链接目标(h)，但【不】改写符号链接目标(S)——
+# 本仓库有 8 个相对符号链接（如 test/README -> ../docs/Testing.txt），若给其目标
+# 也加上前缀会变成 symcc/../... 而失效。
+tar --null --files-from="$filelist" \
+    --transform "s,^,${TOPDIR}/,rhS" \
+    --owner=0 --group=0 \
+    -czf "$OUT"
+
+# ---- 自检：确认关键内容在、垃圾内容不在 ----
+step "自检打包结果"
+listing="$(tar tzf "$OUT")"
+check() { # $1=描述 $2=期望(present/absent) $3=grep模式
+    local cnt; cnt=$(echo "$listing" | grep -c "$3" || true)
+    if { [ "$2" = present ] && [ "$cnt" -gt 0 ]; } || { [ "$2" = absent ] && [ "$cnt" -eq 0 ]; }; then
+        echo -e "  ${GREEN}✔${NC} $1"
+    else
+        echo -e "  ${RED}✗${NC} $1（匹配 $cnt 项，期望 $2）"
+    fi
+}
+check "含改造后的运行时源码 (solver.cpp)" present "qsym/pintool/solver.cpp"
+check "含构建/部署脚本 (setup.sh)"        present "${TOPDIR}/setup.sh"
+check "含文档 (README.md)"                present "${TOPDIR}/README.md"
+check "不含 .git 目录"                     absent  "${TOPDIR}/\.git/"
+check "不含旧 build/ 产物"                 absent  "${TOPDIR}/build/"
+check "不含 .venv 虚拟环境"                absent  "${TOPDIR}/\.venv/"
+# benchmark/public 下已提交的是小型种子/靶子（约 11M），应当包含；1.6G 的下载物是【未提交】
+# 的，git ls-files 天然排除。这里只做体积保护：若不慎混入大额下载物，包会异常大。
+n_pub=$(echo "$listing" | grep -c "${TOPDIR}/benchmark/public/" || true)
+info "  benchmark/public 已提交文件 $n_pub 个（小型种子/靶子；1.6G 下载物已排除）"
+size_mb=$(du -m "$OUT" | cut -f1)
+if [ "$size_mb" -lt 300 ]; then
+    echo -e "  ${GREEN}✔${NC} 体积正常（${size_mb} MB，未混入大额下载物）"
+else
+    echo -e "  ${YELLOW}⚠${NC} 体积偏大（${size_mb} MB）——请确认未混入 benchmark/public 的下载物"
+fi
+
+size="$(du -h "$OUT" | cut -f1)"
+sha="$(sha256sum "$OUT" | cut -d' ' -f1)"
+echo
+echo -e "${GREEN}${BOLD}==================== 打包完成 ✔ ====================${NC}"
+echo "  文件:   $OUT   （$size）"
+echo "  SHA256: $sha"
+echo
+echo -e "${BOLD}发给对方后，对方只需（无需 git）：${NC}"
+echo "    tar xzf $(basename "$OUT")"
+echo "    cd ${TOPDIR}"
+echo "    ./setup.sh          # 装依赖 + 编译（全新机器）"
+echo "    # 或者，若依赖已就绪： ./build.sh"
+echo
+echo "  完整运行/开发说明见解压后的 README.md。"
