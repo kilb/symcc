@@ -11,7 +11,8 @@
 # 用法:
 #   ./package.sh                 # 打包所有【已提交】文件（含子模块源码）
 #   ./package.sh --all           # 额外包含未提交但未被忽略的文件（如 docs/ 下的报告、PDF）
-#   ./package.sh -o <file>       # 指定输出文件名（默认 symcc-package.tar.gz）
+#   ./package.sh -o <file>       # 指定输出文件名；格式由扩展名决定：
+#                                #   .zip -> zip 包；.tar.gz / .tgz -> tar 包（默认 symcc-package.tar.gz）
 #
 set -euo pipefail
 
@@ -41,12 +42,21 @@ if ! git rev-parse --git-dir >/dev/null 2>&1; then
     exit 1
 fi
 
-# 顶层目录名（解压后得到 <name>/，避免文件散落到当前目录）；去掉 .tar.gz 后缀
-TOPDIR="$(basename "$OUT")"; TOPDIR="${TOPDIR%.tar.gz}"; TOPDIR="${TOPDIR%.tgz}"
+# 输出格式由扩展名决定：.zip -> zip；.tar.gz / .tgz -> tar
+case "$OUT" in
+    *.zip)          FORMAT=zip ;;
+    *.tar.gz|*.tgz) FORMAT=tar ;;
+    *) error "无法从扩展名判断格式：$OUT（请用 .zip 或 .tar.gz）"; exit 1 ;;
+esac
+if [ "$FORMAT" = zip ] && ! command -v zip >/dev/null 2>&1; then
+    error "生成 zip 需要 zip 命令：sudo apt-get install -y zip"; exit 1
+fi
+# 顶层目录名（解压后得到 <name>/，避免文件散落到当前目录）；去掉扩展名
+TOPDIR="$(basename "$OUT")"; TOPDIR="${TOPDIR%.zip}"; TOPDIR="${TOPDIR%.tar.gz}"; TOPDIR="${TOPDIR%.tgz}"
 
 step "收集文件清单"
-filelist="$(mktemp)"
-trap 'rm -f "$filelist"' EXIT
+filelist="$(mktemp)"; STAGE=""
+trap 'rm -f "$filelist"; [ -n "$STAGE" ] && rm -rf "$STAGE"' EXIT
 
 # 已提交文件（含所有层级子模块的源码）
 git ls-files --recurse-submodules -z > "$filelist"
@@ -69,19 +79,30 @@ else
     fi
 fi
 
-step "生成压缩包：$OUT"
-# --transform 让所有成员落入顶层目录 $TOPDIR/，解压得到干净的一个目录。
-# 标志 rhS：改写普通成员名(r)与硬链接目标(h)，但【不】改写符号链接目标(S)——
-# 本仓库有 8 个相对符号链接（如 test/README -> ../docs/Testing.txt），若给其目标
-# 也加上前缀会变成 symcc/../... 而失效。
-tar --null --files-from="$filelist" \
-    --transform "s,^,${TOPDIR}/,rhS" \
-    --owner=0 --group=0 \
-    -czf "$OUT"
+step "生成压缩包：$OUT（格式：$FORMAT）"
+rm -f "$OUT"
+if [ "$FORMAT" = tar ]; then
+    # --transform 让所有成员落入顶层目录 $TOPDIR/，解压得到干净的一个目录。
+    # 标志 rhS：改写普通成员名(r)与硬链接目标(h)，但【不】改写符号链接目标(S)——
+    # 本仓库有 8 个相对符号链接（如 test/README -> ../docs/Testing.txt），若给其目标
+    # 也加上前缀会变成 symcc/../... 而失效。
+    tar --null --files-from="$filelist" \
+        --transform "s,^,${TOPDIR}/,rhS" \
+        --owner=0 --group=0 \
+        -czf "$OUT"
+else
+    # zip 没有 --transform：先把清单里的文件（用 tar 管道拷贝，原样保留符号链接与权限）
+    # 落入临时 $TOPDIR/ 目录，再 zip -r -y（-y=保留符号链接）打包，得到顶层唯一目录的干净 zip。
+    OUT_ABS="$(cd "$(dirname "$OUT")" && pwd)/$(basename "$OUT")"
+    STAGE="$(mktemp -d)"
+    mkdir -p "$STAGE/$TOPDIR"
+    tar --null --files-from="$filelist" -cf - | tar -C "$STAGE/$TOPDIR" -xf -
+    ( cd "$STAGE" && zip -q -r -y "$OUT_ABS" "$TOPDIR" )
+fi
 
 # ---- 自检：确认关键内容在、垃圾内容不在 ----
 step "自检打包结果"
-listing="$(tar tzf "$OUT")"
+if [ "$FORMAT" = tar ]; then listing="$(tar tzf "$OUT")"; else listing="$(unzip -Z1 "$OUT")"; fi
 check() { # $1=描述 $2=期望(present/absent) $3=grep模式
     local cnt; cnt=$(echo "$listing" | grep -c "$3" || true)
     if { [ "$2" = present ] && [ "$cnt" -gt 0 ]; } || { [ "$2" = absent ] && [ "$cnt" -eq 0 ]; }; then
@@ -114,8 +135,9 @@ echo -e "${GREEN}${BOLD}==================== 打包完成 ✔ ==================
 echo "  文件:   $OUT   （$size）"
 echo "  SHA256: $sha"
 echo
+if [ "$FORMAT" = zip ]; then extract_cmd="unzip $(basename "$OUT")"; else extract_cmd="tar xzf $(basename "$OUT")"; fi
 echo -e "${BOLD}发给对方后，对方只需（无需 git）：${NC}"
-echo "    tar xzf $(basename "$OUT")"
+echo "    ${extract_cmd}"
 echo "    cd ${TOPDIR}"
 echo "    ./setup.sh          # 装依赖 + 编译（全新机器）"
 echo "    # 或者，若依赖已就绪： ./build.sh"

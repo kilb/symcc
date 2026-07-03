@@ -56,6 +56,11 @@ __pycache__/
 venv/
 third_party/
 
+# package.sh 生成的分发包（勿提交；也避免被再次打包进自身）
+symcc-package.zip
+symcc-package.tar.gz
+symcc-package.tgz
+
 # Benchmark results (generated at runtime)
 benchmark_results/
 benchmark/benchmark_results*/
