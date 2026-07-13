@@ -83,19 +83,21 @@ while [ $# -gt 0 ]; do
         --online)   OFFLINE=false; shift ;;
         --skip-apt) SKIP_APT=true; shift ;;
         --skip-afl) SKIP_AFL=true; shift ;;
-        --venv)     VENV_DIR="$2"; shift 2 ;;
+        --venv)     [ $# -ge 2 ] || { error "--venv 需要一个路径参数"; exit 1; }; VENV_DIR="$2"; shift 2 ;;
         -h|--help)  usage; exit 0 ;;
         *) error "未知参数: $1（用 --help 查看用法）"; exit 1 ;;
     esac
 done
 
-# 解析离线模式：auto → 若随包带了 offline/debs 则离线,否则联网
+# 判断 offline/debs 里是否真的有 .deb（仅目录存在不算——空目录会让后续 glob 变字面量）
 OFFLINE_DIR="$SCRIPT_DIR/offline"
+have_offline_debs() { ls "$OFFLINE_DIR"/debs/*.deb >/dev/null 2>&1; }
+# 解析离线模式：auto → 随包带了可用的 offline/debs 则离线,否则联网
 if [ "$OFFLINE" = auto ]; then
-    if [ -d "$OFFLINE_DIR/debs" ]; then OFFLINE=true; else OFFLINE=false; fi
+    if have_offline_debs; then OFFLINE=true; else OFFLINE=false; fi
 fi
-if [ "$OFFLINE" = true ] && [ ! -d "$OFFLINE_DIR/debs" ]; then
-    error "指定了离线安装,但未找到 offline/debs/（本包不含离线依赖）。"
+if [ "$OFFLINE" = true ] && ! have_offline_debs; then
+    error "指定了离线安装,但 offline/debs/ 不存在或为空（本包不含离线依赖）。"
     error "请让分发者用 ./package.sh --offline 重新打包,或改用 --online 联网安装。"
     exit 1
 fi
@@ -181,12 +183,19 @@ elif [ "$OFFLINE" = true ]; then
         warn "apt 本地安装未完全成功,回退到 dpkg -i（跑两遍解决依赖顺序）..."
         $SUDO dpkg -i "$OFFLINE_DIR"/debs/*.deb >/dev/null 2>&1 || true
         $SUDO dpkg -i "$OFFLINE_DIR"/debs/*.deb >/dev/null 2>&1 || true
-        # 校验关键工具确实到位；否则说明目标机缺失更底层的基础包（非标准 Ubuntu）
-        if command -v cmake >/dev/null 2>&1 && command -v ninja >/dev/null 2>&1 \
-           && command -v "clang-${LLVM_VER}" >/dev/null 2>&1; then
-            info "离线系统依赖安装完成（经 dpkg 回退）。"
+        # 校验【构建实际用到的】关键件都到位——不只 cmake/ninja/clang,还含 LLVM cmake 模块、
+        # Z3 头文件、libmpi 运行库;否则某个 -dev 包未配置好会让后续 CMake 在远处报错、难排查。
+        miss=""
+        command -v cmake  >/dev/null 2>&1 || miss="$miss cmake"
+        command -v ninja  >/dev/null 2>&1 || miss="$miss ninja"
+        command -v "clang-${LLVM_VER}" >/dev/null 2>&1 || miss="$miss clang-${LLVM_VER}"
+        [ -d "/usr/lib/llvm-${LLVM_VER}/lib/cmake/llvm" ] || miss="$miss llvm-${LLVM_VER}-dev(cmake模块)"
+        [ -f /usr/include/z3++.h ] || miss="$miss libz3-dev"
+        ls /usr/lib/*/libmpi.so* >/dev/null 2>&1 || miss="$miss libopenmpi(运行库)"
+        if [ -z "$miss" ]; then
+            info "离线系统依赖安装完成（经 dpkg 回退,关键件齐全）。"
         else
-            error "离线安装后关键工具仍缺失（cmake/ninja/clang-${LLVM_VER}）。"
+            error "离线安装后关键件仍缺失:$miss"
             error "目标机可能不是标准 Ubuntu ${LLVM_VER} 环境,缺更底层的基础包。"
             error "可在一台联网的同版本机器上 ./package.sh --offline 重新生成更完整的离线包。"
             exit 1
@@ -312,7 +321,7 @@ if [ "$OFFLINE" = true ]; then
 else
     if [ ! -d "$VENV_DIR" ]; then
         info "创建虚拟环境: $VENV_DIR"
-        python3 -m venv "$VENV_DIR"
+        python3 -m venv "$VENV_DIR" || { error "创建 venv 失败（请确认已装 python3-venv）。"; exit 1; }
     else
         info "复用已有虚拟环境: $VENV_DIR"
     fi
@@ -334,8 +343,13 @@ step "准备运行时源码（SymCC 运行时 + QSYM 后端）"
 if [ -e "$SCRIPT_DIR/runtime/CMakeLists.txt" ]; then
     # 源码已就绪：可能来自压缩包解压（子模块随包提供）或子模块已初始化——无需 git
     info "运行时源码已就绪（随包提供或子模块已初始化）。"
-elif [ -d "$SCRIPT_DIR/.git" ] && [ -f "$SCRIPT_DIR/.gitmodules" ]; then
-    # 是 git 仓库但子模块尚未拉取
+elif [ "$OFFLINE" = true ]; then
+    # 离线模式绝不联网:此处缺源码只能报错,不能 git submodule(会访问外网,违背离线承诺)
+    error "离线模式下缺少运行时源码（runtime/）,且不能联网拉取子模块。"
+    error "说明离线包不完整——请让分发者用 ./package.sh --offline 重新打包（须含 runtime/）。"
+    exit 1
+elif [ -f "$SCRIPT_DIR/.gitmodules" ] && git -C "$SCRIPT_DIR" rev-parse --git-dir >/dev/null 2>&1; then
+    # 是 git 仓库但子模块尚未拉取（用 rev-parse 判定,兼容 worktree/子模块签出时 .git 为文件的情形）
     git -C "$SCRIPT_DIR" submodule update --init --recursive && info "子模块就绪。" \
         || warn "子模块拉取失败，请检查网络后重试：git submodule update --init --recursive"
 else

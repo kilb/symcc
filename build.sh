@@ -24,6 +24,22 @@ step()  { echo -e "${BLUE}==>${NC} $*"; }
 warn()  { echo -e "${YELLOW}[警告]${NC} $*"; }
 error() { echo -e "${RED}[错误]${NC} $*" >&2; }
 
+# 本项目验证过的 LLVM 主版本（与 setup.sh 保持一致）
+LLVM_VER=18
+
+usage() {
+    cat <<'EOF'
+build.sh —— 仅编译 SymCC 编译器 pass 与运行时库（不安装系统依赖）。
+系统依赖若已就绪直接运行即可;全新机器请用 ./setup.sh(它会先装依赖再调用本脚本)。
+
+用法:
+  ./build.sh                 # 增量构建到 ./build
+  ./build.sh --clean         # 删除 ./build 后全新构建
+  ./build.sh --dir <path>    # 构建到指定目录
+  ./build.sh --no-test       # 构建后跳过冒烟测试
+EOF
+}
+
 # ---- 解析参数 ----
 BUILD_DIR="$SCRIPT_DIR/build"
 CLEAN=false
@@ -32,11 +48,9 @@ while [ $# -gt 0 ]; do
     case "$1" in
         --clean)   CLEAN=true; shift ;;
         --no-test) RUN_TEST=false; shift ;;
-        --dir)     BUILD_DIR="$2"; shift 2 ;;
-        -h|--help)
-            sed -n '3,12p' "$0" | sed 's/^# \{0,1\}//'
-            exit 0 ;;
-        *) error "未知参数: $1"; exit 1 ;;
+        --dir)     [ $# -ge 2 ] || { error "--dir 需要一个路径参数"; exit 1; }; BUILD_DIR="$2"; shift 2 ;;
+        -h|--help) usage; exit 0 ;;
+        *) error "未知参数: $1（用 --help 查看用法）"; exit 1 ;;
     esac
 done
 
@@ -59,16 +73,16 @@ detect_llvm_dir() {
     if [ -n "${LLVM_DIR:-}" ] && [ -d "$LLVM_DIR" ]; then
         echo "$LLVM_DIR"; return
     fi
-    if [ -d /usr/lib/llvm-18/lib/cmake/llvm ]; then
-        echo /usr/lib/llvm-18/lib/cmake/llvm; return
+    if [ -d "/usr/lib/llvm-${LLVM_VER}/lib/cmake/llvm" ]; then
+        echo "/usr/lib/llvm-${LLVM_VER}/lib/cmake/llvm"; return
     fi
     # 回退：系统中版本号最高的 llvm-XX
     local newest
     newest=$(ls -d /usr/lib/llvm-*/lib/cmake/llvm 2>/dev/null | sort -V | tail -1 || true)
     if [ -n "$newest" ]; then echo "$newest"; return; fi
-    # 再回退：任意 llvm-config
+    # 再回退：任意 llvm-config（优先带版本号的目标版本,避免误取到更低的默认版）
     local cfg
-    cfg=$(command -v llvm-config llvm-config-18 llvm-config-17 llvm-config-16 2>/dev/null | head -1 || true)
+    cfg=$(command -v "llvm-config-${LLVM_VER}" llvm-config-17 llvm-config-16 llvm-config 2>/dev/null | head -1 || true)
     if [ -n "$cfg" ]; then "$cfg" --cmakedir; return; fi
     echo ""
 }
@@ -83,7 +97,8 @@ info "使用 LLVM: $LLVM_CMAKE_DIR"
 # ---- 3. 准备运行时源码（运行时 + QSYM 后端）----
 # 源码可能来自压缩包（随包提供，无需 git）或需要从子模块拉取。
 if [ ! -e runtime/CMakeLists.txt ]; then
-    if [ -d .git ] && [ -f .gitmodules ]; then
+    # 用 `git rev-parse` 判定,而非 `[ -d .git ]`——git worktree / 子模块签出时 .git 是文件而非目录
+    if [ -f .gitmodules ] && git rev-parse --git-dir >/dev/null 2>&1; then
         step "初始化 git 子模块（运行时 / QSYM 后端）..."
         git submodule update --init --recursive
     else

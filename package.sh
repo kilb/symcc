@@ -112,14 +112,24 @@ generate_offline_bundle() {
         error "pip wheels 下载失败。"; return 1
     fi
 
-    # ③ 本机预编译 AFL++（避免目标机离线编译 AFL;仅依赖 libc/libz/libexpat,通用）
+    # ③ 本机预编译 AFL++（避免目标机离线编译 AFL;仅依赖 libc/libz/libexpat,通用）。
+    #    要求 /usr/local/bin 下确有 afl-*（apt 装的 AFL 在 /usr/bin,不在此;避免打出空/残包）。
     step "离线③ 打包本机预编译 AFL++"
-    if command -v afl-fuzz >/dev/null 2>&1 && [ -d /usr/local/lib/afl ]; then
-        ( cd /usr/local && tar czf "$dest/afl/afl-usr-local.tar.gz" bin/afl-* lib/afl 2>/dev/null ) \
-            && info "AFL++: $(du -h "$dest/afl/afl-usr-local.tar.gz" | cut -f1)（解压到目标机 /usr/local）" \
-            || warn "AFL++ 打包失败——离线包将不含 AFL（混合模糊不可用,其余正常）"
+    local afl_tar="$dest/afl/afl-usr-local.tar.gz"
+    if ls /usr/local/bin/afl-fuzz >/dev/null 2>&1 && [ -d /usr/local/lib/afl ]; then
+        ( cd /usr/local && tar czf "$afl_tar" bin/afl-* lib/afl 2>/dev/null ) || true
+        # 校验产出的 tar 确含 afl-fuzz 与持久模式驱动,否则删掉残包并如实标记未含。
+        # 不能写 `tar tzf | grep -q`：grep -q 命中即关管道,tar 收 SIGPIPE 退 141,pipefail 下
+        # 整条管道判失败 → 明明命中却误判缺失。故先把清单捕获到变量,再用 here-string 校验。
+        afl_list="$(tar tzf "$afl_tar" 2>/dev/null || true)"
+        if grep -q 'bin/afl-fuzz' <<<"$afl_list" && grep -q 'lib/afl/libAFLDriver.a' <<<"$afl_list"; then
+            info "AFL++: $(du -h "$afl_tar" | cut -f1)（解压到目标机 /usr/local）"
+        else
+            rm -f "$afl_tar"
+            warn "AFL++ 打包内容不完整（缺 afl-fuzz/libAFLDriver.a）——离线包将不含 AFL。"
+        fi
     else
-        warn "本机未安装 AFL++——离线包不含 AFL（混合模糊不可用,其余正常）"
+        warn "本机 /usr/local 下无预编译 AFL++——离线包不含 AFL（混合模糊不可用,其余正常）"
     fi
 
     # MANIFEST
@@ -144,7 +154,7 @@ while [ $# -gt 0 ]; do
         --all)           INCLUDE_UNTRACKED=true; shift ;;
         --keep-vendored) KEEP_VENDORED=true; shift ;;
         --offline)       OFFLINE=true; shift ;;
-        -o|--output)     OUT="$2"; shift 2 ;;
+        -o|--output)     [ $# -ge 2 ] || { error "-o/--output 需要一个文件名参数"; exit 1; }; OUT="$2"; shift 2 ;;
         -h|--help)       usage; exit 0 ;;
         *) error "未知参数: $1（用 --help 查看用法）"; exit 1 ;;
     esac
@@ -166,11 +176,22 @@ case "$OUT" in
     *.tar.gz|*.tgz) FORMAT=tar ;;
     *) error "无法从扩展名判断格式：$OUT（请用 .zip 或 .tar.gz）"; exit 1 ;;
 esac
-if [ "$FORMAT" = zip ] && ! command -v zip >/dev/null 2>&1; then
-    error "生成 zip 需要 zip 命令：sudo apt-get install -y zip"; exit 1
+# zip 格式：打包需要 zip,自检列目录需要 unzip——两者都要有,否则包生成后自检会中止
+if [ "$FORMAT" = zip ]; then
+    for c in zip unzip; do
+        command -v "$c" >/dev/null 2>&1 || { error "生成/校验 zip 需要 $c：sudo apt-get install -y zip unzip"; exit 1; }
+    done
 fi
 # 顶层目录名（解压后得到 <name>/，避免文件散落到当前目录）；去掉扩展名
 TOPDIR="$(basename "$OUT")"; TOPDIR="${TOPDIR%.zip}"; TOPDIR="${TOPDIR%.tar.gz}"; TOPDIR="${TOPDIR%.tgz}"
+
+# 尽早校验并解析输出路径(fail-fast):-o 指定的目录必须存在,否则 `cd "$(dirname)"` 会失败、
+# OUT_ABS 退化成 /文件名 而写到根目录。在收集文件/下载依赖之前就拦下。
+out_dir="$(dirname "$OUT")"
+if [ ! -d "$out_dir" ]; then
+    error "输出目录不存在: $out_dir（请先创建,或换一个 -o 路径）"; exit 1
+fi
+OUT_ABS="$(cd "$out_dir" && pwd)/$(basename "$OUT")"
 
 step "收集文件清单"
 filelist="$(mktemp)"; STAGE=""
@@ -213,7 +234,7 @@ fi
 step "组织打包内容到临时目录（顶层唯一目录 ${TOPDIR}/）"
 # 统一走「暂存目录」：把清单文件用 tar 管道原样拷入 $STAGE/$TOPDIR（保留符号链接与权限），
 # 再从暂存目录归档。较之前的 tar --transform 更简单,且对符号链接、附加 offline/ 目录都天然正确。
-OUT_ABS="$(cd "$(dirname "$OUT")" && pwd)/$(basename "$OUT")"
+# （OUT_ABS 已在前面 fail-fast 校验并解析。）
 STAGE="$(mktemp -d)"
 mkdir -p "$STAGE/$TOPDIR"
 tar --null --files-from="$filelist" -cf - | tar -C "$STAGE/$TOPDIR" -xf -
