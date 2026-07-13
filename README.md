@@ -526,6 +526,48 @@ cd symcc-package
 the git-submodule step automatically. For subsequent development the recipient
 can run `git init` in the extracted tree if they want version control.
 
+### Air-gapped / intranet deployment (no internet on the target)
+
+The plain package above still needs internet on the target to install
+dependencies (apt, pip, AFL++). For a machine with **no external network** (an
+intranet / air-gapped host), build an **offline package** on an
+internet-connected machine — it bundles *every* dependency:
+
+```bash
+./package.sh --offline          # -> symcc-offline-package.tar.gz  (~325 MB)
+```
+
+This adds an `offline/` directory to the package containing:
+
+- **`offline/debs/`** — the full apt dependency closure as `.deb` files
+  (clang/LLVM 18, Z3, cmake, ninja, OpenMPI runtime, build tools, …). The
+  fortran/multi-LLVM packages apt over-collects are dropped; packages whose
+  `-updates` version isn't mirrored fall back to the base pocket automatically.
+- **`offline/wheels/`** — the Python wheels (`mpi4py`, `lit`, `ruff`). `mpi4py`
+  ships a prebuilt manylinux wheel, so nothing compiles on the target.
+- **`offline/afl/`** — this machine's prebuilt AFL++ (extracted to `/usr/local`
+  on the target), avoiding an offline AFL build.
+
+Copy the tarball to the intranet machine and run — **no internet, no git**:
+
+```bash
+tar xzf symcc-offline-package.tar.gz
+cd symcc-offline-package
+./setup.sh                       # auto-detects offline/ and installs from it
+```
+
+`setup.sh` sees the bundled `offline/` and switches to offline mode
+automatically (installing debs via `apt-get install --no-download`, wheels via
+`pip --no-index`, AFL++ by extraction), then builds SymCC. `sudo` is still
+needed to install the local `.deb` files, but **no network access is used**.
+
+> **Target requirements.** The offline bundle is architecture- and
+> release-specific: build it on, and deploy it to, the **same** OS/arch
+> (default **Ubuntu 24.04, x86-64**) with a **matching Python minor version**
+> (e.g. both 3.12). The target should be a standard Ubuntu install (the bundle
+> provides the toolchain on top of the base system). Use `--online` to force the
+> networked path, or `--offline` to require the bundle.
+
 ---
 
 ## 11. Further documentation

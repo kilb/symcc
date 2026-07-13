@@ -60,6 +60,8 @@ third_party/
 symcc-package.zip
 symcc-package.tar.gz
 symcc-package.tgz
+symcc-offline-package.tar.gz
+symcc-offline-package.zip
 
 # Benchmark results (generated at runtime)
 benchmark_results/

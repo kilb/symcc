@@ -11,11 +11,17 @@
 #   5. 编译 SymCC     （调用 build.sh）
 #   6. 运行冒烟测试   （确认一切正常）
 #
+# 【离线 / 内网】若本目录存在 offline/ 依赖包（由分发者 `./package.sh --offline` 生成），
+# 脚本会【自动】切换到离线模式：完全不访问外网,从 offline/ 安装 apt 依赖、pip 包与 AFL++。
+# 适用于无外网的内网机器。用 --online 可强制走联网安装,--offline 可强制离线。
+#
 # 用法:
-#   ./setup.sh                 # 完整安装（推荐；可重复执行，幂等）
-#   ./setup.sh --check         # 只检查依赖，报告缺什么，不做任何改动
+#   ./setup.sh                 # 完整安装（推荐；可重复执行,幂等；有 offline/ 则自动离线）
+#   ./setup.sh --check         # 只检查依赖,报告缺什么,不做任何改动
+#   ./setup.sh --offline       # 强制离线安装（用随包 offline/ 依赖,不联网）
+#   ./setup.sh --online        # 强制联网安装（忽略 offline/,走 apt/pip 在线源）
 #   ./setup.sh --skip-apt      # 跳过系统包安装（无 sudo / 依赖已装好时）
-#   ./setup.sh --skip-afl      # 跳过 AFL++ 安装（只用纯符号执行/MPI，不用混合模糊）
+#   ./setup.sh --skip-afl      # 跳过 AFL++ 安装（只用纯符号执行/MPI,不用混合模糊）
 #   ./setup.sh --venv <path>   # 指定虚拟环境路径（默认 ./.venv；若已激活 venv 则复用之）
 #
 set -uo pipefail   # 注意：此处不用 -e，个别可选步骤失败不应中断整个部署
@@ -42,11 +48,30 @@ find_afldriver() {
     return 1
 }
 
+# 用法说明（heredoc,避免早前 sed 行号截取的脆弱写法）
+usage() {
+    cat <<'EOF'
+setup.sh —— 一键部署 SymCC 并行混合模糊测试项目（联网或内网离线均可）。
+
+若同目录存在 offline/（由 ./package.sh --offline 生成）,自动切换离线模式,全程不联网。
+
+用法:
+  ./setup.sh                 # 完整安装（有 offline/ 则自动离线,否则联网）
+  ./setup.sh --check         # 只检查依赖,报告缺什么,不做改动
+  ./setup.sh --offline       # 强制离线（用随包 offline/ 依赖,不访问外网）
+  ./setup.sh --online        # 强制联网（忽略 offline/,走在线 apt/pip 源）
+  ./setup.sh --skip-apt      # 跳过系统包安装（无 sudo / 依赖已就绪时）
+  ./setup.sh --skip-afl      # 跳过 AFL++（只用纯符号执行/MPI,不用混合模糊）
+  ./setup.sh --venv <path>   # 指定虚拟环境路径（默认 ./.venv；已激活 venv 则复用）
+EOF
+}
+
 # ---------- 参数 ----------
 LLVM_VER=18
 CHECK_ONLY=false
 SKIP_APT=false
 SKIP_AFL=false
+OFFLINE=auto            # auto|true|false —— auto 时按 offline/ 是否存在自动判定
 VENV_DIR="$SCRIPT_DIR/.venv"
 # 若当前已激活某个虚拟环境，则默认复用它
 [ -n "${VIRTUAL_ENV:-}" ] && VENV_DIR="$VIRTUAL_ENV"
@@ -54,13 +79,27 @@ VENV_DIR="$SCRIPT_DIR/.venv"
 while [ $# -gt 0 ]; do
     case "$1" in
         --check)    CHECK_ONLY=true; shift ;;
+        --offline)  OFFLINE=true; shift ;;
+        --online)   OFFLINE=false; shift ;;
         --skip-apt) SKIP_APT=true; shift ;;
         --skip-afl) SKIP_AFL=true; shift ;;
         --venv)     VENV_DIR="$2"; shift 2 ;;
-        -h|--help)  sed -n '3,19p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        -h|--help)  usage; exit 0 ;;
         *) error "未知参数: $1（用 --help 查看用法）"; exit 1 ;;
     esac
 done
+
+# 解析离线模式：auto → 若随包带了 offline/debs 则离线,否则联网
+OFFLINE_DIR="$SCRIPT_DIR/offline"
+if [ "$OFFLINE" = auto ]; then
+    if [ -d "$OFFLINE_DIR/debs" ]; then OFFLINE=true; else OFFLINE=false; fi
+fi
+if [ "$OFFLINE" = true ] && [ ! -d "$OFFLINE_DIR/debs" ]; then
+    error "指定了离线安装,但未找到 offline/debs/（本包不含离线依赖）。"
+    error "请让分发者用 ./package.sh --offline 重新打包,或改用 --online 联网安装。"
+    exit 1
+fi
+[ "$OFFLINE" = true ] && info "离线模式：从 $OFFLINE_DIR 安装依赖,全程不访问外网。"
 
 # root 用户无需 sudo；否则用 sudo
 SUDO=""
@@ -130,6 +169,29 @@ fi
 # ============================================================
 if [ "$SKIP_APT" = true ]; then
     step "跳过系统包安装（--skip-apt）"
+elif [ "$OFFLINE" = true ]; then
+    step "安装系统依赖（离线 .deb,不联网）"
+    ndeb=$(ls "$OFFLINE_DIR"/debs/*.deb 2>/dev/null | wc -l)
+    info "从 offline/debs 安装 $ndeb 个 .deb（apt 在本地文件间解析依赖,--no-download 保证不联网）..."
+    # apt-get install ./*.deb 会在【提供的本地 deb + 已装包】之间解析依赖并按序配置;
+    # --no-download 杜绝联网,--allow-downgrades 容忍随包版本略低于目标机已装版本。
+    if $SUDO apt-get install -y --no-download --allow-downgrades "$OFFLINE_DIR"/debs/*.deb; then
+        info "离线系统依赖安装完成。"
+    else
+        warn "apt 本地安装未完全成功,回退到 dpkg -i（跑两遍解决依赖顺序）..."
+        $SUDO dpkg -i "$OFFLINE_DIR"/debs/*.deb >/dev/null 2>&1 || true
+        $SUDO dpkg -i "$OFFLINE_DIR"/debs/*.deb >/dev/null 2>&1 || true
+        # 校验关键工具确实到位；否则说明目标机缺失更底层的基础包（非标准 Ubuntu）
+        if command -v cmake >/dev/null 2>&1 && command -v ninja >/dev/null 2>&1 \
+           && command -v "clang-${LLVM_VER}" >/dev/null 2>&1; then
+            info "离线系统依赖安装完成（经 dpkg 回退）。"
+        else
+            error "离线安装后关键工具仍缺失（cmake/ninja/clang-${LLVM_VER}）。"
+            error "目标机可能不是标准 Ubuntu ${LLVM_VER} 环境,缺更底层的基础包。"
+            error "可在一台联网的同版本机器上 ./package.sh --offline 重新生成更完整的离线包。"
+            exit 1
+        fi
+    fi
 else
     step "安装系统依赖（apt）"
     if ! command -v apt-get >/dev/null 2>&1; then
@@ -170,6 +232,21 @@ if [ "$SKIP_AFL" = true ]; then
 elif command -v afl-fuzz >/dev/null 2>&1 && find_afldriver >/dev/null; then
     step "AFL++ 已安装，跳过"
     ok "$(afl-fuzz --version 2>&1 | head -1 || echo afl-fuzz)"
+elif [ "$OFFLINE" = true ]; then
+    step "安装 AFL++（离线：解包随包预编译产物到 /usr/local）"
+    afl_tar="$OFFLINE_DIR/afl/afl-usr-local.tar.gz"
+    if [ -f "$afl_tar" ]; then
+        # 预编译 AFL 仅依赖 libc/libz/libexpat（各发行版皆有）;afl-clang-fast 依赖 clang-18
+        # （已由离线 .deb 装好）。解包到 /usr/local 即可被 PATH 与 find_afldriver 命中。
+        $SUDO tar -C /usr/local -xzf "$afl_tar"
+        if command -v afl-fuzz >/dev/null 2>&1 && find_afldriver >/dev/null; then
+            info "AFL++ 离线安装完成（含 libAFLDriver.a）。"
+        else
+            warn "AFL++ 离线解包后仍未就绪——混合模糊测试不可用,项目其余部分不受影响。"
+        fi
+    else
+        warn "离线包未含 AFL++（offline/afl/ 为空）——混合模糊测试不可用,其余功能正常。"
+    fi
 else
     step "从源码安装 AFL++（混合模糊测试需要）"
     warn "AFL++ 编译需要几分钟；若失败，纯符号执行/MPI 仍可正常使用（仅混合模式不可用）。"
@@ -204,20 +281,50 @@ fi
 #  3. Python 虚拟环境 + 依赖
 # ============================================================
 step "创建 Python 虚拟环境并安装依赖"
-if [ ! -d "$VENV_DIR" ]; then
-    info "创建虚拟环境: $VENV_DIR"
-    python3 -m venv "$VENV_DIR"
+if [ "$OFFLINE" = true ]; then
+    # 离线：用 --without-pip 建 venv——只依赖 base 标准库,【不】需要 apt 的 pythonX.Y-venv,
+    # 从而彻底避开它与目标机 python3.12 的严格 = 版本锁;再从随包 pip wheel 引导出 pip。
+    if [ ! -d "$VENV_DIR" ]; then
+        info "创建虚拟环境（--without-pip,离线）: $VENV_DIR"
+        python3 -m venv --without-pip "$VENV_DIR" || { error "创建 venv 失败（目标机缺 base python3?）。"; exit 1; }
+    else
+        info "复用已有虚拟环境: $VENV_DIR"
+    fi
+    # shellcheck disable=SC1091
+    source "$VENV_DIR/bin/activate"
+    # 引导 pip：venv 是 --without-pip 建的,直接用 wheel 内自带的 pip 模块装出 pip（zip 可执行）
+    if ! python3 -m pip --version >/dev/null 2>&1; then
+        pipwhl="$(ls "$OFFLINE_DIR"/wheels/pip-*.whl 2>/dev/null | head -1)"
+        if [ -z "$pipwhl" ]; then error "离线包缺 pip wheel,无法引导 venv。"; exit 1; fi
+        info "从 wheel 引导 pip: $(basename "$pipwhl")"
+        python3 "$pipwhl/pip" install --no-index --find-links "$OFFLINE_DIR/wheels" pip setuptools wheel \
+            || { error "pip 引导失败。"; exit 1; }
+    fi
+    # mpi4py 用 manylinux 预编译 wheel,运行期 dlopen 系统 libmpi.so.40（由离线 openmpi deb 提供）
+    if python3 -m pip install --quiet --no-index --find-links "$OFFLINE_DIR/wheels" \
+         -r "$SCRIPT_DIR/requirements.txt"; then
+        info "Python 依赖离线安装完成（mpi4py / lit / ruff,来自 offline/wheels）。"
+    else
+        error "离线 pip 安装失败：offline/wheels 内缺少匹配目标机 Python 版本的 wheel。"
+        error "（离线包按打包机的 Python 版本构建,目标机 Python 主次版本需一致,如同为 3.12。）"
+        exit 1
+    fi
 else
-    info "复用已有虚拟环境: $VENV_DIR"
-fi
-# shellcheck disable=SC1091
-source "$VENV_DIR/bin/activate"
-python3 -m pip install --quiet --upgrade pip
-if python3 -m pip install --quiet -r "$SCRIPT_DIR/requirements.txt"; then
-    info "Python 依赖安装完成（mpi4py / lit / ruff）。"
-else
-    error "pip 安装失败。请确认已安装 libopenmpi-dev（mpi4py 编译需要）。"
-    exit 1
+    if [ ! -d "$VENV_DIR" ]; then
+        info "创建虚拟环境: $VENV_DIR"
+        python3 -m venv "$VENV_DIR"
+    else
+        info "复用已有虚拟环境: $VENV_DIR"
+    fi
+    # shellcheck disable=SC1091
+    source "$VENV_DIR/bin/activate"
+    python3 -m pip install --quiet --upgrade pip
+    if python3 -m pip install --quiet -r "$SCRIPT_DIR/requirements.txt"; then
+        info "Python 依赖安装完成（mpi4py / lit / ruff）。"
+    else
+        error "pip 安装失败。请确认已安装 libopenmpi-dev（mpi4py 编译需要）。"
+        exit 1
+    fi
 fi
 
 # ============================================================

@@ -13,12 +13,10 @@
 # （约 27M——构建走系统 libz3-dev，即 Z3_TRUST_SYSTEM_VERSION）。实测剔除二者后仍能完整
 # 构建并生成测试用例，包体积从 ~245M 降到 ~18M。如确需保留，加 --keep-vendored。
 #
-# 用法:
-#   ./package.sh                 # 打包已提交源码（含子模块），剔除未使用的 PIN/Z3 大块
-#   ./package.sh --all           # 额外包含未提交但未被忽略的文件（如 docs/ 下的报告、PDF）
-#   ./package.sh --keep-vendored # 保留 qsym 自带的 PIN 发行版与内置 Z3 源码（体积大很多）
-#   ./package.sh -o <file>       # 指定输出文件名；格式由扩展名决定：
-#                                #   .zip -> zip 包；.tar.gz / .tgz -> tar 包（默认 symcc-package.tar.gz）
+# 【离线 / 内网】加 --offline 会把【全部系统与 Python 依赖】一并打进包（offline/ 目录）：
+# apt 依赖（.deb,含 clang/LLVM-18、Z3、cmake/ninja、OpenMPI 运行库等）、pip wheels
+# （mpi4py/lit/ruff,预编译）、本机预编译的 AFL++。目标内网机解压后 `./setup.sh` 全程不联网。
+# 离线包约 +340M。须在联网机上生成,且目标机应为同架构同版本（默认 Ubuntu 24.04 amd64）。
 #
 set -euo pipefail
 
@@ -31,18 +29,130 @@ step()  { echo -e "\n${BLUE}${BOLD}==> $*${NC}"; }
 warn()  { echo -e "${YELLOW}[警告]${NC} $*"; }
 error() { echo -e "${RED}[错误]${NC} $*" >&2; }
 
-OUT="symcc-package.tar.gz"
+LLVM_VER=18
+
+usage() {
+    cat <<'EOF'
+package.sh —— 把项目打包成自包含压缩包,供他人【无需 git】解压后构建/开发/运行。
+
+用法:
+  ./package.sh                 # 打包已提交源码（含子模块）,剔除未用的 PIN/Z3 大块
+  ./package.sh --all           # 额外含未提交但未忽略的文件（docs 报告、PDF 等）
+  ./package.sh --offline       # 【内网】再打进全部 apt/pip/AFL 依赖,目标机可离线部署(+~340M)
+  ./package.sh --keep-vendored # 保留 qsym 自带的 PIN 发行版与内置 Z3 源码（体积大很多）
+  ./package.sh -o <file>       # 输出文件名;格式看扩展名: .zip -> zip, .tar.gz/.tgz -> tar
+
+联网/在线包默认名 symcc-package.tar.gz;离线包默认名 symcc-offline-package.tar.gz。
+EOF
+}
+
+# ---- 生成离线依赖包到 $1（本机需联网 + apt/pip 可用）----
+# 布局: <dest>/{debs,wheels,afl,MANIFEST.txt}
+generate_offline_bundle() {
+    local dest="$1"
+    mkdir -p "$dest/debs" "$dest/wheels" "$dest/afl"
+    local arch ubu; arch="$(dpkg --print-architecture 2>/dev/null || echo unknown)"
+    ubu="$( . /etc/os-release 2>/dev/null && echo "${VERSION_ID:-?}" || echo '?')"
+
+    # ① apt 依赖(.deb)：构建+运行 SymCC 所需的完整工具链 + MPI 运行库。
+    #    用 openmpi-bin(不用 libopenmpi-dev,后者拖入 gfortran/flang 上百 M 且用不到);
+    #    mpi4py 用预编译 wheel,运行期只需 libmpi.so.40(由 openmpi-bin 依赖的运行库提供)。
+    step "离线① 下载 apt 依赖 (.deb) —— 约 300M,视网速需数分钟"
+    # 不含 python3-venv/python3-pip：目标机已自带 base python3;Python 侧改由 setup.sh 用
+    # `python3 -m venv --without-pip` + 随包 pip wheel 引导(避开 pythonX.Y-venv 与目标机
+    # python3.12 的严格版本锁)。故 apt 侧完全不碰 Python 解释器,只装工具链与 MPI 运行库。
+    local refined=(build-essential cmake ninja-build \
+        "clang-${LLVM_VER}" "llvm-${LLVM_VER}-dev" "llvm-${LLVM_VER}-tools" \
+        libz3-dev zlib1g-dev openmpi-bin unzip pkg-config)
+    # 递归依赖【硬】闭包,剔除两类:
+    #  ① python 解释器核心(python3 / python3.12 / libpython3*)——目标机 base 必已自带,且这些
+    #     包彼此有严格 = 版本互锁,随包版本与目标机不一致会冲突;Python 侧改由 wheel 满足。
+    #  ② make-guile —— 与 make 互斥(build-essential 依赖 `make | make-guile`,apt-cache --recurse
+    #     会把两个候选都收进来,同时安装会 Conflicts;保留标准的 make 即可)。
+    # 其余(含 openmpi 硬依赖的 ucx→amdhip→libllvm17 链、llvm-18-tools 的 python3-pygments/yaml
+    # 等)全部保留。经依赖闭包静态校验 + apt 离线模拟:无未满足依赖、无包冲突。
+    local closure
+    closure="$(apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts \
+        --no-breaks --no-replaces --no-enhances --no-pre-depends "${refined[@]}" 2>/dev/null \
+        | grep -E '^[a-z0-9]' | sort -u \
+        | grep -vE '^(python3|python3-minimal|python3\.12|python3\.12-minimal|make-guile)$' \
+        | grep -vE '^libpython3')"
+    info "依赖闭包 $(echo "$closure" | wc -l) 个包,开始下载..."
+    (
+        cd "$dest/debs"
+        apt-get download $closure 2>/dev/null || true
+        # 补偿：部分包的候选版位于 -updates/-security,若本机镜像/代理未缓存该 pocket 会 404。
+        # 对【尚未下到】的包逐个回退到 base pocket 的版本(pkg=版本号)重试——base 版本用于离线
+        # 开发完全够用(只是不含最新安全更新)。此循环仅对缺失包触发,不影响已下到的包。
+        cn="$( . /etc/os-release && echo "$VERSION_CODENAME")"
+        for p in $closure; do
+            ls "${p}"_*.deb >/dev/null 2>&1 && continue
+            bver="$(apt-cache madison "$p" 2>/dev/null | awk -F'|' -v c="$cn" \
+                '$3 ~ (c"/") && $3 !~ /(updates|security)/ {gsub(/ /,"",$2); print $2; exit}')"
+            [ -n "$bver" ] && apt-get download "${p}=${bver}" 2>/dev/null || true
+        done
+    )
+    # 校验关键包确已下到(glob 命中即可)。不含 Python：Python 侧走 wheel,不依赖 apt。
+    local must=(cmake ninja-build "clang-${LLVM_VER}" "llvm-${LLVM_VER}-dev" \
+        libz3-dev libz3-4 zlib1g-dev libopenmpi3t64 openmpi-bin "libclang-cpp${LLVM_VER}")
+    local m miss=0
+    for m in "${must[@]}"; do
+        ls "$dest/debs/${m}"_*.deb >/dev/null 2>&1 || { error "离线 .deb 缺关键包: $m"; miss=1; }
+    done
+    [ "$miss" = 0 ] || { error "离线依赖不完整,请在联网机重试。"; return 1; }
+    info "已下载 $(ls "$dest/debs"/*.deb 2>/dev/null | wc -l) 个 .deb（$(du -sh "$dest/debs" | cut -f1)）"
+
+    # ② pip wheels（含 pip/setuptools/wheel 以便目标机在 --without-pip 的 venv 里引导 pip;
+    #    mpi4py 有 manylinux 预编译 wheel,目标机无需编译）
+    step "离线② 下载 pip wheels（pip/setuptools/wheel + mpi4py / lit / ruff）"
+    if python3 -m pip download --quiet --dest "$dest/wheels" \
+         pip setuptools wheel -r "$SCRIPT_DIR/requirements.txt"; then
+        info "wheels: $(ls "$dest/wheels"/*.whl 2>/dev/null | wc -l) 个（$(du -sh "$dest/wheels" | cut -f1)）"
+    else
+        error "pip wheels 下载失败。"; return 1
+    fi
+
+    # ③ 本机预编译 AFL++（避免目标机离线编译 AFL;仅依赖 libc/libz/libexpat,通用）
+    step "离线③ 打包本机预编译 AFL++"
+    if command -v afl-fuzz >/dev/null 2>&1 && [ -d /usr/local/lib/afl ]; then
+        ( cd /usr/local && tar czf "$dest/afl/afl-usr-local.tar.gz" bin/afl-* lib/afl 2>/dev/null ) \
+            && info "AFL++: $(du -h "$dest/afl/afl-usr-local.tar.gz" | cut -f1)（解压到目标机 /usr/local）" \
+            || warn "AFL++ 打包失败——离线包将不含 AFL（混合模糊不可用,其余正常）"
+    else
+        warn "本机未安装 AFL++——离线包不含 AFL（混合模糊不可用,其余正常）"
+    fi
+
+    # MANIFEST
+    {
+        echo "SymCC 离线依赖包"
+        echo "target-platform: Ubuntu ${ubu} ${arch}（目标机须同架构同版本）"
+        echo "python: $(python3 --version 2>&1)（目标机 Python 主次版本需一致）"
+        echo "debs: $(ls "$dest/debs"/*.deb 2>/dev/null | wc -l) 个"
+        echo "wheels: $(ls "$dest/wheels"/*.whl 2>/dev/null | wc -l) 个"
+        echo "afl: $([ -f "$dest/afl/afl-usr-local.tar.gz" ] && echo '已含预编译' || echo '未含')"
+        echo "用法: 解压后 ./setup.sh 会自动检测本目录并离线安装。"
+    } > "$dest/MANIFEST.txt"
+    info "离线依赖包就绪：$(du -sh "$dest" | cut -f1)"
+}
+
+OUT=""
 INCLUDE_UNTRACKED=false
 KEEP_VENDORED=false
+OFFLINE=false
 while [ $# -gt 0 ]; do
     case "$1" in
         --all)           INCLUDE_UNTRACKED=true; shift ;;
         --keep-vendored) KEEP_VENDORED=true; shift ;;
+        --offline)       OFFLINE=true; shift ;;
         -o|--output)     OUT="$2"; shift 2 ;;
-        -h|--help) sed -n '3,22p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        -h|--help)       usage; exit 0 ;;
         *) error "未知参数: $1（用 --help 查看用法）"; exit 1 ;;
     esac
 done
+# 默认输出名：离线包与在线包区分开
+if [ -z "$OUT" ]; then
+    if $OFFLINE; then OUT="symcc-offline-package.tar.gz"; else OUT="symcc-package.tar.gz"; fi
+fi
 
 # 必须在 git 仓库内运行——打包依赖 git 正确处理子模块与 .gitignore 排除规则
 if ! git rev-parse --git-dir >/dev/null 2>&1; then
@@ -100,30 +210,30 @@ if ! $KEEP_VENDORED; then
     info "剔除未使用的 PIN/Z3 vendored 文件：$((before - after)) 个（如需保留：--keep-vendored）"
 fi
 
+step "组织打包内容到临时目录（顶层唯一目录 ${TOPDIR}/）"
+# 统一走「暂存目录」：把清单文件用 tar 管道原样拷入 $STAGE/$TOPDIR（保留符号链接与权限），
+# 再从暂存目录归档。较之前的 tar --transform 更简单,且对符号链接、附加 offline/ 目录都天然正确。
+OUT_ABS="$(cd "$(dirname "$OUT")" && pwd)/$(basename "$OUT")"
+STAGE="$(mktemp -d)"
+mkdir -p "$STAGE/$TOPDIR"
+tar --null --files-from="$filelist" -cf - | tar -C "$STAGE/$TOPDIR" -xf -
+
+# 离线模式：把全部依赖打进 $TOPDIR/offline/
+if $OFFLINE; then
+    generate_offline_bundle "$STAGE/$TOPDIR/offline" || { error "离线依赖生成失败,已中止。"; exit 1; }
+fi
+
 step "生成压缩包：$OUT（格式：$FORMAT）"
-rm -f "$OUT"
+rm -f "$OUT_ABS"
 if [ "$FORMAT" = tar ]; then
-    # --transform 让所有成员落入顶层目录 $TOPDIR/，解压得到干净的一个目录。
-    # 标志 rhS：改写普通成员名(r)与硬链接目标(h)，但【不】改写符号链接目标(S)——
-    # 本仓库有 8 个相对符号链接（如 test/README -> ../docs/Testing.txt），若给其目标
-    # 也加上前缀会变成 symcc/../... 而失效。
-    tar --null --files-from="$filelist" \
-        --transform "s,^,${TOPDIR}/,rhS" \
-        --owner=0 --group=0 \
-        -czf "$OUT"
+    tar -C "$STAGE" --owner=0 --group=0 -czf "$OUT_ABS" "$TOPDIR"
 else
-    # zip 没有 --transform：先把清单里的文件（用 tar 管道拷贝，原样保留符号链接与权限）
-    # 落入临时 $TOPDIR/ 目录，再 zip -r -y（-y=保留符号链接）打包，得到顶层唯一目录的干净 zip。
-    OUT_ABS="$(cd "$(dirname "$OUT")" && pwd)/$(basename "$OUT")"
-    STAGE="$(mktemp -d)"
-    mkdir -p "$STAGE/$TOPDIR"
-    tar --null --files-from="$filelist" -cf - | tar -C "$STAGE/$TOPDIR" -xf -
     ( cd "$STAGE" && zip -q -r -y "$OUT_ABS" "$TOPDIR" )
 fi
 
 # ---- 自检：确认关键内容在、垃圾内容不在 ----
 step "自检打包结果"
-if [ "$FORMAT" = tar ]; then listing="$(tar tzf "$OUT")"; else listing="$(unzip -Z1 "$OUT")"; fi
+if [ "$FORMAT" = tar ]; then listing="$(tar tzf "$OUT_ABS")"; else listing="$(unzip -Z1 "$OUT_ABS")"; fi
 check() { # $1=描述 $2=期望(present/absent) $3=grep模式
     local cnt; cnt=$(echo "$listing" | grep -c "$3" || true)
     if { [ "$2" = present ] && [ "$cnt" -gt 0 ]; } || { [ "$2" = absent ] && [ "$cnt" -eq 0 ]; }; then
@@ -138,29 +248,46 @@ check "含文档 (README.md)"                present "${TOPDIR}/README.md"
 check "不含 .git 目录"                     absent  "${TOPDIR}/\.git/"
 check "不含旧 build/ 产物"                 absent  "${TOPDIR}/build/"
 check "不含 .venv 虚拟环境"                absent  "${TOPDIR}/\.venv/"
+if $OFFLINE; then
+    check "离线 apt 依赖 (offline/debs)"   present "${TOPDIR}/offline/debs/.*\.deb"
+    check "离线 pip wheels"                present "${TOPDIR}/offline/wheels/.*\.whl"
+    check "离线依赖清单 MANIFEST"          present "${TOPDIR}/offline/MANIFEST.txt"
+fi
 # benchmark/public 下已提交的是小型种子/靶子（约 11M），应当包含；1.6G 的下载物是【未提交】
 # 的，git ls-files 天然排除。这里只做体积保护：若不慎混入大额下载物，包会异常大。
 n_pub=$(echo "$listing" | grep -c "${TOPDIR}/benchmark/public/" || true)
 info "  benchmark/public 已提交文件 $n_pub 个（小型种子/靶子；1.6G 下载物已排除）"
-size_mb=$(du -m "$OUT" | cut -f1)
-if [ "$size_mb" -lt 300 ]; then
-    echo -e "  ${GREEN}✔${NC} 体积正常（${size_mb} MB，未混入大额下载物）"
+size_mb=$(du -m "$OUT_ABS" | cut -f1)
+# 在线包应 <300M；离线包含 ~340M 依赖,阈值放宽到 700M
+limit=$([ "$OFFLINE" = true ] && echo 700 || echo 300)
+if [ "$size_mb" -lt "$limit" ]; then
+    echo -e "  ${GREEN}✔${NC} 体积正常（${size_mb} MB）"
 else
-    echo -e "  ${YELLOW}⚠${NC} 体积偏大（${size_mb} MB）——请确认未混入 benchmark/public 的下载物"
+    echo -e "  ${YELLOW}⚠${NC} 体积偏大（${size_mb} MB）——请确认未混入意外的大文件"
 fi
 
-size="$(du -h "$OUT" | cut -f1)"
-sha="$(sha256sum "$OUT" | cut -d' ' -f1)"
+size="$(du -h "$OUT_ABS" | cut -f1)"
+sha="$(sha256sum "$OUT_ABS" | cut -d' ' -f1)"
 echo
 echo -e "${GREEN}${BOLD}==================== 打包完成 ✔ ====================${NC}"
 echo "  文件:   $OUT   （$size）"
 echo "  SHA256: $sha"
 echo
 if [ "$FORMAT" = zip ]; then extract_cmd="unzip $(basename "$OUT")"; else extract_cmd="tar xzf $(basename "$OUT")"; fi
-echo -e "${BOLD}发给对方后，对方只需（无需 git）：${NC}"
-echo "    ${extract_cmd}"
-echo "    cd ${TOPDIR}"
-echo "    ./setup.sh          # 装依赖 + 编译（全新机器）"
-echo "    # 或者，若依赖已就绪： ./build.sh"
-echo
-echo "  完整运行/开发说明见解压后的 README.md。"
+if $OFFLINE; then
+    echo -e "${BOLD}内网/离线部署——把本文件拷到目标机（无需外网、无需 git）：${NC}"
+    echo "    ${extract_cmd}"
+    echo "    cd ${TOPDIR}"
+    echo "    ./setup.sh          # 自动检测 offline/ 并【离线】装依赖 + 编译"
+    echo
+    echo "  注：目标机须与打包机同架构同版本（默认 Ubuntu 24.04 amd64）、Python 主次版本一致；"
+    echo "      apt 装依赖仍需 sudo（本地 .deb,不联网）。详见解压后 README.md『内网离线部署』。"
+else
+    echo -e "${BOLD}发给对方后，对方只需（无需 git）：${NC}"
+    echo "    ${extract_cmd}"
+    echo "    cd ${TOPDIR}"
+    echo "    ./setup.sh          # 装依赖 + 编译（全新机器,需联网）"
+    echo "    # 或者，若依赖已就绪： ./build.sh"
+    echo
+    echo "  完整运行/开发说明见解压后的 README.md。"
+fi
