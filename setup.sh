@@ -245,11 +245,21 @@ elif [ "$OFFLINE" = true ]; then
     step "安装 AFL++（离线：解包随包预编译产物到 /usr/local）"
     afl_tar="$OFFLINE_DIR/afl/afl-usr-local.tar.gz"
     if [ -f "$afl_tar" ]; then
-        # 预编译 AFL 仅依赖 libc/libz/libexpat（各发行版皆有）;afl-clang-fast 依赖 clang-18
-        # （已由离线 .deb 装好）。解包到 /usr/local 即可被 PATH 与 find_afldriver 命中。
+        # 解包到 /usr/local 即可被 PATH 与 find_afldriver 命中。
         $SUDO tar -C /usr/local -xzf "$afl_tar"
-        if command -v afl-fuzz >/dev/null 2>&1 && find_afldriver >/dev/null; then
-            info "AFL++ 离线安装完成（含 libAFLDriver.a）。"
+        # afl-fuzz 动态链接 libpython3.12.so.1.0；极简目标机可能缺此 .so。若缺,用随包
+        # libpython3.12t64 以 --force-depends 补装(仅为提供该 .so,绕开其严格 = 版本锁)。
+        if ! ls /usr/lib/*/libpython3.12.so.1.0 >/dev/null 2>&1; then
+            pylib=$(ls "$OFFLINE_DIR"/afl/libpython3.12t64_*.deb 2>/dev/null | head -1)
+            [ -n "$pylib" ] && $SUDO dpkg -i --force-depends "$pylib" >/dev/null 2>&1 || true
+        fi
+        # 真正校验 afl-fuzz 能加载运行(仅检查存在会漏掉"缺 .so 无法加载"的情况)
+        if command -v afl-fuzz >/dev/null 2>&1 && find_afldriver >/dev/null \
+           && ! ldd "$(command -v afl-fuzz)" 2>/dev/null | grep -q "not found"; then
+            info "AFL++ 离线安装完成（含 libAFLDriver.a,afl-fuzz 可正常加载）。"
+        elif command -v afl-fuzz >/dev/null 2>&1 && ldd "$(command -v afl-fuzz)" 2>/dev/null | grep -q "not found"; then
+            warn "afl-fuzz 已解包但缺少运行库($(ldd "$(command -v afl-fuzz)" 2>/dev/null | awk '/not found/{print $1}' | tr '\n' ' '))"
+            warn "——混合模糊测试不可用;目标机装上对应库即可。核心(纯符号执行/MPI)不受影响。"
         else
             warn "AFL++ 离线解包后仍未就绪——混合模糊测试不可用,项目其余部分不受影响。"
         fi

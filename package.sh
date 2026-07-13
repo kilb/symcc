@@ -61,9 +61,13 @@ generate_offline_bundle() {
     # 不含 python3-venv/python3-pip：目标机已自带 base python3;Python 侧改由 setup.sh 用
     # `python3 -m venv --without-pip` + 随包 pip wheel 引导(避开 pythonX.Y-venv 与目标机
     # python3.12 的严格版本锁)。故 apt 侧完全不碰 Python 解释器,只装工具链与 MPI 运行库。
+    # libzstd-dev / libncurses-dev：llvm-18-dev 的 cmake 导出(LLVMExports)里 LLVMSupport 引用了
+    # 导入目标 zstd::libzstd_shared 与 Terminfo::terminfo,消费方 find_package(LLVM) 时需这两个
+    # -dev 才能创建它们;它们【不是】llvm-18-dev 的硬依赖,故不在递归闭包里——极简目标机(无 -dev)
+    # 上构建会因"target not found"失败。经裸机 chroot 实测:补上这两个即可正常构建。
     local refined=(build-essential cmake ninja-build \
         "clang-${LLVM_VER}" "llvm-${LLVM_VER}-dev" "llvm-${LLVM_VER}-tools" \
-        libz3-dev zlib1g-dev openmpi-bin unzip pkg-config)
+        libz3-dev zlib1g-dev libzstd-dev libncurses-dev openmpi-bin unzip pkg-config)
     # 递归依赖【硬】闭包,剔除两类:
     #  ① python 解释器核心(python3 / python3.12 / libpython3*)——目标机 base 必已自带,且这些
     #     包彼此有严格 = 版本互锁,随包版本与目标机不一致会冲突;Python 侧改由 wheel 满足。
@@ -94,7 +98,8 @@ generate_offline_bundle() {
     )
     # 校验关键包确已下到(glob 命中即可)。不含 Python：Python 侧走 wheel,不依赖 apt。
     local must=(cmake ninja-build "clang-${LLVM_VER}" "llvm-${LLVM_VER}-dev" \
-        libz3-dev libz3-4 zlib1g-dev libopenmpi3t64 openmpi-bin "libclang-cpp${LLVM_VER}")
+        libz3-dev libz3-4 zlib1g-dev libzstd-dev libncurses-dev \
+        libopenmpi3t64 openmpi-bin "libclang-cpp${LLVM_VER}")
     local m miss=0
     for m in "${must[@]}"; do
         ls "$dest/debs/${m}"_*.deb >/dev/null 2>&1 || { error "离线 .deb 缺关键包: $m"; miss=1; }
@@ -128,6 +133,23 @@ generate_offline_bundle() {
             rm -f "$afl_tar"
             warn "AFL++ 打包内容不完整（缺 afl-fuzz/libAFLDriver.a）——离线包将不含 AFL。"
         fi
+        # afl-fuzz 动态链接 libpython3.12.so.1.0（AFL 的 Python mutator）。极简目标机可能无此 .so,
+        # 而 libpython3.12t64 与 python3.12 有严格 = 版本锁,放进主 apt 事务会有冲突风险。故单独抓到
+        # offline/afl/,由 setup.sh 仅在 .so 缺失时用 dpkg --force-depends 补装(只为给 afl 提供 .so)。
+        (
+            cd "$dest/afl"
+            apt-get download libpython3.12t64 2>/dev/null || true
+            # 同主闭包一样:候选版若在 -updates/-security 未被镜像缓存(404),回退到 base pocket 版本
+            if ! ls libpython3.12t64_*.deb >/dev/null 2>&1; then
+                cn="$( . /etc/os-release && echo "$VERSION_CODENAME")"
+                bv="$(apt-cache madison libpython3.12t64 2>/dev/null | awk -F'|' -v c="$cn" \
+                    '$3 ~ (c"/") && $3 !~ /(updates|security)/ {gsub(/ /,"",$2); print $2; exit}')"
+                [ -n "$bv" ] && apt-get download "libpython3.12t64=${bv}" 2>/dev/null || true
+            fi
+        )
+        ls "$dest"/afl/libpython3.12t64_*.deb >/dev/null 2>&1 \
+            && info "  已备 libpython3.12t64（供极简目标机上 afl 补装 .so）" \
+            || warn "  未能获取 libpython3.12t64（极简目标机上 afl 混合模糊或不可用,不影响核心功能）"
     else
         warn "本机 /usr/local 下无预编译 AFL++——离线包不含 AFL（混合模糊不可用,其余正常）"
     fi
