@@ -546,7 +546,7 @@ def run_symcc_worker(target_cmd: list[str], input_file: str, output_dir: str,
                      base_env: "dict[str, str] | None" = None,
                      streaming_showmap: "StreamingShowmap | None" = None,
                      worker_coverage: "CoverageBitmap | None" = None
-                     ) -> "tuple[list[dict], int, int, float, bool]":
+                     ) -> "tuple[list[dict], int, int, float, bool, float]":
     """在单个输入上运行 SymCC。
 
     返回 ``(new_tests, total_generated, retcode, elapsed, killed)``：
@@ -606,6 +606,11 @@ def run_symcc_worker(target_cmd: list[str], input_file: str, output_dir: str,
 
     elapsed = time.monotonic() - start
     killed = retcode in (124, -9, 137)  # timeout codes
+
+    # 相位 F 计时起点：输出收集 + afl-showmap 取边 + worker 端 coverage dedup。
+    # 这段【不】计入上面的 elapsed（相位 E=concolic 执行），用于区分"执行慢"还是
+    # "showmap/dedup 后处理慢"——瓶颈分析的关键。
+    _post_start = time.monotonic()
 
     # Collect test cases + worker 端 coverage dedup
     # Worker 有 master bitmap 副本，在本地做 coverage merge
@@ -673,7 +678,8 @@ def run_symcc_worker(target_cmd: list[str], input_file: str, output_dir: str,
             except (IOError, OSError):
                 pass
 
-    return new_tests, total_generated, retcode, elapsed, killed
+    post_elapsed = time.monotonic() - _post_start
+    return new_tests, total_generated, retcode, elapsed, killed, post_elapsed
 
 
 class StreamingShowmap:
@@ -1716,13 +1722,47 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
     worker_cov = CoverageBitmap()
     current_bitmap_version = -1
 
+    # 每 worker 分相位计时（opt-in SYMCC_WORKER_PROFILE=1，热路径几乎零开销：
+    # 每工作项约 6 次 time.monotonic()）。相位：wait=等待/取件, bmsync=位图同步,
+    # import=输入拷入, exec=concolic 执行, showmap_dedup=showmap 取边+本地去重,
+    # send=回传 master。用于瓶颈分析（如 ~12 worker 饱和点到底卡在执行/后处理/等待）。
+    _wprof = os.environ.get("SYMCC_WORKER_PROFILE") == "1"
+    _pt = {"wait": 0.0, "bmsync": 0.0, "import": 0.0, "exec": 0.0,
+           "showmap_dedup": 0.0, "send": 0.0, "items": 0}
+    # 各 worker 各自把分相位计时落盘：编排层用 SIGTERM 杀 mpirun，进程内 MPI gather 来不及，
+    # 故落 per-rank 文件，跑完由 aggregate_phase_timing() 事后合并。目录优先 SYMCC_WPROF_DIR。
+    _wprof_dir = os.environ.get("SYMCC_WPROF_DIR") or symcc_dir_w
+    _phs = ["wait", "bmsync", "import", "exec", "showmap_dedup", "send"]
+
+    def _flush_prof() -> None:
+        try:
+            os.makedirs(_wprof_dir, exist_ok=True)
+            with open(os.path.join(_wprof_dir, f"phase_timing_rank{rank}.csv"), "w") as _f:
+                _f.write(f"{rank},{_pt['items']}," +
+                         ",".join(f"{_pt[_p]:.4f}" for _p in _phs) + "\n")
+        except (IOError, OSError):
+            pass
+
+    if _wprof:
+        # SIGTERM 可捕获，落盘后退出（SIGKILL 不可捕获，但编排层通常先发 SIGTERM 再宽限）
+        def _on_term(_signum: "int", _frame: "object") -> None:
+            _flush_prof()
+            os._exit(0)
+        try:
+            signal.signal(signal.SIGTERM, _on_term)
+        except (ValueError, OSError):
+            pass
+
     while True:
         # Signal ready
         comm.send(rank, dest=0, tag=TAG_READY)
 
         # Wait for work or stop
         status = MPI.Status()
+        _t = time.monotonic() if _wprof else 0.0
         msg = comm.recv(source=0, tag=MPI.ANY_TAG, status=status)
+        if _wprof:
+            _pt["wait"] += time.monotonic() - _t
 
         if status.Get_tag() == TAG_STOP:
             break
@@ -1732,6 +1772,9 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
 
         input_path = msg["path"]
         bm_version = msg.get("bitmap_version", 0)
+        if _wprof:
+            _pt["items"] += 1
+            _t = time.monotonic()
 
         # 仅在 bitmap 版本更新时重读共享 bitmap 文件
         if bm_version > current_bitmap_version:
@@ -1756,6 +1799,8 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
                         worker_cov.data = bytearray(_bm_data)
                 except (IOError, OSError):
                     pass
+        if _wprof:
+            _pt["bmsync"] += time.monotonic() - _t
 
         # 延迟初始化 streaming showmap（首次需要 AFL 已写出 fuzzer_stats/命令行）。
         # 限制重试次数：AFL 就绪前给几次机会，之后放弃并告警，避免每个工作项都
@@ -1781,6 +1826,7 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
 
         # 直接读取文件（路径协议，无需通过 MPI 传输内容）
         local_input = os.path.join(worker_dir, "current_input")
+        _t = time.monotonic() if _wprof else 0.0
         try:
             shutil.copy2(input_path, local_input)
         except (IOError, OSError):
@@ -1789,6 +1835,8 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
                       "killed": False, "total_generated": 0}
             comm.send(result, dest=0, tag=TAG_RESULT)
             continue
+        if _wprof:
+            _pt["import"] += time.monotonic() - _t
 
         # 选择性符号化 focus_bytes：直接采用 WORK 消息里的区间。多样性模式下这是 master
         # 动态工作窃取分配的不相交字节区间（见 _build_work_items）；否则是 master 的全局
@@ -1810,12 +1858,16 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
             worker_env["SYMCC_TIMEOUT_OUT"] = timeout_out_file
 
         try:
-            new_tests, total_gen, retcode, elapsed, killed = run_symcc_worker(
-                target_cmd, local_input, run_output, TIMEOUT_SEC, use_stdin,
-                base_env=worker_env,
-                streaming_showmap=streaming_sm,
-                worker_coverage=worker_cov,
-            )
+            new_tests, total_gen, retcode, elapsed, killed, post_elapsed = \
+                run_symcc_worker(
+                    target_cmd, local_input, run_output, TIMEOUT_SEC, use_stdin,
+                    base_env=worker_env,
+                    streaming_showmap=streaming_sm,
+                    worker_coverage=worker_cov,
+                )
+            if _wprof:
+                _pt["exec"] += elapsed              # 相位 E：concolic 执行
+                _pt["showmap_dedup"] += post_elapsed  # 相位 F：showmap 取边 + 本地去重
 
             # 读取本次超时分支 site_id，回传 master 聚合
             timeout_sites = []
@@ -1851,8 +1903,13 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
         shutil.rmtree(run_output, ignore_errors=True)
 
         # Send result
+        _t = time.monotonic() if _wprof else 0.0
         comm.send(result, dest=0, tag=TAG_RESULT)
+        if _wprof:
+            _pt["send"] += time.monotonic() - _t
 
+    if _wprof:
+        _flush_prof()   # 正常收到 TAG_STOP 退出时也落盘
     if streaming_sm is not None:
         streaming_sm.close()
     shutil.rmtree(worker_dir, ignore_errors=True)
@@ -1888,6 +1945,49 @@ def parse_args() -> argparse.Namespace:
         parser.error("No target command. Use: -- TARGET [ARGS...]")
 
     return args
+
+
+def _WPROF_PHASES() -> list:
+    return ["wait", "bmsync", "import", "exec", "showmap_dedup", "send"]
+
+
+def aggregate_phase_timing(prof_dir: str) -> "str | None":
+    """把各 worker 写出的 phase_timing_rank*.csv 汇总成 phase_timing.csv（每 worker 一行
+    + TOTAL + MEAN_PCT），返回汇总文件路径。供跑完后离线聚合（worker 是被 SIGTERM 杀掉的，
+    无法在进程内做 MPI gather，故各自落盘、事后合并）。"""
+    phases = _WPROF_PHASES()
+    rows = []
+    try:
+        names = sorted(n for n in os.listdir(prof_dir)
+                       if n.startswith("phase_timing_rank") and n.endswith(".csv"))
+    except OSError:
+        return None
+    for n in names:
+        try:
+            with open(os.path.join(prof_dir, n)) as f:
+                parts = f.readline().strip().split(",")
+            if len(parts) >= 2 + len(phases):
+                rows.append(parts)
+        except (IOError, OSError, ValueError):
+            continue
+    if not rows:
+        return None
+    totals = [0.0] * len(phases)
+    n_items = 0
+    for r in rows:
+        n_items += int(r[1])
+        for i in range(len(phases)):
+            totals[i] += float(r[2 + i])
+    grand = sum(totals) or 1.0
+    out = os.path.join(prof_dir, "phase_timing.csv")
+    with open(out, "w") as f:
+        f.write("rank,items," + ",".join(phases) + ",total_s\n")
+        for r in rows:
+            tot = sum(float(r[2 + i]) for i in range(len(phases)))
+            f.write(",".join(r[:2 + len(phases)]) + f",{tot:.4f}\n")
+        f.write(f"TOTAL,{n_items}," + ",".join(f"{t:.4f}" for t in totals) + f",{grand:.4f}\n")
+        f.write("MEAN_PCT,," + ",".join(f"{100 * t / grand:.1f}" for t in totals) + ",100.0\n")
+    return out
 
 
 def main() -> None:
