@@ -545,7 +545,8 @@ def run_symcc_worker(target_cmd: list[str], input_file: str, output_dir: str,
                      timeout_sec: int, use_stdin: bool,
                      base_env: "dict[str, str] | None" = None,
                      streaming_showmap: "StreamingShowmap | None" = None,
-                     worker_coverage: "CoverageBitmap | None" = None
+                     worker_coverage: "CoverageBitmap | None" = None,
+                     inflight: "dict | None" = None
                      ) -> "tuple[list[dict], int, int, float, bool, float]":
     """在单个输入上运行 SymCC。
 
@@ -611,6 +612,12 @@ def run_symcc_worker(target_cmd: list[str], input_file: str, output_dir: str,
     # 这段【不】计入上面的 elapsed（相位 E=concolic 执行），用于区分"执行慢"还是
     # "showmap/dedup 后处理慢"——瓶颈分析的关键。
     _post_start = time.monotonic()
+    # 通知调用方相位已从 exec 转入 showmap_dedup：若此后被 SIGTERM 打断，在途时长归到正确相位，
+    # 并记下已完成的 exec 时长（elapsed），供 flush 在 item 未跑完时补计到 exec（否则会丢失）。
+    if inflight is not None:
+        inflight["phase"] = "showmap_dedup"
+        inflight["start"] = _post_start
+        inflight["exec_done"] = elapsed
 
     # Collect test cases + worker 端 coverage dedup
     # Worker 有 master bitmap 副本，在本地做 coverage merge
@@ -1733,8 +1740,17 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
     # 故落 per-rank 文件，跑完由 aggregate_phase_timing() 事后合并。目录优先 SYMCC_WPROF_DIR。
     _wprof_dir = os.environ.get("SYMCC_WPROF_DIR") or symcc_dir_w
     _phs = ["wait", "bmsync", "import", "exec", "showmap_dedup", "send"]
+    # 在途相位标记 {"phase": 名称|None, "start": 时刻}。被 SIGTERM 打断时把这段"在途"时长
+    # 计入【正确的】相位——否则慢目标上单个工作项可能横跨整个窗口、到被杀时相位时长仍为 0
+    #（只在完成后累加），导致严重低估。run_symcc_worker 会在 exec→showmap_dedup 转换处更新它。
+    _inflight = {"phase": None, "start": 0.0}
 
     def _flush_prof() -> None:
+        if _inflight["phase"] is not None:
+            _pt[_inflight["phase"]] += time.monotonic() - _inflight["start"]
+            # exec 已完成但（因 item 未跑完）尚未提交的部分，补计到 exec
+            _pt["exec"] += _inflight.get("exec_done", 0.0)
+            _inflight["phase"] = None
         try:
             os.makedirs(_wprof_dir, exist_ok=True)
             with open(os.path.join(_wprof_dir, f"phase_timing_rank{rank}.csv"), "w") as _f:
@@ -1858,14 +1874,20 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
             worker_env["SYMCC_TIMEOUT_OUT"] = timeout_out_file
 
         try:
+            if _wprof:
+                _inflight["phase"] = "exec"        # 进入执行；run_symcc_worker 会在转入后处理时改标记
+                _inflight["start"] = time.monotonic()
+                _inflight["exec_done"] = 0.0        # 本 item 已完成的 exec 时长（转入后处理时填）
             new_tests, total_gen, retcode, elapsed, killed, post_elapsed = \
                 run_symcc_worker(
                     target_cmd, local_input, run_output, TIMEOUT_SEC, use_stdin,
                     base_env=worker_env,
                     streaming_showmap=streaming_sm,
                     worker_coverage=worker_cov,
+                    inflight=_inflight if _wprof else None,
                 )
             if _wprof:
+                _inflight["phase"] = None          # 正常完成：用真实分段值,不用在途估计
                 _pt["exec"] += elapsed              # 相位 E：concolic 执行
                 _pt["showmap_dedup"] += post_elapsed  # 相位 F：showmap 取边 + 本地去重
 
