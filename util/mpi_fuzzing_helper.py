@@ -546,7 +546,8 @@ def run_symcc_worker(target_cmd: list[str], input_file: str, output_dir: str,
                      base_env: "dict[str, str] | None" = None,
                      streaming_showmap: "StreamingShowmap | None" = None,
                      worker_coverage: "CoverageBitmap | None" = None,
-                     inflight: "dict | None" = None
+                     inflight: "dict | None" = None,
+                     redun: "dict | None" = None
                      ) -> "tuple[list[dict], int, int, float, bool, float]":
     """在单个输入上运行 SymCC。
 
@@ -571,6 +572,22 @@ def run_symcc_worker(target_cmd: list[str], input_file: str, output_dir: str,
     env["SYMCC_OUTPUT_DIR"] = output_dir
     env["SYMCC_ENABLE_LINEARIZATION"] = "1"
     env["SYMCC_EMIT_HINTS"] = "1"  # 输出约束 hint 文件
+
+    # #10 拆分：在 SymCC 运行【之前】快照【全局】已覆盖位图（SYMCC_AFL_COVERAGE_MAP,由 master
+    # 的 .shared_bitmap 经 bmsync 播种而来）。据此把冗余输出分为"没打到任何全局新边(乐观求解
+    # 不可行/冗余)"与"打到全局新边但已被覆盖(新鲜度间隙)"。首个 item 全局图尚未就绪时 _snap 为空。
+    _snap = None
+    if redun is not None:
+        _snap_path = env.get("SYMCC_AFL_COVERAGE_MAP")
+        if _snap_path and os.path.isfile(_snap_path):
+            try:
+                with open(_snap_path, "rb") as _sf:
+                    _snap = _sf.read()
+            except (IOError, OSError):
+                _snap = None
+        redun["items"] = redun.get("items", 0) + 1
+        if _snap is None:
+            redun["snap_none"] = redun.get("snap_none", 0) + 1
 
     if use_stdin:
         cmd = ["timeout", "-k", "5", str(timeout_sec)] + target_cmd
@@ -624,6 +641,7 @@ def run_symcc_worker(target_cmd: list[str], input_file: str, output_dir: str,
     # 只传 interesting 的 TC（~3% 的输出），消息 323KB → 10KB
     new_tests = []
     total_generated = 0
+    # (_snap 已在 SymCC 运行前从全局位图快照，见函数上方)
     if os.path.isdir(output_dir):
         try:
             entries = list(os.scandir(output_dir))
@@ -658,6 +676,8 @@ def run_symcc_worker(target_cmd: list[str], input_file: str, output_dir: str,
             if entry.name.startswith(".") or entry.name.endswith(".hints") or not entry.is_file():
                 continue
             total_generated += 1
+            if redun is not None:
+                redun["gen"] += 1
             try:
                 with open(entry.path, "rb") as f:
                     content = f.read()
@@ -665,8 +685,23 @@ def run_symcc_worker(target_cmd: list[str], input_file: str, output_dir: str,
                 # Worker 端 streaming showmap + coverage dedup
                 if streaming_showmap is not None and worker_coverage is not None:
                     edges = streaming_showmap.get_edges(content)
-                    if edges is not None:
+                    if edges is None:
+                        if redun is not None:
+                            redun["showmap_none"] += 1
+                    else:
+                        # 相对本 item 起点是否有新边（边级）
+                        has_new_vs_snap = True
+                        if redun is not None and _snap is not None:
+                            has_new_vs_snap = any(
+                                e >= len(_snap) or _snap[e] == 0 for e in edges)
                         is_new = worker_coverage.merge(edges)
+                        if redun is not None:
+                            if is_new:
+                                redun["reported"] += 1        # worker 判新 → 上报 master
+                            elif not has_new_vs_snap:
+                                redun["infeasible"] += 1      # 没打到任何新边（乐观求解不可行/冗余）
+                            else:
+                                redun["worker_fresh"] += 1    # 打到新边但本 item 内已被自己覆盖
                         if is_new:
                             tc_entry = {
                                 "content": content,
@@ -1198,12 +1233,28 @@ def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
         os.makedirs(save_all_dir, exist_ok=True)
         print(f"[Master] Saving all test cases to: {save_all_dir}")
 
+    # #10 重复求解拆分：master 侧落 accepted(=interesting_count,真正判新纳入的)与 generated,
+    # 供跨-worker 冗余 = reported(worker 上报) - accepted 计算。
+    _wprof = os.environ.get("SYMCC_WORKER_PROFILE") == "1"
+    _wprof_dir = os.environ.get("SYMCC_WPROF_DIR") or symcc_dir
+
+    def _flush_master_redun() -> None:
+        if not _wprof:
+            return
+        try:
+            os.makedirs(_wprof_dir, exist_ok=True)
+            with open(os.path.join(_wprof_dir, "redun_master.csv"), "w") as _f:
+                _f.write(f"generated,accepted\n{stats.generated_count},{stats.interesting_count}\n")
+        except (IOError, OSError):
+            pass
+
     # 信号处理：收到 SIGTERM/SIGINT 时优雅退出
     shutdown_requested = False
 
     def _signal_handler(signum: int, frame: object) -> None:
         nonlocal shutdown_requested
         shutdown_requested = True
+        _flush_master_redun()
         print(f"\n[Master] Received signal {signum}, shutting down...",
               file=sys.stderr, flush=True)
 
@@ -1736,6 +1787,11 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
     _wprof = os.environ.get("SYMCC_WORKER_PROFILE") == "1"
     _pt = {"wait": 0.0, "bmsync": 0.0, "import": 0.0, "exec": 0.0,
            "showmap_dedup": 0.0, "send": 0.0, "items": 0}
+    # #10 重复求解拆分计数：gen=生成总数, reported=worker 判新上报数,
+    # infeasible=没打到新边(乐观求解不可行/冗余), worker_fresh=打到新边但本 item 内已被自己覆盖,
+    # showmap_none=showmap 无输出。worker-内部冗余=gen-reported;worker-间冗余=reported-accepted(master)。
+    _redun = {"gen": 0, "reported": 0, "infeasible": 0, "worker_fresh": 0,
+              "showmap_none": 0, "items": 0, "snap_none": 0}
     # 各 worker 各自把分相位计时落盘：编排层用 SIGTERM 杀 mpirun，进程内 MPI gather 来不及，
     # 故落 per-rank 文件，跑完由 aggregate_phase_timing() 事后合并。目录优先 SYMCC_WPROF_DIR。
     _wprof_dir = os.environ.get("SYMCC_WPROF_DIR") or symcc_dir_w
@@ -1756,6 +1812,11 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
             with open(os.path.join(_wprof_dir, f"phase_timing_rank{rank}.csv"), "w") as _f:
                 _f.write(f"{rank},{_pt['items']}," +
                          ",".join(f"{_pt[_p]:.4f}" for _p in _phs) + "\n")
+            with open(os.path.join(_wprof_dir, f"redun_rank{rank}.csv"), "w") as _f:
+                _f.write(f"{rank}," + ",".join(
+                    str(_redun.get(_k, 0)) for _k in
+                    ["gen", "reported", "infeasible", "worker_fresh", "showmap_none",
+                     "items", "snap_none"]) + "\n")
         except (IOError, OSError):
             pass
 
@@ -1885,6 +1946,7 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
                     streaming_showmap=streaming_sm,
                     worker_coverage=worker_cov,
                     inflight=_inflight if _wprof else None,
+                    redun=_redun if _wprof else None,
                 )
             if _wprof:
                 _inflight["phase"] = None          # 正常完成：用真实分段值,不用在途估计
@@ -1929,6 +1991,9 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
         comm.send(result, dest=0, tag=TAG_RESULT)
         if _wprof:
             _pt["send"] += time.monotonic() - _t
+            # 每个工作项后落盘一次（覆盖写,~ms 级）：编排层 SIGTERM→SIGKILL 常在 worker 阻塞于
+            # showmap/子进程等原生调用时到达,信号处理器来不及跑;增量落盘保证数据不丢。
+            _flush_prof()
 
     if _wprof:
         _flush_prof()   # 正常收到 TAG_STOP 退出时也落盘
@@ -2009,6 +2074,71 @@ def aggregate_phase_timing(prof_dir: str) -> "str | None":
             f.write(",".join(r[:2 + len(phases)]) + f",{tot:.4f}\n")
         f.write(f"TOTAL,{n_items}," + ",".join(f"{t:.4f}" for t in totals) + f",{grand:.4f}\n")
         f.write("MEAN_PCT,," + ",".join(f"{100 * t / grand:.1f}" for t in totals) + ",100.0\n")
+    return out
+
+
+def aggregate_redundancy(prof_dir: str) -> "str | None":
+    """合并各 worker 的 redun_rank*.csv 与 redun_master.csv，产出 #10 重复求解拆分报告。
+    两层拆分：
+      (A) worker-内部冗余 vs worker-间冗余 vs 有效(accepted)，均以生成总数为分母；
+      (B) 冗余的两类根因：乐观求解不可行(infeasible,没打到新边) vs 新鲜度间隙(freshness,
+          打到新边但已被覆盖=worker 内自复 + worker 间被抢先)。"""
+    gen = reported = infeasible = worker_fresh = showmap_none = 0
+    nworkers = 0
+    try:
+        names = [n for n in os.listdir(prof_dir)
+                 if n.startswith("redun_rank") and n.endswith(".csv")]
+    except OSError:
+        return None
+    for n in names:
+        try:
+            with open(os.path.join(prof_dir, n)) as f:
+                p = f.readline().strip().split(",")
+            if len(p) >= 6:
+                gen += int(p[1])
+                reported += int(p[2])
+                infeasible += int(p[3])
+                worker_fresh += int(p[4])
+                showmap_none += int(p[5])
+                nworkers += 1
+        except (IOError, OSError, ValueError):
+            continue
+    if gen == 0:
+        return None
+    accepted = None
+    try:
+        with open(os.path.join(prof_dir, "redun_master.csv")) as f:
+            f.readline()  # header
+            accepted = int(f.readline().strip().split(",")[1])
+    except (IOError, OSError, ValueError, IndexError):
+        accepted = None
+    # accepted 不可得时,退化用 reported 作上界(worker-间冗余记为未知)
+    acc = accepted if accepted is not None else reported
+    worker_internal = gen - reported                    # worker 自身 dedup 丢掉的
+    worker_between = max(0, reported - acc)              # master 全局 dedup 丢掉的 = bitmap 新鲜度间隙
+    redundant = worker_internal + worker_between
+    out = os.path.join(prof_dir, "redundancy.csv")
+    with open(out, "w") as f:
+        f.write(f"# #10 重复求解拆分 (workers={nworkers}, accepted=master interesting_count)\n")
+        f.write("# 漏斗: generated → reported(过 worker 自身 dedup) → accepted(过 master 全局 dedup)\n")
+        f.write("stage,count,pct_of_generated\n")
+        f.write(f"generated,{gen},100.0\n")
+        f.write(f"reported(worker判新上报),{reported},{100*reported/gen:.1f}\n")
+        f.write(f"accepted(master全局判新),{acc},{100*acc/gen:.1f}\n")
+        f.write("\n# 冗余(generated-accepted)按发生位置拆分\n")
+        f.write("where,count,pct_of_generated,pct_of_redundant\n")
+        f.write(f"worker_internal(worker内自复),{worker_internal},"
+                f"{100*worker_internal/gen:.1f},{100*worker_internal/max(1,redundant):.1f}\n")
+        f.write(f"worker_between(worker间/bitmap新鲜度间隙),{worker_between},"
+                f"{100*worker_between/gen:.1f},{100*worker_between/max(1,redundant):.1f}\n")
+        # 根因子拆分仅当全局快照可用(snap 到位)时才有意义
+        with_snap = infeasible + worker_fresh
+        f.write("\n# 根因子拆分 (需全局位图快照;snap 不可用时本段无意义)\n")
+        f.write(f"# 有全局快照的输出分类样本量={with_snap}(0 表示本次运行 worker 未获全局位图播种)\n")
+        if with_snap > 0:
+            f.write("cause,count\n")
+            f.write(f"optimistic_infeasible(没打到任何全局新边),{infeasible}\n")
+            f.write(f"freshness_within_worker(打到新边但本item内自复),{worker_fresh}\n")
     return out
 
 
