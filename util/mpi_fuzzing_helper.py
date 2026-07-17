@@ -571,7 +571,8 @@ def run_symcc_worker(target_cmd: list[str], input_file: str, output_dir: str,
         env = os.environ.copy()
     env["SYMCC_OUTPUT_DIR"] = output_dir
     env["SYMCC_ENABLE_LINEARIZATION"] = "1"
-    env["SYMCC_EMIT_HINTS"] = "1"  # 输出约束 hint 文件
+    # 输出约束 hint 文件；默认开启，但允许上游 env 显式关闭（用于消融实验 ③ hint 传递）
+    env["SYMCC_EMIT_HINTS"] = os.environ.get("SYMCC_EMIT_HINTS", "1")
 
     # #10 拆分：在 SymCC 运行【之前】快照【全局】已覆盖位图（SYMCC_AFL_COVERAGE_MAP,由 master
     # 的 .shared_bitmap 经 bmsync 播种而来）。据此把冗余输出分为"没打到任何全局新边(乐观求解
