@@ -597,7 +597,11 @@ def measure_coverage_afl(afl_binary: str, test_case_dir: str,
 
     measure_ok = False  # 是否成功解析到覆盖率（区分"真 0 覆盖"与"showmap 失败"）
     try:
-        batch_timeout = max(60, total_cases * 2)
+        # 仅按【实际测量】的 TC 数(抽样后 = max_cases)算超时,避免大语料(如 sqlite 百万级 TC)
+        # 用 total_cases 导致 batch_timeout 溢出(poll() 的 ms 超 C int → OverflowError: timeout
+        # is too large)。再封顶 1h:单批 showmap 不应超过 1h。
+        n_measured = max_cases if sampled else total_cases
+        batch_timeout = min(3600, max(60, n_measured * 2))
         # 在临时目录中运行 showmap：目标（如 sqlite_fuzzer）会向 CWD 写临时文件，
         # 隔离避免污染仓库/benchmark 目录。
         _shm_cwd = tempfile.mkdtemp(prefix="showmap_cwd_")
