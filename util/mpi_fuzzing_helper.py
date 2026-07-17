@@ -2084,6 +2084,7 @@ def aggregate_redundancy(prof_dir: str) -> "str | None":
       (B) 冗余的两类根因：乐观求解不可行(infeasible,没打到新边) vs 新鲜度间隙(freshness,
           打到新边但已被覆盖=worker 内自复 + worker 间被抢先)。"""
     gen = reported = infeasible = worker_fresh = showmap_none = 0
+    tot_items = tot_snap_none = 0
     nworkers = 0
     try:
         names = [n for n in os.listdir(prof_dir)
@@ -2100,6 +2101,9 @@ def aggregate_redundancy(prof_dir: str) -> "str | None":
                 infeasible += int(p[3])
                 worker_fresh += int(p[4])
                 showmap_none += int(p[5])
+                if len(p) >= 8:
+                    tot_items += int(p[6])
+                    tot_snap_none += int(p[7])
                 nworkers += 1
         except (IOError, OSError, ValueError):
             continue
@@ -2131,14 +2135,18 @@ def aggregate_redundancy(prof_dir: str) -> "str | None":
                 f"{100*worker_internal/gen:.1f},{100*worker_internal/max(1,redundant):.1f}\n")
         f.write(f"worker_between(worker间/bitmap新鲜度间隙),{worker_between},"
                 f"{100*worker_between/gen:.1f},{100*worker_between/max(1,redundant):.1f}\n")
-        # 根因子拆分仅当全局快照可用(snap 到位)时才有意义
-        with_snap = infeasible + worker_fresh
-        f.write("\n# 根因子拆分 (需全局位图快照;snap 不可用时本段无意义)\n")
-        f.write(f"# 有全局快照的输出分类样本量={with_snap}(0 表示本次运行 worker 未获全局位图播种)\n")
-        if with_snap > 0:
+        # 根因子拆分仅当全局快照可用时才有意义（tot_snap_none < tot_items）
+        snap_ok = tot_items - tot_snap_none
+        f.write("\n# 根因子拆分 (需 SymCC 运行前的全局位图快照)\n")
+        f.write(f"# items={tot_items}, 有全局快照的 items={snap_ok}\n")
+        if snap_ok > 0:
             f.write("cause,count\n")
             f.write(f"optimistic_infeasible(没打到任何全局新边),{infeasible}\n")
             f.write(f"freshness_within_worker(打到新边但本item内自复),{worker_fresh}\n")
+        else:
+            f.write("# 本次运行 worker 未获全局位图播种(每 worker 仅 1 个长 item,先于 master 写\n")
+            f.write("# .shared_bitmap 完成),无法可靠区分 乐观求解不可行 vs 新鲜度间隙。\n")
+            f.write("# 可测下界: worker_between 即 bitmap 新鲜度间隙(跨 worker)部分。\n")
     return out
 
 
