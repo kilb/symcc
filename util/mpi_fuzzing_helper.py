@@ -673,6 +673,10 @@ def run_symcc_worker(target_cmd: list[str], input_file: str, output_dir: str,
                 except (IOError, OSError, ValueError):
                     pass
 
+        # 内容级预去重集：SymCC 单次 concolic 常重复吐出【字节完全相同】的输出(实测约 28%)。
+        # 字节相同 → 边集必然相同 → dedup 结果必与首次相同(不可能为"新"),故可跳过昂贵的 showmap
+        # 子进程往返(get_edges ~0.6ms/次)。用 16B blake2b 摘要作 per-item 去重键(有界内存)。
+        seen_content: set[bytes] = set()
         for entry in entries:
             if entry.name.startswith(".") or entry.name.endswith(".hints") or not entry.is_file():
                 continue
@@ -682,6 +686,14 @@ def run_symcc_worker(target_cmd: list[str], input_file: str, output_dir: str,
             try:
                 with open(entry.path, "rb") as f:
                     content = f.read()
+
+                # 预去重：字节完全相同的重复输出直接跳过 showmap（等价、且省 ~0.6ms/次子进程往返）
+                _ckey = hashlib.blake2b(content, digest_size=16).digest()
+                if _ckey in seen_content:
+                    if redun is not None:
+                        redun["byte_dup"] = redun.get("byte_dup", 0) + 1
+                    continue
+                seen_content.add(_ckey)
 
                 # Worker 端 streaming showmap + coverage dedup
                 if streaming_showmap is not None and worker_coverage is not None:
@@ -1792,7 +1804,7 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
     # infeasible=没打到新边(乐观求解不可行/冗余), worker_fresh=打到新边但本 item 内已被自己覆盖,
     # showmap_none=showmap 无输出。worker-内部冗余=gen-reported;worker-间冗余=reported-accepted(master)。
     _redun = {"gen": 0, "reported": 0, "infeasible": 0, "worker_fresh": 0,
-              "showmap_none": 0, "items": 0, "snap_none": 0}
+              "showmap_none": 0, "items": 0, "snap_none": 0, "byte_dup": 0}
     # 各 worker 各自把分相位计时落盘：编排层用 SIGTERM 杀 mpirun，进程内 MPI gather 来不及，
     # 故落 per-rank 文件，跑完由 aggregate_phase_timing() 事后合并。目录优先 SYMCC_WPROF_DIR。
     _wprof_dir = os.environ.get("SYMCC_WPROF_DIR") or symcc_dir_w
@@ -1817,7 +1829,7 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
                 _f.write(f"{rank}," + ",".join(
                     str(_redun.get(_k, 0)) for _k in
                     ["gen", "reported", "infeasible", "worker_fresh", "showmap_none",
-                     "items", "snap_none"]) + "\n")
+                     "items", "snap_none", "byte_dup"]) + "\n")
         except (IOError, OSError):
             pass
 
@@ -2085,7 +2097,7 @@ def aggregate_redundancy(prof_dir: str) -> "str | None":
       (B) 冗余的两类根因：乐观求解不可行(infeasible,没打到新边) vs 新鲜度间隙(freshness,
           打到新边但已被覆盖=worker 内自复 + worker 间被抢先)。"""
     gen = reported = infeasible = worker_fresh = showmap_none = 0
-    tot_items = tot_snap_none = 0
+    tot_items = tot_snap_none = byte_dup = 0
     nworkers = 0
     try:
         names = [n for n in os.listdir(prof_dir)
@@ -2105,6 +2117,8 @@ def aggregate_redundancy(prof_dir: str) -> "str | None":
                 if len(p) >= 8:
                     tot_items += int(p[6])
                     tot_snap_none += int(p[7])
+                if len(p) >= 9:
+                    byte_dup += int(p[8])          # 字节相同被预去重跳过 showmap 的数量
                 nworkers += 1
         except (IOError, OSError, ValueError):
             continue
@@ -2134,6 +2148,9 @@ def aggregate_redundancy(prof_dir: str) -> "str | None":
         f.write("where,count,pct_of_generated,pct_of_redundant\n")
         f.write(f"worker_internal(worker内自复),{worker_internal},"
                 f"{100*worker_internal/gen:.1f},{100*worker_internal/max(1,redundant):.1f}\n")
+        # worker_internal 中【字节完全相同】的一类：已由内容级预去重跳过 showmap(纯节省,不影响正确性)
+        f.write(f"  └ 其中 byte_identical(已跳过showmap),{byte_dup},"
+                f"{100*byte_dup/gen:.1f},{100*byte_dup/max(1,redundant):.1f}\n")
         f.write(f"worker_between(worker间/bitmap新鲜度间隙),{worker_between},"
                 f"{100*worker_between/gen:.1f},{100*worker_between/max(1,redundant):.1f}\n")
         # 根因子拆分仅当全局快照可用时才有意义（tot_snap_none < tot_items）
