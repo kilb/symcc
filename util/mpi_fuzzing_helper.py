@@ -55,6 +55,7 @@ TAG_READY = 4
 
 TIMEOUT_SEC = int(os.environ.get("SYMCC_TIMEOUT", "30"))  # SymCC 执行超时（秒），默认 30s
 SHOWMAP_TIMEOUT_MS = "5000"
+_WORKER_SEEN_CAP = 300_000   # 跨 item 内容去重集上限(约 300k×~50B≈15MB);超限清空,只损失去重机会
 STATS_INTERVAL_SEC = 60
 MAX_GENERATION_DEPTH = int(os.environ.get("SYMCC_MAX_DEPTH", "0"))  # 最大迭代深度，0=无限
 # AFL extras hint token 文件数上限：循环复用固定文件池，避免长时间运行产生数百万小文件
@@ -547,7 +548,8 @@ def run_symcc_worker(target_cmd: list[str], input_file: str, output_dir: str,
                      streaming_showmap: "StreamingShowmap | None" = None,
                      worker_coverage: "CoverageBitmap | None" = None,
                      inflight: "dict | None" = None,
-                     redun: "dict | None" = None
+                     redun: "dict | None" = None,
+                     worker_seen: "set[bytes] | None" = None
                      ) -> "tuple[list[dict], int, int, float, bool, float]":
     """在单个输入上运行 SymCC。
 
@@ -673,10 +675,15 @@ def run_symcc_worker(target_cmd: list[str], input_file: str, output_dir: str,
                 except (IOError, OSError, ValueError):
                     pass
 
-        # 内容级预去重集：SymCC 单次 concolic 常重复吐出【字节完全相同】的输出(实测约 28%)。
-        # 字节相同 → 边集必然相同 → dedup 结果必与首次相同(不可能为"新"),故可跳过昂贵的 showmap
-        # 子进程往返(get_edges ~0.6ms/次)。用 16B blake2b 摘要作 per-item 去重键(有界内存)。
-        seen_content: set[bytes] = set()
+        # 内容级预去重(#1,跨 item):SymCC 常吐出【字节完全相同】的重复输出(实测约 23–28%);字节相同
+        # → 边集必然相同 → dedup 结果必与首次相同(不可能为"新"),可跳过昂贵的 showmap。用 worker 生命
+        # 周期的有界集(worker_seen)兼吃 item 内与 item 间重复;未提供则退回 per-item 集。
+        seen_content = worker_seen if worker_seen is not None else set()
+        if len(seen_content) > _WORKER_SEEN_CAP:   # 有界:超限清空(仅损失少量去重机会,不影响正确性)
+            seen_content.clear()
+
+        # pass 1:读内容 + 预去重,收集唯一测试用例
+        uniq: "list[tuple[object, bytes]]" = []
         for entry in entries:
             if entry.name.startswith(".") or entry.name.endswith(".hints") or not entry.is_file():
                 continue
@@ -686,45 +693,54 @@ def run_symcc_worker(target_cmd: list[str], input_file: str, output_dir: str,
             try:
                 with open(entry.path, "rb") as f:
                     content = f.read()
+            except (IOError, OSError):
+                continue
+            _ckey = hashlib.blake2b(content, digest_size=16).digest()
+            if _ckey in seen_content:
+                if redun is not None:
+                    redun["byte_dup"] = redun.get("byte_dup", 0) + 1
+                continue
+            seen_content.add(_ckey)
+            uniq.append((entry, content))
 
-                # 预去重：字节完全相同的重复输出直接跳过 showmap（等价、且省 ~0.6ms/次子进程往返）
-                _ckey = hashlib.blake2b(content, digest_size=16).digest()
-                if _ckey in seen_content:
-                    if redun is not None:
-                        redun["byte_dup"] = redun.get("byte_dup", 0) + 1
-                    continue
-                seen_content.add(_ckey)
+        # pass 2a:批量 showmap(#2,afl-showmap -I 一次 C 侧 forkserver 循环跑完,实测 ~25us/输入,比逐个
+        # 流式 get_edges(~600us,含 Python 每次管道往返)快约一个数量级)。afl-showmap -I 失败→退回逐个流式。
+        batch_edges: "dict[str, list[tuple[int, int]]]" = {}
+        use_batch = False
+        if (worker_coverage is not None and uniq and streaming_showmap is not None
+                and os.environ.get("SYMCC_BATCH_SHOWMAP", "1") != "0"
+                and getattr(streaming_showmap, "_afl_showmap", None)):
+            batch_edges = batch_showmap_edges(
+                streaming_showmap._afl_showmap, streaming_showmap._target_cmd,
+                streaming_showmap._uses_shmem, [e.path for e, _ in uniq], output_dir)
+            use_batch = bool(batch_edges)
 
-                # Worker 端 streaming showmap + coverage dedup
-                if streaming_showmap is not None and worker_coverage is not None:
-                    edges = streaming_showmap.get_edges(content)
-                    if edges is None:
+        # pass 2b:合并 + 收集 interesting(批量命中用 batch_edges,否则退回流式 get_edges)
+        for entry, content in uniq:
+            try:
+                if worker_coverage is not None and (use_batch or streaming_showmap is not None):
+                    edges = (batch_edges.get(entry.path) if use_batch
+                             else streaming_showmap.get_edges(content))
+                    if edges is None:                 # 无 map(超时/崩溃)或流式进程死亡
                         if redun is not None:
                             redun["showmap_none"] += 1
-                    else:
-                        # 相对本 item 起点是否有新边（边级）
-                        has_new_vs_snap = True
-                        if redun is not None and _snap is not None:
-                            has_new_vs_snap = any(
-                                e >= len(_snap) or _snap[e] == 0 for e in edges)
-                        is_new = worker_coverage.merge(edges)
-                        if redun is not None:
-                            if is_new:
-                                redun["reported"] += 1        # worker 判新 → 上报 master
-                            elif not has_new_vs_snap:
-                                redun["infeasible"] += 1      # 没打到任何新边（乐观求解不可行/冗余）
-                            else:
-                                redun["worker_fresh"] += 1    # 打到新边但本 item 内已被自己覆盖
+                        continue
+                    has_new_vs_snap = True             # 相对本 item 起点是否有新边(边级)
+                    if redun is not None and _snap is not None:
+                        has_new_vs_snap = any(e >= len(_snap) or _snap[e] == 0 for e in edges)
+                    is_new = worker_coverage.merge(edges)
+                    if redun is not None:
                         if is_new:
-                            tc_entry = {
-                                "content": content,
-                                "bitmap": edges,
-                            }
-                            # 附加约束 hint 信息
-                            if entry.name in hint_map:
-                                tc_entry["hints"] = hint_map[entry.name]
-                            new_tests.append(tc_entry)
-                    # 不 interesting 的直接跳过，不传
+                            redun["reported"] += 1        # worker 判新 → 上报 master
+                        elif not has_new_vs_snap:
+                            redun["infeasible"] += 1      # 没打到任何新边(乐观求解不可行/冗余)
+                        else:
+                            redun["worker_fresh"] += 1    # 打到新边但本 item 内已被自己覆盖
+                    if is_new:
+                        tc_entry = {"content": content, "bitmap": edges}
+                        if entry.name in hint_map:        # 附加约束 hint 信息
+                            tc_entry["hints"] = hint_map[entry.name]
+                        new_tests.append(tc_entry)
                 else:
                     tc_entry = {"content": content}
                     if entry.name in hint_map:
@@ -749,6 +765,14 @@ class StreamingShowmap:
     def __init__(self, afl_showmap: str, target_cmd: list[str]):
         self._proc = None    # 先置空：若下方 Popen 抛异常，__del__→close() 也能安全跳过
         self._dead = True
+        # 存下配置供批量路径(batch_showmap_edges)复用,免在调用点再传一遍
+        self._afl_showmap = afl_showmap
+        self._target_cmd = list(target_cmd)
+        try:                 # 持久/shmem 目标(含 ##SIG_AFL_PERSISTENT##)批量时无需 @@
+            with open(target_cmd[0], "rb") as _bf:
+                self._uses_shmem = b"##SIG_AFL_PERSISTENT##" in _bf.read()
+        except (IOError, OSError, IndexError):
+            self._uses_shmem = False
         cmd = [afl_showmap, "-S", "-t", "5000", "-m", "none", "--"]
         cmd.extend(target_cmd)
         self._proc = subprocess.Popen(
@@ -822,6 +846,58 @@ class StreamingShowmap:
     def __del__(self):
         self.close()
 
+
+def batch_showmap_edges(afl_showmap: str, target_cmd: "list[str]", uses_shmem: bool,
+                        file_paths: "list[str]", work_dir: str,
+                        timeout_ms: int = 5000) -> "dict[str, list[tuple[int, int]]]":
+    """批量 showmap:用 afl-showmap -I filelist 在【一次】C 侧 forkserver 循环里跑完所有输入。
+
+    比逐个流式 get_edges(Python 每次管道往返，实测标称 ~600us/输入)快约一个数量级
+    (afl-showmap -I 实测 ~25us/输入),因整个 forkserver 循环在 C 里跑、无 Python 逐次开销。
+    返回 {文件路径: 稀疏边列表 [(edge_id, count)]};某输入超时/崩溃→其键缺失(调用方按 showmap_none 处理);
+    afl-showmap 整体失败(不支持 -I/报错/无输出)→ 返回 {},调用方退回逐个流式。"""
+    if not file_paths:
+        return {}
+    # 自建专属临时目录(放 work_dir 下,多在 tmpfs)并在最后清理,避免污染/污读 output_dir
+    try:
+        tmp = tempfile.mkdtemp(prefix="_bsm_", dir=work_dir)
+    except (OSError, IOError):
+        return {}
+    listf = os.path.join(tmp, "flist")
+    mapdir = os.path.join(tmp, "maps")
+    try:
+        os.makedirs(mapdir, exist_ok=True)
+        with open(listf, "w") as f:
+            f.write("\n".join(file_paths) + "\n")
+        cmd = [afl_showmap, "-I", listf, "-o", mapdir, "-t", str(timeout_ms),
+               "-m", "none", "-q", "--"]
+        cmd.extend(target_cmd)
+        if not uses_shmem and "@@" not in target_cmd:
+            cmd.append("@@")       # 文件型目标:afl-showmap 把每个输入写临时文件替换 @@
+        # afl-showmap -I 内部逐输入处理并各自应用 -t 超时;整体给宽松上限,封顶 30min
+        subprocess.run(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                       stderr=subprocess.DEVNULL,
+                       timeout=min(1800, max(60, len(file_paths) + 30)))
+        # afl-showmap -I 以【输入文件名(basename)】命名各自 map;output_dir 内文件名唯一
+        out: "dict[str, list[tuple[int, int]]]" = {}
+        for p in file_paths:
+            try:
+                with open(os.path.join(mapdir, os.path.basename(p))) as mf:
+                    edges: "list[tuple[int, int]]" = []
+                    for line in mf:                   # map 每行 "edge_id:count"
+                        line = line.strip()
+                        if not line:
+                            continue
+                        eid, _, cnt = line.partition(":")
+                        edges.append((int(eid), int(cnt) if cnt else 0))
+            except (IOError, OSError, ValueError):
+                continue                              # 无 map(超时/崩溃)→ 调用方视为 showmap_none
+            out[p] = edges
+        return out
+    except (OSError, subprocess.SubprocessError):
+        return {}
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
 
 def _batch_triage(
@@ -1791,6 +1867,7 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
               f"流式 dedup 关闭（每个 TC 全量回传 master，开销上升）", flush=True)
     # Worker 端 coverage bitmap 副本 — 用于本地 dedup
     worker_cov = CoverageBitmap()
+    worker_seen: set[bytes] = set()   # 跨 item 内容去重(#1);worker 生命周期,有界见 _WORKER_SEEN_CAP
     current_bitmap_version = -1
 
     # 每 worker 分相位计时（opt-in SYMCC_WORKER_PROFILE=1，热路径几乎零开销：
@@ -1960,6 +2037,7 @@ def worker(comm: "MPI.Intracomm", args: argparse.Namespace) -> None:
                     worker_coverage=worker_cov,
                     inflight=_inflight if _wprof else None,
                     redun=_redun if _wprof else None,
+                    worker_seen=worker_seen,
                 )
             if _wprof:
                 _inflight["phase"] = None          # 正常完成：用真实分段值,不用在途估计
