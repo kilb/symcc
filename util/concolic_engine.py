@@ -84,10 +84,9 @@ class SymSanEngine(ConcolicEngine):
 
     def wrap_run(self, target_cmd, input_file, output_dir, env, use_stdin, timeout_sec):
         env = dict(env)
-        # fgtest 从 TAINT_OPTIONS 里解析 output_dir=(见 symsan driver/fgtest.cpp),把解写进该目录
-        env["TAINT_OPTIONS"] = f"output_dir={output_dir}"
-        # 附带 hint/字典等钩子(SymSan 侧当前忽略,重写技术点后启用)
-        env["SYMSAN_OUTPUT_DIR"] = output_dir
+        # fgtest 从 TAINT_OPTIONS 解析 taint_file=(污点源=输入文件)与 output_dir=(解写入此目录),
+        # 见 symsan driver/fgtest.cpp。两者用空格分隔(已端到端验证:seed→求解分支→输出 id-*)。
+        env["TAINT_OPTIONS"] = f"taint_file={input_file} output_dir={output_dir}"
         binary = target_cmd[0]                 # _symsan 二进制;fgtest 只取 (target, input),丢弃 @@ 等额外 argv
         cmd = ["timeout", "-k", "5", str(timeout_sec), self.fgtest, binary, str(input_file)]
         return cmd, env, False                 # SymSan 走 argv 文件输入,不喂 stdin

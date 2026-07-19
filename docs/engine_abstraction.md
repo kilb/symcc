@@ -48,21 +48,31 @@ SYMSAN_SRC=/path/to/symsan  Z3_ROOT=/path/to/z3-4.13.x  scripts/build_symsan.sh
 3. **Boost**(`boost_container`,parsers/rgd-parser 用)→ cmake fail。需 `libboost-container-dev`。
 4. 之后预计还需 `protobuf-compiler libprotobuf-dev`(rgd.proto)、`libgoogle-perftools-dev`(tcmalloc)。
 
-一次性装齐(本机未装,属系统级变更,留给使用者确认后执行):
+一次性装齐(本机已装):
 ```
-apt-get install -y libboost-container-dev protobuf-compiler libprotobuf-dev \
-                   libgoogle-perftools-dev libunwind-dev
+apt-get install -y libc++-18-dev libc++abi-18-dev libunwind-18-dev libboost-container-dev \
+                   protobuf-compiler libprotobuf-dev libgoogle-perftools-dev libbsd-dev
 ```
-本机进度:Z3 阻塞已绕过;停在 Boost(未擅自装系统包)。装齐上述后 `Z3_ROOT=... scripts/build_symsan.sh` 应可继续。
+5. `z3-ts.cpp` 用了本机 Z3 无的 `Z3_mk_string_from_code/to_code`(SMT 字符串理论,字节级目标不需要)→
+   `build_symsan.sh` 自动加抛异常桩使其编译(用 CI 的 Z3 4.15.4 通常无需)。
 
-## 尚未完成(整体是多人周工程,见 `SymSan_迁移评估.md`)
-- [ ] 用 `KO_CC` 重编各 benchmark 目标为 `*_symsan`;`build_targets`/编译脚本按引擎选 wrapper。
-- [ ] 端到端验证 fgtest 契约(一个目标:seed → fgtest → 输出目录有新用例 → 编排层收得到)。
-- [ ] 5 个自研技术点在 SymSan 侧重写(**这是主要工作量**):①多分支联合求解 ②hint 传递 ③字典引导
-      ④选择性符号化 ⑤fast-solve——都写在 SymCC 的 qsym 表达式/solver 内部,需在 SymSan 的 DFSan-label +
-      Z3/FastGen 框架里重做(其中 ⑤因 FastGen 本就 JIT 快解而部分作废)。
-- [ ] C++ 目标(libFuzzer harness)进程内 Z3 有链接问题 → 需接 FastGen(进程外)。
-- [ ] `run_symcc_worker` 里 showmap 去重路径与 SymSan 输出对齐(输出即普通输入文件,应可直接复用)。
+**✅ 本机已完整构建 + 端到端跑通**(级联全解:Z3 4.13.0 prebuilt + libc++ + Boost/protobuf/perftools + z3-ts 桩):
+- `make install` 生成 ko-clang 期望的 `install/lib/symsan/` 布局(passes + runtime + 各 `.a` + `taint.ld` + abilist)。
+- 编译:`KO_CC=clang-18 KO_USE_FASTGEN=1 KO_DONT_OPTIMIZE=1 ko-clang -o t_symsan t.c`(**FastGen 插桩模式**是关键,fgtest 才有回调)。
+- 验证:一个 4 字节 magic 守卫(`b[0..3]=="SYMS"`)的目标,种子 `"AAAAAAAA"` → `fgtest` **求解首个分支、
+  把字节 0 从 'A' 翻成 'S'、输出 `id-0-0-0="SAAAAAAA"`**。逐次喂回即迭代解出全部 magic——正是 SymCC 的目录契约。
 
-**当前状态**:引擎抽象 + `--engine` 选择 + SymCc 默认路径均已完成并验证;SymSan 引擎代码已按 fgtest 契约写好,
-待其构建产出 fgtest + `*_symsan` 目标后即可端到端联调。
+## 尚未完成(引擎已跑通,剩余为整体的多人周工程,见 `SymSan_迁移评估.md`)
+- [x] SymSan 构建 + fgtest 契约端到端验证(见上,已跑通)。
+- [x] 引擎抽象 + `--engine` + SymSanEngine 按 fgtest 契约实现(`TAINT_OPTIONS="taint_file=<in> output_dir=<out>"`)。
+- [ ] 用 ko-clang(**FastGen 模式**)批量重编各 benchmark 目标为 `*_symsan`;`build_targets`/编译脚本按引擎选 wrapper;
+      `_has_symsan_instrumentation`(检测 `__taint`/dfsan 符号)。
+- [ ] 5 个自研技术点在 SymSan 侧重写(**主要工作量**):①多分支联合求解 ②hint 传递 ③字典引导 ④选择性符号化
+      ⑤fast-solve——都写在 SymCC 的 qsym 表达式/solver 内部,需在 SymSan 的 DFSan-label + Z3/FastGen 框架里重做
+      (其中 ⑤因 FastGen 本就 JIT 快解而部分作废)。
+- [ ] C++ 目标(libFuzzer harness):SymSan 的进程内 Z3 对 C++ 目标有链接问题 → 需接 FastGen(进程外)。
+- [ ] fgtest 单遍只解一个嵌套分支——编排层的"输出喂回"循环(现成)会迭代解深;确认与 showmap 去重路径对齐
+      (SymSan 输出即普通输入文件,应可直接复用)。
+
+**当前状态**:引擎抽象 + `--engine` + SymCC 默认(逐字节等价)+ **SymSan 构建 & fgtest 端到端均已跑通并验证**;
+剩下的是"用 ko-clang 重编全部目标"和"5 个技术点在 DFSan 侧重写"这两块真正的工作量。
