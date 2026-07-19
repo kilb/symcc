@@ -206,7 +206,14 @@ LAVA-M(coreutils)之外再铺一批**格式解析器**(concolic 强项:魔数/�
 | xml_read_fuzzer | libxml2 | 重编 libxml2.a(234) | 176 | 142 输出+hints | ✅ |
 | png_read_fuzzer | libpng | 重编 libpng.a(60) | 176 | 15 输出+hints | ✅ |
 | pcre2_fuzzer | pcre2 | 重编 libpcre2-8.a(54) | 176 | 全 hybrid 4022/9728 边,concolic 120 interesting | ✅ |
-| sqlite_fuzzer | sqlite | amalgamation 7MB 单 TU | — | — | ⛔ DFSan pass 崩溃 |
+| sqlite_fuzzer | sqlite | amalgamation 7MB 单 TU(KO_DONT_OPTIMIZE) | 176 | 运行期 uninitialized-label,产出 0 | ⚠️ 编译通过/运行受限 |
+
+**sqlite(更正:并非"DFSan 大 TU 崩溃"——那是误判)**:真正原因是 ko-clang 强制的 `-O3` 触发 LLVM
+自动向量化,在巨型函数 `sqlite3VdbeExec` 上生成 `bitcast v2i64→i64`,X86 指令选择 `Cannot select` 崩溃
+(报错在后端 ISel,非 DFSan pass;`sqlite3VdbeExec.taint` 说明 DFSan pass 已成功跑完)。**用 `KO_DONT_OPTIMIZE=1`
+(跳过强制 -O3,本就是 fgtest 目标的标准档)即可编译通过**(7.9MB,176 dfsan 符号)。但 concolic **运行**期
+很快命中 DFSan `uninitialized label 0xFFFFFFFF`(伴 bounds 追踪)→ 只 1 个 cond 即退出、产出 0。属运行期
+污点追踪问题(疑与 bounds-check/未初始化栈缓冲交互),可后续再攻;**编译不再是障碍**。
 
 **pcre2 全 hybrid 端到端**(`--engine symsan --hybrid --targets pcre2-pcre2_fuzzer`,np=6):引擎感知自动发现 →
 AFL(3)+ SymSan concolic(2)→ **边覆盖 41.34%(4022/9728),concolic 贡献 120 个 interesting**,948 tc/s。

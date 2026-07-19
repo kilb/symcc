@@ -71,8 +71,20 @@ build_pcre2() {
         "$d/build_symsan/libpcre2-8.a" -o "$ROOT/benchmark/public/bin/pcre2/pcre2_fuzzer_symsan"
   echo "built pcre2_fuzzer_symsan"
 }
-# 注:sqlite 的 7MB amalgamation 会让 DFSan 插桩 pass 崩溃(clang frontend signal),
-# 属 DFSan 对超大单 TU 的已知限制,暂不支持(需 split 源或换 harness)。
+# sqlite:更正——【能编译】。ko-clang 强制的 -O3 会在巨型 sqlite3VdbeExec 上触发向量化 →
+# bitcast v2i64→i64 → X86 ISel "Cannot select"(后端崩溃,非 DFSan pass)。用 KO_DONT_OPTIMIZE=1
+# (跳过 -O3,fgtest 目标本就用此档)即编译通过。但 concolic 运行期命中 DFSan uninitialized-label →
+# 产出 0,故仅编译、不接入发现层(运行期问题待后续)。BUILD_SQLITE=1 启用。
+build_sqlite() {
+  local d="$ROOT/benchmark/public/fuzzer-test-suite/sqlite-2016-11-14"
+  local harness="$ROOT/benchmark/targets/sqlite_harness.c"
+  [ -f "$d/sqlite3.c" ] && [ -f "$harness" ] || { echo "跳过 sqlite:缺 amalgamation/harness"; return; }
+  # 不传 -O(ko-clang 会 strip);KO_DONT_OPTIMIZE 跳过强制 -O3 → 避开 v2i64 ISel 崩溃
+  KO_USE_FASTGEN=1 KO_DONT_OPTIMIZE=1 "$KO" -DSQLITE_THREADSAFE=0 -DSQLITE_OMIT_LOAD_EXTENSION \
+    -I "$d" "$harness" "$d/sqlite3.c" -ldl -o "$ROOT/benchmark/public/bin/sqlite/sqlite_fuzzer_symsan" \
+    && echo "built sqlite_fuzzer_symsan(仅编译;运行期 uninitialized-label,concolic 产出 0)" \
+    || echo "sqlite 编译失败"
+}
 
 # coreutils md5sum/uniq/who:整棵 autotools 树用 ko-clang 重编。【能编译】,但因这三个程序
 # strcmp/哈希主导,fgtest 下 concolic 无产出(见 docs)。故仅编译、不接入发现层。BUILD_COREUTILS=1 启用。
@@ -94,4 +106,5 @@ else
   echo "跳过重库目标 libxml2/libpng/pcre2(设 BUILD_LIBS=1 启用,较重)"
 fi
 [ "${BUILD_COREUTILS:-0}" = "1" ] && build_coreutils
+[ "${BUILD_SQLITE:-0}" = "1" ] && build_sqlite
 echo "=== 完成。跑法:SYMSAN_FGTEST=<fgtest> python3 benchmark/run_benchmark.py --engine symsan --targets lava-base64 ... ==="
