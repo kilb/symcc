@@ -87,16 +87,29 @@ build_sqlite() {
     || echo "sqlite 编译失败"
 }
 
-# coreutils md5sum/uniq/who:整棵 autotools 树用 ko-clang 重编。【能编译】,但因这三个程序
-# strcmp/哈希主导,fgtest 下 concolic 无产出(见 docs)。故仅编译、不接入发现层。BUILD_COREUTILS=1 启用。
+# coreutils md5sum/uniq/who:整棵 autotools 树用 ko-clang 重编。**uniq 已跑通**(concolic 92 输出);
+# md5sum(无 -c 只做哈希、无输入相关分支)/ who(读二进制 utmp、分支少)在本 benchmark 调用下产出少
+# ——属目标性质,非 taint bug。关键两坑均已解:(1) getc 丢污点(taint_getc runtime bug,已修);
+# (2) env 作用域——`VAR=x make clean; make` 里 VAR 只作用于 make clean,导致真正的构建缺 KO_USE_FASTGEN
+# → 链接到空的 __taint_trace_cond weak stub → 0 事件。必须 export 让 env 覆盖整个构建。BUILD_COREUTILS=1 启用。
 build_coreutils() {
   local lava="$ROOT/benchmark/public/lava_corpus/LAVA-M"
   for prog in md5sum uniq who; do
     local tree="$lava/$prog/coreutils-8.24-lava-safe"
     [ -f "$tree/Makefile" ] || { echo "跳过 $prog:未配置"; continue; }
-    ( cd "$tree" && KO_USE_FASTGEN=1 KO_DONT_OPTIMIZE=1 TAINT_OPTIONS="taint_file=/dev/null output_dir=/tmp" \
-        make clean >/dev/null 2>&1; make -k -i CC="$KO" -j"$(nproc)" >/dev/null 2>&1 )
-    [ -x "$tree/src/$prog" ] && echo "built $prog (仅编译;concolic 无产出)" || echo "$prog 编译失败"
+    # export:env 必须覆盖 make clean 与真正的 make 两步(否则链接缺 fastgen → trace_cond 空桩)
+    ( cd "$tree"
+      export KO_USE_FASTGEN=1 KO_DONT_OPTIMIZE=1 KO_CC="${KO_CC:-clang-18}" TAINT_OPTIONS="taint_file=/dev/null output_dir=/tmp"
+      make clean >/dev/null 2>&1
+      make -k -i CC="$KO" -j"$(nproc)" >/dev/null 2>&1 )
+    [ -x "$tree/src/$prog" ] || { echo "$prog 编译失败"; continue; }
+    # 校验链接到真正的 __taint_trace_cond(非 ret 空桩)
+    if objdump -d "$tree/src/$prog" 2>/dev/null | awk '/<__taint_trace_cond>:/{getline;print;exit}' | grep -q "ret$"; then
+      echo "$prog: WARN 链接到空 trace_cond 桩(fastgen 缺失)"
+    else
+      cp "$tree/src/$prog" "$ROOT/benchmark/public/bin/lava-m/${prog}_symsan"
+      echo "built ${prog}_symsan (real trace_cond)"
+    fi
   done
 }
 

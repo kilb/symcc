@@ -249,20 +249,24 @@ AFL(3)+ SymSan concolic(2)→ **边覆盖 41.34%(4022/9728),concolic 贡献 120 
 (`fgetc`→buf→`strcmp(buf,"MAGIC")`)与 realloc 增长缓冲版**都能解出 `MAGIC`**(修复前完全无产出)。
 这是一处影响面广的运行时修复(见补丁 `dfsan_custom.cpp` `taint_getc`)。
 
-### coreutils md5sum/uniq/who:仍 0 产出(剩余问题已缩小)
-整棵 coreutils autotools 树用 ko-clang **成功编译**(各 176 dfsan 符号)。修掉上面的 `taint_getc` bug 后,
-简单 getc→buf→strcmp/memcmp 的最小用例**都能解**(多个变体验证:`buf[i++]`/`*p++`/独立函数/getc 宏)。
-**但 uniq/md5sum/who 仍 0 产出**,深挖到一处精确但难跨的墙:
-- uniq 真正的比较是 `different()` 里的 **`memcmp(old,new,len)`**(不是我先前追的 strcmp——那些是 find_field/
-  locale 的干扰),且前有 `oldlen!=newlen` 长度短路。
-- 经 gnulib `readlinebuffer_delim`(`*p++=c`,与可解的最小用例逐字节同构)读入后,`taint_getc` 确实触发
-  (12 次算出 label),**但到 memcmp 时行缓冲内容 `dfsan_read_label` 读为 0**——内容污点在 uniq 的具体
-  编译里丢了,而结构相同的最小用例不丢。
-- 黑盒隔离了 ~10 个变量(realloc/指针游走/函数边界/getc 宏/strcmp-vs-memcmp/长度短路)均非单一主因。
-**结论**:这不是"不可解",是 gnulib 行读取在 uniq 全量编译下的一处**内容污点丢失**,黑盒试错已到极限——
-再进需在 DFSan 运行时的 **store shadow 路径**里逐字节插桩追踪(DFSan 把 store 的影子传播 inline 进目标,
-无法从外部 AOUT,须改 TaintPass/带运行时重建迭代),属更深的专项调试。已修的 `taint_getc` bug 是本轮实在收获。
-构建见 `build_public_symsan.sh build_coreutils`(`BUILD_COREUTILS=1`);concolic 仍无产出,不接入发现层。
+### coreutils:uniq【已攻下,92 concolic 输出】——曾误判为"不可解",实为两个 bug
+整棵 coreutils autotools 树用 ko-clang 编。**uniq 现跑通:fgtest 92 输出、fgtest_rgd 305**。此前一直 0,
+是**两个叠加的 bug**,深挖(逐字节 `dfsan_read_label` 插桩 + 反汇编 `__taint_trace_cond`)才厘清:
+
+1. **`taint_getc` runtime bug**(见上):getc 每字符丢污点 → uniq 的 gnulib `readlinebuffer` 读入的行永不
+   符号化。修 `return label` 后污点完整到达 `different()` 的 `memcmp`(插桩确认 `old_lbl=61 new_lbl=62`)。
+2. **我自己的构建命令 env 作用域 bug**:`VAR=1 make clean; make ...` 里 `VAR` 只作用于 `make clean`,
+   真正的 `make` **缺 `KO_USE_FASTGEN`** → 链接时 ko-clang 不 `--whole-archive libFastgen.a` →
+   `__taint_trace_cond` 落到**空的 weak stub(`ret`)** → 所有分支不发事件 → fgtest 0 solving。反汇编对比
+   base64(真函数)vs uniq(`ret` 空桩)一眼看穿。**必须 `export` 让 env 覆盖整个构建。** base64/xml/pcre2/
+   sqlite 是单次 ko-clang 编译+链接,故没踩到。
+
+**md5sum / who**:同样正确编译+链接,但 `taint_getc=0`(它们用 `fread` 读二进制,不走 getc);产出少是
+**目标性质**——md5sum 无 `-c` 只做 MD5(直线运算、无输入相关分支);who 解析二进制 utmp、分支稀疏。非 bug。
+
+**教训(第 4 次)**:又一次"不可解"实为可修 bug——而且这次一半是我自己的构建命令错。真相靠**反汇编
+`__taint_trace_cond` 对比**(空桩 vs 真函数)一步锁定。uniq 已接入发现层(`lava-uniq`),
+`build_public_symsan.sh build_coreutils`(`BUILD_COREUTILS=1`,已修 env 作用域)自动产出 `uniq_symsan`。
 
 ---
 
