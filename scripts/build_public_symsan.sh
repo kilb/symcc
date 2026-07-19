@@ -29,5 +29,26 @@ build_base64() {
   echo "built $OUT/base64_harness_symsan  (dfsan syms: $(nm "$OUT/base64_harness_symsan" 2>/dev/null | grep -icE 'dfs\$|__dfsw_|__dfsan_'))"
 }
 
+# libxml2 xml_read_fuzzer:格式解析器,concolic 的强项。需用 ko-clang 整体重编 libxml2.a
+# (~200 文件,较重),再链接独立 harness。libxml2.a 为构建产物(gitignored),重编不影响仓库。
+# 仅当设 BUILD_XML=1 时执行(避免默认跑重构建)。
+build_libxml2() {
+  [ "${BUILD_XML:-0}" = "1" ] || { echo "跳过 libxml2(设 BUILD_XML=1 启用,较重)"; return; }
+  local xmldir="$ROOT/benchmark/public/gfts_build/libxml2-2.9.2"
+  local compile="$ROOT/benchmark/compile_public_benchmarks.sh"
+  [ -f "$xmldir/configure" ] && [ -f "$compile" ] || { echo "跳过 libxml2:缺源码/编译脚本"; return; }
+  # 从 compile_public_benchmarks.sh 抽取独立 xml harness(读文件 → 匹配 fgtest 契约)
+  local harness; harness="$(mktemp --suffix=.c)"
+  awk "/cat > \\/tmp\\/xml_read_fuzzer.c << 'HARNESS_EOF'/{f=1;next} /^HARNESS_EOF/{if(f)exit} f" "$compile" > "$harness"
+  [ -s "$harness" ] || { echo "跳过 libxml2:未能抽取 harness"; rm -f "$harness"; return; }
+  ( cd "$xmldir" && make clean >/dev/null 2>&1; make CC="$KO" libxml2.la -j"$(nproc)" >/dev/null 2>&1 )
+  "$KO" -O1 "$harness" -I "$xmldir/include" -I "$xmldir/include/libxml" \
+        "$xmldir/.libs/libxml2.a" -lz -lm -lpthread \
+        -o "$ROOT/benchmark/public/bin/google-fts/xml_read_fuzzer_symsan"
+  rm -f "$harness"
+  echo "built .../google-fts/xml_read_fuzzer_symsan  (dfsan syms: $(nm "$ROOT/benchmark/public/bin/google-fts/xml_read_fuzzer_symsan" 2>/dev/null | grep -icE 'dfs\$|__dfsw_|__dfsan_'))"
+}
+
 build_base64
+build_libxml2
 echo "=== 完成。跑法:SYMSAN_FGTEST=<fgtest> python3 benchmark/run_benchmark.py --engine symsan --targets lava-base64 ... ==="

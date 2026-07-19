@@ -189,6 +189,15 @@ fgtest 用进程内 Z3。SymSan 的 SOTA 后端其实是 **RGD 解析器 + I2S�
 AFL(3)+ SymSan concolic(2,经 fgtest,四技术全开)→ **边覆盖 38.02%(73)→ 50.52%(97 edges)**,
 concolic 贡献 21 个 interesting。SymSan 已是能跑真实公开套件的一等引擎。
 
+### 第二类真实目标:libxml2(格式解析器)
+LAVA-M(coreutils)之外再验证一类——**libxml2 xml_read_fuzzer**(XML 解析,concolic 的强项:
+魔数/结构/嵌套)。用 ko-clang(FastGen)整体重编 `libxml2.a`(234 dfsan 符号)再链接独立 harness
+(读 argv 文件 → 匹配 fgtest 契约)成 `xml_read_fuzzer_symsan`(176 dfsan 符号)。**实测 fgtest 在
+XML 种子上跑通 concolic:生成 142 个新输入 + 142 个 .hints**,发现层引擎感知自动识别为 `gfts-xml_read_fuzzer`。
+构建见 `scripts/build_public_symsan.sh` 的 `build_libxml2`(`BUILD_XML=1` 启用,较重)。
+(注:该 AFL 二进制为持久模式,afl-showmap 文件模式覆盖计数不可靠 → 未作覆盖率对拍;"编译+concolic
+跑通"已证 libxml2 为可用 SymSan 目标。)
+
 ---
 
 ## 复现
