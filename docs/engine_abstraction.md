@@ -12,11 +12,19 @@ showmap 去重、位图合并、K-Scheduler、冗余统计)**~90% 可原样复�
 ```
 # 默认 SymCC(不变)
 python3 benchmark/run_benchmark.py --targets ... --hybrid
-# 切 SymSan(实验性,需先构建 + 重编目标,见下)
-SYMSAN_FGTEST=/path/to/fgtest \
+# 切 SymSan(实验性):编译器 + fgtest 都指向已构建的 SymSan(见 scripts/build_symsan.sh)
+SYMSAN_KO_CLANG=/path/to/symsan/build/compiler/ko-clang \
+SYMSAN_FGTEST=/path/to/symsan/build/driver/fgtest \
 python3 benchmark/run_benchmark.py --engine symsan --targets ... --hybrid
 ```
-`--engine` → `SYMCC_ENGINE` 环境变量 → 经 `os.environ.copy()` 透传给各 MPI worker。
+- `--engine` → `SYMCC_ENGINE` → 经 `os.environ.copy()` 透传给各 MPI worker(运行期选引擎)。
+- **构建期也按引擎走**:`build_targets` 用 `get_engine()` 选编译器与二进制后缀——
+  symcc 用 `symcc` 编 `*_symcc`;symsan 用 `SYMSAN_KO_CLANG`(FastGen 模式)编 `*_symsan`。
+  插桩检测(`_has_symcc_instrumentation`)也按 `engine.detect_symbols` 走(symcc `__sym_ctor` / symsan `__taint`)。
+  (已验证:微目标 `parser.c` 两引擎均正确编译 + 检测。)
+
+> 注:目前引擎化覆盖 `benchmark/targets/*.c` 微目标的**编译流程**;公开套件(base64/xml…)的 `*_symcc`
+> 二进制是预编译的,用 ko-clang 批量重编是后续工作(其 setup 脚本 + C++ 目标的 FastGen 接入)。
 
 ## 实现
 - **`util/concolic_engine.py`**:`ConcolicEngine` 接口 + `SymCCEngine` / `SymSanEngine`,`get_engine()` 工厂。

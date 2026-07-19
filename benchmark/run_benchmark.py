@@ -47,6 +47,9 @@ SCRIPT_DIR = Path(__file__).parent.resolve()
 SYMCC_ROOT = SCRIPT_DIR.parent
 TARGETS_DIR = SCRIPT_DIR / "targets"
 SEEDS_DIR = SCRIPT_DIR / "seeds"
+
+sys.path.insert(0, str(SYMCC_ROOT / "util"))
+from concolic_engine import get_engine  # noqa: E402  concolic 引擎抽象(symcc/symsan)
 MPI_SCRIPT = SYMCC_ROOT / "util" / "mpi_concolic_execution.py"
 MPI_FUZZING_SCRIPT = SYMCC_ROOT / "util" / "mpi_fuzzing_helper.py"
 SERIAL_SCRIPT = SYMCC_ROOT / "util" / "pure_concolic_execution.sh"
@@ -74,16 +77,16 @@ MIN_SYMCC_SYMBOLS = 5  # threshold to consider a binary SymCC-instrumented
 SYMCC_WORKER_CAP = 12
 
 
-def _has_symcc_instrumentation(binary_path):
-    """Check if a binary contains SymCC instrumentation symbols."""
+def _has_symcc_instrumentation(binary_path, engine=None):
+    """检查二进制是否含当前引擎的插桩符号(symcc:__sym_ctor;symsan:__taint/dfsan)。"""
+    engine = engine or get_engine()
+    syms = engine.detect_symbols
     try:
         result = subprocess.run(
             ["nm", binary_path], capture_output=True, text=True, timeout=10
         )
-        # SymCC 插桩会插入 __sym_ctor 符号
         count = sum(1 for line in result.stdout.splitlines()
-                    if "__sym_ctor" in line or "_sym_build" in line
-                    or "SymExpr" in line)
+                    if any(s in line for s in syms))
         return count >= MIN_SYMCC_SYMBOLS
     except (OSError, subprocess.SubprocessError, ValueError):
         return True  # assume instrumented if we can't check
@@ -134,26 +137,48 @@ def find_symcc():
     return None
 
 
-def build_targets(compiler, output_dir):
-    """Compile all target programs."""
+def _resolve_engine_compiler(engine):
+    """解析当前引擎的编译器路径。symcc→find_symcc();symsan→SYMSAN_KO_CLANG(已构建的 ko-clang)。"""
+    if engine.name == "symsan":
+        ko = os.environ.get("SYMSAN_KO_CLANG")
+        if ko and (shutil.which(ko) or os.path.isfile(ko)):
+            return ko
+        return None
+    return os.environ.get("SYMCC_CC") or find_symcc()
+
+
+def build_targets(output_dir, engine=None):
+    """用当前 concolic 引擎编译所有微目标(symcc→*_symcc / symsan→*_symsan,FastGen 模式)。"""
+    engine = engine or get_engine()
+    compiler = _resolve_engine_compiler(engine)
     binaries = {}
     os.makedirs(output_dir, exist_ok=True)
-
+    if not compiler:
+        hint = " (设 SYMSAN_KO_CLANG 指向 scripts/build_symsan.sh 构建出的 ko-clang)" \
+            if engine.name == "symsan" else ""
+        print(f"  {engine.name} 编译器未找到{hint}")
+        return binaries
+    print(f"  引擎={engine.name},编译器={compiler}")
     for name, (source, _, _, _) in TARGETS.items():
         src_path = TARGETS_DIR / source
-        bin_path = Path(output_dir) / f"{name}_symcc"
-
+        bin_path = Path(output_dir) / f"{name}{engine.binary_suffix}"
+        cmd, extra_env = engine.build_argv(compiler, str(src_path), str(bin_path))
+        env = dict(os.environ)
+        env.update(extra_env)
         print(f"  Compiling {name}... ", end="", flush=True)
-        ret, _, stderr, elapsed = run_cmd(
-            [compiler, "-O2", str(src_path), "-o", str(bin_path)]
-        )
-        if ret == 0:
-            print(f"OK ({elapsed:.1f}s)")
-            binaries[name] = str(bin_path)
-        else:
-            print(f"FAILED (ret={ret})")
-            if stderr:
-                print(f"    {stderr[:200]}")
+        start = time.monotonic()
+        try:
+            r = subprocess.run(cmd, capture_output=True, text=True, timeout=300, env=env)
+            elapsed = time.monotonic() - start
+            if r.returncode == 0:
+                print(f"OK ({elapsed:.1f}s)")
+                binaries[name] = str(bin_path)
+            else:
+                print(f"FAILED (ret={r.returncode})")
+                if r.stderr:
+                    print(f"    {r.stderr[:200]}")
+        except (OSError, subprocess.SubprocessError) as e:
+            print(f"FAILED ({e})")
     return binaries
 
 
@@ -2430,24 +2455,25 @@ def main():
         print("Step 1: Compiling target programs")
         print("-" * 40)
 
+        _engine = get_engine()
+        if args.symcc and _engine.name == "symcc":
+            os.environ["SYMCC_CC"] = args.symcc   # 让 build_targets 用指定的 symcc
         if args.simulation:
             print("  (Simulation mode: using gcc)")
             binaries = build_targets_gcc(bin_dir)
         else:
-            symcc = args.symcc or find_symcc()
-            if symcc:
-                print(f"  Using SymCC: {symcc}")
-                binaries = build_targets(symcc, bin_dir)
-            else:
+            binaries = build_targets(bin_dir, _engine)   # 按 --engine 选 symcc/ko-clang
+            if not binaries and _engine.name == "symcc":
                 print("  SymCC not found, falling back to gcc (simulation mode)")
                 print("  NOTE: simulation mode tests the MPI framework overhead,")
                 print("        not actual symbolic execution performance.")
                 binaries = build_targets_gcc(bin_dir)
                 args.simulation = True
     else:
-        # Find existing binaries
+        # Find existing binaries(按当前引擎的后缀优先)
+        _suffixes = [get_engine().binary_suffix, "_symcc", "_native"]
         for name in target_names:
-            for suffix in ["_symcc", "_native"]:
+            for suffix in _suffixes:
                 path = os.path.join(bin_dir, f"{name}{suffix}")
                 if os.path.isfile(path):
                     binaries[name] = path

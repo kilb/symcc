@@ -42,6 +42,12 @@ class ConcolicEngine:
         """
         raise NotImplementedError
 
+    def build_argv(self, compiler: str, source: str, out: str
+                   ) -> "tuple[list[str], dict[str, str]]":
+        """把单文件 C 目标编译成本引擎插桩二进制,返回 (编译命令, 额外环境变量)。
+        `compiler` 为本引擎的编译器路径(SymCC 的 symcc / SymSan 的 ko-clang)。"""
+        raise NotImplementedError
+
 
 class SymCCEngine(ConcolicEngine):
     """SymCC(QSYM/Z3 后端):二进制自驱,写 SYMCC_OUTPUT_DIR。保持与既有行为逐字节一致(默认引擎)。"""
@@ -64,6 +70,9 @@ class SymCCEngine(ConcolicEngine):
             arg.replace("@@", str(input_file)) for arg in target_cmd
         ]
         return cmd, env, False
+
+    def build_argv(self, compiler, source, out):
+        return [compiler, "-O2", str(source), "-o", str(out)], {}
 
 
 class SymSanEngine(ConcolicEngine):
@@ -90,6 +99,16 @@ class SymSanEngine(ConcolicEngine):
         binary = target_cmd[0]                 # _symsan 二进制;fgtest 只取 (target, input),丢弃 @@ 等额外 argv
         cmd = ["timeout", "-k", "5", str(timeout_sec), self.fgtest, binary, str(input_file)]
         return cmd, env, False                 # SymSan 走 argv 文件输入,不喂 stdin
+
+    def build_argv(self, compiler, source, out):
+        # ko-clang 需 FastGen 插桩模式(KO_USE_FASTGEN=1),fgtest 才有回调;KO_DONT_OPTIMIZE 保留分支
+        env = {
+            "KO_CC": os.environ.get("KO_CC", "clang-18"),
+            "KO_USE_FASTGEN": "1",
+            "KO_DONT_OPTIMIZE": "1",
+            "KO_USE_NATIVE_LIBCXX": os.environ.get("KO_USE_NATIVE_LIBCXX", "1"),
+        }
+        return [compiler, "-O2", str(source), "-o", str(out)], env
 
 
 _ENGINES: "dict[str, type[ConcolicEngine]]" = {
