@@ -217,6 +217,17 @@ AFL(3)+ SymSan concolic(2)→ **边覆盖 41.34%(4022/9728),concolic 贡献 120 
 (格式解析器目标的 AFL 二进制多为持久模式,afl-showmap 文件模式边计数不可靠 → 以"编译+concolic 跑通"
 为可用性判据,不作覆盖率对拍。)
 
+### coreutils md5sum/uniq/who:编译通过,但 concolic 不产出(诚实记录)
+整棵 coreutils autotools 树用 ko-clang(FastGen)**成功编译**(`make -k -i CC=ko-clang`,三者各 176 dfsan
+符号)——证 ko-clang 能处理完整 coreutils(gnulib I/O 也有 DFSan 拦截器:`__dfsw_fgetc`/`getdelim`/`fread`)。
+**污点也确实传播**:uniq 上实测 19 次 `taint_getc`(fgetc 读入打标签)、16 次 `strcmp`、14 个 cond。
+**但 fgtest 产出 0 个新输入**:这三个程序是 **strcmp/哈希主导**——输入相关分支几乎全是"strcmp 结果"分支。
+SymSan 对 strcmp 的处理是把结果 union 成 memcmp 追踪(`__taint_trace_memcmp`)而非让分支符号化,加之中间大量
+`ptrtoint` 具体化(DFSan 丢污点),到达 fgtest 的 7 个 cond 全是 label 0(具体)→ `parse_cond` 全部失败。
+对比 base64/xml/png/pcre2 有**直接字节比较**(`buf[i]=='<'`)故可解。结论:coreutils 这类 strcmp/指针密集
+程序,fgtest one-shot 契约下 concolic 无产出——非编译失败,而是 SymSan 对该类目标的求解局限。构建见
+`build_public_symsan.sh build_coreutils`(`BUILD_COREUTILS=1`);因 concolic 无产出,不接入发现层。
+
 ---
 
 ## 复现

@@ -74,10 +74,24 @@ build_pcre2() {
 # 注:sqlite 的 7MB amalgamation 会让 DFSan 插桩 pass 崩溃(clang frontend signal),
 # 属 DFSan 对超大单 TU 的已知限制,暂不支持(需 split 源或换 harness)。
 
+# coreutils md5sum/uniq/who:整棵 autotools 树用 ko-clang 重编。【能编译】,但因这三个程序
+# strcmp/哈希主导,fgtest 下 concolic 无产出(见 docs)。故仅编译、不接入发现层。BUILD_COREUTILS=1 启用。
+build_coreutils() {
+  local lava="$ROOT/benchmark/public/lava_corpus/LAVA-M"
+  for prog in md5sum uniq who; do
+    local tree="$lava/$prog/coreutils-8.24-lava-safe"
+    [ -f "$tree/Makefile" ] || { echo "跳过 $prog:未配置"; continue; }
+    ( cd "$tree" && KO_USE_FASTGEN=1 KO_DONT_OPTIMIZE=1 TAINT_OPTIONS="taint_file=/dev/null output_dir=/tmp" \
+        make clean >/dev/null 2>&1; make -k -i CC="$KO" -j"$(nproc)" >/dev/null 2>&1 )
+    [ -x "$tree/src/$prog" ] && echo "built $prog (仅编译;concolic 无产出)" || echo "$prog 编译失败"
+  done
+}
+
 build_base64
 if [ "${BUILD_LIBS:-0}" = "1" ]; then
   build_libxml2; build_libpng; build_pcre2
 else
   echo "跳过重库目标 libxml2/libpng/pcre2(设 BUILD_LIBS=1 启用,较重)"
 fi
+[ "${BUILD_COREUTILS:-0}" = "1" ] && build_coreutils
 echo "=== 完成。跑法:SYMSAN_FGTEST=<fgtest> python3 benchmark/run_benchmark.py --engine symsan --targets lava-base64 ... ==="
