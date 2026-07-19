@@ -1,5 +1,5 @@
 diff --git a/driver/fgtest.cpp b/driver/fgtest.cpp
-index 510f5a1..8c4ffc4 100644
+index 510f5a1..5979e56 100644
 --- a/driver/fgtest.cpp
 +++ b/driver/fgtest.cpp
 @@ -11,7 +11,10 @@ extern "C" {
@@ -21,7 +21,7 @@ index 510f5a1..8c4ffc4 100644
  static uint32_t __instance_id = 0;
  static uint32_t __session_id = 0;
  static uint32_t __current_index = 0;
-@@ -52,6 +56,79 @@ static z3::context __z3_context;
+@@ -52,6 +56,99 @@ static z3::context __z3_context;
  // z3parser
  symsan::Z3ParserSolver *__z3_parser = nullptr;
  
@@ -32,17 +32,37 @@ index 510f5a1..8c4ffc4 100644
 +static std::vector<std::vector<uint8_t>> __dict_tokens;  // ③ AFL 字典 token 列表
 +static bool __multi_solve = false;                       // ① SYMCC_MULTI_SOLVE>=1 时启用
 +static std::map<size_t, uint8_t> __combined_sets;        // ① 累积各分支的 SET 解(offset->val)
++static bool __emit_hints = false;                        // ② SYMCC_EMIT_HINTS 时写 .hints 旁车
 +
-+// 把一段字节写成一个编号 id-* 输出(求解结果 / dict 变体 / combined 输入复用同一出口)
-+static void write_output(const std::vector<uint8_t>& data, const char* tag) {
++// 把一段字节写成一个编号 id-* 输出(求解结果 / dict 变体 / combined 输入复用同一出口),
++// 返回写出的文件路径(空串=失败),供 ② hint 旁车文件复用同一文件名。
++static std::string write_output(const std::vector<uint8_t>& data, const char* tag) {
 +  char path[PATH_MAX];
 +  snprintf(path, PATH_MAX, "%s/id-%d-%d-%d", __output_dir,
 +           __instance_id, __session_id, __current_index++);
 +  int fd = open(path, O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
-+  if (fd == -1) { AOUT("failed to open %s output\n", tag); return; }
++  if (fd == -1) { AOUT("failed to open %s output\n", tag); return std::string(); }
 +  if (write(fd, data.data(), data.size()) == -1)
 +    AOUT("failed to write %s output\n", tag);
 +  close(fd);
++  return std::string(path);
++}
++
++// ② hint 传递(移植自 SymCC saveValues 的 emit_hints 段):给某个求解输出写 .hints 旁车,
++//    每行 "offset:old:new"(十六进制)记录相对原始种子改动的字节。编排层
++//    (mpi_fuzzing_helper 读 *.hints → hint_map)据此做精准变异 / focus_bytes。
++static void emit_hints(const std::string& path, const std::vector<uint8_t>& out) {
++  if (!__emit_hints || path.empty()) return;
++  std::ofstream hf(path + ".hints");
++  if (!hf.is_open()) return;
++  char buf[64];
++  for (size_t i = 0; i < out.size() && i < input_size; i++) {
++    if (out[i] != (uint8_t)input_buf[i]) {
++      snprintf(buf, sizeof(buf), "%zu:%02x:%02x\n", i,
++               (uint8_t)input_buf[i], out[i]);
++      hf << buf;
++    }
++  }
 +}
 +
 +// ③ 载入 AFL 字典(SYMCC_DICT):格式 "token" 或 name="token",支持 \xNN 转义。
@@ -101,7 +121,7 @@ index 510f5a1..8c4ffc4 100644
  static void generate_input(symsan::Z3ParserSolver::solution_t &solutions) {
    using op_t = symsan::Z3ParserSolver::solution_op_t;
  
-@@ -96,24 +173,35 @@ static void generate_input(symsan::Z3ParserSolver::solution_t &solutions) {
+@@ -96,24 +193,37 @@ static void generate_input(symsan::Z3ParserSolver::solution_t &solutions) {
      }
    }
  
@@ -125,7 +145,8 @@ index 510f5a1..8c4ffc4 100644
    AOUT("generate #%d output (size: %zu -> %zu)\n",
 -       __current_index - 1, input_size, new_input.size());
 +       __current_index, input_size, new_input.size());
-+  write_output(new_input, "sol");
++  std::string path = write_output(new_input, "sol");
++  emit_hints(path, new_input);  // ② 写 offset:old:new 旁车,供编排层精准变异
  
 -  if (write(fd, new_input.data(), new_input.size()) == -1) {
 -    AOUT("failed to write new input\n");
@@ -146,11 +167,12 @@ index 510f5a1..8c4ffc4 100644
 +    if (kv.first < merged.size()) merged[kv.first] = kv.second;
 +  AOUT("multi-solve: combined %zu field solutions into one input\n",
 +       __combined_sets.size());
-+  write_output(merged, "combined");
++  std::string path = write_output(merged, "combined");
++  emit_hints(path, merged);  // ② 组合输出同样写 hint 旁车
  }
  
  static void __solve_cond(dfsan_label label, uint8_t r, bool add_nested, void *addr) {
-@@ -204,6 +292,18 @@ int main(int argc, char* const argv[]) {
+@@ -204,6 +314,18 @@ int main(int argc, char* const argv[]) {
          is_stdin = 1;
      }
  
@@ -169,18 +191,19 @@ index 510f5a1..8c4ffc4 100644
      // check for debug
      char *debug_opt = strstr(options, "debug=");
      if (debug_opt) {
-@@ -236,6 +336,10 @@ int main(int argc, char* const argv[]) {
+@@ -236,6 +358,11 @@ int main(int argc, char* const argv[]) {
      }
    }
  
-+  // 技术③/① 开关(与 SymCC 同名环境变量,经 fgtest 自身 env 直接读取):
++  // 技术③/②/① 开关(与 SymCC 同名环境变量,经 fgtest 自身 env 直接读取):
 +  __multi_solve = getenv("SYMCC_MULTI_SOLVE") != nullptr;  // ① 多字段解组合
++  __emit_hints = getenv("SYMCC_EMIT_HINTS") != nullptr;    // ② hint 旁车文件
 +  load_dictionary();                                       // ③ 载入 SYMCC_DICT 字典
 +
    // load input file
    struct stat st;
    int input_fd = open(input, O_RDONLY);
-@@ -275,6 +379,7 @@ int main(int argc, char* const argv[]) {
+@@ -275,6 +402,7 @@ int main(int argc, char* const argv[]) {
    symsan_set_debug(debug);
    symsan_set_bounds_check(1);
    symsan_set_solve_ub(solve_ub);
@@ -188,7 +211,7 @@ index 510f5a1..8c4ffc4 100644
  
    // launch the target
    int ret = symsan_run(input_fd);
-@@ -355,6 +460,8 @@ int main(int argc, char* const argv[]) {
+@@ -355,6 +483,8 @@ int main(int argc, char* const argv[]) {
      }
    }
  

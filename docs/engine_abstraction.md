@@ -84,7 +84,13 @@ apt-get install -y libc++-18-dev libc++abi-18-dev libunwind-18-dev libboost-cont
         (cap 20)。复刻 `saveDictVariants`。
   - [x] **①多字段解组合**——fgtest driver 层:`SYMCC_MULTI_SOLVE` 累积各分支 SET 解,结束时组合成一个
         "同时满足多字段"的输入(SymSan 按 task 逐分支解,故在解层面组合,等价于 `negateGroup` 对邻近字段的效果)。
-  - [ ] ②hint 传递 ⑤fast-solve(⑤因 FastGen 本就 JIT 快解而部分作废)。
+  - [x] **②hint 传递**——fgtest driver 层:`SYMCC_EMIT_HINTS` 给每个产出写 `offset:old:new` 的 `.hints`
+        旁车,编排层 `hint_map` 复用。复刻 SymCC `emit_hints`。
+  - [~] ⑤fast-solve——基本作废:SymSan 多字节比较单 task 一次解出、JIGSAW/FastGen 本就跳 Z3 快解。
+- **真实公开目标**:LAVA-M base64 已用 ko-clang 编成 `base64_harness_symsan`(`scripts/build_public_symsan.sh`),
+  `run_benchmark` 公开目标发现【引擎感知】(symsan 只挑 `*_symsan`)。全 hybrid 实测:边覆盖 73→97,
+  concolic 贡献 21 interesting;覆盖率对拍 symcc 113/192 vs symsan 111/192。其余公开套件(coreutils
+  md5sum/uniq/who 需整棵 autotools 过 ko-clang;C/C++ libFuzzer 套件)为后续。
 - [ ] C++ 目标(libFuzzer harness):SymSan 的进程内 Z3 对 C++ 目标有链接问题 → 需接 FastGen(进程外)。
 - [ ] fgtest 单遍只解一个嵌套分支——编排层的"输出喂回"循环(现成)会迭代解深;确认与 showmap 去重路径对齐
       (SymSan 输出即普通输入文件,应可直接复用)。

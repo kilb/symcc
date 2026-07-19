@@ -79,9 +79,10 @@ class SymSanEngine(ConcolicEngine):
     """SymSan(DFSan + 进程内/外求解):经 fgtest driver 驱动,写 TAINT_OPTIONS 里的 output_dir。
 
     ⚠️ 实验性:需先构建 SymSan(见 `scripts/build_symsan.sh`,依赖 Z3>=4.8.15 + LLVM 18)并用 `KO_CC`
-    重编目标为 `*_symsan`;`SYMSAN_FGTEST` 指向构建出的 fgtest。5 个自研技术点已移植 3 个(④选择性符号化/
-    ③字典引导/①多字段解组合,均经与 SymCC 同名的 SYMCC_FOCUS_BYTES/SYMCC_DICT/SYMCC_MULTI_SOLVE 通道下发,
-    见 `docs/symsan_ported_techniques.md`);②hint/⑤fast-solve 待办(⑤因 FastGen JIT 快解部分作废)。
+    重编目标为 `*_symsan`;`SYMSAN_FGTEST` 指向构建出的 fgtest。5 个自研技术点已移植 4 个(④选择性符号化/
+    ③字典引导/②hint/①多字段解组合,均经与 SymCC 同名的 SYMCC_FOCUS_BYTES/SYMCC_DICT/SYMCC_EMIT_HINTS/
+    SYMCC_MULTI_SOLVE 通道下发,见 `docs/symsan_ported_techniques.md`);⑤fast-solve 基本作废(SymSan 单
+    task 多字节解 + JIGSAW 本就 JIT 快解)。已跑通真实公开目标 LAVA-M base64(`scripts/build_public_symsan.sh`)。
     """
 
     name = "symsan"

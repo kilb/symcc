@@ -116,6 +116,49 @@ SET 解。于是:
 输出同时满足两段;`MULTI_SOLVE=1` **9 个输出,其中 1 个组合输出同时满足 A、B 两段**——正是"一次跨过
 多字段"的效果。
 
+## 技术② hint 传递(input-to-state)
+
+对每个求解产出,写一个 `.hints` 旁车文件,每行 `offset:old:new`(十六进制)记录相对原始种子改动的
+字节。编排层(`mpi_fuzzing_helper` 读 `*.hints` → `hint_map`)据此做**精准变异 / focus_bytes 计算**——
+把 concolic 求出的"哪个字节该变成什么"反馈给 AFL 侧,是 input-to-state 的桥。移植自 SymCC `saveValues`
+的 `emit_hints` 段,格式逐字节一致。
+
+**落点:纯 driver 层(fgtest.cpp)。** `write_output` 返回文件名,`emit_hints(path, out)` 对比种子写
+`<id>.hints`;`generate_input`(求解输出)与 `flush_combined_input`(组合输出)各调一次。门控
+`SYMCC_EMIT_HINTS`(与 SymCC 同名;`SymCCEngine` 默认置 1,SymSan 经 env 透传)。
+
+**验证**:base64 种子上 `SYMCC_EMIT_HINTS=1` → 每个 `id-*` 旁生成 `id-*.hints`,内容如 `0:41:11`
+(偏移 0,'A'→0x11),格式与编排层 `hint_map` 解析器完全吻合。
+
+## 技术⑤ fast-solve(基本被 SymSan 原生快解吸收)
+
+SymCC 的 ⑤ 是"简单约束/多字节 Concat 比较跳过 Z3、直接算值"(`fastSolve`/`fastSolveConcat`)。SymSan 侧
+**大部分作废**:(a) SymSan 求解器把多字节比较(magic/整数)作为**单个 task 一次解出**,天然是 ⑤
+`fastSolveConcat` 想达到的效果(见 base64 对拍:symsan 用 1/2 的输入达到近同覆盖);(b) SymSan 的 SOTA
+后端是 **JIGSAW/FastGen 梯度求解器**(`KO_USE_FASTGEN` + rgd-solver,USENIX'22),本就是"跳过 Z3 的快
+解"。当前接入用 fgtest 的进程内 Z3(简单约束下 Z3 已很快);接 JIGSAW 进程外求解器可作进一步 SOTA 化,
+列为后续。故 ⑤ 不单独移植。
+
+---
+
+## 真实公开目标验证(LAVA-M base64)
+
+不止微目标——用 ko-clang(FastGen)把 **LAVA-M base64**(自带 `harness_base64.c`,读文件 → 匹配 fgtest
+污点契约,LAVA 注入 bug 在链接的 `lib/base64.c`)编成 `base64_harness_symsan`(`scripts/build_public_symsan.sh`;
+关键:coreutils gnulib 头需 `-include config.h` 前置)。`run_benchmark` 的公开目标发现已**引擎感知**:
+`--engine symsan` 时只挑 `*_symsan` 二进制、剥后缀取逻辑名 → 复用 symcc 目标名与种子目录。
+
+**覆盖率对拍**(同一 `run_symcc_worker` 反馈式 campaign,各 45s,afl-showmap 量边):
+
+| 引擎 | 唯一输入 | 边覆盖 | 备注 |
+|---|---|---|---|
+| symcc | 5235 | **113/192** | 生成更多 |
+| symsan | 2121 | **111/192** | 用 40% 的输入达 98% 覆盖 |
+
+**真·完整 hybrid**(`--engine symsan --hybrid --targets lava-base64_harness`,np=6):自动发现 →
+AFL(3)+ SymSan concolic(2,经 fgtest,四技术全开)→ **边覆盖 38.02%(73)→ 50.52%(97 edges)**,
+concolic 贡献 21 个 interesting。SymSan 已是能跑真实公开套件的一等引擎。
+
 ---
 
 ## 复现
@@ -125,7 +168,10 @@ SET 解。于是:
 - `runtime/dfsan/dfsan_custom.cpp`:④ `get_label_for` 按偏移门控 taint 源。
 - `driver/launcher/launch.c` + `include/launch.h`:④ config 字段 + `symsan_set_focus_bytes` setter + 目标 env 模板。
 - `driver/fgtest.cpp`:④ 解析 `focus_bytes` 下发;③ `load_dictionary`/`save_dict_variants`;
-  ① `__combined_sets` 累积 + `flush_combined_input`。
+  ① `__combined_sets` 累积 + `flush_combined_input`;② `emit_hints` 写 `.hints` 旁车。
+
+公开目标构建:`scripts/build_public_symsan.sh`(base64_harness_symsan);发现层引擎感知在
+`benchmark/run_benchmark.py`(symsan 只挑 `*_symsan`、剥后缀复用种子目录)。
 
 ## 环境变量总览(均与 SymCC 同名,编排层无需区分引擎)
 | 变量 | 技术 | 作用 |
@@ -133,3 +179,13 @@ SET 解。于是:
 | `SYMCC_FOCUS_BYTES="s-e"` | ④ | 仅符号化该区间字节,其余具体化 |
 | `SYMCC_DICT=<path>` | ③ | AFL 字典;对求解改动位置拼接 token 产出变体 |
 | `SYMCC_MULTI_SOLVE=1` | ① | 运行结束把多字段 SET 解组合成一个输入 |
+| `SYMCC_EMIT_HINTS=1` | ② | 每个产出写 `offset:old:new` 的 `.hints` 旁车 |
+
+## 技术点移植总表
+| | 技术 | SymSan 状态 | 落点 |
+|---|---|---|---|
+| ④ | 选择性符号化 | ✅ | 运行时 `get_label_for` 门控 |
+| ③ | 字典引导 | ✅ | fgtest driver |
+| ② | hint 传递 | ✅ | fgtest driver |
+| ① | 多字段解组合 | ✅ | fgtest driver |
+| ⑤ | fast-solve | ◔ 基本作废 | SymSan 单 task 多字节解 + JIGSAW 本就快解 |

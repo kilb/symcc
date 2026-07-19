@@ -2533,30 +2533,42 @@ def main():
                         prefix = "gfts-"
                     else:
                         prefix = suite_name + "-"
+                    # 引擎感知发现:symsan 只挑 *_symsan 二进制并剥掉后缀作为逻辑名(→ 与
+                    # symcc 目标同名、复用同一种子目录);其它引擎跳过 *_symsan(那是另一引擎的)。
+                    _pub_engine = get_engine()
+                    _sfx = _pub_engine.binary_suffix  # "_symcc" / "_symsan"
                     for binary in sorted(suite_dir.iterdir()):
                         if binary.is_file() and os.access(str(binary), os.X_OK):
                             bname = binary.name
                             # Skip non-ELF files (wrappers, data)
                             if bname.endswith((".sh", ".mgc", ".txt")):
                                 continue
-                            seed_candidate = pub_seed_dir / suite_dir.name / bname
+                            if _pub_engine.name == "symsan":
+                                if not bname.endswith("_symsan"):
+                                    continue  # 非 symsan 二进制,跳过
+                                logical = bname[: -len("_symsan")]  # base64_harness_symsan -> base64_harness
+                            else:
+                                if bname.endswith("_symsan"):
+                                    continue  # symsan 二进制不当作 symcc 目标
+                                logical = bname
+                            seed_candidate = pub_seed_dir / suite_dir.name / logical
                             if seed_candidate.is_dir():
-                                if not args.simulation and not _has_symcc_instrumentation(str(binary)):
-                                    print(f"  Skipping {bname}: no SymCC instrumentation (gcc-compiled)")
+                                if not args.simulation and not _has_symcc_instrumentation(str(binary), _pub_engine):
+                                    print(f"  Skipping {bname}: 无 {_pub_engine.name} 插桩")
                                     continue
-                                target_name = prefix + bname
+                                target_name = prefix + logical
                                 public_specs.append(
                                     f"{target_name}:{binary}:{seed_candidate}"
                                 )
-                                # 读取 .args 文件（如有），如 base64.args 包含 "-d"
-                                args_file = suite_dir / f"{bname}.args"
+                                # 读取 .args 文件（如有），如 base64.args 包含 "-d"（用逻辑名）
+                                args_file = suite_dir / f"{logical}.args"
                                 if args_file.is_file():
                                     extra = args_file.read_text().strip().split()
                                     if extra:
                                         target_extra_args[target_name] = extra
-                                # 查找 cmplog 二进制（同名目录加 -cmplog 后缀）
+                                # 查找 cmplog 二进制（同名目录加 -cmplog 后缀，用逻辑名）
                                 cmplog_dir = pub_bin_dir / (suite_dir.name + "-cmplog")
-                                cmplog_bin = cmplog_dir / bname
+                                cmplog_bin = cmplog_dir / logical
                                 if cmplog_bin.is_file() and os.access(str(cmplog_bin), os.X_OK):
                                     target_cmplog[target_name] = str(cmplog_bin)
 
