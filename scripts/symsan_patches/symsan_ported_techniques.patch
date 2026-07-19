@@ -702,7 +702,7 @@ index 4249f22..7afd0c6 100644
  /// @param fd: input file descriptor, only used if input is "stdin"
  /// @return < 0 on syscall error, > 0 on setup error, 0 on success
 diff --git a/runtime/dfsan/dfsan_custom.cpp b/runtime/dfsan/dfsan_custom.cpp
-index 1ed98b5..4f79705 100644
+index 1ed98b5..7425e0b 100644
 --- a/runtime/dfsan/dfsan_custom.cpp
 +++ b/runtime/dfsan/dfsan_custom.cpp
 @@ -229,12 +229,67 @@ static inline dfsan_label get_str_label(const char *s, dfsan_label s_label) {
@@ -776,6 +776,19 @@ index 1ed98b5..4f79705 100644
  }
  
  static void *dfsan_memcpy(void *dest, const void *src, size_t n) {
+@@ -3938,8 +3993,11 @@ void __dfsw___libc_free(void *ptr, dfsan_label ptr_label) {
+ 
+ static dfsan_label taint_getc(int fd, off_t offset, int ret) {
+   if (ret != EOF && taint_get_file(fd)) {
+-    dfsan_label label = label = dfsan_union(get_label_for(fd, offset), CONST_LABEL, ZExt, 32, 0, 0);
++    // BUG FIX: 原实现算出 label 却 `return 0`,导致每次 fgetc/getc 读入的字符都【丢污点】
++    // → getc 逐字符读入的程序(coreutils uniq/md5sum/who 等)的输入永不符号化。改为返回 label。
++    dfsan_label label = dfsan_union(get_label_for(fd, offset), CONST_LABEL, ZExt, 32, 0, 0);
+     AOUT("%d label is readed by fgetc\n", label);
++    return label;
+   }
+   return 0;
+ }
 diff --git a/runtime/dfsan/dfsan_flags.inc b/runtime/dfsan/dfsan_flags.inc
 index 046e3f3..cb4148f 100644
 --- a/runtime/dfsan/dfsan_flags.inc

@@ -242,16 +242,21 @@ AFL(3)+ SymSan concolic(2)→ **边覆盖 41.34%(4022/9728),concolic 贡献 120 
 (格式解析器目标的 AFL 二进制多为持久模式,afl-showmap 文件模式边计数不可靠 → 以"编译+concolic 跑通"
 为可用性判据,不作覆盖率对拍。)
 
-### coreutils md5sum/uniq/who:编译通过,但 concolic 不产出(诚实记录)
-整棵 coreutils autotools 树用 ko-clang(FastGen)**成功编译**(`make -k -i CC=ko-clang`,三者各 176 dfsan
-符号)——证 ko-clang 能处理完整 coreutils(gnulib I/O 也有 DFSan 拦截器:`__dfsw_fgetc`/`getdelim`/`fread`)。
-**污点也确实传播**:uniq 上实测 19 次 `taint_getc`(fgetc 读入打标签)、16 次 `strcmp`、14 个 cond。
-**但 fgtest 产出 0 个新输入**:这三个程序是 **strcmp/哈希主导**——输入相关分支几乎全是"strcmp 结果"分支。
-SymSan 对 strcmp 的处理是把结果 union 成 memcmp 追踪(`__taint_trace_memcmp`)而非让分支符号化,加之中间大量
-`ptrtoint` 具体化(DFSan 丢污点),到达 fgtest 的 7 个 cond 全是 label 0(具体)→ `parse_cond` 全部失败。
-对比 base64/xml/png/pcre2 有**直接字节比较**(`buf[i]=='<'`)故可解。结论:coreutils 这类 strcmp/指针密集
-程序,fgtest one-shot 契约下 concolic 无产出——非编译失败,而是 SymSan 对该类目标的求解局限。构建见
-`build_public_symsan.sh build_coreutils`(`BUILD_COREUTILS=1`);因 concolic 无产出,不接入发现层。
+### SymSan runtime bug 修复:`taint_getc` 丢弃 label
+排查 coreutils 时发现一个**真实的 SymSan 运行时 bug**:`taint_getc`(fgetc/getc/getc_unlocked 的取 label
+逻辑)算出 label 后却 `return 0`——**每次 getc 读入的字符都丢污点**(还有 `label = label =` 双赋值笔误)。
+故所有 **getc 逐字符读入的程序**,输入永不符号化。改为 `return label` 后:最小用例
+(`fgetc`→buf→`strcmp(buf,"MAGIC")`)与 realloc 增长缓冲版**都能解出 `MAGIC`**(修复前完全无产出)。
+这是一处影响面广的运行时修复(见补丁 `dfsan_custom.cpp` `taint_getc`)。
+
+### coreutils md5sum/uniq/who:仍 0 产出(剩余问题已缩小)
+整棵 coreutils autotools 树用 ko-clang **成功编译**(各 176 dfsan 符号)。修掉上面的 `taint_getc` bug 后,
+简单 getc→buf→strcmp 已能解;**但 uniq/md5sum/who 仍 0 产出**——剩余是【更具体的一个】问题,已缩小定位:
+它们经 gnulib `readlinebuffer_delim` 读行、`strcmp` 比较时,操作数出现**指针有污点(`s2_label`≠0)但内容
+shadow 读为 0**(`get_str_label` 返回 0)的情况——即行缓冲的**内容字节污点丢了**(非 realloc:realloc 增长
+缓冲的最小用例可解)。到达 fgtest 的 cond 因此全是 label 0 → `parse_cond` 失败。这不是"根本不可解",而是
+gnulib 行读取路径里一处仍待查的污点传播缺口(可后续攻)。构建见 `build_public_symsan.sh build_coreutils`
+(`BUILD_COREUTILS=1`);当前 concolic 仍无产出,故不接入发现层。
 
 ---
 
