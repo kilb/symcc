@@ -93,5 +93,18 @@ apt-get install -y libc++-18-dev libc++abi-18-dev libunwind-18-dev libboost-cont
 
 → 两引擎经 `--engine` 切换、走同一并行编排路径,反馈循环逐层解开嵌套魔数,**结果完全等价**。
 
+## 引擎覆盖率对拍(`scripts/engine_coverage_dogfight.py`,实测)
+同目标、同 45s 预算跑反馈式 concolic campaign,afl-showmap 量边覆盖:
+
+| 目标 | 引擎 | 唯一输入 | 边覆盖 | 备注 |
+|---|---|---|---|---|
+| deep_branches | symcc | 15,886 | **29/64** | 生成更多、覆盖略高 |
+| deep_branches | symsan | 3,236 | **26/64** | 输入少但覆盖接近(90%) |
+| crypto_check | symcc | — | **崩溃** | QSYM `expr.h:439 l->bits()==r->bits()`(uint32 casts + 混合位宽比较) |
+| crypto_check | symsan | 1,464 | **21/64** | 正常——DFSan 路径更鲁棒 |
+
+**观察(诚实)**:两引擎【可比】但各有短长——SymCC 生成更快/更多、能跑的目标上覆盖略高;**SymSan 更鲁棒**
+(crypto_check 上 SymCC 的 QSYM 表达式构造器断言崩溃,SymSan 正常)。这正是"可配置引擎"的价值:按目标选引擎。
+
 **当前状态**:引擎抽象 + `--engine` + SymCC 默认(逐字节等价)+ **SymSan 构建 & fgtest & 真实目标对拍均已跑通验证**;
 剩下的是"用 ko-clang 批量重编全部 benchmark 目标"和"5 个技术点在 DFSan 侧重写"这两块真正的工作量。
