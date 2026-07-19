@@ -33,6 +33,16 @@ print("z3-ts shim inserted")
 PY
 fi
 
+# 2.5) 技术④ 选择性符号化补丁:给 DFSan 运行时/launcher/fgtest 加 focus_bytes 支持
+#      (仅对选中的输入偏移打 taint 标签,其余具体化)。见 docs/symsan_selective_symbolization.md。
+#      幂等:dfsan_flags.inc 已含 focus_bytes 则跳过。
+PATCH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/symsan_patches/selective-symbolization.patch"
+if [ -f "$PATCH" ] && ! grep -q "focus_bytes" "$SS/runtime/dfsan/dfsan_flags.inc"; then
+  ( cd "$SS" && git apply --whitespace=nowarn "$PATCH" ) \
+    && echo "selective-symbolization patch applied" \
+    || echo "WARN: 选择性符号化补丁应用失败(upstream 可能已改动),请手工核对 $PATCH"
+fi
+
 # 3) 构建 + 安装(install 生成 ko-clang 期望的 ../lib/symsan/ 布局:passes + runtime + *.a + taint.ld + abilist)
 rm -rf "$SS/build"; mkdir -p "$SS/build"; cd "$SS/build"
 cmake -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18 \

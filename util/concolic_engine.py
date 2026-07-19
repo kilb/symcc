@@ -95,10 +95,40 @@ class SymSanEngine(ConcolicEngine):
         env = dict(env)
         # fgtest 从 TAINT_OPTIONS 解析 taint_file=(污点源=输入文件)与 output_dir=(解写入此目录),
         # 见 symsan driver/fgtest.cpp。两者用空格分隔(已端到端验证:seed→求解分支→输出 id-*)。
-        env["TAINT_OPTIONS"] = f"taint_file={input_file} output_dir={output_dir}"
+        taint_opts = f"taint_file={input_file} output_dir={output_dir}"
+        # 技术④ 选择性符号化:编排层把选中的字节区间放在 SYMCC_FOCUS_BYTES(单区间 "s-e"),
+        # 这里翻译成 fgtest→launcher→DFSan 运行时认得的 focus_bytes=。SymSan 的 DFSan 会据此
+        # 仅对该区间的输入偏移打标签,其余字节保持具体值,缩小符号状态、省下无关字节的求解开销
+        # (语义与 SymCC 的 SYMCC_FOCUS_BYTES 一致;见 runtime dfsan_custom.cpp get_label_for 门控)。
+        focus = self._sanitize_focus(env.get("SYMCC_FOCUS_BYTES", ""))
+        if focus:
+            taint_opts += f" focus_bytes={focus}"
+        env["TAINT_OPTIONS"] = taint_opts
         binary = target_cmd[0]                 # _symsan 二进制;fgtest 只取 (target, input),丢弃 @@ 等额外 argv
         cmd = ["timeout", "-k", "5", str(timeout_sec), self.fgtest, binary, str(input_file)]
         return cmd, env, False                 # SymSan 走 argv 文件输入,不喂 stdin
+
+    @staticmethod
+    def _sanitize_focus(spec: str) -> str:
+        """把 SYMCC_FOCUS_BYTES 规约为单个 "s-e" 区间。
+
+        DFSan 的 sanitizer flag 解析把 ',' 也当分隔符(sanitizer_flag_parser.cpp is_space),
+        逗号形式的多区间会破坏 flag 串;故与 SymCC 的 sscanf("%lu-%lu") 一致,仅取首个区间。
+        非法输入返回空串(=不启用 focus,退回全字节符号化,保证不丢覆盖)。"""
+        spec = (spec or "").strip()
+        if not spec:
+            return ""
+        first = spec.split(",")[0].strip()   # 逗号形式取首段,匹配 SymCC 单区间语义
+        parts = first.split("-")
+        if len(parts) != 2:
+            return ""
+        try:
+            lo, hi = int(parts[0]), int(parts[1])
+        except ValueError:
+            return ""
+        if lo < 0 or hi < lo:
+            return ""
+        return f"{lo}-{hi}"
 
     def build_argv(self, compiler, source, out):
         # ko-clang 需 FastGen 插桩模式(KO_USE_FASTGEN=1),fgtest 才有回调;KO_DONT_OPTIMIZE 保留分支

@@ -1,0 +1,200 @@
+diff --git a/driver/fgtest.cpp b/driver/fgtest.cpp
+index 510f5a1..06a8009 100644
+--- a/driver/fgtest.cpp
++++ b/driver/fgtest.cpp
+@@ -43,6 +43,7 @@ static size_t input_size;
+ 
+ // for output
+ static const char* __output_dir = ".";
++static char* __focus_spec = nullptr;  // 选择性符号化区间规格,待 symsan_init 之后下发
+ static uint32_t __instance_id = 0;
+ static uint32_t __session_id = 0;
+ static uint32_t __current_index = 0;
+@@ -204,6 +205,18 @@ int main(int argc, char* const argv[]) {
+         is_stdin = 1;
+     }
+ 
++    // 选择性符号化:解析 focus_bytes(如 "0-3" 或 "0-3,8-11")。注意 symsan_init 会
++    // 重置 g_config,故此处仅把规格暂存到 fgtest 自己的静态变量,待 init 之后再下发。
++    char *focus = strstr(options, "focus_bytes=");
++    if (focus) {
++      focus += strlen("focus_bytes=");
++      char *end = strchr(focus, ':');
++      if (end == NULL) end = strchr(focus, ' ');
++      size_t n = end == NULL ? strlen(focus) : (size_t)(end - focus);
++      if (n > 0)
++        __focus_spec = strndup(focus, n);
++    }
++
+     // check for debug
+     char *debug_opt = strstr(options, "debug=");
+     if (debug_opt) {
+@@ -275,6 +288,7 @@ int main(int argc, char* const argv[]) {
+   symsan_set_debug(debug);
+   symsan_set_bounds_check(1);
+   symsan_set_solve_ub(solve_ub);
++  symsan_set_focus_bytes(__focus_spec);  // 选择性符号化(init 之后下发,避免被重置)
+ 
+   // launch the target
+   int ret = symsan_run(input_fd);
+diff --git a/driver/launcher/launch.c b/driver/launcher/launch.c
+index b7e207d..c2d3080 100644
+--- a/driver/launcher/launch.c
++++ b/driver/launcher/launch.c
+@@ -50,6 +50,7 @@ struct symsan_config {
+   int exit_on_memerror;
+   int trace_file_size;
+   int force_stdin;
++  char *focus_bytes;  // 选择性符号化:仅污染这些输入偏移(如 "0-3"),NULL/空=全部
+ 
+   int dev_null_fd;
+ 
+@@ -86,6 +87,7 @@ void* symsan_init(const char *symsan_bin, const size_t uniontable_size) {
+   g_config.exit_on_memerror = 1;
+   g_config.trace_file_size = 0;
+   g_config.force_stdin = 0;
++  g_config.focus_bytes = NULL;
+   g_config.dev_null_fd = -1;
+   g_config.exit_status = 0;
+   g_config.is_killed = 0;
+@@ -218,6 +220,14 @@ int symsan_set_force_stdin(int enable) {
+   return 0;
+ }
+ 
++__attribute__((visibility("default")))
++int symsan_set_focus_bytes(const char *spec) {
++  // 选择性符号化区间规格,如 "0-3" 或 "0-3,8-11";NULL/空串=符号化全部字节。
++  free(g_config.focus_bytes);
++  g_config.focus_bytes = (spec && spec[0]) ? strdup(spec) : NULL;
++  return 0;
++}
++
+ __attribute__((visibility("default")))
+ int symsan_run(int fd) {
+   if (fd < 0) {
+@@ -256,14 +266,21 @@ int symsan_run(int fd) {
+     return SYMSAN_NO_MEMORY;
+   }
+ 
++  // 选择性符号化:仅当配置了 focus_bytes 才追加该段(空段避免设成空标志)
++  char focus_seg[512];
++  focus_seg[0] = '\0';
++  if (g_config.focus_bytes && g_config.focus_bytes[0]) {
++    snprintf(focus_seg, sizeof(focus_seg), ":focus_bytes=%s", g_config.focus_bytes);
++  }
++
+   // fds and configs could have been changed, so always set up new ones
+   g_config.symsan_env = alloc_printf(
+       "taint_file=\"%s\":shm_fd=%d:pipe_fd=%d:debug=%d:trace_bounds=%d:"
+-      "solve_ub=%d:exit_on_memerror=%d:trace_fsize=%d:force_stdin=%d",
++      "solve_ub=%d:exit_on_memerror=%d:trace_fsize=%d:force_stdin=%d%s",
+       g_config.input_file, g_config.shm_fd, g_config.pipefds[1],
+       g_config.enable_debug, g_config.enable_bounds_check,
+       g_config.enable_solve_ub, g_config.exit_on_memerror,
+-      g_config.trace_file_size, g_config.force_stdin);
++      g_config.trace_file_size, g_config.force_stdin, focus_seg);
+   if (g_config.symsan_env == NULL) {
+     return SYMSAN_NO_MEMORY;
+   }
+diff --git a/include/launch.h b/include/launch.h
+index 4249f22..7afd0c6 100644
+--- a/include/launch.h
++++ b/include/launch.h
+@@ -45,6 +45,10 @@ int symsan_set_trace_file_size(int enable);
+ /// @brief set the force stdin mode for the target binary
+ int symsan_set_force_stdin(int enable);
+ 
++/// @brief 选择性符号化:仅污染指定输入偏移(如 "0-3" 或 "0-3,8-11");
++///        NULL 或空串表示符号化全部字节(默认)。移植自 SymCC 的 SYMCC_FOCUS_BYTES。
++int symsan_set_focus_bytes(const char *spec);
++
+ /// @brief run the target binary with the input file descriptor
+ /// @param fd: input file descriptor, only used if input is "stdin"
+ /// @return < 0 on syscall error, > 0 on setup error, 0 on success
+diff --git a/runtime/dfsan/dfsan_custom.cpp b/runtime/dfsan/dfsan_custom.cpp
+index 1ed98b5..4f79705 100644
+--- a/runtime/dfsan/dfsan_custom.cpp
++++ b/runtime/dfsan/dfsan_custom.cpp
+@@ -229,12 +229,67 @@ static inline dfsan_label get_str_label(const char *s, dfsan_label s_label) {
+   return get_str_label_n(s, s_label, len + 1, term_label);
+ }
+ 
++// 选择性符号化(移植自 SymCC 的 initFocusBytes / _sym_get_input_byte):
++// 仅对 focus_bytes 指定的输入偏移打标签,其余偏移保持具体值(label 0 → 不污染)。
++// SymSan 的 taint 源是字节级的(每个输入偏移一个 label),因此在此单一枢纽处按偏移
++// 门控,即可让所有 read/pread/fread/mmap 等读入路径统一遵守选择集,缩小符号状态、
++// 减少无关字节的求解开销。区间语义与 SymCC 的 SYMCC_FOCUS_BYTES="s-e" 一致:
++// 区间内符号化、区间外具体化。
++#define DFSAN_MAX_FOCUS_RANGES 256
++struct FocusRange {
++  off_t lo;  // 闭区间下界
++  off_t hi;  // 闭区间上界
++};
++static FocusRange g_focus_ranges[DFSAN_MAX_FOCUS_RANGES];
++static int g_focus_count = -1;  // -1=未初始化; 0=无 focus(全字节符号化); >0=区间数
++
++// 解析 focus_bytes 规格串,如 "0-3" 或 "0-3,8-11" 或 "5"。不依赖 libc(strtol
++// 在 DFSan 运行时里被拦截可能不安全),手工按十进制逐位累加。
++static void init_focus_bytes() {
++  g_focus_count = 0;
++  const char *p = flags().focus_bytes;
++  if (!p || !p[0]) return;  // 未配置 → 保持默认(全字节符号化)
++  while (*p && g_focus_count < DFSAN_MAX_FOCUS_RANGES) {
++    while (*p == ',' || *p == ' ') ++p;  // 跳过分隔符
++    if (*p < '0' || *p > '9') { if (*p) ++p; continue; }
++    off_t lo = 0;
++    while (*p >= '0' && *p <= '9') { lo = lo * 10 + (*p - '0'); ++p; }
++    off_t hi = lo;
++    if (*p == '-') {
++      ++p;
++      hi = 0;
++      while (*p >= '0' && *p <= '9') { hi = hi * 10 + (*p - '0'); ++p; }
++    }
++    if (hi >= lo) {
++      g_focus_ranges[g_focus_count].lo = lo;
++      g_focus_ranges[g_focus_count].hi = hi;
++      ++g_focus_count;
++    }
++  }
++}
++
++// 该输入偏移是否应被符号化。无 focus 配置时恒为 true(默认行为不变)。
++static inline bool focus_active(off_t offset) {
++  if (g_focus_count < 0) init_focus_bytes();
++  if (g_focus_count == 0) return true;  // 无 focus → 所有字节符号化
++  for (int i = 0; i < g_focus_count; ++i)
++    if (offset >= g_focus_ranges[i].lo && offset <= g_focus_ranges[i].hi)
++      return true;
++  return false;
++}
++
+ static inline dfsan_label get_label_for(int fd, off_t offset) {
+   // check if fd is stdin, if so, the label hasn't been pre-allocated
+-  if (is_stdin_taint() || (fd ==0 && flags().force_stdin))
+-    return dfsan_create_label((uint64_t)fd, (uint64_t)(current_stdin_offset++), 1);
++  if (is_stdin_taint() || (fd ==0 && flags().force_stdin)) {
++    off_t off = current_stdin_offset++;  // 偏移必须始终自增以保持一致
++    if (!focus_active(off)) return 0;    // 选择性符号化:非 focus 字节保持具体
++    return dfsan_create_label((uint64_t)fd, (uint64_t)off, 1);
++  }
+   // if fd is a tainted file, the label should have been pre-allocated
+-  else return (offset + CONST_OFFSET);
++  else {
++    if (!focus_active(offset)) return 0;  // 选择性符号化:非 focus 字节保持具体
++    return (offset + CONST_OFFSET);
++  }
+ }
+ 
+ static void *dfsan_memcpy(void *dest, const void *src, size_t n) {
+diff --git a/runtime/dfsan/dfsan_flags.inc b/runtime/dfsan/dfsan_flags.inc
+index 046e3f3..cb4148f 100644
+--- a/runtime/dfsan/dfsan_flags.inc
++++ b/runtime/dfsan/dfsan_flags.inc
+@@ -54,3 +54,7 @@ DFSAN_FLAG(int, session_id, 0, "session/round id.")
+ DFSAN_FLAG(bool, force_stdin, false, "force tainting stdin.")
+ DFSAN_FLAG(bool, enum_gep, false, "enable GEP index enumeration.")
+ DFSAN_FLAG(int, string_map_capacity, 256, "initial capacity for string label maps.")
++DFSAN_FLAG(const char *, focus_bytes, "",
++           "Selective symbolization: only taint these input byte offsets, e.g. "
++           "\"0-3\" or \"0-3,8-11\". Empty = taint all bytes (default). Ported "
++           "from SymCC SYMCC_FOCUS_BYTES.")
