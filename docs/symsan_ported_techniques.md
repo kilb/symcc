@@ -164,10 +164,15 @@ fgtest 用进程内 Z3。SymSan 的 SOTA 后端其实是 **RGD 解析器 + I2S�
 | deep_branches | 27/64(2821) | 24/64(9201) | 24/64(7461) |
 | crypto_check | 22/64(1334) | 21/64(302) | 21/64(654) |
 
-**诚实结论**:RGD 栈【已集成、功能正确、鲁棒】(crypto_check 三者均不崩,SymCC 在此崩)。这些
-微/小目标上 Z3 本就够用,故 RGD 覆盖持平(base64 112=112)、吞吐更高(I2S 快),个别嵌套目标略低
-(默认关 nested;`SYMSAN_USE_NESTED=1` 可开)。RGD 的真正优势(JIGSAW 非线性、I2S 吞吐)需在大型
-真实目标上体现。两个 driver 现可自由切换,SOTA 求解栈已就位。
+**全 hybrid 验证**(`--engine symsan --hybrid` + `SYMSAN_SOLVER=rgd SYMSAN_USE_JIGSAW=1`,base64,np=6):
+run_benchmark 自动用 `fgtest_rgd`,concolic 贡献 **31 个 interesting(Z3 driver 为 21)**、覆盖同为
+97/192——RGD 的高吞吐 I2S/JIGSAW 级联在完整流水线里产出更多 concolic 输入。SOTA 求解栈经
+`SYMSAN_SOLVER=rgd` 在真实 benchmark 端到端可用。
+
+**诚实结论**:RGD 栈【已集成、功能正确、鲁棒、全 hybrid 可用】(crypto_check 三者均不崩,SymCC 在此崩)。
+这些微/小目标上 Z3 本就够用,故 RGD 覆盖持平(base64 112=112)、吞吐更高(I2S 快;hybrid 里 31>21
+interesting),个别嵌套目标略低(默认关 nested;`SYMSAN_USE_NESTED=1` 可开)。RGD 的真正优势(JIGSAW
+非线性、I2S 吞吐)需在大型真实目标上体现。两个 driver 现可自由切换,SOTA 求解栈已就位。
 
 ---
 
