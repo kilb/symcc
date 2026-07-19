@@ -71,10 +71,11 @@ build_pcre2() {
         "$d/build_symsan/libpcre2-8.a" -o "$ROOT/benchmark/public/bin/pcre2/pcre2_fuzzer_symsan"
   echo "built pcre2_fuzzer_symsan"
 }
-# sqlite:更正——【能编译】。ko-clang 强制的 -O3 会在巨型 sqlite3VdbeExec 上触发向量化 →
-# bitcast v2i64→i64 → X86 ISel "Cannot select"(后端崩溃,非 DFSan pass)。用 KO_DONT_OPTIMIZE=1
-# (跳过 -O3,fgtest 目标本就用此档)即编译通过。但 concolic 运行期命中 DFSan uninitialized-label →
-# 产出 0,故仅编译、不接入发现层(运行期问题待后续)。BUILD_SQLITE=1 启用。
+# sqlite:【已跑通】。两个坑:(1) 编译——ko-clang 强制 -O3 在巨型 sqlite3VdbeExec 上触发向量化 →
+# bitcast v2i64→i64 → X86 ISel "Cannot select"(后端崩溃,非 DFSan pass);用 KO_DONT_OPTIMIZE=1
+# (跳过 -O3,fgtest 标准档)即编译通过。(2) 运行——旧默认 exit_on_memerror=1 会在 sqlite 合法未初始化
+# 内存访问上 Die();现 driver 默认 exit_on_memerror=0 → 跑通(全 hybrid 6019/31552 边,67 interesting)。
+# BUILD_SQLITE=1 启用(单 amalgamation 编译,略重)。
 build_sqlite() {
   local d="$ROOT/benchmark/public/fuzzer-test-suite/sqlite-2016-11-14"
   local harness="$ROOT/benchmark/targets/sqlite_harness.c"
@@ -82,7 +83,7 @@ build_sqlite() {
   # 不传 -O(ko-clang 会 strip);KO_DONT_OPTIMIZE 跳过强制 -O3 → 避开 v2i64 ISel 崩溃
   KO_USE_FASTGEN=1 KO_DONT_OPTIMIZE=1 "$KO" -DSQLITE_THREADSAFE=0 -DSQLITE_OMIT_LOAD_EXTENSION \
     -I "$d" "$harness" "$d/sqlite3.c" -ldl -o "$ROOT/benchmark/public/bin/sqlite/sqlite_fuzzer_symsan" \
-    && echo "built sqlite_fuzzer_symsan(仅编译;运行期 uninitialized-label,concolic 产出 0)" \
+    && echo "built sqlite_fuzzer_symsan (已跑通,发现层识别为 sqlite-sqlite_fuzzer)" \
     || echo "sqlite 编译失败"
 }
 

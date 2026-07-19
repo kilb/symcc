@@ -29,7 +29,7 @@ index 0a2b4c0..54fcb45 100644
      add_subdirectory(aflpp)
  endif()
 diff --git a/driver/fgtest.cpp b/driver/fgtest.cpp
-index 510f5a1..5979e56 100644
+index 510f5a1..eebdac6 100644
 --- a/driver/fgtest.cpp
 +++ b/driver/fgtest.cpp
 @@ -11,7 +11,10 @@ extern "C" {
@@ -233,15 +233,23 @@ index 510f5a1..5979e56 100644
    // load input file
    struct stat st;
    int input_fd = open(input, O_RDONLY);
-@@ -275,6 +402,7 @@ int main(int argc, char* const argv[]) {
+@@ -273,8 +400,14 @@ int main(int argc, char* const argv[]) {
+   }
+ 
    symsan_set_debug(debug);
-   symsan_set_bounds_check(1);
+-  symsan_set_bounds_check(1);
++  // "遇内存错误即退出"纯为内存错误检测,concolic 求解不需要,反而有害:目标合法的未初始化
++  // 内存访问会在 bounds/GEP 追踪里产生 kInitializingLabel → 提前 Die() → 丢大量产出。实测默认关掉后
++  // 各目标严格更优(base64 28→56、pcre2 140→488、xml 不变、sqlite 0→42)。故【默认关】,
++  // SYMSAN_MEMERR_EXIT=1 可恢复。bounds 追踪保留(供 GEP/数组下标求解);SYMSAN_NO_BOUNDS 可关。
++  symsan_set_bounds_check(getenv("SYMSAN_NO_BOUNDS") ? 0 : 1);
++  symsan_set_exit_on_memerror(getenv("SYMSAN_MEMERR_EXIT") ? 1 : 0);
    symsan_set_solve_ub(solve_ub);
 +  symsan_set_focus_bytes(__focus_spec);  // 选择性符号化(init 之后下发,避免被重置)
  
    // launch the target
    int ret = symsan_run(input_fd);
-@@ -355,6 +483,8 @@ int main(int argc, char* const argv[]) {
+@@ -355,6 +488,8 @@ int main(int argc, char* const argv[]) {
      }
    }
  
@@ -252,10 +260,10 @@ index 510f5a1..5979e56 100644
  }
 diff --git a/driver/fgtest_rgd.cpp b/driver/fgtest_rgd.cpp
 new file mode 100644
-index 0000000..8843b42
+index 0000000..4420c59
 --- /dev/null
 +++ b/driver/fgtest_rgd.cpp
-@@ -0,0 +1,359 @@
+@@ -0,0 +1,363 @@
 +// fgtest_rgd:RGD/JIGSAW 后端的 one-shot concolic driver。
 +//
 +// 与 fgtest.cpp(进程内 Z3,Z3ParserSolver)的区别:改用 SymSan 的 SOTA 求解栈
@@ -559,7 +567,11 @@ index 0000000..8843b42
 +  char *args[3] = {program, input, NULL};
 +  if (symsan_set_args(2, args) != 0) { fprintf(stderr, "set args\n"); exit(1); }
 +  symsan_set_debug(__debug);
-+  symsan_set_bounds_check(1);
++  // "遇内存错误即退出"对 concolic 有害:目标合法的未初始化内存访问会在 bounds/GEP 追踪里
++  // 产生 kInitializingLabel → 提前 Die() → 丢大量产出。默认关掉严格更优(见 fgtest.cpp 注)。
++  // SYMSAN_MEMERR_EXIT=1 恢复;bounds 保留(GEP 求解),SYMSAN_NO_BOUNDS 可关。
++  symsan_set_bounds_check(getenv("SYMSAN_NO_BOUNDS") ? 0 : 1);
++  symsan_set_exit_on_memerror(getenv("SYMSAN_MEMERR_EXIT") ? 1 : 0);
 +  symsan_set_solve_ub(solve_ub);
 +  symsan_set_focus_bytes(__focus_spec);  // ④ init 之后下发
 +

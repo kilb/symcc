@@ -206,14 +206,32 @@ LAVA-M(coreutils)之外再铺一批**格式解析器**(concolic 强项:魔数/�
 | xml_read_fuzzer | libxml2 | 重编 libxml2.a(234) | 176 | 142 输出+hints | ✅ |
 | png_read_fuzzer | libpng | 重编 libpng.a(60) | 176 | 15 输出+hints | ✅ |
 | pcre2_fuzzer | pcre2 | 重编 libpcre2-8.a(54) | 176 | 全 hybrid 4022/9728 边,concolic 120 interesting | ✅ |
-| sqlite_fuzzer | sqlite | amalgamation 7MB 单 TU(KO_DONT_OPTIMIZE) | 176 | 运行期 uninitialized-label,产出 0 | ⚠️ 编译通过/运行受限 |
+| sqlite_fuzzer | sqlite | amalgamation 7MB(KO_DONT_OPTIMIZE) | 176 | 全 hybrid 6019/31552 边,67 interesting | ✅ |
 
-**sqlite(更正:并非"DFSan 大 TU 崩溃"——那是误判)**:真正原因是 ko-clang 强制的 `-O3` 触发 LLVM
-自动向量化,在巨型函数 `sqlite3VdbeExec` 上生成 `bitcast v2i64→i64`,X86 指令选择 `Cannot select` 崩溃
-(报错在后端 ISel,非 DFSan pass;`sqlite3VdbeExec.taint` 说明 DFSan pass 已成功跑完)。**用 `KO_DONT_OPTIMIZE=1`
-(跳过强制 -O3,本就是 fgtest 目标的标准档)即可编译通过**(7.9MB,176 dfsan 符号)。但 concolic **运行**期
-很快命中 DFSan `uninitialized label 0xFFFFFFFF`(伴 bounds 追踪)→ 只 1 个 cond 即退出、产出 0。属运行期
-污点追踪问题(疑与 bounds-check/未初始化栈缓冲交互),可后续再攻;**编译不再是障碍**。
+**sqlite(两处误判都已修正,现已跑通)**:
+1. **编译**:并非"DFSan 大 TU 崩溃"。真正原因是 ko-clang 强制 `-O3` 触发自动向量化,在巨型函数
+   `sqlite3VdbeExec` 上生成 `bitcast v2i64→i64`,X86 指令选择 `Cannot select` 崩溃(后端 ISel,非 DFSan
+   pass——`sqlite3VdbeExec.taint` 说明 pass 已跑完)。用 `KO_DONT_OPTIMIZE=1`(跳过 -O3,fgtest 标准档)
+   即编译通过(7.9MB,176 符号)。
+2. **运行**:concolic 一开始产出 0,是因为 sqlite 合法的未初始化内存访问在 bounds/GEP 追踪里产生
+   `kInitializingLabel`,而 fgtest 默认 `exit_on_memerror=1` → 首次即 `Die()`、只跑 1 个 cond 就退出。
+   **默认改为 `exit_on_memerror=0`(见下)后跑通**:全 hybrid 边覆盖 **6019/31552(近 3 万边的大目标)**、
+   concolic 贡献 **67 个 interesting**。
+
+### 关键默认:`exit_on_memerror=0`(concolic 严格更优)
+"遇内存错误即退出"是内存错误【检测】特性,对 concolic【输入生成】有害——目标合法的未初始化读会被 bounds
+追踪判成错误并 `Die()`,提前终止、丢产出。两个 driver 现【默认关闭】(`SYMSAN_MEMERR_EXIT=1` 恢复;bounds
+追踪保留供 GEP 求解,`SYMSAN_NO_BOUNDS` 可关)。实测**各目标严格更优**:
+
+| 目标 | memerr-exit 开(旧默认) | 关(新默认) |
+|---|---|---|
+| sqlite | 0 | **51** |
+| base64 | 28 | **56** |
+| pcre2 | 140 | **488** |
+| xml | 142 | 142(不变) |
+
+这是一处一行默认翻转、**全面提升**且解锁 sqlite 的改动。教训:遇"0 产出"先查是不是被 `Die()` 提前打断
+(debug=1 看有无 `uninitialized label` + `exit_on_memerror`),而非归因于目标本身。
 
 **pcre2 全 hybrid 端到端**(`--engine symsan --hybrid --targets pcre2-pcre2_fuzzer`,np=6):引擎感知自动发现 →
 AFL(3)+ SymSan concolic(2)→ **边覆盖 41.34%(4022/9728),concolic 贡献 120 个 interesting**,948 tc/s。

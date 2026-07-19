@@ -89,10 +89,11 @@ apt-get install -y libc++-18-dev libc++abi-18-dev libunwind-18-dev libboost-cont
   - [~] ⑤fast-solve——基本作废:SymSan 多字节比较单 task 一次解出、JIGSAW/FastGen 本就跳 Z3 快解。
 - **真实公开目标**:LAVA-M base64 已用 ko-clang 编成 `base64_harness_symsan`(`scripts/build_public_symsan.sh`),
   `run_benchmark` 公开目标发现【引擎感知】(symsan 只挑 `*_symsan`)。全 hybrid 实测:边覆盖 73→97,
-  concolic 贡献 21 interesting;覆盖率对拍 symcc 113/192 vs symsan 111/192。**格式解析器已铺 3 个**:
-  libxml2 xml(142 输出)、libpng png(15)、pcre2(140)——均 ko-clang 重编库 .a + 链接 harness,
-  发现层引擎感知。sqlite 的 7MB amalgamation 触发 DFSan pass 崩溃(超大单 TU 限制),暂不支持;
-  coreutils md5sum/uniq/who 需整棵 autotools 过 ko-clang,为后续。
+  concolic 贡献 21 interesting;覆盖率对拍 symcc 113/192 vs symsan 111/192。**已铺 5 个真实目标**:
+  base64、libxml2 xml、libpng png、pcre2、**sqlite**(全 hybrid 6019/31552 边,67 interesting)——均
+  ko-clang 编 + 发现层引擎感知。sqlite 曾两度误判(-O3 向量化 ISel 崩溃→KO_DONT_OPTIMIZE 解;运行期
+  exit_on_memerror Die→默认关 memerr-exit 解,后者还令 base64 28→56、pcre2 140→488 严格更优)。
+  coreutils md5sum/uniq/who 能编译但 strcmp 主导、concolic 0 产出(不接入)。
 - **SOTA 求解栈**:新增 `driver/fgtest_rgd.cpp`——RGD 解析器 + I2S(input-to-state)→JIGSAW(梯度)→Z3
   级联(SymSan/JIGSAW USENIX'22),保留 fgtest one-shot 契约。`SYMSAN_SOLVER=rgd` 切换、`SYMSAN_USE_JIGSAW=1`
   开梯度。实测已集成+功能正确+鲁棒,微目标上与 Z3 持平(base64 112=112,吞吐更高);优势需大目标体现。
