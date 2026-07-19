@@ -29,26 +29,55 @@ build_base64() {
   echo "built $OUT/base64_harness_symsan  (dfsan syms: $(nm "$OUT/base64_harness_symsan" 2>/dev/null | grep -icE 'dfs\$|__dfsw_|__dfsan_'))"
 }
 
-# libxml2 xml_read_fuzzer:格式解析器,concolic 的强项。需用 ko-clang 整体重编 libxml2.a
-# (~200 文件,较重),再链接独立 harness。libxml2.a 为构建产物(gitignored),重编不影响仓库。
-# 仅当设 BUILD_XML=1 时执行(避免默认跑重构建)。
-build_libxml2() {
-  [ "${BUILD_XML:-0}" = "1" ] || { echo "跳过 libxml2(设 BUILD_XML=1 启用,较重)"; return; }
-  local xmldir="$ROOT/benchmark/public/gfts_build/libxml2-2.9.2"
-  local compile="$ROOT/benchmark/compile_public_benchmarks.sh"
-  [ -f "$xmldir/configure" ] && [ -f "$compile" ] || { echo "跳过 libxml2:缺源码/编译脚本"; return; }
-  # 从 compile_public_benchmarks.sh 抽取独立 xml harness(读文件 → 匹配 fgtest 契约)
-  local harness; harness="$(mktemp --suffix=.c)"
-  awk "/cat > \\/tmp\\/xml_read_fuzzer.c << 'HARNESS_EOF'/{f=1;next} /^HARNESS_EOF/{if(f)exit} f" "$compile" > "$harness"
-  [ -s "$harness" ] || { echo "跳过 libxml2:未能抽取 harness"; rm -f "$harness"; return; }
-  ( cd "$xmldir" && make clean >/dev/null 2>&1; make CC="$KO" libxml2.la -j"$(nproc)" >/dev/null 2>&1 )
-  "$KO" -O1 "$harness" -I "$xmldir/include" -I "$xmldir/include/libxml" \
-        "$xmldir/.libs/libxml2.a" -lz -lm -lpthread \
-        -o "$ROOT/benchmark/public/bin/google-fts/xml_read_fuzzer_symsan"
-  rm -f "$harness"
-  echo "built .../google-fts/xml_read_fuzzer_symsan  (dfsan syms: $(nm "$ROOT/benchmark/public/bin/google-fts/xml_read_fuzzer_symsan" 2>/dev/null | grep -icE 'dfs\$|__dfsw_|__dfsan_'))"
+# 重库目标(格式解析器,concolic 强项):用 ko-clang 整体重编库 .a 再链接独立 harness。
+# 库 .a 均为构建产物(gitignored),重编不影响仓库。较重,仅 BUILD_LIBS=1 时执行。
+COMPILE="$ROOT/benchmark/compile_public_benchmarks.sh"
+# 从 compile_public_benchmarks.sh 抽取某 heredoc harness 到临时文件,回显路径(失败回显空)
+extract_harness() {  # $1=/tmp/<name>.c 标记
+  local marker="$1" out; out="$(mktemp --suffix=.c)"
+  awk "/cat > ${marker//\//\\/} << 'HARNESS_EOF'/{f=1;next} /^HARNESS_EOF/{if(f)exit} f" "$COMPILE" > "$out"
+  [ -s "$out" ] && echo "$out" || { rm -f "$out"; echo ""; }
 }
 
+build_libxml2() {
+  local xmldir="$ROOT/benchmark/public/gfts_build/libxml2-2.9.2"
+  [ -f "$xmldir/configure" ] && [ -f "$COMPILE" ] || { echo "跳过 libxml2:缺源码/脚本"; return; }
+  local h; h="$(extract_harness /tmp/xml_read_fuzzer.c)"; [ -n "$h" ] || { echo "跳过 libxml2:harness 抽取失败"; return; }
+  ( cd "$xmldir" && make clean >/dev/null 2>&1; make CC="$KO" libxml2.la -j"$(nproc)" >/dev/null 2>&1 )
+  "$KO" -O1 "$h" -I "$xmldir/include" -I "$xmldir/include/libxml" "$xmldir/.libs/libxml2.a" \
+        -lz -lm -lpthread -o "$ROOT/benchmark/public/bin/google-fts/xml_read_fuzzer_symsan"
+  rm -f "$h"; echo "built xml_read_fuzzer_symsan"
+}
+
+build_libpng() {
+  local d="$ROOT/benchmark/public/gfts_build/libpng-1.2.56"
+  [ -f "$d/configure" ] && [ -f "$COMPILE" ] || { echo "跳过 libpng:缺源码/脚本"; return; }
+  local h; h="$(extract_harness /tmp/png_read_fuzzer.c)"; [ -n "$h" ] || { echo "跳过 libpng:harness 抽取失败"; return; }
+  local la; ( cd "$d" && la=$(ls *.la 2>/dev/null | head -1); make clean >/dev/null 2>&1; make CC="$KO" "${la:-libpng12.la}" -j"$(nproc)" >/dev/null 2>&1 )
+  "$KO" -O1 "$h" -I "$d" "$d"/.libs/libpng*.a -lz -lm \
+        -o "$ROOT/benchmark/public/bin/google-fts/png_read_fuzzer_symsan"
+  rm -f "$h"; echo "built png_read_fuzzer_symsan"
+}
+
+build_pcre2() {
+  local d="$ROOT/benchmark/public/gfts_build/pcre2-src"
+  local harness="$ROOT/benchmark/targets/pcre2_harness.c"
+  [ -f "$d/CMakeLists.txt" ] && [ -f "$harness" ] || { echo "跳过 pcre2:缺源码/harness"; return; }
+  ( cd "$d" && rm -rf build_symsan && mkdir build_symsan && cd build_symsan \
+    && cmake -DCMAKE_C_COMPILER="$KO" -DPCRE2_BUILD_PCRE2_8=ON -DPCRE2_BUILD_TESTS=OFF \
+             -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release .. >/dev/null 2>&1 \
+    && make pcre2-8 -j"$(nproc)" >/dev/null 2>&1 )
+  "$KO" -O1 -DPCRE2_CODE_UNIT_WIDTH=8 -I "$d/build_symsan" "$harness" \
+        "$d/build_symsan/libpcre2-8.a" -o "$ROOT/benchmark/public/bin/pcre2/pcre2_fuzzer_symsan"
+  echo "built pcre2_fuzzer_symsan"
+}
+# 注:sqlite 的 7MB amalgamation 会让 DFSan 插桩 pass 崩溃(clang frontend signal),
+# 属 DFSan 对超大单 TU 的已知限制,暂不支持(需 split 源或换 harness)。
+
 build_base64
-build_libxml2
+if [ "${BUILD_LIBS:-0}" = "1" ]; then
+  build_libxml2; build_libpng; build_pcre2
+else
+  echo "跳过重库目标 libxml2/libpng/pcre2(设 BUILD_LIBS=1 启用,较重)"
+fi
 echo "=== 完成。跑法:SYMSAN_FGTEST=<fgtest> python3 benchmark/run_benchmark.py --engine symsan --targets lava-base64 ... ==="
