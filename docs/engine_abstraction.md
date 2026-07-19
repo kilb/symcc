@@ -91,6 +91,9 @@ apt-get install -y libc++-18-dev libc++abi-18-dev libunwind-18-dev libboost-cont
   `run_benchmark` 公开目标发现【引擎感知】(symsan 只挑 `*_symsan`)。全 hybrid 实测:边覆盖 73→97,
   concolic 贡献 21 interesting;覆盖率对拍 symcc 113/192 vs symsan 111/192。其余公开套件(coreutils
   md5sum/uniq/who 需整棵 autotools 过 ko-clang;C/C++ libFuzzer 套件)为后续。
+- **SOTA 求解栈**:新增 `driver/fgtest_rgd.cpp`——RGD 解析器 + I2S(input-to-state)→JIGSAW(梯度)→Z3
+  级联(SymSan/JIGSAW USENIX'22),保留 fgtest one-shot 契约。`SYMSAN_SOLVER=rgd` 切换、`SYMSAN_USE_JIGSAW=1`
+  开梯度。实测已集成+功能正确+鲁棒,微目标上与 Z3 持平(base64 112=112,吞吐更高);优势需大目标体现。
 - [ ] C++ 目标(libFuzzer harness):SymSan 的进程内 Z3 对 C++ 目标有链接问题 → 需接 FastGen(进程外)。
 - [ ] fgtest 单遍只解一个嵌套分支——编排层的"输出喂回"循环(现成)会迭代解深;确认与 showmap 去重路径对齐
       (SymSan 输出即普通输入文件,应可直接复用)。

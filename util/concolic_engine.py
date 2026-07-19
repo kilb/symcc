@@ -91,7 +91,17 @@ class SymSanEngine(ConcolicEngine):
 
     def __init__(self) -> None:
         # fgtest driver 路径(build_symsan.sh 产出);默认在 PATH 里找 fgtest
-        self.fgtest = os.environ.get("SYMSAN_FGTEST", "fgtest")
+        fg = os.environ.get("SYMSAN_FGTEST", "fgtest")
+        # SOTA 求解栈:SYMSAN_SOLVER=rgd 时改用 RGD/JIGSAW driver(I2S input-to-state →
+        # JIGSAW 梯度 → Z3 级联,源自 SymSan 的 aflpp 参考实现)。默认取 fgtest 同目录的
+        # fgtest_rgd 兄弟;可用 SYMSAN_FGTEST_RGD 显式指定。JIGSAW 需再设 SYMSAN_USE_JIGSAW=1
+        # (经 env 透传给 driver)。见 docs/symsan_ported_techniques.md。
+        if os.environ.get("SYMSAN_SOLVER", "").lower() == "rgd":
+            rgd = os.environ.get("SYMSAN_FGTEST_RGD")
+            if not rgd and fg.endswith("fgtest"):
+                rgd = fg + "_rgd"
+            fg = rgd or fg
+        self.fgtest = fg
 
     def wrap_run(self, target_cmd, input_file, output_dir, env, use_stdin, timeout_sec):
         env = dict(env)

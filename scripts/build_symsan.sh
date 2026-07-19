@@ -53,10 +53,12 @@ make -j"$(nproc)"
 make install
 
 FGTEST="$(find "$INSTALL" "$SS/build" -name fgtest -type f | head -1)"
+FGTESTRGD="$(find "$INSTALL" "$SS/build" -name fgtest_rgd -type f | head -1)"
 echo
 echo "=== SymSan 构建完成 ==="
-echo "  ko-clang : $INSTALL/bin/ko-clang"
-echo "  fgtest   : $FGTEST"
+echo "  ko-clang    : $INSTALL/bin/ko-clang"
+echo "  fgtest      : $FGTEST         (进程内 Z3)"
+echo "  fgtest_rgd  : $FGTESTRGD  (SOTA:I2S→JIGSAW→Z3;SYMSAN_SOLVER=rgd 选用)"
 echo
 echo "编译目标(FastGen 插桩模式,fgtest 驱动需要):"
 echo "  KO_CC=clang-18 KO_USE_FASTGEN=1 KO_DONT_OPTIMIZE=1 $INSTALL/bin/ko-clang -o target_symsan target.c"
