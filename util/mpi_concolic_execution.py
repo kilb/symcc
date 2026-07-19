@@ -41,6 +41,7 @@ import tempfile
 import time
 from collections import deque
 
+from concolic_engine import get_engine   # concolic 引擎抽象(symcc / symsan 可切换)
 from mpi4py import MPI
 
 # --- 辅助函数 ---
@@ -158,25 +159,16 @@ def run_symcc(target_cmd: list[str], input_file: str, output_dir: str,
     """
     os.makedirs(output_dir, exist_ok=True)
 
-    if base_env is None:
-        env = os.environ.copy()
-        env["SYMCC_ENABLE_LINEARIZATION"] = "1"
-    else:
-        env = dict(base_env)  # 浅拷贝，避免修改调用方的字典
-    env["SYMCC_OUTPUT_DIR"] = output_dir
-
-    if use_stdin:
-        cmd = ["timeout", "-k", "5", str(timeout_sec)] + target_cmd
-    else:
-        env["SYMCC_INPUT_FILE"] = str(input_file)
-        cmd = ["timeout", "-k", "5", str(timeout_sec)] + [
-            arg.replace("@@", str(input_file)) for arg in target_cmd
-        ]
+    env = os.environ.copy() if base_env is None else dict(base_env)
+    # 引擎抽象:据 SYMCC_ENGINE(默认 symcc)选 SymCC/SymSan 决定实际命令 + 环境 + 是否喂 stdin。
+    _engine = get_engine()
+    cmd, env, feed_stdin = _engine.wrap_run(
+        target_cmd, input_file, output_dir, env, use_stdin, timeout_sec)
 
     start = time.monotonic()
     py_timeout = timeout_sec + 15  # Python-side backstop for hung processes
     try:
-        if use_stdin:
+        if feed_stdin:
             with open(input_file, "rb") as inf:
                 proc = subprocess.run(
                     cmd, stdin=inf, stdout=subprocess.DEVNULL,

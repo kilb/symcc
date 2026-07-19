@@ -182,6 +182,28 @@ def build_targets(output_dir, engine=None):
     return binaries
 
 
+def build_afl_targets(output_dir):
+    """用 afl-clang-fast 编译微目标的 AFL 二进制(*_afl),供 hybrid 的 AFL 侧 + showmap 覆盖测量。
+    引擎无关(AFL 侧不随 concolic 引擎变);afl-clang-fast 不可用时返回空。"""
+    afl_cc = shutil.which("afl-clang-fast")
+    binaries = {}
+    if not afl_cc:
+        return binaries
+    os.makedirs(output_dir, exist_ok=True)
+    for name, (source, _, _, _) in TARGETS.items():
+        out = Path(output_dir) / f"{name}_afl"
+        try:
+            r = subprocess.run(
+                [afl_cc, "-O2", str(TARGETS_DIR / source), "-o", str(out)],
+                capture_output=True, text=True, timeout=180,
+                env={**os.environ, "AFL_QUIET": "1"})
+            if r.returncode == 0 and out.exists():
+                binaries[name] = str(out)
+        except (OSError, subprocess.SubprocessError):
+            pass
+    return binaries
+
+
 def build_targets_gcc(output_dir):
     """Compile with gcc as fallback (for simulation/framework testing)."""
     binaries = {}
@@ -2448,6 +2470,7 @@ def main():
 
     # Build step
     binaries = {}
+    micro_afl = {}   # 微目标的 AFL 二进制(afl-clang-fast),供 hybrid 的 AFL 侧 + 覆盖测量
     if args.no_default:
         print("Step 1: Skipping built-in targets (--no-default)")
         print("-" * 40)
@@ -2469,6 +2492,8 @@ def main():
                 print("        not actual symbolic execution performance.")
                 binaries = build_targets_gcc(bin_dir)
                 args.simulation = True
+            if not args.simulation:
+                micro_afl = build_afl_targets(bin_dir)  # 微目标 AFL 二进制(hybrid 需要)
     else:
         # Find existing binaries(按当前引擎的后缀优先)
         _suffixes = [get_engine().binary_suffix, "_symcc", "_native"]
@@ -2478,6 +2503,9 @@ def main():
                 if os.path.isfile(path):
                     binaries[name] = path
                     break
+            afl_p = os.path.join(bin_dir, f"{name}_afl")
+            if os.path.isfile(afl_p):
+                micro_afl[name] = afl_p
 
     # Add public benchmark targets.
     # Auto-discover from benchmark/public/bin/ unless --no-public is passed.
@@ -2866,9 +2894,9 @@ def main():
                 shutil.rmtree(work_dir, ignore_errors=True)
 
         # Hybrid AFL + SymCC
-        if args.hybrid and target in public_targets:
+        if args.hybrid and (target in public_targets or target in micro_afl):
             afl_targets = discover_public_afl_targets()
-            afl_binary = afl_targets.get(target)
+            afl_binary = afl_targets.get(target) or micro_afl.get(target)  # 微目标也可 hybrid
             if afl_binary:
                 for np_val in np_list:
                     actual_np = max(2, np_val)

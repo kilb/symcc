@@ -106,5 +106,17 @@ apt-get install -y libc++-18-dev libc++abi-18-dev libunwind-18-dev libboost-cont
 **观察(诚实)**:两引擎【可比】但各有短长——SymCC 生成更快/更多、能跑的目标上覆盖略高;**SymSan 更鲁棒**
 (crypto_check 上 SymCC 的 QSYM 表达式构造器断言崩溃,SymSan 正常)。这正是"可配置引擎"的价值:按目标选引擎。
 
+## 全 hybrid 对拍(CLI 端到端,实测)
+`run_benchmark --engine {symcc,symsan} --hybrid`(deep_branches 微目标,np=6,10s):CLI 自动用 ko-clang 编 `*_symsan`
++ afl-clang-fast 编 `*_afl`,跑 **AFL 并行实例 + MPI concolic workers(经 fgtest,引擎化)+ afl-showmap 覆盖测量**:
+
+| 引擎 | AFL 用例 | concolic interesting | 边覆盖 | bitmap |
+|---|---|---|---|---|
+| symcc | 240 | 39 | **30/38** | 78.95% |
+| symsan | 242 | 25 | **30/38** | 78.95% |
+
+→ **完整 hybrid 流水线两引擎均跑通、覆盖一致**(SymCC concolic 贡献 39 个 interesting,SymSan 25 个)。
+为此 `mpi_concolic_execution.py` 也引擎化了,且 `build_targets`/hybrid 现支持微目标(自动编 `*_afl`)。
+
 **当前状态**:引擎抽象 + `--engine` + SymCC 默认(逐字节等价)+ **SymSan 构建 & fgtest & 真实目标对拍均已跑通验证**;
 剩下的是"用 ko-clang 批量重编全部 benchmark 目标"和"5 个技术点在 DFSan 侧重写"这两块真正的工作量。
