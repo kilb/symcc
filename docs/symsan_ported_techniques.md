@@ -205,8 +205,12 @@ LAVA-M(coreutils)之外再铺一批**格式解析器**(concolic 强项:魔数/�
 | base64_harness | LAVA-M | harness+lib/base64.c | 176 | 全 hybrid 73→97 边 | ✅ |
 | xml_read_fuzzer | libxml2 | 重编 libxml2.a(234) | 176 | 142 输出+hints | ✅ |
 | png_read_fuzzer | libpng | 重编 libpng.a(60) | 176 | 15 输出+hints | ✅ |
-| pcre2_fuzzer | pcre2 | 重编 libpcre2-8.a(54) | 176 | 140 输出+hints | ✅ |
+| pcre2_fuzzer | pcre2 | 重编 libpcre2-8.a(54) | 176 | 全 hybrid 4022/9728 边,concolic 120 interesting | ✅ |
 | sqlite_fuzzer | sqlite | amalgamation 7MB 单 TU | — | — | ⛔ DFSan pass 崩溃 |
+
+**pcre2 全 hybrid 端到端**(`--engine symsan --hybrid --targets pcre2-pcre2_fuzzer`,np=6):引擎感知自动发现 →
+AFL(3)+ SymSan concolic(2)→ **边覆盖 41.34%(4022/9728),concolic 贡献 120 个 interesting**,948 tc/s。
+这是一个较大真实目标(近万边),端到端流水线证 SymSan 引擎在真实格式解析器上可用且有效。
 
 **sqlite**:7MB 的 `sqlite3.c` amalgamation 会让 ko-clang 的 DFSan 插桩 pass 崩溃(clang frontend signal,
 各优化档/omit-defines 均复现)——DFSan 对超大单 TU 的已知限制。需 split 源或换 harness,暂不支持。
