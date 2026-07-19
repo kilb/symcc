@@ -1,4 +1,14 @@
-# 技术④ 选择性符号化 —— 移植到 SymSan(DFSan 后端)
+# 移植到 SymSan(DFSan 后端)的 SymCC 自研技术
+
+本文记录把 SymCC 侧的 3 个自研优化移植到可切换的 **SymSan(DFSan)引擎**:
+**④ 选择性符号化**(运行时 taint 源门控)、**③ 字典引导** 与 **① 多字段解组合**(driver 层)。
+三者都经与 SymCC 同名的环境变量通道下发(`SYMCC_FOCUS_BYTES` / `SYMCC_DICT` / `SYMCC_MULTI_SOLVE`),
+故编排层与 SymCC 一致、无需改动。补丁:`scripts/symsan_patches/symsan_ported_techniques.patch`
+(`build_symsan.sh` 幂等应用)。
+
+---
+
+## 技术④ 选择性符号化
 
 选择性符号化(selective symbolization):**只符号化输入里"相关"的字节,其余字节保持具体值**。
 好处是缩小符号状态、少给求解器喂无关约束,把算力集中在真正影响分支的字节上。这是本项目在
@@ -70,8 +80,56 @@ DFSan 的 sanitizer flag 解析把 `,` 也当分隔符(`sanitizer_flag_parser.cp
 
 (SymCC 每遍每个比较只翻首个失配字节故偏移更少,但**门控行为相同**:focus 把解严格限制在指定区间。)
 
+---
+
+## 技术③ 字典引导(dictionary)
+
+对被求解改动的字节位置,用**AFL 字典 token**(魔数/关键字常量)拼接生成额外候选,帮 fuzzing 越过
+Z3 未必直接解出的 magic/关键字。移植自 SymCC `Solver::loadDictionary` / `saveDictVariants`。
+
+**落点:纯 driver 层(fgtest.cpp),不碰求解器。** 与 ④ 不同,字典的求解 + 产出都在 fgtest 进程里,
+故直接 `getenv("SYMCC_DICT")` 即可,无需经 launcher 透传到目标。
+- `load_dictionary()`:读 `SYMCC_DICT`,解析 AFL 格式(`"token"` / `name="token"`,支持 `\xNN`)。
+- `save_dict_variants(solved)`:在 `generate_input` 写出求解结果后调用——找出求解【首个】改动的偏移,
+  对每个 token 从**原始种子**出发拼接产出变体(cap 20;跳过与原值/解相同者),复刻 SymCC 语义。
+
+**验证**(focus_test,dict 含两段 magic token):`DICT=off` 8 个输出 → `DICT=on` **20 个输出**
+(多出 12 个字典拼接变体)。
+
+## 技术① 多字段解组合(multi-field solution combination)
+
+SymCC 的 `negateGroup` 收集相邻 interesting 分支、用一次 Z3 联合求解同时翻转多个字段(如结构体头部的
+magic/version/flags),一步跨过多字段校验,省去逐字段反馈迭代。
+
+**SymSan 架构下的对应实现:在【解层面】组合而非 Z3 层面联合。** SymSan 的 rgd/Z3 求解器按 task
+【逐分支】求解,重写成 QSYM 式 forest-union 联合求解是大改;而 fgtest 本就为每个分支产出 per-offset 的
+SET 解。于是:
+- `generate_input` 累积各分支的 SET 解到 `__combined_sets`(offset→val,后写覆盖);
+- 事件循环结束时 `flush_combined_input()`:若累积到 ≥2 个不同偏移,额外产出**一个同时应用全部字段解**
+  的组合输入。各偏移互斥 → 组合无冲突;结果是候选,由覆盖反馈确认(sound)。
+
+对**同一遍即可达的多个独立字段校验**(QSYM 的"邻近字段/结构体头部"模式),该组合等价于联合求解的效果:
+一个输入一次满足多字段。对短路嵌套的单路径 magic(一遍只暴露一个字节比较),则退化为无额外产出——
+此时本就需反馈迭代,编排层的"输出喂回"循环负责。门控 `SYMCC_MULTI_SOLVE`(与 SymCC 同名)。
+
+**验证**(focus_test 两段独立 magic,-O1 各融成一个 32 位比较):`MULTI_SOLVE=off` 8 个输出、无单个
+输出同时满足两段;`MULTI_SOLVE=1` **9 个输出,其中 1 个组合输出同时满足 A、B 两段**——正是"一次跨过
+多字段"的效果。
+
+---
+
 ## 复现
-改动落在 5 个 SymSan 源文件,已存为 `scripts/symsan_patches/selective-symbolization.patch`,
-`scripts/build_symsan.sh` 在构建前幂等应用(dfsan_flags.inc 已含 `focus_bytes` 则跳过)。
-涉及文件:`runtime/dfsan/dfsan_flags.inc`(新 flag)、`runtime/dfsan/dfsan_custom.cpp`(门控)、
-`driver/launcher/launch.c` + `include/launch.h`(config 字段 + setter + 模板)、`driver/fgtest.cpp`(解析下发)。
+三项改动共落在 5 个 SymSan 源文件,已存为 `scripts/symsan_patches/symsan_ported_techniques.patch`,
+`scripts/build_symsan.sh` 在构建前幂等应用(dfsan_flags.inc 已含 `focus_bytes` 则视为已打补丁)。
+- `runtime/dfsan/dfsan_flags.inc`:④ 新 `focus_bytes` flag。
+- `runtime/dfsan/dfsan_custom.cpp`:④ `get_label_for` 按偏移门控 taint 源。
+- `driver/launcher/launch.c` + `include/launch.h`:④ config 字段 + `symsan_set_focus_bytes` setter + 目标 env 模板。
+- `driver/fgtest.cpp`:④ 解析 `focus_bytes` 下发;③ `load_dictionary`/`save_dict_variants`;
+  ① `__combined_sets` 累积 + `flush_combined_input`。
+
+## 环境变量总览(均与 SymCC 同名,编排层无需区分引擎)
+| 变量 | 技术 | 作用 |
+|---|---|---|
+| `SYMCC_FOCUS_BYTES="s-e"` | ④ | 仅符号化该区间字节,其余具体化 |
+| `SYMCC_DICT=<path>` | ③ | AFL 字典;对求解改动位置拼接 token 产出变体 |
+| `SYMCC_MULTI_SOLVE=1` | ① | 运行结束把多字段 SET 解组合成一个输入 |

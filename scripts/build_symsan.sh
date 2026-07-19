@@ -33,14 +33,15 @@ print("z3-ts shim inserted")
 PY
 fi
 
-# 2.5) 技术④ 选择性符号化补丁:给 DFSan 运行时/launcher/fgtest 加 focus_bytes 支持
-#      (仅对选中的输入偏移打 taint 标签,其余具体化)。见 docs/symsan_selective_symbolization.md。
-#      幂等:dfsan_flags.inc 已含 focus_bytes 则跳过。
-PATCH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/symsan_patches/selective-symbolization.patch"
+# 2.5) 移植的 SymCC 自研技术补丁(给 DFSan 运行时/launcher/fgtest):
+#      ④ 选择性符号化(focus_bytes 门控 taint 源)、③ 字典引导(SYMCC_DICT)、① 多字段解组合
+#      (SYMCC_MULTI_SOLVE)。见 docs/symsan_ported_techniques.md。
+#      幂等:dfsan_flags.inc 已含 focus_bytes 则视为已打补丁,跳过。
+PATCH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/symsan_patches/symsan_ported_techniques.patch"
 if [ -f "$PATCH" ] && ! grep -q "focus_bytes" "$SS/runtime/dfsan/dfsan_flags.inc"; then
   ( cd "$SS" && git apply --whitespace=nowarn "$PATCH" ) \
-    && echo "selective-symbolization patch applied" \
-    || echo "WARN: 选择性符号化补丁应用失败(upstream 可能已改动),请手工核对 $PATCH"
+    && echo "symsan ported-techniques patch applied (④选择性符号化 ③字典 ①多字段组合)" \
+    || echo "WARN: 技术补丁应用失败(upstream 可能已改动),请手工核对 $PATCH"
 fi
 
 # 3) 构建 + 安装(install 生成 ko-clang 期望的 ../lib/symsan/ 布局:passes + runtime + *.a + taint.ld + abilist)

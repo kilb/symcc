@@ -75,13 +75,16 @@ apt-get install -y libc++-18-dev libc++abi-18-dev libunwind-18-dev libboost-cont
 - [x] 引擎抽象 + `--engine` + SymSanEngine 按 fgtest 契约实现(`TAINT_OPTIONS="taint_file=<in> output_dir=<out>"`)。
 - [ ] 用 ko-clang(**FastGen 模式**)批量重编各 benchmark 目标为 `*_symsan`;`build_targets`/编译脚本按引擎选 wrapper;
       `_has_symsan_instrumentation`(检测 `__taint`/dfsan 符号)。
-- 5 个自研技术点在 SymSan 侧重写(**主要工作量**):都写在 SymCC 的 qsym 表达式/solver 内部,需在 SymSan 的
-  DFSan-label + Z3/FastGen 框架里重做:
-  - [x] **④选择性符号化**——已移植:在 DFSan 运行时 `get_label_for` 单一枢纽按偏移门控(非 focus 字节返回
-        label 0 保持具体),经既有 `SYMCC_FOCUS_BYTES` 通道 → `TAINT_OPTIONS focus_bytes=` → fgtest/launcher →
-        目标 DFSan flags。两引擎 focus 行为一致(见 `docs/symsan_selective_symbolization.md`)。补丁存于
-        `scripts/symsan_patches/selective-symbolization.patch`,`build_symsan.sh` 幂等应用。
-  - [ ] ①多分支联合求解 ②hint 传递 ③字典引导 ⑤fast-solve(⑤因 FastGen 本就 JIT 快解而部分作废)。
+- 5 个自研技术点在 SymSan 侧重写(都写在 SymCC 的 qsym 表达式/solver 内部,在 SymSan 的
+  DFSan-label + fgtest/Z3 框架里重做)。**已移植 3 个**(见 `docs/symsan_ported_techniques.md`,
+  补丁 `scripts/symsan_patches/symsan_ported_techniques.patch`,`build_symsan.sh` 幂等应用):
+  - [x] **④选择性符号化**——DFSan 运行时 `get_label_for` 单一枢纽按偏移门控(非 focus 字节返回 label 0),
+        经 `SYMCC_FOCUS_BYTES` → `TAINT_OPTIONS focus_bytes=` → fgtest/launcher → 目标 DFSan flags。
+  - [x] **③字典引导**——fgtest driver 层:`SYMCC_DICT` 载入 AFL 字典,对求解改动位置拼接 token 产出变体
+        (cap 20)。复刻 `saveDictVariants`。
+  - [x] **①多字段解组合**——fgtest driver 层:`SYMCC_MULTI_SOLVE` 累积各分支 SET 解,结束时组合成一个
+        "同时满足多字段"的输入(SymSan 按 task 逐分支解,故在解层面组合,等价于 `negateGroup` 对邻近字段的效果)。
+  - [ ] ②hint 传递 ⑤fast-solve(⑤因 FastGen 本就 JIT 快解而部分作废)。
 - [ ] C++ 目标(libFuzzer harness):SymSan 的进程内 Z3 对 C++ 目标有链接问题 → 需接 FastGen(进程外)。
 - [ ] fgtest 单遍只解一个嵌套分支——编排层的"输出喂回"循环(现成)会迭代解深;确认与 showmap 去重路径对齐
       (SymSan 输出即普通输入文件,应可直接复用)。

@@ -1,8 +1,19 @@
 diff --git a/driver/fgtest.cpp b/driver/fgtest.cpp
-index 510f5a1..06a8009 100644
+index 510f5a1..8c4ffc4 100644
 --- a/driver/fgtest.cpp
 +++ b/driver/fgtest.cpp
-@@ -43,6 +43,7 @@ static size_t input_size;
+@@ -11,7 +11,10 @@ extern "C" {
+ #include "parse-z3.h"
+ 
+ #include <algorithm>
++#include <fstream>
++#include <map>
+ #include <memory>
++#include <string>
+ #include <unordered_map>
+ #include <unordered_set>
+ #include <utility>
+@@ -43,6 +46,7 @@ static size_t input_size;
  
  // for output
  static const char* __output_dir = ".";
@@ -10,7 +21,136 @@ index 510f5a1..06a8009 100644
  static uint32_t __instance_id = 0;
  static uint32_t __session_id = 0;
  static uint32_t __current_index = 0;
-@@ -204,6 +205,18 @@ int main(int argc, char* const argv[]) {
+@@ -52,6 +56,79 @@ static z3::context __z3_context;
+ // z3parser
+ symsan::Z3ParserSolver *__z3_parser = nullptr;
+ 
++// ============ 技术③ 字典引导 + 技术① 多字段解组合 ============
++// 均移植自 SymCC 的 qsym solver.cpp,在 driver 层实现(不触碰 DFSan 运行时/rgd 求解器)。
++// 经 getenv 读 SYMCC_DICT / SYMCC_MULTI_SOLVE——与 SymCC 同名通道,编排层的策略档已下发,
++// SymSanEngine.wrap_run 原样透传环境变量给 fgtest,故无需额外接线。
++static std::vector<std::vector<uint8_t>> __dict_tokens;  // ③ AFL 字典 token 列表
++static bool __multi_solve = false;                       // ① SYMCC_MULTI_SOLVE>=1 时启用
++static std::map<size_t, uint8_t> __combined_sets;        // ① 累积各分支的 SET 解(offset->val)
++
++// 把一段字节写成一个编号 id-* 输出(求解结果 / dict 变体 / combined 输入复用同一出口)
++static void write_output(const std::vector<uint8_t>& data, const char* tag) {
++  char path[PATH_MAX];
++  snprintf(path, PATH_MAX, "%s/id-%d-%d-%d", __output_dir,
++           __instance_id, __session_id, __current_index++);
++  int fd = open(path, O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
++  if (fd == -1) { AOUT("failed to open %s output\n", tag); return; }
++  if (write(fd, data.data(), data.size()) == -1)
++    AOUT("failed to write %s output\n", tag);
++  close(fd);
++}
++
++// ③ 载入 AFL 字典(SYMCC_DICT):格式 "token" 或 name="token",支持 \xNN 转义。
++//    复刻 SymCC Solver::loadDictionary。
++static void load_dictionary() {
++  const char* dict_path = getenv("SYMCC_DICT");
++  if (!dict_path) return;
++  std::ifstream ifs(dict_path);
++  if (ifs.fail()) { AOUT("cannot open dict %s\n", dict_path); return; }
++  std::string line;
++  while (std::getline(ifs, line)) {
++    size_t s = line.find('"'), e = line.rfind('"');
++    if (s == std::string::npos || e == std::string::npos || s >= e) continue;
++    std::string t = line.substr(s + 1, e - s - 1);
++    std::vector<uint8_t> token;
++    for (size_t i = 0; i < t.size(); i++) {
++      if (t[i] == '\\' && i + 3 < t.size() && t[i + 1] == 'x') {
++        char hex[3] = {t[i + 2], t[i + 3], '\0'};
++        token.push_back((uint8_t)strtol(hex, NULL, 16));
++        i += 3;
++      } else {
++        token.push_back((uint8_t)t[i]);
++      }
++    }
++    if (!token.empty()) __dict_tokens.push_back(token);
++  }
++  AOUT("loaded %zu dict tokens from %s\n", __dict_tokens.size(), dict_path);
++}
++
++// ③ 对 Z3 求解改动的【首个】字节位置,用字典 token 拼接生成额外变体(cap 20)。
++//    从原始种子出发(非求解结果),跳过与原值/解相同的 token。复刻 SymCC saveDictVariants。
++static void save_dict_variants(const std::vector<uint8_t>& solved) {
++  if (__dict_tokens.empty()) return;
++  size_t first = SIZE_MAX;
++  for (size_t i = 0; i < solved.size() && i < input_size; i++)
++    if (solved[i] != (uint8_t)input_buf[i]) { first = i; break; }
++  if (first == SIZE_MAX) return;
++  int variants = 0;
++  const int kMaxDictVariants = 20;
++  for (const auto& token : __dict_tokens) {
++    if (variants >= kMaxDictVariants) break;
++    if (first + token.size() > input_size) continue;
++    bool same_orig = true, same_solved = true;
++    for (size_t j = 0; j < token.size(); j++) {
++      if (token[j] != (uint8_t)input_buf[first + j]) same_orig = false;
++      if (first + j < solved.size() && token[j] != solved[first + j]) same_solved = false;
++    }
++    if (same_orig || same_solved) continue;
++    std::vector<uint8_t> variant(input_buf, input_buf + input_size);
++    for (size_t j = 0; j < token.size(); j++) variant[first + j] = token[j];
++    write_output(variant, "dict");
++    variants++;
++  }
++}
++
+ static void generate_input(symsan::Z3ParserSolver::solution_t &solutions) {
+   using op_t = symsan::Z3ParserSolver::solution_op_t;
+ 
+@@ -96,24 +173,35 @@ static void generate_input(symsan::Z3ParserSolver::solution_t &solutions) {
+     }
+   }
+ 
+-  // Write the new input to file
+-  char path[PATH_MAX];
+-  snprintf(path, PATH_MAX, "%s/id-%d-%d-%d", __output_dir,
+-           __instance_id, __session_id, __current_index++);
+-  int fd = open(path, O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
+-  if (fd == -1) {
+-    AOUT("failed to open new input file for write");
+-    return;
++  // ① 多字段解组合:累积本分支的 SET 解(offset->val,后写覆盖)。运行结束时若累积到 >=2
++  //    个不同偏移,额外产出一个"同时满足全部字段"的组合输入(见 flush_combined_input)。
++  if (__multi_solve) {
++    for (const auto& sol : solutions)
++      if (sol.op == op_t::SET && sol.offset < input_size)
++        __combined_sets[sol.offset] = sol.val;
+   }
+ 
++  // Write the new input to file
+   AOUT("generate #%d output (size: %zu -> %zu)\n",
+-       __current_index - 1, input_size, new_input.size());
++       __current_index, input_size, new_input.size());
++  write_output(new_input, "sol");
+ 
+-  if (write(fd, new_input.data(), new_input.size()) == -1) {
+-    AOUT("failed to write new input\n");
+-  }
++  // ③ 字典引导:对本次求解改动的首个位置拼接字典 token,产出额外变体
++  save_dict_variants(new_input);
++}
+ 
+-  close(fd);
++// ① 运行结束时把累积的各分支 SET 解合并成一个输入(多字段一次全满足)。SymSan 的
++//    求解器按 task 逐分支求解,故这里在【解层面】组合,达到 SymCC negateGroup 联合求解
++//    同样的效果:一次跨过多字段校验,省去逐字段反馈迭代。各偏移互斥 → 组合无冲突;结果
++//    是候选输入,由覆盖反馈确认(sound)。
++static void flush_combined_input() {
++  if (!__multi_solve || __combined_sets.size() < 2) return;
++  std::vector<uint8_t> merged(input_buf, input_buf + input_size);
++  for (const auto& kv : __combined_sets)
++    if (kv.first < merged.size()) merged[kv.first] = kv.second;
++  AOUT("multi-solve: combined %zu field solutions into one input\n",
++       __combined_sets.size());
++  write_output(merged, "combined");
+ }
+ 
+ static void __solve_cond(dfsan_label label, uint8_t r, bool add_nested, void *addr) {
+@@ -204,6 +292,18 @@ int main(int argc, char* const argv[]) {
          is_stdin = 1;
      }
  
@@ -29,7 +169,18 @@ index 510f5a1..06a8009 100644
      // check for debug
      char *debug_opt = strstr(options, "debug=");
      if (debug_opt) {
-@@ -275,6 +288,7 @@ int main(int argc, char* const argv[]) {
+@@ -236,6 +336,10 @@ int main(int argc, char* const argv[]) {
+     }
+   }
+ 
++  // 技术③/① 开关(与 SymCC 同名环境变量,经 fgtest 自身 env 直接读取):
++  __multi_solve = getenv("SYMCC_MULTI_SOLVE") != nullptr;  // ① 多字段解组合
++  load_dictionary();                                       // ③ 载入 SYMCC_DICT 字典
++
+   // load input file
+   struct stat st;
+   int input_fd = open(input, O_RDONLY);
+@@ -275,6 +379,7 @@ int main(int argc, char* const argv[]) {
    symsan_set_debug(debug);
    symsan_set_bounds_check(1);
    symsan_set_solve_ub(solve_ub);
@@ -37,6 +188,15 @@ index 510f5a1..06a8009 100644
  
    // launch the target
    int ret = symsan_run(input_fd);
+@@ -355,6 +460,8 @@ int main(int argc, char* const argv[]) {
+     }
+   }
+ 
++  flush_combined_input();  // ① 事件循环结束后产出多字段组合输入
++
+   symsan_destroy();
+   exit(0);
+ }
 diff --git a/driver/launcher/launch.c b/driver/launcher/launch.c
 index b7e207d..c2d3080 100644
 --- a/driver/launcher/launch.c
