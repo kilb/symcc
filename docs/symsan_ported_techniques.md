@@ -251,12 +251,18 @@ AFL(3)+ SymSan concolic(2)→ **边覆盖 41.34%(4022/9728),concolic 贡献 120 
 
 ### coreutils md5sum/uniq/who:仍 0 产出(剩余问题已缩小)
 整棵 coreutils autotools 树用 ko-clang **成功编译**(各 176 dfsan 符号)。修掉上面的 `taint_getc` bug 后,
-简单 getc→buf→strcmp 已能解;**但 uniq/md5sum/who 仍 0 产出**——剩余是【更具体的一个】问题,已缩小定位:
-它们经 gnulib `readlinebuffer_delim` 读行、`strcmp` 比较时,操作数出现**指针有污点(`s2_label`≠0)但内容
-shadow 读为 0**(`get_str_label` 返回 0)的情况——即行缓冲的**内容字节污点丢了**(非 realloc:realloc 增长
-缓冲的最小用例可解)。到达 fgtest 的 cond 因此全是 label 0 → `parse_cond` 失败。这不是"根本不可解",而是
-gnulib 行读取路径里一处仍待查的污点传播缺口(可后续攻)。构建见 `build_public_symsan.sh build_coreutils`
-(`BUILD_COREUTILS=1`);当前 concolic 仍无产出,故不接入发现层。
+简单 getc→buf→strcmp/memcmp 的最小用例**都能解**(多个变体验证:`buf[i++]`/`*p++`/独立函数/getc 宏)。
+**但 uniq/md5sum/who 仍 0 产出**,深挖到一处精确但难跨的墙:
+- uniq 真正的比较是 `different()` 里的 **`memcmp(old,new,len)`**(不是我先前追的 strcmp——那些是 find_field/
+  locale 的干扰),且前有 `oldlen!=newlen` 长度短路。
+- 经 gnulib `readlinebuffer_delim`(`*p++=c`,与可解的最小用例逐字节同构)读入后,`taint_getc` 确实触发
+  (12 次算出 label),**但到 memcmp 时行缓冲内容 `dfsan_read_label` 读为 0**——内容污点在 uniq 的具体
+  编译里丢了,而结构相同的最小用例不丢。
+- 黑盒隔离了 ~10 个变量(realloc/指针游走/函数边界/getc 宏/strcmp-vs-memcmp/长度短路)均非单一主因。
+**结论**:这不是"不可解",是 gnulib 行读取在 uniq 全量编译下的一处**内容污点丢失**,黑盒试错已到极限——
+再进需在 DFSan 运行时的 **store shadow 路径**里逐字节插桩追踪(DFSan 把 store 的影子传播 inline 进目标,
+无法从外部 AOUT,须改 TaintPass/带运行时重建迭代),属更深的专项调试。已修的 `taint_getc` bug 是本轮实在收获。
+构建见 `build_public_symsan.sh build_coreutils`(`BUILD_COREUTILS=1`);concolic 仍无产出,不接入发现层。
 
 ---
 
