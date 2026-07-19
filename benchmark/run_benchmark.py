@@ -2328,6 +2328,9 @@ def main():
                         help="Comma-separated process counts (default: 1,2,4,8)")
     parser.add_argument("--targets", default=None,
                         help="Comma-separated target names (default: all)")
+    parser.add_argument("--engine", choices=["symcc", "symsan"], default=None,
+                        help="concolic engine (default: symcc). symsan is EXPERIMENTAL — "
+                             "requires scripts/build_symsan.sh + SYMSAN_FGTEST + *_symsan targets")
     parser.add_argument("--rounds", type=int, default=3,
                         help="Rounds per configuration (default: 3)")
     parser.add_argument("--timeout", type=int, default=60,
@@ -2386,6 +2389,11 @@ def main():
                         help="Enable time-series coverage sampling every N seconds (default: disabled)")
 
     args = parser.parse_args()
+
+    # 选定 concolic 引擎 → 经 SYMCC_ENGINE 透传给各 MPI worker(os.environ.copy 会带上),
+    # worker 的 run_symcc_worker 据此走 SymCC(默认)或 SymSan(fgtest)路径。
+    if args.engine:
+        os.environ["SYMCC_ENGINE"] = args.engine
 
     try:
         np_list = [int(x) for x in args.np_list.split(",")]

@@ -44,6 +44,7 @@ import tempfile
 import time
 import typing
 
+from concolic_engine import get_engine   # concolic 引擎抽象(symcc / symsan 可切换)
 from mpi4py import MPI
 
 # MPI tags
@@ -571,10 +572,8 @@ def run_symcc_worker(target_cmd: list[str], input_file: str, output_dir: str,
         env = dict(base_env)  # 浅拷贝，避免修改调用方字典
     else:
         env = os.environ.copy()
-    env["SYMCC_OUTPUT_DIR"] = output_dir
-    env["SYMCC_ENABLE_LINEARIZATION"] = "1"
-    # 输出约束 hint 文件；默认开启，但允许上游 env 显式关闭（用于消融实验 ③ hint 传递）
-    env["SYMCC_EMIT_HINTS"] = os.environ.get("SYMCC_EMIT_HINTS", "1")
+    # 引擎专属环境变量(SymCC 的 SYMCC_OUTPUT_DIR / SymSan 的 TAINT_OPTIONS 等)由所选引擎在
+    # 下方 wrap_run 中设置。此处仅保证输出目录已建好(上面 makedirs)。
 
     # #10 拆分：在 SymCC 运行【之前】快照【全局】已覆盖位图（SYMCC_AFL_COVERAGE_MAP,由 master
     # 的 .shared_bitmap 经 bmsync 播种而来）。据此把冗余输出分为"没打到任何全局新边(乐观求解
@@ -592,18 +591,16 @@ def run_symcc_worker(target_cmd: list[str], input_file: str, output_dir: str,
         if _snap is None:
             redun["snap_none"] = redun.get("snap_none", 0) + 1
 
-    if use_stdin:
-        cmd = ["timeout", "-k", "5", str(timeout_sec)] + target_cmd
-    else:
-        env["SYMCC_INPUT_FILE"] = str(input_file)
-        cmd = ["timeout", "-k", "5", str(timeout_sec)] + [
-            arg.replace("@@", str(input_file)) for arg in target_cmd
-        ]
+    # 由所选 concolic 引擎(SYMCC_ENGINE,默认 symcc)决定实际命令 + 环境 + 是否喂 stdin。
+    # SymCC:自驱二进制写 SYMCC_OUTPUT_DIR;SymSan:经 fgtest driver 写 TAINT_OPTIONS 的 output_dir。
+    _engine = get_engine()
+    cmd, env, feed_stdin = _engine.wrap_run(
+        target_cmd, input_file, output_dir, env, use_stdin, timeout_sec)
 
     start = time.monotonic()
     python_timeout = timeout_sec + 15
     try:
-        if use_stdin:
+        if feed_stdin:
             with open(input_file, "rb") as inf:
                 proc = subprocess.run(
                     cmd, stdin=inf, stdout=subprocess.DEVNULL,
