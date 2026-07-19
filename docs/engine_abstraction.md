@@ -74,5 +74,16 @@ apt-get install -y libc++-18-dev libc++abi-18-dev libunwind-18-dev libboost-cont
 - [ ] fgtest 单遍只解一个嵌套分支——编排层的"输出喂回"循环(现成)会迭代解深;确认与 showmap 去重路径对齐
       (SymSan 输出即普通输入文件,应可直接复用)。
 
-**当前状态**:引擎抽象 + `--engine` + SymCC 默认(逐字节等价)+ **SymSan 构建 & fgtest 端到端均已跑通并验证**;
-剩下的是"用 ko-clang 重编全部目标"和"5 个技术点在 DFSan 侧重写"这两块真正的工作量。
+## 引擎对拍(`scripts/engine_dogfight.py`,实测)
+把 `benchmark/targets/parser.c`(嵌套 4 字节魔数 `"SYM\x01"`)分别用 `build/symcc` 与 ko-clang(FastGen)编成
+`parser_symcc` / `parser_symsan`,经**同一 `run_symcc_worker` + `get_engine().wrap_run` 路径**跑反馈式 concolic:
+
+| 引擎 | 结果 |
+|---|---|
+| symcc | ✓ 第 4 轮解出完整魔数 `SYM\x01`,累计 11 个唯一输入 |
+| symsan | ✓ 第 4 轮解出完整魔数 `SYM\x01`,累计 11 个唯一输入 |
+
+→ 两引擎经 `--engine` 切换、走同一并行编排路径,反馈循环逐层解开嵌套魔数,**结果完全等价**。
+
+**当前状态**:引擎抽象 + `--engine` + SymCC 默认(逐字节等价)+ **SymSan 构建 & fgtest & 真实目标对拍均已跑通验证**;
+剩下的是"用 ko-clang 批量重编全部 benchmark 目标"和"5 个技术点在 DFSan 侧重写"这两块真正的工作量。
