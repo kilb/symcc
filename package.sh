@@ -40,10 +40,132 @@ package.sh —— 把项目打包成自包含压缩包,供他人【无需 git】
   ./package.sh --all           # 额外含未提交但未忽略的文件（docs 报告、PDF 等）
   ./package.sh --offline       # 【内网】再打进全部 apt/pip/AFL 依赖,目标机可离线部署(+~340M)
   ./package.sh --keep-vendored # 保留 qsym 自带的 PIN 发行版与内置 Z3 源码（体积大很多）
+  ./package.sh --with-symsan   # 【第二引擎】再打进 SymSan 源码 + 专用 Z3 + 其 apt 依赖(+~50M)
+  ./package.sh --no-symsan     # 关掉 SymSan（--offline 下默认是【开】的）
   ./package.sh -o <file>       # 输出文件名;格式看扩展名: .zip -> zip, .tar.gz/.tgz -> tar
 
 联网/在线包默认名 symcc-package.tar.gz;离线包默认名 symcc-offline-package.tar.gz。
+
+关于 SymSan（--engine symsan 的第二个 concolic 引擎）:
+  SymSan 源码【不是】本仓库的子模块（上游 R-Fuzz/symsan,只读),故不在 git 清单里。
+  --with-symsan 会把它连同【已打好本项目移植补丁】的源码一起 vendored 进 offline/symsan/,
+  目标机 setup.sh 直接从该目录离线构建,不需要 git、不需要访问 GitHub。
+  源码位置默认取 $SYMSAN_SRC;未设时按常见路径搜索,搜不到则报错(--no-symsan 可跳过)。
+  另需专用 Z3 >= 4.8.15（Ubuntu 24.04 的 libz3-dev 是 4.8.12,过旧,SymSan 编不过),
+  故另行 vendored 一份精简 Z3（仅 libz3.so + 头文件）。
 EOF
+}
+
+# ---- 定位 SymSan 源码树（供 --with-symsan vendoring）----
+# 顺序：$SYMSAN_SRC → 若干常见位置。必须看起来确实是 symsan（有 driver/fgtest.cpp）。
+locate_symsan_src() {
+    local c
+    for c in "${SYMSAN_SRC:-}" "$HOME/symsan" "$HOME/code/symsan" \
+             "$SCRIPT_DIR/../symsan" "/opt/symsan"; do
+        [ -n "$c" ] && [ -f "$c/driver/fgtest.cpp" ] && [ -f "$c/runtime/dfsan/dfsan_flags.inc" ] \
+            && { echo "$c"; return 0; }
+    done
+    return 1
+}
+
+# ---- 定位可用的 Z3 >= 4.8.15（SymSan 编译期需要;系统 4.8.12 不够）----
+# 顺序：$Z3_ROOT → 常见解包位置。判定标准：有 bin/libz3.so 与 include/z3.h。
+locate_z3_root() {
+    local c
+    for c in "${Z3_ROOT:-}" "$HOME"/z3-* /opt/z3-* /usr/local/z3-*; do
+        [ -n "$c" ] && [ -f "$c/bin/libz3.so" ] && [ -f "$c/include/z3.h" ] \
+            && { echo "$c"; return 0; }
+    done
+    return 1
+}
+
+# ---- 生成 SymSan 离线子包到 $1（布局: <dest>/{symsan-src.tar.gz,z3/,MANIFEST.txt}）----
+generate_symsan_bundle() {
+    local dest="$1" ss z3r
+    mkdir -p "$dest"
+
+    step "SymSan① vendoring 源码（含已应用的移植补丁）"
+    if ! ss="$(locate_symsan_src)"; then
+        error "找不到 SymSan 源码。请设 SYMSAN_SRC 指向 symsan 源码树,或用 --no-symsan 跳过。"
+        error "  获取: git clone https://github.com/R-Fuzz/symsan"
+        return 1
+    fi
+    info "SymSan 源码: $ss"
+
+    # 把源码拷到暂存区。只去掉 .git(7M,目标机不需要 git)与【顶层】build/(本机 cmake 产物)。
+    #
+    # 注意 --exclude=./build 里的 "./" 不能省:写成 --exclude=build 会连同
+    # libcxx/build_taint、libcxx/build_native 一起匹配掉。同理【不能】笼统排除 *.a/*.o ——
+    # libcxx/build_taint/lib/{libc++,libc++abi,libunwind}.a 是【污点插桩版 libc++ 的预建产物】,
+    # 是源码树的一部分而非临时产物:libcxx/CMakeLists.txt 会安装它们,C++ 目标要靠它们。
+    # 一旦漏掉,目标机上 `make install` 会以
+    #   "file INSTALL cannot find .../build_taint/lib/libc++.a" 失败,
+    # 而重新生成它们要跑 libcxx/rebuild.sh —— 那是要联网拉 LLVM 源码的,离线机上根本无从补救。
+    local tmpsrc; tmpsrc="$(mktemp -d)"
+    tar -C "$ss" --exclude=.git --exclude=./build -cf - . | tar -C "$tmpsrc" -xf -
+
+    # 【关键】把本项目的移植补丁【预先打进】vendored 源码。
+    # 目标机没有 git,build_symsan.sh 里的 `git apply` 用不了;预打好后该步骤会被它的
+    # 幂等检查（dfsan_flags.inc 已含 focus_bytes 即视为已打）自动跳过,故目标机全程无需 git。
+    local patch="$SCRIPT_DIR/scripts/symsan_patches/symsan_ported_techniques.patch"
+    if [ ! -f "$patch" ]; then
+        error "缺少移植补丁: $patch"; rm -rf "$tmpsrc"; return 1
+    fi
+    if grep -q "focus_bytes" "$tmpsrc/runtime/dfsan/dfsan_flags.inc" 2>/dev/null; then
+        info "源码树已含移植补丁（focus_bytes 已在）——直接沿用"
+    else
+        # 用 patch(1) 而非 git apply：vendored 树已无 .git
+        if ( cd "$tmpsrc" && patch -p1 --silent < "$patch" ); then
+            info "移植补丁已预先应用（④选择性符号化 ③字典 ②hint ①多字段组合 + 评审修复）"
+        else
+            error "移植补丁应用失败——vendored 的 SymSan 版本可能与补丁不匹配。"
+            rm -rf "$tmpsrc"; return 1
+        fi
+    fi
+    # 校验关键修复确实在 vendored 源码里（避免打出一个"看着有、其实没打上"的包）
+    local k miss=0
+    for k in "driver/symcc_techniques.h:env_enabled" \
+             "driver/fgtest_rgd.cpp:__out_cap" \
+             "driver/launcher/launch.c:SYMSAN_INVALID_ARGS" \
+             "runtime/dfsan/dfsan_flags.inc:focus_bytes"; do
+        local f="${k%%:*}" pat="${k##*:}"
+        grep -q "$pat" "$tmpsrc/$f" 2>/dev/null || { error "vendored SymSan 缺: $f ($pat)"; miss=1; }
+    done
+    # 预建的插桩版 libc++ 必须在(否则目标机 make install 会失败,且离线无法补建,见上)
+    local a
+    for a in libc++.a libc++abi.a libunwind.a; do
+        [ -f "$tmpsrc/libcxx/build_taint/lib/$a" ] \
+            || { error "vendored SymSan 缺预建插桩 libc++: libcxx/build_taint/lib/$a"
+                 error "  源码树里没有它 —— 请先在源码树跑 libcxx/rebuild.sh 再打包。"; miss=1; }
+    done
+    [ "$miss" = 0 ] || { rm -rf "$tmpsrc"; return 1; }
+
+    ( cd "$tmpsrc" && tar czf "$dest/symsan-src.tar.gz" . )
+    rm -rf "$tmpsrc"
+    info "symsan-src.tar.gz: $(du -h "$dest/symsan-src.tar.gz" | cut -f1)"
+
+    step "SymSan② vendoring 专用 Z3（>= 4.8.15;系统 libz3-dev 4.8.12 过旧编不过）"
+    if ! z3r="$(locate_z3_root)"; then
+        error "找不到 Z3 >= 4.8.15 的解包目录。请设 Z3_ROOT 指向它,或用 --no-symsan 跳过。"
+        error "  获取: https://github.com/Z3Prover/z3/releases （取 z3-*-x64-glibc-*.zip 解压）"
+        return 1
+    fi
+    # 只取 libz3.so + 头文件：完整 bin/ 有 140M(含 z3 可执行与各语言 binding),构建只需这两样
+    mkdir -p "$dest/z3/bin" "$dest/z3/include"
+    cp "$z3r/bin/libz3.so" "$dest/z3/bin/"
+    cp -r "$z3r/include/." "$dest/z3/include/"
+    [ -f "$z3r/LICENSE.txt" ] && cp "$z3r/LICENSE.txt" "$dest/z3/" || true
+    echo "$(basename "$z3r")" > "$dest/z3/VERSION"
+    info "Z3: $(basename "$z3r") —— 精简后 $(du -sh "$dest/z3" | cut -f1)（原 $(du -sh "$z3r" | cut -f1)）"
+
+    {
+        echo "SymSan 离线子包（--engine symsan 的第二 concolic 引擎）"
+        echo "symsan-src.tar.gz : 上游 R-Fuzz/symsan 源码 + 本项目移植补丁（已预打,目标机无需 git）"
+        echo "z3/               : Z3 $(cat "$dest/z3/VERSION")（仅 libz3.so + 头文件）"
+        echo "构建: setup.sh 检测到本目录会自动调用 scripts/build_symsan.sh 离线构建。"
+        echo "产物: ko-clang（编 *_symsan 目标）、fgtest（进程内 Z3）、fgtest_rgd（I2S→JIGSAW→Z3）"
+    } > "$dest/MANIFEST.txt"
+    info "SymSan 子包就绪: $(du -sh "$dest" | cut -f1)"
 }
 
 # ---- 生成离线依赖包到 $1（本机需联网 + apt/pip 可用）----
@@ -68,6 +190,18 @@ generate_offline_bundle() {
     local refined=(build-essential cmake ninja-build \
         "clang-${LLVM_VER}" "llvm-${LLVM_VER}-dev" "llvm-${LLVM_VER}-tools" \
         libz3-dev zlib1g-dev libzstd-dev libncurses-dev openmpi-bin unzip pkg-config)
+    # SymSan 引擎的额外构建依赖（仅 --with-symsan 时纳入闭包）:
+    #  libc++/libc++abi/libunwind-18 —— SymSan 的 runtime 与 libcxx 桩按 LLVM 18 的 libc++ 编译;
+    #  libboost-container-dev        —— rgd 解析器/任务队列用到 boost 容器;
+    #  protobuf                      —— jigsaw 的 AST 序列化;
+    #  libgoogle-perftools-dev       —— fgtest_rgd 链接 tcmalloc/profiler;
+    #  libbsd-dev                    —— 上游若干工具函数。
+    # 注意：Z3 不在此列 —— 系统 libz3-dev 是 4.8.12,对 SymSan 太旧,走 vendored 的 offline/symsan/z3。
+    if $WITH_SYMSAN; then
+        refined+=("libc++-${LLVM_VER}-dev" "libc++abi-${LLVM_VER}-dev" "libunwind-${LLVM_VER}-dev" \
+                  libboost-container-dev protobuf-compiler libprotobuf-dev \
+                  libgoogle-perftools-dev libbsd-dev)
+    fi
     # 递归依赖【硬】闭包,剔除两类:
     #  ① python 解释器核心(python3 / python3.12 / libpython3*)——目标机 base 必已自带,且这些
     #     包彼此有严格 = 版本互锁,随包版本与目标机不一致会冲突;Python 侧改由 wheel 满足。
@@ -100,6 +234,10 @@ generate_offline_bundle() {
     local must=(cmake ninja-build "clang-${LLVM_VER}" "llvm-${LLVM_VER}-dev" \
         libz3-dev libz3-4 zlib1g-dev libzstd-dev libncurses-dev \
         libopenmpi3t64 openmpi-bin "libclang-cpp${LLVM_VER}")
+    if $WITH_SYMSAN; then
+        must+=("libc++-${LLVM_VER}-dev" "libc++abi-${LLVM_VER}-dev" libboost-container-dev \
+               libprotobuf-dev libgoogle-perftools-dev libbsd-dev)
+    fi
     local m miss=0
     for m in "${must[@]}"; do
         ls "$dest/debs/${m}"_*.deb >/dev/null 2>&1 || { error "离线 .deb 缺关键包: $m"; miss=1; }
@@ -171,16 +309,29 @@ OUT=""
 INCLUDE_UNTRACKED=false
 KEEP_VENDORED=false
 OFFLINE=false
+WITH_SYMSAN=auto        # auto|true|false —— auto 时:离线包默认带,在线包默认不带
 while [ $# -gt 0 ]; do
     case "$1" in
         --all)           INCLUDE_UNTRACKED=true; shift ;;
         --keep-vendored) KEEP_VENDORED=true; shift ;;
         --offline)       OFFLINE=true; shift ;;
+        --with-symsan)   WITH_SYMSAN=true; shift ;;
+        --no-symsan)     WITH_SYMSAN=false; shift ;;
         -o|--output)     [ $# -ge 2 ] || { error "-o/--output 需要一个文件名参数"; exit 1; }; OUT="$2"; shift 2 ;;
         -h|--help)       usage; exit 0 ;;
         *) error "未知参数: $1（用 --help 查看用法）"; exit 1 ;;
     esac
 done
+# 解析 SymSan：离线包默认带上（无网机器拿不到上游源码,不带等于第二引擎不可用);
+# 在线包默认不带（目标机能自己 git clone,不必让包大 50M）。
+if [ "$WITH_SYMSAN" = auto ]; then
+    if $OFFLINE; then WITH_SYMSAN=true; else WITH_SYMSAN=false; fi
+fi
+# --with-symsan 但不是离线包：SymSan 子包放在 offline/ 布局下,故隐含开启离线打包
+if $WITH_SYMSAN && ! $OFFLINE; then
+    info "--with-symsan 需要 offline/ 布局,自动启用 --offline"
+    OFFLINE=true
+fi
 # 默认输出名：离线包与在线包区分开
 if [ -z "$OUT" ]; then
     if $OFFLINE; then OUT="symcc-offline-package.tar.gz"; else OUT="symcc-package.tar.gz"; fi
@@ -265,6 +416,11 @@ tar --null --files-from="$filelist" -cf - | tar -C "$STAGE/$TOPDIR" -xf -
 if $OFFLINE; then
     generate_offline_bundle "$STAGE/$TOPDIR/offline" || { error "离线依赖生成失败,已中止。"; exit 1; }
 fi
+# SymSan 第二引擎：源码（含预打补丁）+ 专用 Z3 → $TOPDIR/offline/symsan/
+if $WITH_SYMSAN; then
+    generate_symsan_bundle "$STAGE/$TOPDIR/offline/symsan" \
+        || { error "SymSan 子包生成失败,已中止（如不需要该引擎,加 --no-symsan）。"; exit 1; }
+fi
 
 step "生成压缩包：$OUT（格式：$FORMAT）"
 rm -f "$OUT_ABS"
@@ -295,6 +451,17 @@ if $OFFLINE; then
     check "离线 apt 依赖 (offline/debs)"   present "${TOPDIR}/offline/debs/.*\.deb"
     check "离线 pip wheels"                present "${TOPDIR}/offline/wheels/.*\.whl"
     check "离线依赖清单 MANIFEST"          present "${TOPDIR}/offline/MANIFEST.txt"
+fi
+if $WITH_SYMSAN; then
+    check "SymSan 源码 (offline/symsan)"   present "${TOPDIR}/offline/symsan/symsan-src.tar.gz"
+    check "SymSan 专用 Z3 (libz3.so)"      present "${TOPDIR}/offline/symsan/z3/bin/libz3.so"
+    check "SymSan 移植补丁 (仓库内)"        present "${TOPDIR}/scripts/symsan_patches/"
+    check "SymSan 构建脚本"                present "${TOPDIR}/scripts/build_symsan.sh"
+    # 注意用方括号而不是 \+ 转义:check() 用的是 grep BRE,其中 `\+` 是【一个或多个】量词,
+    # 写成 libc\+\+-18-dev 会被解析成 "lib" + c的重复,永远匹配不上(曾误报"缺包")。
+    check "SymSan apt 依赖 (libc++-18-dev)" present "offline/debs/libc[+][+]-${LLVM_VER}-dev"
+    check "SymSan apt 依赖 (libc++abi)"     present "offline/debs/libc[+][+]abi-${LLVM_VER}-dev"
+    check "SymSan apt 依赖 (boost/protobuf/tcmalloc)" present "offline/debs/libgoogle-perftools-dev"
 fi
 # benchmark/public 下已提交的是小型种子/靶子（约 11M），应当包含；1.6G 的下载物是【未提交】
 # 的，git ls-files 天然排除。这里只做体积保护：若不慎混入大额下载物，包会异常大。

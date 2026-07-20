@@ -568,6 +568,53 @@ needed to install the local `.deb` files, but **no network access is used**.
 > provides the toolchain on top of the base system). Use `--online` to force the
 > networked path, or `--offline` to require the bundle.
 
+#### Including the SymSan engine
+
+This fork supports a **second concolic engine**, SymSan (`--engine symsan`;
+DFSan label propagation instead of SymCC's compile-time instrumentation — see
+[`docs/engine_abstraction.md`](docs/engine_abstraction.md)). SymSan's source is
+**not** a submodule of this repo (it is upstream
+[R-Fuzz/symsan](https://github.com/R-Fuzz/symsan), read-only), so it is not in
+the git file list and needs explicit vendoring:
+
+```bash
+export SYMSAN_SRC=/path/to/symsan          # upstream checkout
+export Z3_ROOT=/path/to/z3-4.13.0-x64-...  # Z3 >= 4.8.15, unpacked release
+./package.sh --offline --with-symsan       # SymSan is ON by default for --offline
+./package.sh --offline --no-symsan         # ...or leave it out
+```
+
+This adds `offline/symsan/` to the package:
+
+- **`symsan-src.tar.gz`** — the upstream source **with this project's ported-
+  techniques patch already applied**. Pre-applying it matters: the target has no
+  `.git`, so `git apply` cannot run there. `build_symsan.sh`'s idempotence check
+  sees the patch is already in and skips that step, so **the target needs neither
+  git nor `patch`**.
+- **`z3/`** — a trimmed Z3 (just `libz3.so` + headers, ~32 MB instead of 140 MB).
+  This is required: Ubuntu 24.04's `libz3-dev` is **4.8.12**, too old for SymSan,
+  which needs **≥ 4.8.15**. The system Z3 stays in place for SymCC.
+- The apt closure also gains SymSan's build dependencies (`libc++-18-dev`,
+  `libc++abi-18-dev`, `libunwind-18-dev`, `libboost-container-dev`, protobuf,
+  `libgoogle-perftools-dev`, `libbsd-dev`).
+
+`setup.sh` detects `offline/symsan/`, unpacks the source to
+`third_party/symsan/`, and builds it after SymCC. If that build fails it only
+**warns** — SymCC itself still works, you just don't get the second engine. On
+success it prints the two variables to export:
+
+```bash
+export SYMSAN_FGTEST=third_party/symsan/install/bin/fgtest
+export SYMSAN_KO_CLANG=third_party/symsan/install/bin/ko-clang
+python benchmark/run_benchmark.py --engine symsan --hybrid ...
+# SOTA solver stack (I2S -> JIGSAW -> Z3): also set SYMSAN_SOLVER=rgd
+```
+
+The install tree is **relocatable**: the drivers are linked with
+`RPATH=$ORIGIN/../lib` and `libz3.so` is copied into `install/lib/`, so moving
+or renaming the extracted package does not break `fgtest` (linking against the
+bundled Z3 by absolute path would).
+
 ---
 
 ## 11. Further documentation

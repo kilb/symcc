@@ -39,18 +39,44 @@ fi
 #      幂等:dfsan_flags.inc 已含 focus_bytes 则视为已打补丁,跳过。
 PATCH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/symsan_patches/symsan_ported_techniques.patch"
 if [ -f "$PATCH" ] && ! grep -q "focus_bytes" "$SS/runtime/dfsan/dfsan_flags.inc"; then
-  ( cd "$SS" && git apply --whitespace=nowarn "$PATCH" ) \
-    && echo "symsan ported-techniques patch applied (④选择性符号化 ③字典 ①多字段组合)" \
+  # 【不要求 git】:离线包里的 vendored 源码没有 .git(且目标机可能压根没装 git),
+  # 故优先用 patch(1);没有 patch 再退回 git apply。离线包通常已在打包时预打好补丁,
+  # 上面的幂等检查会直接跳过这一整段。
+  applied=0
+  if command -v patch >/dev/null 2>&1; then
+    ( cd "$SS" && patch -p1 --silent < "$PATCH" ) && applied=1
+  elif command -v git >/dev/null 2>&1; then
+    ( cd "$SS" && git apply --whitespace=nowarn "$PATCH" ) && applied=1
+  else
+    echo "WARN: 既无 patch 也无 git,无法应用移植补丁(将编出【无自研技术】的原版 SymSan)"
+  fi
+  [ "$applied" = 1 ] \
+    && echo "symsan ported-techniques patch applied (④选择性符号化 ③字典 ②hint ①多字段组合)" \
     || echo "WARN: 技术补丁应用失败(upstream 可能已改动),请手工核对 $PATCH"
 fi
 
 # 3) 构建 + 安装(install 生成 ko-clang 期望的 ../lib/symsan/ 布局:passes + runtime + *.a + taint.ld + abilist)
+#
+# CMAKE_INSTALL_RPATH='$ORIGIN/../lib':让【安装后】的 fgtest/fgtest_rgd 按【相对自身位置】
+# 找 libz3.so,而不是烧死 Z3_ROOT 的绝对路径。否则用随包 Z3 构建出来的二进制,一旦安装目录
+# 或整个安装包被移动/改名,就会 "libz3.so: cannot open shared object file" —— 离线分发场景
+# (解压到 A、之后移到 B)必然踩到。配套地把 libz3.so 复制进 install/lib/(见下)。
 rm -rf "$SS/build"; mkdir -p "$SS/build"; cd "$SS/build"
 cmake -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18 \
       -DLLVM_DIR="$(llvm-config-18 --cmakedir)" -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_INSTALL_PREFIX="$INSTALL" "${Z3_ARGS[@]}" "$SS"
+      -DCMAKE_INSTALL_PREFIX="$INSTALL" \
+      -DCMAKE_INSTALL_RPATH='$ORIGIN/../lib' \
+      "${Z3_ARGS[@]}" "$SS"
 make -j"$(nproc)"
 make install
+
+# 3.5) 随包 Z3:把 libz3.so 放进 install/lib/,与上面的 $ORIGIN/../lib 配对,使整个
+#      install/ 目录【可整体搬迁】。用系统 Z3 时不需要(动态链接器按常规路径就能找到)。
+if [ -n "${Z3_ROOT:-}" ] && [ -f "$Z3_ROOT/bin/libz3.so" ]; then
+  mkdir -p "$INSTALL/lib"
+  cp -u "$Z3_ROOT/bin/libz3.so" "$INSTALL/lib/"
+  echo "已把 libz3.so 复制进 $INSTALL/lib(配合 \$ORIGIN/../lib,install/ 可整体搬迁)"
+fi
 
 FGTEST="$(find "$INSTALL" "$SS/build" -name fgtest -type f | head -1)"
 FGTESTRGD="$(find "$INSTALL" "$SS/build" -name fgtest_rgd -type f | head -1)"

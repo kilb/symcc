@@ -825,6 +825,38 @@ index 4249f22..5019ded 100644
  /// @brief run the target binary with the input file descriptor
  /// @param fd: input file descriptor, only used if input is "stdin"
  /// @return < 0 on syscall error, > 0 on setup error, 0 on success
+diff --git a/libcxx/CMakeLists.txt b/libcxx/CMakeLists.txt
+index 361d2a5..f7feab2 100644
+--- a/libcxx/CMakeLists.txt
++++ b/libcxx/CMakeLists.txt
+@@ -1,8 +1,23 @@
+ # run rebuild.sh
+-
+-install (FILES "build_taint/lib/libc++.a" DESTINATION "${SYMSAN_LIB_DIR}")
+-install (FILES "build_taint/lib/libc++abi.a" DESTINATION "${SYMSAN_LIB_DIR}")
+-install (FILES "build_taint/lib/libunwind.a" DESTINATION "${SYMSAN_LIB_DIR}")
++#
++# 这三个是【污点插桩版】libc++/libc++abi/libunwind,只有先跑 libcxx/rebuild.sh 才会存在。
++# 原本是无条件 install(...),于是【没跑过 rebuild.sh 时 `make install` 必然失败】:
++#   CMake Error: file INSTALL cannot find ".../libcxx/build_taint/lib/libc++.a"
++# 失败发生在安装的最后阶段,ko-clang / fgtest / fgtest_rgd 其实都已经编好并装进 install/bin,
++# 但整条 `make install` 返回非零 → 自动化构建judge为失败、install/ 停在半成品状态。
++#
++# 本项目用 KO_USE_NATIVE_LIBCXX=1(见 util/concolic_engine.py 的 build_argv),即链接系统
++# 原生 libc++,不需要插桩版;C 语言目标更是完全用不到。故改为【存在才安装】——与下面
++# build_native 一节本来就在用的写法一致。需要插桩版 libc++ 的 C++ 目标,先跑 rebuild.sh
++# 再 make install 即可,行为不变。
++if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/build_taint/lib/libc++.a")
++  install (FILES "build_taint/lib/libc++.a" DESTINATION "${SYMSAN_LIB_DIR}")
++  install (FILES "build_taint/lib/libc++abi.a" DESTINATION "${SYMSAN_LIB_DIR}")
++  install (FILES "build_taint/lib/libunwind.a" DESTINATION "${SYMSAN_LIB_DIR}")
++else()
++  message(STATUS "libcxx: build_taint/ 不存在,跳过插桩版 libc++ 安装"
++                 "(需要时先跑 libcxx/rebuild.sh;KO_USE_NATIVE_LIBCXX=1 时不需要)")
++endif()
+ 
+ # Plain (uninstrumented) EH runtime for UCSan-only C++ targets — run
+ # rebuild_native.sh to produce these.  Installed with a -native suffix so they
 diff --git a/runtime/dfsan/dfsan_custom.cpp b/runtime/dfsan/dfsan_custom.cpp
 index 1ed98b5..7425e0b 100644
 --- a/runtime/dfsan/dfsan_custom.cpp

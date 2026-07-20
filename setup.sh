@@ -380,6 +380,45 @@ else
 fi
 
 # ============================================================
+#  5.5 编译 SymSan（第二 concolic 引擎,--engine symsan）——仅当随包提供了子包
+# ============================================================
+# 设计：SymSan 是【可选】引擎。缺子包时安静跳过（SymCC 主线不受影响);有子包才构建。
+# 构建失败也【不】让整个 setup 失败——SymCC 已经能用,SymSan 缺失只是少一个引擎。
+SYMSAN_DIR="$OFFLINE_DIR/symsan"
+SYMSAN_OK=skipped
+if [ -f "$SYMSAN_DIR/symsan-src.tar.gz" ]; then
+    step "编译 SymSan 引擎（第二 concolic 引擎,--engine symsan）"
+    SYMSAN_ROOT="$SCRIPT_DIR/third_party/symsan"
+    if [ -f "$SYMSAN_ROOT/install/bin/ko-clang" ]; then
+        info "SymSan 已构建过（$SYMSAN_ROOT/install/bin/ko-clang）——跳过。"
+        SYMSAN_OK=true
+    else
+        mkdir -p "$SYMSAN_ROOT"
+        # 解包 vendored 源码（补丁已在打包时预先应用,故此处无需 git/patch）
+        if [ ! -f "$SYMSAN_ROOT/CMakeLists.txt" ]; then
+            info "解包 SymSan 源码到 third_party/symsan ..."
+            tar -C "$SYMSAN_ROOT" -xzf "$SYMSAN_DIR/symsan-src.tar.gz"
+        fi
+        # 专用 Z3（>= 4.8.15;系统 libz3-dev 4.8.12 对 SymSan 过旧）
+        if [ -f "$SYMSAN_DIR/z3/bin/libz3.so" ]; then
+            export Z3_ROOT="$SYMSAN_DIR/z3"
+            info "使用随包 Z3: $(cat "$SYMSAN_DIR/z3/VERSION" 2>/dev/null || echo '?')"
+        else
+            warn "随包未含专用 Z3——将尝试系统 Z3（4.8.12 通常会编译失败）。"
+        fi
+        export SYMSAN_SRC="$SYMSAN_ROOT" SYMSAN_INSTALL="$SYMSAN_ROOT/install"
+        if bash "$SCRIPT_DIR/scripts/build_symsan.sh"; then
+            SYMSAN_OK=true
+            info "SymSan 构建成功。"
+        else
+            SYMSAN_OK=false
+            warn "SymSan 构建失败——SymCC 主线不受影响,--engine symsan 暂不可用。"
+            warn "可稍后单独重跑:  SYMSAN_SRC=$SYMSAN_ROOT Z3_ROOT=$SYMSAN_DIR/z3 ./scripts/build_symsan.sh"
+        fi
+    fi
+fi
+
+# ============================================================
 #  收尾：复核 + 使用提示
 # ============================================================
 step "部署结果复核"
@@ -395,10 +434,20 @@ if [ "${BUILD_OK:-false}" = true ]; then
     echo -e "${BOLD}最简单的上手命令（纯符号执行）:${NC}"
     echo "    echo 'test' | build/symcc --help    # 查看编译器封装用法"
     echo
+    if [ "$SYMSAN_OK" = true ]; then
+        _ss="$SCRIPT_DIR/third_party/symsan"
+        echo -e "${BOLD}第二 concolic 引擎 SymSan 已就绪,这样切换:${NC}"
+        echo "    export SYMSAN_FGTEST=${_ss}/install/bin/fgtest"
+        echo "    export SYMSAN_KO_CLANG=${_ss}/install/bin/ko-clang"
+        echo "    python benchmark/run_benchmark.py --engine symsan ..."
+        echo "    # SOTA 求解栈(I2S→JIGSAW→Z3): 再加 SYMSAN_SOLVER=rgd"
+        echo
+    fi
     echo -e "${BOLD}完整的『如何运行』说明见:${NC} README.md"
     echo "    - 纯符号执行（单核）"
     echo "    - MPI 并行符号执行（多核）"
     echo "    - AFL++ 与 SymCC 混合模糊测试"
+    echo "    - 双引擎切换:  --engine symcc|symsan（见 docs/engine_abstraction.md）"
     echo "    - 一键基准测试:  python benchmark/run_benchmark.py"
 else
     echo -e "${YELLOW}${BOLD}依赖已就绪，但 SymCC 构建失败。${NC}"
