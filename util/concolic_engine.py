@@ -56,12 +56,17 @@ class SymCCEngine(ConcolicEngine):
     binary_suffix = "_symcc"
     detect_symbols = ("__sym_ctor", "_sym_build")
 
-    def wrap_run(self, target_cmd, input_file, output_dir, env, use_stdin, timeout_sec):
+    def wrap_run(self, target_cmd: "list[str]", input_file: str, output_dir: str,
+                 env: "dict[str, str]", use_stdin: bool, timeout_sec: int
+                 ) -> "tuple[list[str], dict[str, str], bool]":
         env = dict(env)
         env["SYMCC_OUTPUT_DIR"] = output_dir
         env["SYMCC_ENABLE_LINEARIZATION"] = "1"
-        # hint 文件默认开,允许上游 env 关(消融技术③)
-        env["SYMCC_EMIT_HINTS"] = os.environ.get("SYMCC_EMIT_HINTS", "1")
+        # hint 文件默认开,允许【调用方传入的 env】关(消融技术②)。
+        # 必须先看 env 再看 os.environ:消融实验是往 env 里塞 SYMCC_EMIT_HINTS=0,
+        # 若只读 os.environ 就会被默认值 "1" 覆盖回去,开关形同虚设。
+        env["SYMCC_EMIT_HINTS"] = env.get(
+            "SYMCC_EMIT_HINTS", os.environ.get("SYMCC_EMIT_HINTS", "1"))
         if use_stdin:
             cmd = ["timeout", "-k", "5", str(timeout_sec)] + list(target_cmd)
             return cmd, env, True
@@ -71,7 +76,8 @@ class SymCCEngine(ConcolicEngine):
         ]
         return cmd, env, False
 
-    def build_argv(self, compiler, source, out):
+    def build_argv(self, compiler: str, source: str, out: str
+                   ) -> "tuple[list[str], dict[str, str]]":
         return [compiler, "-O2", str(source), "-o", str(out)], {}
 
 
@@ -100,13 +106,31 @@ class SymSanEngine(ConcolicEngine):
             rgd = os.environ.get("SYMSAN_FGTEST_RGD")
             if not rgd and fg.endswith("fgtest"):
                 rgd = fg + "_rgd"
-            fg = rgd or fg
+            if not rgd:
+                # 不静默降级:请求了 RGD 却推不出 driver 路径,若默默退回 fgtest,
+                # 整批实验会以为在跑 RGD/JIGSAW,实际跑的是 Z3 基线——数据无声作废。
+                raise ValueError(
+                    f"SYMSAN_SOLVER=rgd 但无法定位 RGD driver:SYMSAN_FGTEST={fg!r} "
+                    "不以 'fgtest' 结尾,无法推出兄弟路径。请显式设 SYMSAN_FGTEST_RGD "
+                    "指向构建出的 fgtest_rgd。")
+            fg = rgd
         self.fgtest = fg
 
-    def wrap_run(self, target_cmd, input_file, output_dir, env, use_stdin, timeout_sec):
+    def wrap_run(self, target_cmd: "list[str]", input_file: str, output_dir: str,
+                 env: "dict[str, str]", use_stdin: bool, timeout_sec: int
+                 ) -> "tuple[list[str], dict[str, str], bool]":
         env = dict(env)
         # fgtest 从 TAINT_OPTIONS 解析 taint_file=(污点源=输入文件)与 output_dir=(解写入此目录),
         # 见 symsan driver/fgtest.cpp。两者用空格分隔(已端到端验证:seed→求解分支→输出 id-*)。
+        # 该格式【没有引号/转义】:driver 用 strchr(s,':') / strchr(s,' ') 找值的结尾,
+        # 故路径里出现空格或冒号都会被截断成一个不存在的目录——输出全部丢失且不报错。
+        # 与其让它安静地跑空,不如在这里就明确失败。
+        for _label, _path in (("输入文件", input_file), ("输出目录", output_dir)):
+            _bad = [c for c in (" ", ":", "\t", "\n") if c in str(_path)]
+            if _bad:
+                raise ValueError(
+                    f"SymSan {_label}路径含 TAINT_OPTIONS 分隔符 {_bad!r},会被 driver 截断: "
+                    f"{_path!r}。请改用不含空格/冒号的路径。")
         taint_opts = f"taint_file={input_file} output_dir={output_dir}"
         # 技术④ 选择性符号化:编排层把选中的字节区间放在 SYMCC_FOCUS_BYTES(单区间 "s-e"),
         # 这里翻译成 fgtest→launcher→DFSan 运行时认得的 focus_bytes=。SymSan 的 DFSan 会据此
@@ -142,7 +166,8 @@ class SymSanEngine(ConcolicEngine):
             return ""
         return f"{lo}-{hi}"
 
-    def build_argv(self, compiler, source, out):
+    def build_argv(self, compiler: str, source: str, out: str
+                   ) -> "tuple[list[str], dict[str, str]]":
         # ko-clang 需 FastGen 插桩模式(KO_USE_FASTGEN=1),fgtest 才有回调;KO_DONT_OPTIMIZE 保留分支
         env = {
             "KO_CC": os.environ.get("KO_CC", "clang-18"),

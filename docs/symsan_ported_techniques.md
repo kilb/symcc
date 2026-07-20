@@ -67,8 +67,17 @@ master 算出区间
 DFSan 的 sanitizer flag 解析把 `,` 也当分隔符(`sanitizer_flag_parser.cpp` 的 `is_space` 含逗号),
 故 `focus_bytes=0-3,8-11` 这类逗号多区间会破坏 flag 串。因此 focus 传输层只支持**单个 `s-e` 区间**——
 这与 SymCC 的 `SYMCC_FOCUS_BYTES` 本身就用 `sscanf("%lu-%lu")` 只读单区间**完全一致**,且编排层也只
-下发单区间。`SymSanEngine._sanitize_focus` 对逗号输入取首段并校验,非法则退回全字节符号化(不丢覆盖)。
-(离散多字节集是 SymCC 的另一机制 `SYMCC_FOCUS_SET`,基于文件、不走 flag,SymSan 侧未移植。)
+下发单区间。(离散多字节集是 SymCC 的另一机制 `SYMCC_FOCUS_SET`,基于文件、不走 flag,SymSan 侧未移植。)
+
+该限制现在**在三层都被强制**,而不只是靠调用方自觉:
+1. `SymSanEngine._sanitize_focus`(Python):逗号输入取首段并校验,非法退回全字节符号化;
+2. `symsan_set_focus_bytes`(launcher):严格只放行 `^[0-9]+-[0-9]+$`,否则返回 `SYMSAN_INVALID_ARGS`
+   并**保持原设置不变**;
+3. 两个 driver:拿到非法规格时打印 `WARNING: invalid focus_bytes ...` 并退回全字节符号化。
+
+这么做是因为绕过第 1 层(例如手工设 `TAINT_OPTIONS=... focus_bytes=0-3,8-11`)时,残缺的 flag 串会让
+DFSan 运行时 `Die()` —— 目标当场死掉、一条输出都没有,且**不报错**,看起来就像"这个目标解不动"。
+实测:修复前该写法产出 0;修复后告警并按全字节跑,产出与无 focus 一致。
 
 ## 验证(focus_test:A 段=offset 0–3,B 段=offset 8–11,两段独立可达)
 经 `run_symcc_worker` + `SYMCC_FOCUS_BYTES` 同一通道,两引擎表现一致地把解限制在 focus 区间:

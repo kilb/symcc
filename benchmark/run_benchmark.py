@@ -2495,17 +2495,21 @@ def main():
             if not args.simulation:
                 micro_afl = build_afl_targets(bin_dir)  # 微目标 AFL 二进制(hybrid 需要)
     else:
-        # Find existing binaries(按当前引擎的后缀优先)
-        _suffixes = [get_engine().binary_suffix, "_symcc", "_native"]
+        # Find existing binaries。【只认当前引擎的后缀】:此前会退回 _symcc/_native,
+        # 于是 --engine symsan --skip-build 时捡起 SymCC 二进制交给 fgtest 跑,
+        # fgtest 找不到 DFSan 回调 → 全程 0 输出,却看起来像"SymSan 效果差"。
+        # 宁可缺目标(下面明确提示)也不要跑错引擎的二进制。
+        _engine_sfx = get_engine().binary_suffix
         for name in target_names:
-            for suffix in _suffixes:
-                path = os.path.join(bin_dir, f"{name}{suffix}")
-                if os.path.isfile(path):
-                    binaries[name] = path
-                    break
+            path = os.path.join(bin_dir, f"{name}{_engine_sfx}")
+            if os.path.isfile(path):
+                binaries[name] = path
             afl_p = os.path.join(bin_dir, f"{name}_afl")
             if os.path.isfile(afl_p):
                 micro_afl[name] = afl_p
+        if not binaries and target_names:
+            print(f"  WARNING: --skip-build 下没找到任何 *{_engine_sfx} 二进制"
+                  f"(引擎 ={get_engine().name});请先构建或换 --engine")
 
     # Add public benchmark targets.
     # Auto-discover from benchmark/public/bin/ unless --no-public is passed.
@@ -2536,7 +2540,6 @@ def main():
                     # 引擎感知发现:symsan 只挑 *_symsan 二进制并剥掉后缀作为逻辑名(→ 与
                     # symcc 目标同名、复用同一种子目录);其它引擎跳过 *_symsan(那是另一引擎的)。
                     _pub_engine = get_engine()
-                    _sfx = _pub_engine.binary_suffix  # "_symcc" / "_symsan"
                     for binary in sorted(suite_dir.iterdir()):
                         if binary.is_file() and os.access(str(binary), os.X_OK):
                             bname = binary.name
@@ -2622,6 +2625,11 @@ def main():
         else:
             # 发现 AFL-instrumented 二进制（用于覆盖率测量）
             afl_cov_binaries = discover_afl_coverage_binaries()
+            # 微目标的 AFL 二进制(build_afl_targets / --skip-build 时扫到的 *_afl)也是
+            # 合法的覆盖测量对象。此前没并进来,于是微目标 hybrid 的 edge= 恒为 0——
+            # 看起来像"跑了但没覆盖",实际是压根没测。public 目标不受影响(走 discover)。
+            for _name, _bin in micro_afl.items():
+                afl_cov_binaries.setdefault(_name, _bin)
             if afl_cov_binaries:
                 print(f"\n  Discovered {len(afl_cov_binaries)} AFL coverage binaries:")
                 for name in sorted(afl_cov_binaries):
