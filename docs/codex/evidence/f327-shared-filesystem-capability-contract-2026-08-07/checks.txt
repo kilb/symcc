@@ -1,0 +1,38 @@
+F327 shared-filesystem capability contract checks
+date_utc=2026-08-07T00:23:53Z
+kernel=Linux 7.0.0-28-generic x86_64 GNU/Linux
+python=Python 3.12.3
+pytest=pytest 9.1.1
+ruff=ruff 0.15.20
+mpirun=mpirun (Open MPI) 4.1.6
+filesystem=overlayfs
+configuration_unique_symcc_names=407
+top_level_test_files=245
+directed_pytest=13_passed_142_deselected
+integration_pytest=211_passed_21_subtests
+full_pytest_test_scope=668_passed_41_subtests
+pytest_warnings_as_errors=pass
+concurrent_probe_runs=60
+concurrent_probe_failures=0
+concurrent_probe_residue=0
+real_mpi_cases=2
+real_mpi_nonzero_exits=0
+real_mpi_probe_residue=0
+real_mpi_hidden_epoch_residue=0
+proof_scope=same-host-subprocess-v1
+cluster_lock_verified=false
+cross_host_lock_tested=false
+physical_power_cut_tested=false
+network_partition_tested=false
+dse_throughput_benchmarked=false
+probe_latency_is_startup_cost_not_speedup=true
+$ ruff check F327 Python sources and tests
+All checks passed!
+$ python3 -m py_compile F327 Python sources and tests
+py_compile=pass
+$ git diff --check
+git_diff_check=pass
+$ SVG structural check
+svg_width=1900
+svg_height=1240
+svg_parse=pass

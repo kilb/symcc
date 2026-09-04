@@ -1,0 +1,156 @@
+{
+  "actual_mpi_transport": true,
+  "actual_multi_host": false,
+  "all_checks_passed": true,
+  "changed": {
+    "elapsed": 0.8644094250630587,
+    "renewal_metrics": [
+      {
+        "attempts": 0,
+        "failures": 0,
+        "generation": 0,
+        "in_flight_generation": 0,
+        "interval": 0.12,
+        "jitter_fraction": 0.25,
+        "last_elapsed": 0.0,
+        "last_scheduled_interval": 0.0,
+        "maximum_interval": 0.15,
+        "next_scheduled_interval": 0.12893996082466774,
+        "schema": "symcc-cluster-lock-renewal-metrics-v2",
+        "successes": 0,
+        "timeout": 0.4,
+        "total_elapsed": 0.0
+      },
+      {
+        "attempts": 0,
+        "failures": 0,
+        "generation": 0,
+        "in_flight_generation": 0,
+        "interval": 0.12,
+        "jitter_fraction": 0.25,
+        "last_elapsed": 0.0,
+        "last_scheduled_interval": 0.0,
+        "maximum_interval": 0.15,
+        "next_scheduled_interval": 0.12893996082466774,
+        "schema": "symcc-cluster-lock-renewal-metrics-v2",
+        "successes": 0,
+        "timeout": 0.4,
+        "total_elapsed": 0.0
+      }
+    ],
+    "returncode": 70
+  },
+  "checks": {
+    "canonical_manifest_persisted_after_crash": true,
+    "changed_configuration_never_attempts_renewal": true,
+    "changed_live_consensus_rejected_by_durable_manifest": true,
+    "changed_run_acknowledges_workers_before_abort": true,
+    "changed_run_preserves_original_commitment": true,
+    "interrupted_after_manifest_publication": true,
+    "matching_restart_acknowledges_workers_and_cleans_state": true,
+    "matching_restart_reuses_commitment_and_progresses": true,
+    "restart_decisions_are_bounded": true
+  },
+  "command": [
+    "mpirun",
+    "--oversubscribe",
+    "-np",
+    "7",
+    "python3",
+    "/tmp/symcc-f333-manifest-mpi-bq0l14lh/durable_manifest_wrapper.py",
+    "-i",
+    "/tmp/symcc-f333-manifest-mpi-bq0l14lh/input",
+    "-o",
+    "/tmp/symcc-f333-manifest-mpi-bq0l14lh/output",
+    "-t",
+    "1",
+    "--max-idle",
+    "10",
+    "--wall-timeout",
+    "3",
+    "--workers-per-master",
+    "3",
+    "--simulate",
+    "--",
+    "/bin/true"
+  ],
+  "configuration": {
+    "changed_jitter_fraction": 0.25,
+    "initial_jitter_fraction": 0.1,
+    "interval": 0.12,
+    "masters": 2,
+    "ranks": 7,
+    "work_epoch": "f333f333f333f333f333f333f333f333f333f333f333f333f333f333f333f333",
+    "workers": 5
+  },
+  "deployment_evidence": false,
+  "interrupted": {
+    "elapsed": 2.8263789077755064,
+    "manifest_marker_observed": true,
+    "returncode": -9
+  },
+  "manifest": {
+    "configuration": {
+      "epoch": "f333f333f333f333f333f333f333f333f333f333f333f333f333f333f333f333",
+      "fingerprint": "1c94067d4355899cf3af9ecefc65785ecca2fa3db1c50586dfa59d1931c96f30",
+      "interval": 0.12,
+      "jitter_fraction": 0.1,
+      "maximum_interval": 0.132,
+      "schema": "symcc-cluster-lock-renewal-config-v1",
+      "timeout": 0.4
+    },
+    "epoch": "f333f333f333f333f333f333f333f333f333f333f333f333f333f333f333f333",
+    "fingerprint": "1c94067d4355899cf3af9ecefc65785ecca2fa3db1c50586dfa59d1931c96f30",
+    "schema": "symcc-runtime-lock-configuration-manifest-v1"
+  },
+  "manifest_sha256": "8d27f0a74d20883b35cbc3a2f6a732fd8a10d8d9af2f98462504b9bbcc244c9e",
+  "process_crash_injected": true,
+  "proof_boundary": "One physical host with test-only processor identity and process-group crash injection proves production restart wiring, exact durable comparison, worker ACK ordering, and cleanup. It does not prove remote filesystem behavior, rank repair, DSE throughput, coverage, or solver uplift.",
+  "recovered": {
+    "elapsed": 3.9802710129879415,
+    "renewal_metrics": [
+      {
+        "attempts": 3,
+        "failures": 0,
+        "generation": 3,
+        "in_flight_generation": 0,
+        "interval": 0.12,
+        "jitter_fraction": 0.1,
+        "last_elapsed": 0.37886329903267324,
+        "last_scheduled_interval": 0.12163920489686979,
+        "maximum_interval": 0.132,
+        "next_scheduled_interval": 0.12429491442158423,
+        "schema": "symcc-cluster-lock-renewal-metrics-v2",
+        "successes": 3,
+        "timeout": 0.4,
+        "total_elapsed": 1.1071384088136256
+      },
+      {
+        "attempts": 3,
+        "failures": 0,
+        "generation": 3,
+        "in_flight_generation": 0,
+        "interval": 0.12,
+        "jitter_fraction": 0.1,
+        "last_elapsed": 0.35474162292666733,
+        "last_scheduled_interval": 0.12163920489686979,
+        "maximum_interval": 0.132,
+        "next_scheduled_interval": 0.12429491442158423,
+        "schema": "symcc-cluster-lock-renewal-metrics-v2",
+        "successes": 3,
+        "timeout": 0.4,
+        "total_elapsed": 1.0439326700288802
+      }
+    ],
+    "returncode": 0
+  },
+  "schema": "symcc-f333-durable-renewal-configuration-mpi-v1",
+  "state_observations": {
+    "manifest_exists_after_crash": true,
+    "manifest_sha256_after_changed_restart": "8d27f0a74d20883b35cbc3a2f6a732fd8a10d8d9af2f98462504b9bbcc244c9e",
+    "manifest_sha256_after_crash": "8d27f0a74d20883b35cbc3a2f6a732fd8a10d8d9af2f98462504b9bbcc244c9e",
+    "state_exists_after_changed_restart": true,
+    "state_exists_after_matching_recovery": false
+  },
+  "synthetic_topology": true
+}

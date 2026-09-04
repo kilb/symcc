@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="840"
+     viewBox="0 0 1600 840" role="img" aria-labelledby="title desc">
+  <title id="title">图 R-19　学术来源与本项目的落地边界</title>
+  <desc id="desc">每一行都同时给出「采用了什么」和「没有冒充什么」——这是本项目对外表述的基本纪律</desc>
+  <rect width="1600" height="840" fill="white"/>
+  <text x="48" y="54" font-family="WenQuanYi Zen Hei" font-size="28" font-weight="700" fill="#17212B" text-anchor="start">图 R-19　学术来源与本项目的落地边界</text>
+  <text x="48" y="86" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="400" fill="#64748B" text-anchor="start">每一行都同时给出「采用了什么」和「没有冒充什么」——这是本项目对外表述的基本纪律</text>
+  <rect x="48" y="126" width="1504" height="634" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+  <text x="74" y="162" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="700" fill="#64748B" text-anchor="start">来源</text>
+  <text x="500" y="162" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="700" fill="#15803D" text-anchor="start">本项目采用的核心思想</text>
+  <text x="1000" y="162" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="700" fill="#B91C1C" text-anchor="start">明确没有冒充的部分</text>
+  <line x1="486" y1="142" x2="486" y2="710" stroke="#E2E8F0" stroke-width="1.5"/>
+  <line x1="986" y1="142" x2="986" y2="710" stroke="#E2E8F0" stroke-width="1.5"/>
+  <text x="74" y="204" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">QSYM</text>
+  <text x="74" y="224" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="start">USENIX Sec’18</text>
+  <circle cx="504" cy="200" r="3.5" fill="#15803D"/>
+  <text x="518" y="205" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">native 执行、轻量表达式、混合 fuzzing</text>
+  <circle cx="1004" cy="200" r="3.5" fill="#B91C1C"/>
+  <text x="1018" y="205" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#64748B" text-anchor="start">Backsolver / data coverage 等扩展不是 QSYM 原功能</text>
+  <line x1="74" y1="236" x2="1520" y2="236" stroke="#F1F5F9" stroke-width="1.5"/>
+  <text x="74" y="266" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">Pangolin</text>
+  <text x="74" y="286" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="start">IEEE S&amp;P’20</text>
+  <circle cx="504" cy="262" r="3.5" fill="#15803D"/>
+  <text x="518" y="267" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">polyhedral path abstraction、增量复用、受约束采样</text>
+  <circle cx="1004" cy="262" r="3.5" fill="#B91C1C"/>
+  <text x="1018" y="267" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#64748B" text-anchor="start">当前为有界子集；跨前缀 / 跨布局不传播 UNSAT</text>
+  <line x1="74" y1="298" x2="1520" y2="298" stroke="#F1F5F9" stroke-width="1.5"/>
+  <text x="74" y="328" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">CoFuzz</text>
+  <text x="74" y="348" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="start">ICSE’23</text>
+  <circle cx="504" cy="324" r="3.5" fill="#15803D"/>
+  <text x="518" y="329" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">联合观察调度、同步与后续 coverage yield</text>
+  <circle cx="1004" cy="324" r="3.5" fill="#B91C1C"/>
+  <text x="1018" y="329" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#64748B" text-anchor="start">当前策略不是 CoFuzz 边级回归的忠实复现</text>
+  <line x1="74" y1="360" x2="1520" y2="360" stroke="#F1F5F9" stroke-width="1.5"/>
+  <text x="74" y="390" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">GenSym</text>
+  <text x="74" y="410" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="start">ICSE’23</text>
+  <circle cx="504" cy="386" r="3.5" fill="#15803D"/>
+  <text x="518" y="391" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">continuation、状态级并行、持久 store/memory</text>
+  <circle cx="1004" cy="386" r="3.5" fill="#B91C1C"/>
+  <text x="1018" y="391" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#64748B" text-anchor="start">只支持保守 LLVM 子集，不是完整 GenSym 编译器</text>
+  <line x1="74" y1="422" x2="1520" y2="422" stroke="#F1F5F9" stroke-width="1.5"/>
+  <text x="74" y="452" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">PSCache</text>
+  <text x="74" y="472" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="start">FSE’24</text>
+  <circle cx="504" cy="448" r="3.5" fill="#15803D"/>
+  <text x="518" y="453" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">conflict 导出的部分赋值与相关查询复用</text>
+  <circle cx="1004" cy="448" r="3.5" fill="#B91C1C"/>
+  <text x="1018" y="453" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#64748B" text-anchor="start">未宣称实现论文全部 bit-blast trail 技术</text>
+  <line x1="74" y1="484" x2="1520" y2="484" stroke="#F1F5F9" stroke-width="1.5"/>
+  <text x="74" y="514" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">ConDPOR</text>
+  <text x="74" y="534" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="start">CONCUR’25</text>
+  <circle cx="504" cy="510" r="3.5" fill="#15803D"/>
+  <text x="518" y="515" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">输入与 schedule 联合、po/rf/co、backward revisit</text>
+  <circle cx="1004" cy="510" r="3.5" fill="#B91C1C"/>
+  <text x="1018" y="515" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#64748B" text-anchor="start">bounded exploration，不声称完备证明</text>
+  <line x1="74" y1="546" x2="1520" y2="546" stroke="#F1F5F9" stroke-width="1.5"/>
+  <text x="74" y="576" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">SMTgazer</text>
+  <text x="74" y="596" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="start">ASE’25</text>
+  <circle cx="504" cy="572" r="3.5" fill="#15803D"/>
+  <text x="518" y="577" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">删失代价的算法序列与 SMBO 调度</text>
+  <circle cx="1004" cy="572" r="3.5" fill="#B91C1C"/>
+  <text x="1018" y="577" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#64748B" text-anchor="start">不是私有模型 / 数据集的复刻</text>
+  <line x1="74" y1="608" x2="1520" y2="608" stroke="#F1F5F9" stroke-width="1.5"/>
+  <text x="74" y="638" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">UCSan</text>
+  <text x="74" y="658" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="start">OSDI’26</text>
+  <circle cx="504" cy="634" r="3.5" fill="#15803D"/>
+  <text x="518" y="639" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">编译式 under-constrained harness、对象图</text>
+  <circle cx="1004" cy="634" r="3.5" fill="#B91C1C"/>
+  <text x="1018" y="639" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#64748B" text-anchor="start">结果仍需真实调用环境验证</text>
+  <line x1="74" y1="670" x2="1520" y2="670" stroke="#F1F5F9" stroke-width="1.5"/>
+  <text x="74" y="700" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">Hydra</text>
+  <text x="74" y="720" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="start">OOPSLA’26</text>
+  <circle cx="504" cy="696" r="3.5" fill="#15803D"/>
+  <text x="518" y="701" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">目标化控制流变换、fork elision、failure-preserving</text>
+  <circle cx="1004" cy="696" r="3.5" fill="#B91C1C"/>
+  <text x="1018" y="701" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#64748B" text-anchor="start">默认关闭，必须 replay / manifest 验证</text>
+  <rect x="48" y="766" width="1504" height="58" rx="8" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.5"/>
+  <text x="72" y="792" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#6D28D9" text-anchor="start">「借鉴某论文」不等于「复现该论文」。</text>
+  <text x="72" y="814" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">完整 18 行对照表见 Current_Technology_Compendium.md §2.3；逐项差距见 SOTA_Gap_Audit_2026-07-24.md。此处仅列 9 个代表性来源。</text>
+</svg>

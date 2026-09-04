@@ -1,0 +1,249 @@
+{
+  "cases": [
+    {
+      "profile": "strict-z3",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/strict-z3/all_padding.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/all_padding.b64"
+    },
+    {
+      "profile": "fast-optimistic",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/fast-optimistic/all_padding.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/all_padding.b64"
+    },
+    {
+      "profile": "runtime-full",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/runtime-full/all_padding.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/all_padding.b64"
+    },
+    {
+      "profile": "strict-z3",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/strict-z3/binary_content.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/binary_content.b64"
+    },
+    {
+      "profile": "fast-optimistic",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/fast-optimistic/binary_content.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/binary_content.b64"
+    },
+    {
+      "profile": "runtime-full",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/runtime-full/binary_content.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/binary_content.b64"
+    },
+    {
+      "profile": "strict-z3",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/strict-z3/empty",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/empty"
+    },
+    {
+      "profile": "fast-optimistic",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/fast-optimistic/empty",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/empty"
+    },
+    {
+      "profile": "runtime-full",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/runtime-full/empty",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/empty"
+    },
+    {
+      "profile": "strict-z3",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/strict-z3/invalid_chars.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/invalid_chars.b64"
+    },
+    {
+      "profile": "fast-optimistic",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/fast-optimistic/invalid_chars.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/invalid_chars.b64"
+    },
+    {
+      "profile": "runtime-full",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/runtime-full/invalid_chars.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/invalid_chars.b64"
+    },
+    {
+      "profile": "strict-z3",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/strict-z3/longline.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/longline.b64"
+    },
+    {
+      "profile": "fast-optimistic",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/fast-optimistic/longline.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/longline.b64"
+    },
+    {
+      "profile": "runtime-full",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/runtime-full/longline.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/longline.b64"
+    },
+    {
+      "profile": "strict-z3",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/strict-z3/mixed_lines.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/mixed_lines.b64"
+    },
+    {
+      "profile": "fast-optimistic",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/fast-optimistic/mixed_lines.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/mixed_lines.b64"
+    },
+    {
+      "profile": "runtime-full",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/runtime-full/mixed_lines.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/mixed_lines.b64"
+    },
+    {
+      "profile": "strict-z3",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/strict-z3/multiline.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/multiline.b64"
+    },
+    {
+      "profile": "fast-optimistic",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/fast-optimistic/multiline.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/multiline.b64"
+    },
+    {
+      "profile": "runtime-full",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/runtime-full/multiline.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/multiline.b64"
+    },
+    {
+      "profile": "strict-z3",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/strict-z3/newlines_only.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/newlines_only.b64"
+    },
+    {
+      "profile": "fast-optimistic",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/fast-optimistic/newlines_only.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/newlines_only.b64"
+    },
+    {
+      "profile": "runtime-full",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/runtime-full/newlines_only.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/newlines_only.b64"
+    },
+    {
+      "profile": "strict-z3",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/strict-z3/pad0.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/pad0.b64"
+    },
+    {
+      "profile": "fast-optimistic",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/fast-optimistic/pad0.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/pad0.b64"
+    },
+    {
+      "profile": "runtime-full",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/runtime-full/pad0.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/pad0.b64"
+    },
+    {
+      "profile": "strict-z3",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/strict-z3/pad1.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/pad1.b64"
+    },
+    {
+      "profile": "fast-optimistic",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/fast-optimistic/pad1.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/pad1.b64"
+    },
+    {
+      "profile": "runtime-full",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/runtime-full/pad1.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/pad1.b64"
+    },
+    {
+      "profile": "strict-z3",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/strict-z3/pad2.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/pad2.b64"
+    },
+    {
+      "profile": "fast-optimistic",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/fast-optimistic/pad2.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/pad2.b64"
+    },
+    {
+      "profile": "runtime-full",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/runtime-full/pad2.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/pad2.b64"
+    },
+    {
+      "profile": "strict-z3",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/strict-z3/rand.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/rand.b64"
+    },
+    {
+      "profile": "fast-optimistic",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/fast-optimistic/rand.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/rand.b64"
+    },
+    {
+      "profile": "runtime-full",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/runtime-full/rand.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/rand.b64"
+    },
+    {
+      "profile": "strict-z3",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/strict-z3/single_char.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/single_char.b64"
+    },
+    {
+      "profile": "fast-optimistic",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/fast-optimistic/single_char.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/single_char.b64"
+    },
+    {
+      "profile": "runtime-full",
+      "returncode": 0,
+      "run_dir": "/tmp/lava_dse_ablation_base64_20260730/runtime-full/single_char.b64",
+      "seed": "/home/ubuntu/code/symcc/benchmark/public/seeds/lava-m/base64/single_char.b64"
+    }
+  ],
+  "ended_at_unix": 1785393939.4251797,
+  "profiles": [
+    "strict-z3",
+    "fast-optimistic",
+    "runtime-full"
+  ],
+  "program": "base64",
+  "replay_timeout": 2.0,
+  "schema": "symcc-lava-dse-ablation-manifest-v1",
+  "started_at_unix": 1785393372.7662647,
+  "timeout": 60.0
+}

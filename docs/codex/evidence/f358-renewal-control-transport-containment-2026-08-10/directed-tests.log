@@ -1,0 +1,3 @@
+$ PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q -W error test/test_mpi_filesystem_qualification.py -k 'runtime_renewal_begin_transport_is_total or runtime_renewal_poll_transport_is_total or runtime_renewal_delivery_observation_is_one_shot or runtime_renewal_transport_'
+.....                                                                    [100%]
+5 passed, 36 deselected in 0.42s

@@ -1,0 +1,17 @@
+-- Testing: 10 of 257 tests, 8 workers --
+PASS: compiler :: ucsan_partial_shadow.c (1 of 10)
+PASS: compiler :: ucsan_invalid_entry.c (2 of 10)
+PASS: compiler :: ucsan_unsupported_musttail.ll (3 of 10)
+PASS: compiler :: test_ucsan_seed.py (4 of 10)
+PASS: compiler :: ucsan_jit.c (5 of 10)
+PASS: compiler :: ucsan_explicit_unwind.cpp (6 of 10)
+PASS: compiler :: ucsan_explicit_cpp.cpp (7 of 10)
+PASS: compiler :: ucsan_snapshot.c (8 of 10)
+PASS: compiler :: ucsan_explicit_objects.c (9 of 10)
+PASS: compiler :: ucsan_uninitialized.c (10 of 10)
+
+Testing Time: 2.66s
+
+Total Discovered Tests: 257
+  Excluded: 247 (96.11%)
+  Passed  :  10 (3.89%)

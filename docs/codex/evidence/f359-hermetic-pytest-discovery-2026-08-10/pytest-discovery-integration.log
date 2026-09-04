@@ -1,0 +1,51 @@
+{
+  "checks": {
+    "boundary_changes_scope_not_project_count": true,
+    "config_does_not_globally_ignore_qsym": true,
+    "config_scopes_default_to_project_test_root": true,
+    "counterfactual_identifies_all_six_qsym_modules": true,
+    "counterfactual_without_testpaths_reproduces_failure": true,
+    "default_collection_excludes_vendored_qsym": true,
+    "default_collection_has_project_tests": true,
+    "default_collection_succeeds": true,
+    "explicit_project_path_still_collects": true,
+    "explicit_qsym_path_is_not_hidden": true,
+    "explicit_qsym_prerequisite_is_transparent": true,
+    "source_suites_are_distinct_and_present": true
+  },
+  "configuration": {
+    "addopts": [],
+    "norecursedirs": [],
+    "testpaths": [
+      "test"
+    ]
+  },
+  "feature": "F359",
+  "inventory": {
+    "project_test_modules": 50,
+    "vendored_qsym_test_modules": 6
+  },
+  "observations": {
+    "counterfactual_without_testpaths": {
+      "collected": 778,
+      "collection_errors": 6,
+      "returncode": 2
+    },
+    "default": {
+      "collected": 778,
+      "qsym_paths_observed": false,
+      "returncode": 0
+    },
+    "explicit_project": {
+      "collected": 9,
+      "returncode": 0
+    },
+    "explicit_qsym": {
+      "dependency_state": "prerequisite-missing",
+      "returncode": 2
+    }
+  },
+  "passed": 12,
+  "schema": "symcc-f359-hermetic-pytest-discovery-evidence-v1",
+  "total": 12
+}

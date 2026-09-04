@@ -1,0 +1,138 @@
+{
+  "schema": "symcc-parameter-provider-v1",
+  "provider": "symcc-query-solver",
+  "scope": "query-service",
+  "parameters": {
+    "SYMCC_QUERY_PREFIX_CACHE": {
+      "values": ["64", "128", "512", "2048"],
+      "numeric": true, "min": 1, "max": 65536
+    },
+    "SYMCC_SELECTIVE_QUERY": {"values": ["0", "1"]},
+    "SYMCC_SELECTIVE_QUERY_MIN_FIXED": {
+      "values": ["1", "2", "4", "8"],
+      "numeric": true, "min": 1, "max": 4096,
+      "active_when": {"SYMCC_SELECTIVE_QUERY": ["1"]}
+    },
+    "SYMCC_SELECTIVE_QUERY_MAX_FIXED": {
+      "values": ["16", "32", "64", "128"],
+      "numeric": true, "min": 1, "max": 4096,
+      "active_when": {"SYMCC_SELECTIVE_QUERY": ["1"]}
+    },
+    "SYMCC_SELECTIVE_QUERY_MAX_SYMBOLIC": {
+      "values": ["4", "8", "16", "32"],
+      "numeric": true, "min": 1, "max": 4096,
+      "active_when": {"SYMCC_SELECTIVE_QUERY": ["1"]}
+    },
+    "SYMCC_SELECTIVE_QUERY_TIMEOUT": {
+      "values": ["10", "25", "50", "100"],
+      "numeric": true, "min": 1, "max": 1000,
+      "active_when": {"SYMCC_SELECTIVE_QUERY": ["1"]}
+    },
+    "SYMCC_SELECTIVE_QUERY_COMPLETIONS": {
+      "values": ["1", "2", "3", "4"],
+      "numeric": true, "min": 0, "max": 8,
+      "active_when": {"SYMCC_SELECTIVE_QUERY": ["1"]}
+    },
+    "SYMCC_SELECTIVE_QUERY_LEARNING": {
+      "values": ["0", "1"],
+      "active_when": {"SYMCC_SELECTIVE_QUERY": ["1"]}
+    },
+    "SYMCC_SELECTIVE_QUERY_POLICY_EXPLORE": {
+      "values": ["2", "4", "8", "16"],
+      "numeric": true, "min": 0, "max": 1024,
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": ["1"],
+        "SYMCC_SELECTIVE_QUERY_LEARNING": ["1"]
+      }
+    },
+    "SYMCC_SELECTIVE_QUERY_POLICY_MIN_SAVINGS_US": {
+      "values": ["0", "100", "1000", "10000"],
+      "numeric": true, "min": 0, "max": 3600000000,
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": ["1"],
+        "SYMCC_SELECTIVE_QUERY_LEARNING": ["1"]
+      }
+    },
+    "SYMCC_SELECTIVE_QUERY_POLICY_MIN_TIMEOUT": {
+      "values": ["2", "5", "10", "25"],
+      "numeric": true, "min": 1, "max": 1000,
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": ["1"],
+        "SYMCC_SELECTIVE_QUERY_LEARNING": ["1"]
+      }
+    },
+    "SYMCC_SELECTIVE_QUERY_POLICY_SAVE_INTERVAL": {
+      "values": ["1", "4", "16", "64"],
+      "numeric": true, "min": 1, "max": 4096,
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": ["1"],
+        "SYMCC_SELECTIVE_QUERY_LEARNING": ["1"]
+      }
+    },
+    "SYMCC_SELECTIVE_QUERY_POLICY_CONTEXTS": {
+      "values": ["64", "128", "256", "1024"],
+      "numeric": true, "min": 1, "max": 4096,
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": ["1"],
+        "SYMCC_SELECTIVE_QUERY_LEARNING": ["1"]
+      }
+    },
+    "SYMCC_SOLVER_PSCACHE": {"values": ["0", "1"]},
+    "SYMCC_SOLVER_PSCACHE_SIZE": {
+      "values": ["32", "128", "512", "2048"],
+      "numeric": true, "min": 1, "max": 65536,
+      "active_when": {"SYMCC_SOLVER_PSCACHE": ["1"]}
+    },
+    "SYMCC_SOLVER_PSCACHE_ASSIGNMENTS": {
+      "values": ["16", "64", "256", "1024"],
+      "numeric": true, "min": 1, "max": 4096,
+      "active_when": {"SYMCC_SOLVER_PSCACHE": ["1"]}
+    },
+    "SYMCC_SOLVER_PSCACHE_PROBES": {
+      "values": ["1", "4", "16", "64"],
+      "numeric": true, "min": 0, "max": 128,
+      "active_when": {"SYMCC_SOLVER_PSCACHE": ["1"]}
+    },
+    "SYMCC_SOLVER_PSCACHE_TIMEOUT": {
+      "values": ["5", "25", "100", "500"],
+      "numeric": true, "min": 1, "max": 1000,
+      "active_when": {"SYMCC_SOLVER_PSCACHE": ["1"]}
+    },
+    "SYMCC_SOLVER_PSCACHE_CONFLICTS": {
+      "values": ["0", "1"],
+      "active_when": {"SYMCC_SOLVER_PSCACHE": ["1"]}
+    },
+    "SYMCC_SOLVER_PSCACHE_CONFLICT_ASSIGNMENTS": {
+      "values": ["16", "64", "256", "1024"],
+      "numeric": true, "min": 1, "max": 4096,
+      "active_when": {
+        "SYMCC_SOLVER_PSCACHE": ["1"],
+        "SYMCC_SOLVER_PSCACHE_CONFLICTS": ["1"]
+      }
+    },
+    "SYMCC_SOLVER_PSCACHE_CONFLICT_SOLUTIONS": {
+      "values": ["4", "8", "16", "32"],
+      "numeric": true, "min": 1, "max": 64,
+      "active_when": {
+        "SYMCC_SOLVER_PSCACHE": ["1"],
+        "SYMCC_SOLVER_PSCACHE_CONFLICTS": ["1"]
+      }
+    },
+    "SYMCC_SOLVER_PSCACHE_CONFLICT_CORE_CHECKS": {
+      "values": ["2", "8", "32", "128"],
+      "numeric": true, "min": 0, "max": 4096,
+      "active_when": {
+        "SYMCC_SOLVER_PSCACHE": ["1"],
+        "SYMCC_SOLVER_PSCACHE_CONFLICTS": ["1"]
+      }
+    },
+    "SYMCC_SOLVER_PSCACHE_CONFLICT_TIMEOUT": {
+      "values": ["5", "25", "100", "500"],
+      "numeric": true, "min": 1, "max": 1000,
+      "active_when": {
+        "SYMCC_SOLVER_PSCACHE": ["1"],
+        "SYMCC_SOLVER_PSCACHE_CONFLICTS": ["1"]
+      }
+    }
+  }
+}

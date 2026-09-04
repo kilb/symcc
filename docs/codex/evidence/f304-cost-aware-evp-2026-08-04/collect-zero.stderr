@@ -1,0 +1,9 @@
+This is SymCC running with the QSYM backend
+[STAT] SMT: { "solving_time": 0, "total_time": 525 }
+[STAT] SMT: { "solving_time": 464 }
+[INFO] New testcase: /tmp/symcc-f304-cost-smoke-20260804-v3/collect-zero.output/000000
+[STAT] SMT: { "solving_time": 464, "total_time": 1391 }
+[STAT] SMT: { "solving_time": 529 }
+[STAT] SMT: { "solving_time": 529, "total_time": 1612 }
+[STAT] SMT: { "solving_time": 719 }
+[INFO] New testcase: /tmp/symcc-f304-cost-smoke-20260804-v3/collect-zero.output/000001-optimistic

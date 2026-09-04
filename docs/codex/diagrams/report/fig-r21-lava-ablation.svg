@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900"
+     viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">图 R-21　LAVA-M base64：完整 Z3 调用下降，但总求解成本与墙钟上升</title>
+  <desc id="desc">当前 LLVM17 二进制；13 个 public seeds；strict-first-z3（原始目录名 strict-z3）/ fast-optimistic / runtime-full</desc>
+  <rect width="1600" height="900" fill="white"/>
+  <text x="48" y="54" font-family="WenQuanYi Zen Hei" font-size="28" font-weight="700" fill="#17212B" text-anchor="start">图 R-21　LAVA-M base64：完整 Z3 调用下降，但总求解成本与墙钟上升</text>
+  <text x="48" y="86" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="400" fill="#64748B" text-anchor="start">当前 LLVM17 二进制；13 个 public seeds；strict-first-z3（原始目录名 strict-z3）/ fast-optimistic / runtime-full</text>
+  <rect x="48" y="124" width="1504" height="526" rx="10" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+  <text x="72" y="160" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">候选规模（每个 seed 均值）</text>
+  <text x="720" y="160" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">完整 Z3 路径求解（13 seeds 总数）</text>
+  <text x="1220" y="160" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">listed bug 并集</text>
+  <text x="72" y="228" font-family="WenQuanYi Zen Hei" font-size="18" font-weight="700" fill="#2563EB" text-anchor="start">strict-first-z3</text>
+  <rect x="300" y="200" width="242.4282608695652" height="30" rx="5" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+  <rect x="300" y="240" width="128.29782608695652" height="24" rx="5" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="554.4282608695652" y="222" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="700" fill="#2563EB" text-anchor="start">159.31 candidates</text>
+  <text x="440.29782608695655" y="259" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="400" fill="#64748B" text-anchor="start">84.31 unique</text>
+  <rect x="930" y="204" width="237.64" height="34" rx="5" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="1179.6399999999999" y="227" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#2563EB" text-anchor="start">2742</text>
+  <text x="930" y="261" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="400" fill="#64748B" text-anchor="start">queries 4303 · solver 1.019 s · 墙钟 0.34 s</text>
+  <rect x="1230" y="200" width="206" height="42" rx="8" fill="#DCFCE7" stroke="#15803D" stroke-width="1.5"/>
+  <text x="1333" y="229" font-family="WenQuanYi Zen Hei" font-size="21" font-weight="700" fill="#15803D" text-anchor="middle">41 / 44</text>
+  <text x="72" y="356" font-family="WenQuanYi Zen Hei" font-size="18" font-weight="700" fill="#C2410C" text-anchor="start">fast-optimistic</text>
+  <rect x="300" y="328" width="309.3847826086957" height="30" rx="5" fill="#FFEDD5" stroke="#C2410C" stroke-width="1.5"/>
+  <rect x="300" y="368" width="132.16304347826085" height="24" rx="5" fill="#FFFFFF" stroke="#C2410C" stroke-width="1.5"/>
+  <text x="621.3847826086957" y="350" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="700" fill="#C2410C" text-anchor="start">203.31 candidates</text>
+  <text x="444.1630434782609" y="387" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="400" fill="#64748B" text-anchor="start">86.85 unique</text>
+  <rect x="930" y="332" width="221.17333333333335" height="34" rx="5" fill="#FFEDD5" stroke="#C2410C" stroke-width="1.5"/>
+  <text x="1163.1733333333334" y="355" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#C2410C" text-anchor="start">2552</text>
+  <text x="930" y="389" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="400" fill="#64748B" text-anchor="start">queries 5005 · solver 1.317 s · 墙钟 0.43 s</text>
+  <rect x="1230" y="328" width="206" height="42" rx="8" fill="#DCFCE7" stroke="#15803D" stroke-width="1.5"/>
+  <text x="1333" y="357" font-family="WenQuanYi Zen Hei" font-size="21" font-weight="700" fill="#15803D" text-anchor="middle">41 / 44</text>
+  <text x="72" y="484" font-family="WenQuanYi Zen Hei" font-size="18" font-weight="700" fill="#B91C1C" text-anchor="start">runtime-full</text>
+  <rect x="300" y="456" width="324.0086956521739" height="30" rx="5" fill="#FEE2E2" stroke="#B91C1C" stroke-width="1.5"/>
+  <rect x="300" y="496" width="158.4891304347826" height="24" rx="5" fill="#FFFFFF" stroke="#B91C1C" stroke-width="1.5"/>
+  <text x="636.0086956521739" y="478" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="700" fill="#B91C1C" text-anchor="start">212.92 candidates</text>
+  <text x="470.4891304347826" y="515" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="400" fill="#64748B" text-anchor="start">104.15 unique</text>
+  <rect x="930" y="460" width="103.04666666666667" height="34" rx="5" fill="#FEE2E2" stroke="#B91C1C" stroke-width="1.5"/>
+  <text x="1045.0466666666666" y="483" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#B91C1C" text-anchor="start">1189</text>
+  <text x="930" y="517" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="400" fill="#64748B" text-anchor="start">queries 12500 · solver 1.862 s · 墙钟 18.25 s</text>
+  <rect x="1230" y="456" width="206" height="42" rx="8" fill="#DCFCE7" stroke="#15803D" stroke-width="1.5"/>
+  <text x="1333" y="485" font-family="WenQuanYi Zen Hei" font-size="21" font-weight="700" fill="#15803D" text-anchor="middle">41 / 44</text>
+  <rect x="48" y="672" width="1504" height="194" rx="10" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+  <text x="72" y="704" font-family="WenQuanYi Zen Hei" font-size="17" font-weight="700" fill="#2563EB" text-anchor="start">相对 strict-first-z3，runtime-full：候选 +33.7%，unique +23.5%，完整路径 Z3 调用 −56.6%。</text>
+  <text x="72" y="736" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="700" fill="#B91C1C" text-anchor="start">代价：solver queries +190.5%，solver time +82.6%，墙钟 ×53.3，候选吞吐 −97.5%，unique 吞吐 −97.7%。</text>
+  <text x="72" y="768" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="700" fill="#B91C1C" text-anchor="start">关键边界：三个 profile 的 listed bug 并集完全相同（41/44）。候选空间扩大没有转化为 LAVA listed bug 增量。</text>
+  <text x="72" y="800" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="700" fill="#C2410C" text-anchor="start">复用命中审计：poly cache hits 0 · cross-prefix hits 0 · prefix context entries/hits 0/0；本轮不能归因于上下文复用。</text>
+  <text x="72" y="830" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#64748B" text-anchor="start">范围：13 个 public seeds × 3 profiles = 39 cases，无 timeout。【C 级机制描述】13 个测量单元是不同 seed 而非重复运行，未给置信区间；不能用于宣称成本下降或达到 SOTA。</text>
+</svg>

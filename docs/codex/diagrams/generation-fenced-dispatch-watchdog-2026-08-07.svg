@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">F317 generation-fenced dispatch watchdog</title>
+  <desc id="desc">Protocol diagram showing a dispatch deadline, normal commit, timeout rollback, task migration, parked worker isolation, late-result fencing, and exact-ready rehabilitation.</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#182b3d" flood-opacity="0.14"/>
+    </filter>
+    <marker id="navy" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#294b69"/></marker>
+    <marker id="green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#087f5b"/></marker>
+    <marker id="red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#c23b4d"/></marker>
+    <style>
+      text { font-family: Inter, "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif; letter-spacing: 0; }
+      .title { font-size: 34px; font-weight: 750; fill: #12263a; }
+      .subtitle { font-size: 17px; fill: #536577; }
+      .lane { font-size: 15px; font-weight: 750; fill: #31475b; }
+      .head { font-size: 20px; font-weight: 750; fill: #12263a; }
+      .body { font-size: 15px; fill: #31475b; }
+      .small { font-size: 13px; fill: #607286; }
+      .mono { font-family: "JetBrains Mono", "Noto Sans Mono", monospace; font-size: 14px; fill: #23415e; }
+      .pill { font-size: 13px; font-weight: 700; fill: white; }
+      .box { fill: white; stroke: #c7d3dd; stroke-width: 1.4; filter: url(#shadow); }
+      .b { fill: #eaf3fb; stroke: #6f9bc1; }
+      .g { fill: #e8f7f1; stroke: #4fa98a; }
+      .r { fill: #fff0f2; stroke: #db7482; }
+      .a { fill: #fff7df; stroke: #d5a13b; }
+      .line { fill: none; stroke: #294b69; stroke-width: 2.3; marker-end: url(#navy); }
+      .lineG { fill: none; stroke: #087f5b; stroke-width: 2.5; marker-end: url(#green); }
+      .lineR { fill: none; stroke: #c23b4d; stroke-width: 2.5; marker-end: url(#red); }
+      .dash { stroke-dasharray: 8 7; }
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="#f6f8fa"/>
+  <rect width="1600" height="112" fill="#fff"/>
+  <rect y="109" width="1600" height="3" fill="#2e6f95"/>
+  <text x="58" y="55" class="title">F317  Generation-Fenced Dispatch Watchdog</text>
+  <text x="60" y="87" class="subtitle">超时只迁移语义任务；原 rank 保持隔离，直到 exact-token READY 证明旧代已结束</text>
+
+  <rect x="40" y="136" width="1520" height="72" rx="6" fill="#eef3f7" stroke="#d5dee6"/>
+  <text x="62" y="165" class="lane">WATCHDOG POLICY</text>
+  <text x="240" y="163" class="mono">deadline = send_return + clamp(max(120, 4 × target_timeout), 0..86400)</text>
+  <text x="240" y="188" class="small">monotonic、进程内、不持久化；0 关闭；current READY 已到时不误判为静默超时</text>
+
+  <text x="54" y="263" class="lane">ACTIVE GENERATION</text>
+  <line x1="205" y1="244" x2="1548" y2="244" stroke="#d4dde5"/>
+  <rect x="190" y="278" width="268" height="126" rx="6" class="box b"/>
+  <text x="214" y="312" class="head">TAG_WORK(T) 已发送</text>
+  <text x="214" y="344" class="mono">state = ACTIVE</text>
+  <text x="214" y="371" class="body">记录 dispatched_at</text>
+  <text x="214" y="393" class="small">PREPARING / COMMITTING 不计时</text>
+
+  <rect x="583" y="278" width="286" height="126" rx="6" class="box g"/>
+  <text x="607" y="312" class="head">完成证据先到</text>
+  <text x="607" y="344" class="body">current RESULT → 正常提交</text>
+  <text x="607" y="371" class="body">current READY → 等待 RESULT</text>
+  <text x="607" y="393" class="small">RESULT drain 优先于 watchdog sweep</text>
+
+  <rect x="1010" y="278" width="286" height="126" rx="6" class="box r"/>
+  <text x="1034" y="312" class="head">无 RESULT / READY</text>
+  <text x="1034" y="344" class="mono">now ≥ deadline</text>
+  <text x="1034" y="371" class="body">只形成 timeout suspicion</text>
+  <text x="1034" y="393" class="small">慢 worker 与死亡 worker 尚不可区分</text>
+
+  <path d="M458 341 H583" class="lineG"/>
+  <text x="493" y="328" class="small">完成</text>
+  <path d="M458 366 C690 460 890 460 1010 366" class="lineR"/>
+  <text x="697" y="443" class="small">静默直到 deadline</text>
+
+  <text x="54" y="497" class="lane">TASK RECOVERY</text>
+  <line x1="205" y1="478" x2="1548" y2="478" stroke="#d4dde5"/>
+  <rect x="190" y="516" width="318" height="128" rx="6" class="box r"/>
+  <text x="214" y="550" class="head">Exact-generation rollback</text>
+  <text x="214" y="581" class="mono">rollback(rank, T)</text>
+  <text x="214" y="608" class="body">清理 leases / state / strategies</text>
+  <text x="214" y="632" class="small">立即保存 state snapshot</text>
+
+  <rect x="630" y="516" width="286" height="128" rx="6" class="box a"/>
+  <text x="654" y="550" class="head">稳定语义任务恢复</text>
+  <text x="654" y="581" class="body">预算内：frontier requeue</text>
+  <text x="654" y="608" class="body">耗尽：deferred JSONL</text>
+  <text x="654" y="632" class="small">日志失败则保留内存任务</text>
+
+  <rect x="1050" y="516" width="300" height="128" rx="6" class="box b"/>
+  <text x="1074" y="550" class="head">原 worker 进入 PARKED</text>
+  <text x="1074" y="581" class="mono">parked[rank] = T</text>
+  <text x="1074" y="608" class="body">不加入 idle，不接受新派发</text>
+  <text x="1074" y="632" class="small">任务迁移与 endpoint 恢复解耦</text>
+
+  <path d="M1153 404 V465 H349 V516" class="lineR"/>
+  <path d="M508 580 H630" class="lineR"/>
+  <path d="M916 580 H1050" class="line"/>
+
+  <text x="54" y="735" class="lane">LATE MESSAGE / REHABILITATION</text>
+  <line x1="277" y1="716" x2="1548" y2="716" stroke="#d4dde5"/>
+  <rect x="190" y="753" width="296" height="108" rx="6" class="box r"/>
+  <text x="214" y="786" class="head">迟到 RESULT(T)</text>
+  <text x="214" y="817" class="body">unowned / stale → quarantine</text>
+  <text x="214" y="843" class="small">永不进入 triage / coverage / feedback</text>
+
+  <rect x="640" y="753" width="310" height="108" rx="6" class="box r"/>
+  <text x="664" y="786" class="head">错误 READY</text>
+  <text x="664" y="817" class="body">missing / malformed / other T</text>
+  <text x="664" y="843" class="small">watchdog-* quarantine，继续 parked</text>
+
+  <rect x="1100" y="753" width="330" height="108" rx="6" class="box g"/>
+  <text x="1124" y="786" class="head">READY(retired exact T)</text>
+  <text x="1124" y="817" class="body">解除 parked → bounded metadata → idle</text>
+  <text x="1124" y="843" class="small">随后旧 RESULT 仍由新 generation token 拒绝</text>
+
+  <path d="M1120 644 C920 700 420 690 338 753" class="lineR dash"/>
+  <path d="M1200 644 C1080 690 820 695 795 753" class="lineR dash"/>
+  <path d="M1280 644 V753" class="lineG"/>
+</svg>

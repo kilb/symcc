@@ -1,0 +1,47 @@
+F450 MULTI-ROUND REVIEW RECORD
+Captured: 2026-08-25 UTC
+
+R1 - Trust boundary and transitive closure
+Reviewed root-record normalization, proof identity, recursive imports, store
+integrity and the cache-hit linearization point. Rejected the first design
+because a cached parent could have hidden later mutation of an imported CAS
+object. The final entry carries every transitive dependency's encoded-byte
+SHA-256 and re-attests the entire closure before authorization.
+
+R2 - Protocol identity and persistent compatibility
+Reviewed proof policy, receipt identity, store identity and configuration
+drift. Rejected a version that folded cache budgets into the existing checker
+policy because it would invalidate persistent artifacts for a local
+optimization. The external ordered-LRUP policy remains stable; F450 has a
+separate cache protocol and policy digest.
+
+R3 - Performance counterexample and resource bounds
+Measured the initial recursive-JSON implementation and the per-object
+attestation revision; both had approximately 1x replay ratios because each
+dependency reopened flock/SQLite and reparsed JSON. Replaced them with one-lock,
+one-connection batch attestation. Entry-count and accounted-byte LRU budgets,
+oversized rejection and hard configuration maxima bound resident state.
+
+R4 - Mutability, object lifetime and concurrency
+Reviewed Python object-id reuse, plan mutation, weak references and concurrent
+first-use races. Cache admission now requires an exact BitBlastPlan with tuple
+clauses, integer literals and frozen CnfIncrement records. Weakref plus replay
+scope prevents stale id reuse. A 16-thread adversarial test requires one stable
+authorization identity and a single resident entry.
+
+R5 - Failure semantics, telemetry, tests and claim boundary
+Found that the initial hit counter advanced before dependency attestation, so a
+tampered closure was counted as a successful hit. The final implementation
+increments hits only after complete attestation, records attestation failures
+and object/byte work, and evicts exactly the failed entry. Documentation and
+the oracle distinguish proof-replay mechanism ratios from solver, coverage and
+defect-yield claims.
+
+FINAL GATES
+- Focused: 9 passed.
+- Coupled regression: 88 passed, 50 subtests passed.
+- Canonical inventory: 1428 node IDs; exactly 9 F450 additions, zero removals.
+- Full capability gate: 1428 passed, 310 subtests passed; zero skip, xfail,
+  xpass, deselect, collection error, missing nodeid or unexpected nodeid.
+- External capabilities: 16/16 present.
+- Static checks: recorded in static-checks.txt.

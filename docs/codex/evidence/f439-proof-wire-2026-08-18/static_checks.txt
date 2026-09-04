@@ -1,0 +1,5 @@
+python3 -m py_compile: passed
+python3 -m ruff check: passed
+bash -n pinned installers: passed
+technology index --check: passed
+git diff --check: passed

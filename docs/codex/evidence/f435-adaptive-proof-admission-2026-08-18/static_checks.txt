@@ -1,0 +1,10 @@
+F435 static verification (2026-08-18)
+
+python3 -m py_compile: passed
+python3 -m ruff check: passed (All checks passed!)
+clang++ -std=c++17 -fPIC -fvisibility=hidden -Wall -Wextra -Werror -fsyntax-only: passed
+SVG/XML parse and PNG 1600x950 dimension checks: passed
+manual rendered-image inspection: passed after title, connector and caption fixes
+git diff --check: passed
+CaDiCaL headers/library: pinned 3.0.1 commit c60730422e758ef1cebe7aeddf2dda31c996bf04
+Compiled real shim SHA-256: fb1d08ed0c3039ddf4e5ed4ddb3d89c8ea09423b4fceb100c10fd5bc39325ba9

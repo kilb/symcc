@@ -1,0 +1,6 @@
+python3 -m py_compile: passed
+python3 -m ruff check: passed
+bash -n pinned installer: passed
+technology index --check: passed
+SVG/XML and PNG dimensions: passed
+git diff --check: passed

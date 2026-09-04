@@ -1,0 +1,111 @@
+{
+  "branches": 6,
+  "checkpoint_reduction_fraction": 0.9047619047619048,
+  "claims": {
+    "branch_outcome_preservation_checked_by_oracle": true,
+    "public_campaign_result": false,
+    "solver_speedup_claim": false
+  },
+  "expected_exhaustive_paths": 64,
+  "graph": {
+    "ambiguous_decision_tokens": 0,
+    "branches_analyzable": 6,
+    "branches_analyzed": 6,
+    "branches_unanalyzable": 0,
+    "decision_tokens": 12,
+    "enabled": true,
+    "functions_admitted": 1,
+    "functions_interprocedural_fail_open": 0,
+    "functions_skipped_branch_limit": 0,
+    "functions_skipped_oversized": 0,
+    "functions_total": 1
+  },
+  "path_reduction_fraction": 0.96875,
+  "repeats": 11,
+  "schema": "symcc-live-cbc-benchmark-v1",
+  "scope": "synthetic-mechanism-only",
+  "state_threshold": 1,
+  "static_build_ns": {
+    "max": 685147,
+    "median": 420460,
+    "min": 408432
+  },
+  "strategies": {
+    "bfs": {
+      "cbc_checks": {
+        "max": 0,
+        "median": 0,
+        "min": 0
+      },
+      "cbc_pruned_states": {
+        "max": 0,
+        "median": 0,
+        "min": 0
+      },
+      "elapsed_ns": {
+        "max": 2818050080,
+        "median": 2776778111,
+        "min": 2682185218
+      },
+      "feasibility_checks": {
+        "max": 126,
+        "median": 126,
+        "min": 126
+      },
+      "forks": {
+        "max": 63,
+        "median": 63,
+        "min": 63
+      },
+      "generated_checkpoints": {
+        "max": 126,
+        "median": 126,
+        "min": 126
+      },
+      "halted_paths": {
+        "max": 64,
+        "median": 64,
+        "min": 64
+      },
+      "runs": 11
+    },
+    "cbc": {
+      "cbc_checks": {
+        "max": 22,
+        "median": 22,
+        "min": 22
+      },
+      "cbc_pruned_states": {
+        "max": 10,
+        "median": 10,
+        "min": 10
+      },
+      "elapsed_ns": {
+        "max": 497329797,
+        "median": 487879370,
+        "min": 457245454
+      },
+      "feasibility_checks": {
+        "max": 22,
+        "median": 22,
+        "min": 22
+      },
+      "forks": {
+        "max": 11,
+        "median": 11,
+        "min": 11
+      },
+      "generated_checkpoints": {
+        "max": 12,
+        "median": 12,
+        "min": 12
+      },
+      "halted_paths": {
+        "max": 2,
+        "median": 2,
+        "min": 2
+      },
+      "runs": 11
+    }
+  }
+}

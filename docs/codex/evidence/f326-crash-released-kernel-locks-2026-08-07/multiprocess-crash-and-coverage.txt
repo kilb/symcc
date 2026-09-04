@@ -1,0 +1,27 @@
+{
+  "coverage_stress": {
+    "campaigns": 10,
+    "complete_campaigns": 10,
+    "expected_novel_bits_per_campaign": 2048,
+    "hangs": 0,
+    "indices_per_writer": 256,
+    "lost_update_campaigns": 0,
+    "processes_per_campaign": 8,
+    "timeouts": 0
+  },
+  "crash_reclaim": {
+    "coverage_max_reclaim_ms": 10.678,
+    "coverage_reclaims": 20,
+    "killed_processes": 40,
+    "persistent_coverage_lock_files": 8,
+    "persistent_work_lock_files": 20,
+    "rounds": 20,
+    "timeouts": 0,
+    "work_max_reclaim_ms": 6.22,
+    "work_reclaims": 20
+  },
+  "elapsed_ms": 2330.667,
+  "process_model": "fork+SIGKILL",
+  "schema": "symcc-f326-crash-reclaim-coverage-stress-v1",
+  "scope": "shared-state coordination correctness; not DSE throughput"
+}

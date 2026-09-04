@@ -1,0 +1,95 @@
+=== MPI output ===
+SymCC MPI Parallel Concolic Execution
+  Processes:     4
+  Mode:          single-master (3 workers)
+  Shared dir:    /tmp/symcc-f339-mpi-24l5nyw_/output
+  Input dir:     /tmp/symcc-f339-mpi-24l5nyw_/input
+  Target:        /tmp/symcc-f339-mpi-24l5nyw_/output-contract-target.py
+  Timeout:       1s per execution
+  Work epoch:    f339f339f339f339f339f339f339f339f339f339f339f339f339f339f339f339 (configured recovery)
+  Retired GC:    0 root(s) reclaimed, 0 entry(s) removed, stop=disabled
+  Retired budget: roots=0, entries=4096, time=0.05s
+  Retired scan:   entries=0, candidates=0, selected=0
+  Retirement:    renameat2(RENAME_NOREPLACE) qualified
+  Wall timeout:  30s total
+
+[Master] Imported 1 initial inputs from /tmp/symcc-f339-mpi-24l5nyw_/input
+[Master] Using 1 master(s), 3 workers in this group
+[Master] Durable work ownership: rendezvous + 64 fenced shards, lease=6s
+[Master] Shared filesystem capabilities: {'schema': 'symcc-shared-filesystem-capabilities-v1', 'root': '/tmp/symcc-f339-mpi-24l5nyw_/output/.standalone-work-f339f339f339f339f339f339f339f339f339f339f339f339f339f339f339f339', 'publication_root': '/tmp/symcc-f339-mpi-24l5nyw_/output', 'device': 92, 'filesystem_id': 18395215968828387670, 'publication_device': 92, 'publication_filesystem_id': 18395215968828387670, 'filesystem_type': 'overlay', 'mount_point': '/', 'mount_source': 'overlay', 'distributed_filesystem': False, 'cluster_lock_verified': False, 'probe_scope': 'same-host-subprocess-v1', 'cluster_lock_members': [{'rank': 0, 'processor': 'cuda-ke'}], 'cluster_lock_representatives': [0], 'cluster_lock_rounds': 0, 'cluster_lock_contention_checks': 0, 'cluster_lock_release_checks': 0, 'file_fsync': True, 'directory_fsync': True, 'same_directory_replace': True, 'cross_directory_replace': True, 'publication_replace': True, 'hard_link': True, 'durable_unlink': True, 'advisory_lock_exclusion': True, 'advisory_lock_release': True}
+[Master 0] Waiting for inputs... (1 generated, 1 interesting, 2 analyzed)
+[Master] No more inputs after 1.002s (limit 1s). Shutting down.
+[Master 0] Worker shutdown: acked=3/3 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+
+[Master] === Final Statistics ===
+[Master] Total analysis observations:       2
+[Master] Total test cases generated:  1
+[Master] New interesting test cases:  1
+[Master] Throughput:                  0.8 tc/s
+[Master] Masters used:               1
+[Master] Workers used:               3
+[Master] Analysis by master:         0=2
+=== F339 result ===
+{
+  "actual_mpi_transport": true,
+  "actual_multi_host": false,
+  "all_checks_passed": true,
+  "checks": {
+    "all_public_hash_names_match_real_regular_content": true,
+    "all_workers_ack": true,
+    "completed_epoch_retired_once": true,
+    "initial_seed_remains_intact": true,
+    "master_published_new_objects": true,
+    "no_staged_object_residue": true,
+    "real_mpi_run_succeeds": true,
+    "run_is_bounded": true,
+    "single_master_three_workers_exercised": true,
+    "worker_staging_generated_objects": true
+  },
+  "command": [
+    "mpirun",
+    "--oversubscribe",
+    "-np",
+    "4",
+    "python3",
+    "/home/ubuntu/code/symcc/util/mpi_concolic_execution.py",
+    "-i",
+    "/tmp/symcc-f339-mpi-24l5nyw_/input",
+    "-o",
+    "/tmp/symcc-f339-mpi-24l5nyw_/output",
+    "-t",
+    "1",
+    "--max-idle",
+    "1",
+    "--wall-timeout",
+    "30",
+    "--",
+    "/tmp/symcc-f339-mpi-24l5nyw_/output-contract-target.py"
+  ],
+  "configuration": {
+    "masters": 1,
+    "ranks": 4,
+    "simulation_mode": false,
+    "synthetic_output_contract_target": true,
+    "wall_timeout_seconds": 30,
+    "work_epoch": "f339f339f339f339f339f339f339f339f339f339f339f339f339f339f339f339",
+    "workers": 3
+  },
+  "deployment_evidence": false,
+  "elapsed": 1.7731350138783455,
+  "generated_observations": 1,
+  "invalid_public_objects": [],
+  "new_interesting_objects": 1,
+  "proof_boundary": "One real Open MPI run on one physical host and local overlayfs exercises worker staging, master verification, fenced promotion, cleanup, and exact shutdown ACKs. A deterministic synthetic target implements the SymCC output-directory contract but does not invoke a solver. This is not multi-host shared-storage, DSE coverage, solver throughput, bug-discovery, or LAVA-M evidence.",
+  "retired_roots": [
+    ".retired-standalone-work-f339f339f339f339f339f339f339f339f339f339f339f339f339f339f339f339-ba2fafc9ac3d750ab4c08f5383883c18"
+  ],
+  "returncode": 0,
+  "schema": "symcc-f339-streaming-nofollow-staging-mpi-v1",
+  "staged_object_residue": [],
+  "synthetic_topology": false,
+  "valid_public_objects": [
+    "0053098b68e35504adf600963a5f09cd87eec9b9a0edd7106cda9ae4ac328c50",
+    "35f6728c19daa04432ce41e8805571c3543f2896ca85ff8b987bf98ca4e91819"
+  ]
+}

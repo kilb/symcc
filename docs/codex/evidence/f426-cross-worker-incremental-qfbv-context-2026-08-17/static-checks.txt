@@ -1,0 +1,9 @@
+PASS ruff check util/cross_worker_context.py util/qf_bv_backend.py
+     util/query_store.py util/symcc_query_service.py
+     benchmark/check_cross_worker_context_oracles.py
+     test/test_cross_worker_context.py test/test_qf_bv_backend.py
+PASS python3 -m py_compile on the same production/oracle/test modules
+PASS git diff --check
+PASS SVG parses as 1600x960 and PNG renders as 2000x1200
+PASS visual inspection: labels render, arrows connect intended stages, no overlap
+

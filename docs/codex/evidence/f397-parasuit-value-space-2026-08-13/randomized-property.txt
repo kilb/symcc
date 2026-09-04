@@ -1,0 +1,5 @@
+schema=symcc-f397-randomized-value-space-property-v1
+seed=397
+bounded_random_analyses=1000/1000
+window_bound=256
+status=PASS

@@ -1,0 +1,3492 @@
+{
+  "claim_boundary": "deterministic protocol oracle; proves stable identity, endpoint/shard/lease conservation, extra-generation fencing, replay, and strict artifact verification; it is not a physical process-failure or multi-node performance result",
+  "config": {
+    "endpoints": 12,
+    "failed_ranks": [
+      6,
+      11
+    ],
+    "policy": {
+      "collective_timeout_seconds": 20.0,
+      "max_endpoints": 16,
+      "max_recovery_queue": 128,
+      "max_repair_attempts": 3,
+      "max_shards": 128,
+      "poll_interval_seconds": 0.005,
+      "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+      "schema": "symcc-ulfm-recovery-policy-v1"
+    },
+    "policy_sha256": "92b0f884d5a897891814c38bc9466f315440b47e9e63ae84a371abc7dc0d7fe6",
+    "shards": 96
+  },
+  "final_snapshot": {
+    "generation": 1,
+    "generation_token": "b9c49d7d9dfb226bd31b34a9587574f6a92843b5200245bf5cdf73a3f40e57cf",
+    "members": {
+      "endpoint-000": {
+        "host_id": "host-000",
+        "incarnation_sha256": "3bdd795afb15a896b7787e6f95b3f97408889c17d73fd4e7c015d386e685877d",
+        "rank": 0
+      },
+      "endpoint-001": {
+        "host_id": "host-000",
+        "incarnation_sha256": "f38478cef2b3cfe57893fc82de507ec11b32f0f4a6d877043b6c59e320d31581",
+        "rank": 1
+      },
+      "endpoint-002": {
+        "host_id": "host-000",
+        "incarnation_sha256": "bbb71b1f0178aca2c753ad331bb52e5325ba91f0d37d911952f3ab7a1f5d7d3b",
+        "rank": 2
+      },
+      "endpoint-003": {
+        "host_id": "host-000",
+        "incarnation_sha256": "9cfc61276907041530e7ebc028e290b9f022886d3ce19ae2bd08c41377b98713",
+        "rank": 3
+      },
+      "endpoint-004": {
+        "host_id": "host-001",
+        "incarnation_sha256": "e2029657768670e030ffd5b4a34bae78136411ed10b559d4e655572632913a0d",
+        "rank": 4
+      },
+      "endpoint-005": {
+        "host_id": "host-001",
+        "incarnation_sha256": "c9469f3edfa54ca64a7b9044d795ea95dc2ae094b99a16bf39fe65a66c44dc1f",
+        "rank": 5
+      },
+      "endpoint-007": {
+        "host_id": "host-001",
+        "incarnation_sha256": "454e4eb8e4261c825272467cd0dc599a8490cbc77b9bd9fb76c4ca2ba17f3b18",
+        "rank": 6
+      },
+      "endpoint-008": {
+        "host_id": "host-002",
+        "incarnation_sha256": "be0b2fca0027e7413b79472ddda1d1d03f8728c4057e134af38db8553d96a1e0",
+        "rank": 7
+      },
+      "endpoint-009": {
+        "host_id": "host-002",
+        "incarnation_sha256": "1293a7b713ee46b099a7c0217801dbf1d59cd081a82f061c11ac48fd069bb8e8",
+        "rank": 8
+      },
+      "endpoint-010": {
+        "host_id": "host-002",
+        "incarnation_sha256": "52ca93343059a5fa2b6982193ba90e56343fd60319173472774a612e25a07adf",
+        "rank": 9
+      }
+    },
+    "pending_recovery": null,
+    "policy": {
+      "collective_timeout_seconds": 20.0,
+      "max_endpoints": 16,
+      "max_recovery_queue": 128,
+      "max_repair_attempts": 3,
+      "max_shards": 128,
+      "poll_interval_seconds": 0.005,
+      "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+      "schema": "symcc-ulfm-recovery-policy-v1"
+    },
+    "policy_sha256": "92b0f884d5a897891814c38bc9466f315440b47e9e63ae84a371abc7dc0d7fe6",
+    "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+    "recovery_count": 1,
+    "recovery_queue": [],
+    "run_id": "f441-deterministic-oracle",
+    "schema": "symcc-ulfm-recovery-snapshot-v1",
+    "shards": {
+      "shard-00000": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "0c5a34d6e6af4242d3c5d95ef4d5df458517d33ff5dcf13379c1cc0b349a8a06",
+        "completed": 1,
+        "completion_chain_sha256": "6021c7cff7585ed9f197e863cd15679f1a5424bd9410b24f93fe11b19e6e63b4",
+        "cursor": 1,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "598a4ba31a7824aa324d3d489d703e222c15c2da1f7a6edc18cbed5be8b863fd"
+      },
+      "shard-00001": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "7d270b45a1aca48b833fc7a02604191b446559208733ec924803827ad08f8e2f",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-001",
+        "shard_token": "639261ca84b8c341964dee1692d1a7e85ece2d1b5c842697b3ecea81d690ab61"
+      },
+      "shard-00002": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "c6a490a67d25f3bca359125d7758834c0df7cec9a3fc5334450ba62c843e4950",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-002",
+        "shard_token": "887f1deeabca86ef231425f3d411d2b403f2b6e1f0970198206d09a38556e8b2"
+      },
+      "shard-00003": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "d2771fc4ecf0f84eeca9bb19daa601b22e3f2a09d25bd3951860f9b392e5589f",
+        "completed": 1,
+        "completion_chain_sha256": "074c7453c6e7ac6c1c9c8c3ba980366c551d9b8580d23b916148b8b4a6d1accb",
+        "cursor": 1,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-003",
+        "shard_token": "c4311282f59ddeb2342c878bafa67c49e94c35461310973b93f1a668eea561b9"
+      },
+      "shard-00004": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "4c013515680d62f9a7777c8de29f5010480fb89bb588f57092d526cdc590a61c",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-004",
+        "shard_token": "0785d0b8b7dd7f5dac029751389a4b3736eb488ccdb4c26648a88a0e9901314e"
+      },
+      "shard-00005": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "e660a2925062f497e167875f7f73d6e7a72c68fbdd8a695ecab639355fb6a4a5",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-005",
+        "shard_token": "13e59aede53e819419c208e63af33fd8777a9b8361ece0775494b0d63b035ef2"
+      },
+      "shard-00006": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "a663b2bd1667b82205e00613575d5aaca518f8b206fe14ac9517c7d4632d0898",
+        "completed": 1,
+        "completion_chain_sha256": "0febd88ff5d9fc2df0303bde4743b2d197b6d499d57fc0e4e28cd9dcfedc6b2c",
+        "cursor": 8,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "f31521f70a2763e6d297492de090a3f2d43e3c554346fa22f37e2dd9fd7b461e"
+      },
+      "shard-00007": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "7048e30373ac2e345e3a4cf9b0bdb4ccd533aaa6e462e9433ecbc20fbccc3493",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-007",
+        "shard_token": "00da87474e07c5a0fe5fbba5fe8fa697786e945bdaee2ed608da5233f8b93b26"
+      },
+      "shard-00008": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "a1ea72863dd68898ca44f45310a1342a5db80fbc3afda4e00806639c31ecb262",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-008",
+        "shard_token": "655926a8d6c308ccc3cb21433953271060dcfc97a6be0b6d9e2b465d40654854"
+      },
+      "shard-00009": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "c3c3b67ca330dbc734390029a8b620afe5813646e2ea7158484694b2aecc354c",
+        "completed": 1,
+        "completion_chain_sha256": "43598600917f30bdf5dbdc5f691f08a02ad4d54f34b59f72836f525bb9864f31",
+        "cursor": 1,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-009",
+        "shard_token": "ac9f6cf380d9ff769877d38740af628c7335db46df062aca600dae2a63d44b38"
+      },
+      "shard-00010": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "670d8af5e06a3fc950b9a2a10bb23939ce850600f061b86de15f8864fe6acb35",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "a38a96b2626a916276956d675859191eb9203b82f8d9a2c409053271688caece"
+      },
+      "shard-00011": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "9ce86ba9d01964c534a8af2d9a83da1b6a36a89ccad6ddabe0f0d92f6eb37dae",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "7c5f31f55e4172cb2b150c3699a9c91093d5131d10285f2a5ea1d38156ae3a4f"
+      },
+      "shard-00012": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "9187dc61a82002ea1691efaf2629ee99d0719ba8927ac15e3953fa6d89b2cb5a",
+        "completed": 1,
+        "completion_chain_sha256": "38126686cb6638f2875e89d820faae0351f7f5c2edf01584d57fea1c67ea0cb2",
+        "cursor": 13,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "0825f2c5ff01fa1264e6f70fcc98e4dfd9f20b32badb30a49c5ee3851aa39bfe"
+      },
+      "shard-00013": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "9fc35732d69eef8b1e2871e069d15a211a4ace1da56d8ed02afbd4430c572ddd",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-001",
+        "shard_token": "fa415d13c18c0c8707894a672ac1b1fdddaeedfdbd1b035c1640be1cd08a02c4"
+      },
+      "shard-00014": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "43c71407849370e1867baf1f1405f81d56d7220d56e841eb987cd38a3d899b19",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-002",
+        "shard_token": "6f5ac46b2f27efc3d6a09aeee261961e95f1289de56cc227cd1b4408c7de9496"
+      },
+      "shard-00015": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "20d32b5fa0f01df57f7ff86d0ef62d9c18e72960496ba4abc75e767a89b2128d",
+        "completed": 1,
+        "completion_chain_sha256": "2d4b38f72a38832632cbfc31b81a3a353c5c0fa60ffdb586b3575f0b02b34968",
+        "cursor": 1,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-003",
+        "shard_token": "163c85eeefc4fa5d798595ae3406c18079eaed8e6a9782f70a4a9a02dc18ab54"
+      },
+      "shard-00016": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "64619213a6a9d7572f952eb14a90c7bb60e063a1e5b358295747268bba76caa1",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-004",
+        "shard_token": "7fbac3867fe7f4fa8ffa0fe496e02f1fcd8c85c535c9d8bc486436876ea743fb"
+      },
+      "shard-00017": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "8ef3ea7de9fe0a7522eb529e4d811090bcdd097096daaebf2bb69763c8b92453",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-005",
+        "shard_token": "2d92e2f542e46a414dba6858d7018ca214061d1f3923a14217d3e9f6169b21ef"
+      },
+      "shard-00018": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "49b52a6993e8f67442ead500eaa1064a764e2b73edf7fc24d7b3bbf466a447e3",
+        "completed": 1,
+        "completion_chain_sha256": "8ae682b2b5f3cf5255d978827efc9f0b087e4a9e0f26c324a6ccec1aa48789b1",
+        "cursor": 20,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-009",
+        "shard_token": "978e9699c7cb24b9d6ae4252b4eb7a546686ce3d4a23bb5a69d2a99bb295efa6"
+      },
+      "shard-00019": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "4c7cffb5051ecc13b4766272c20053ba0263788937c501438a67279baf33c3f1",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-007",
+        "shard_token": "87ad50733d7b8ae98d04ff1c3db1eab66d88c928d011a734c1126500526a37f6"
+      },
+      "shard-00020": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "173b9da7d4c15f61080e8017a2fe5278a791b5443a3f9f2e01b5cba225e67c4b",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-008",
+        "shard_token": "9189ae72bdf6b17077a3aea4be4d739adcafa32f685b5289a9ab72eefc1bdaeb"
+      },
+      "shard-00021": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "b7b73bf600c0ef190a8cb258b1fb070c7681fe6fb6a0090103152c77a17ed310",
+        "completed": 1,
+        "completion_chain_sha256": "31b0e9983a666b551be42af8603772b3a7753effc284a6ad2497b1631e179131",
+        "cursor": 1,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-009",
+        "shard_token": "b75cb33e2052d21748c9c8f1cedbd0c36049f35747af85b71e02d9c2ac82c5f8"
+      },
+      "shard-00022": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "f85859f41e3a73fbc2bdebb1cbc8dc1faf6ed63cfbbcf30bb51362344e717bb9",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "07168d00afbe9302a2d8a377810bd29603a14ae85c66f249c0f77777c5d5eab4"
+      },
+      "shard-00023": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "3da72ef52e0ec5afe8fc3178a4acfe9df331f90637a59437eaa6bb4a6dce6aa3",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "e6ac924cec12b8baaabb20612791e72c6b5e92438d82c39aa9498f6a974f3a6e"
+      },
+      "shard-00024": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "946ac425d5e8d69a0838c8d3e50b57c68d4e9dd35f18d82bd3743de5323d08c3",
+        "completed": 1,
+        "completion_chain_sha256": "e8b1873925e37fea1be09dc5b6080e753b2cbff5d11f12376381f0e1c7ad49a8",
+        "cursor": 25,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "c9d6c7a630af3078f0e338f9df64d25a7a945ac0b35edc21882042e1a2f0fcb2"
+      },
+      "shard-00025": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "1920d458a0a55add9f92b3c18ad33d3b89fcaaf1c7b6a3146f07dbce4c900358",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-001",
+        "shard_token": "91bc2151728c4d7ed6ce9f0b4f81d85c9b1e9ade9d7fd8db060d24bf842838e2"
+      },
+      "shard-00026": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "b80db5a144bfc3c1aa19eaf1df58fb842525e7bdfaebf89c719f497d81d0b034",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-002",
+        "shard_token": "15c484661a2df9f8007e14d9f23d24441d378571ff7e4e3672293964d03d7285"
+      },
+      "shard-00027": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "bace99a02a36e35ef6cd00639ceacb612cf8fffe567e7c9b28c2b50254e3d12f",
+        "completed": 1,
+        "completion_chain_sha256": "b71b78afdd2fe39d5f2d58f3f31ebc9b7513d72ef3b7a9d6e5168033c1fa5dd4",
+        "cursor": 1,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-003",
+        "shard_token": "705b8583381a0c49efebb2d48325b12da22e7d9a02b64579cd05c5df7a7c1549"
+      },
+      "shard-00028": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "3d721a40cd21180f4bcec67dc705553050bfc353c16a44a4cc4c81f086937bbf",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-004",
+        "shard_token": "59501850a8de699e18b0490879ce27cb2d096d881d4676ba2aa75202a16387e9"
+      },
+      "shard-00029": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "2324430eee9ab40318bb0de79e2def8016ae4693345060696bae270e11934529",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-005",
+        "shard_token": "1f910bde79335ed4161cc60af4d11225b0d24686a5484d8a65075b521322f7cb"
+      },
+      "shard-00030": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "48ac2b53d1d06ff05abef700dfa0bf64e62e44c3320836c8feaf056805e834fe",
+        "completed": 1,
+        "completion_chain_sha256": "4b47a9f9ad3a1189cf20d8a2db1f91df3c83339502dc179ae624646fae267be0",
+        "cursor": 32,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-005",
+        "shard_token": "0045ad75ec917ccdf380ba85911ca0371bdea22c108fb6e1dd4e9c1562a503ed"
+      },
+      "shard-00031": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "49e840057938ce5938fe270548f8a35215c7adc3818f166d6f3fd89f6049df34",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-007",
+        "shard_token": "9dc7725a7dbb3592e76e15bb9e6c948bafdf55bc78ade6182b66e900c2aab849"
+      },
+      "shard-00032": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "b2017b4ad6676faacc5168f9a3502326eac8a31559801108548c7f00957bba70",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-008",
+        "shard_token": "e18564f7b2a3b2c26ec0f064515be25089c0ddee3f3d75bdafbab3295784e865"
+      },
+      "shard-00033": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "7686f6327590eb1d4e42e2da8894d79217f8de4d18c107fac42895b222e1a8b3",
+        "completed": 1,
+        "completion_chain_sha256": "482d0b59c4be9df9c1930cddcd344d401a58b8fd51d942f9d82a40e5f7d67c57",
+        "cursor": 1,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-009",
+        "shard_token": "a428216eb0c77f1ebfff0a4b7d9218cae8742fc6f1e44c15b2ba2f40afbaaae4"
+      },
+      "shard-00034": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "d13f8057541a2109cad9bf60ec51d9b3e3f39b0952774a5af4995e139c9e663f",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "2a3c7b682fc2aa0b8c585c4340be206f6c14747e65244c36c43d54504cd75042"
+      },
+      "shard-00035": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "b6b7c103c2cb949dfbe0ff8dc2256182c04acc978a0cf3dbd4f5c66d56e85e65",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-008",
+        "shard_token": "2f941bf213ef091f4df2d1e55f8de24cece0031287c304063279b58d87f222ce"
+      },
+      "shard-00036": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "504598562134e971c5d6dc4534b87ee757fd89b1d105463f17caeaede4312b41",
+        "completed": 1,
+        "completion_chain_sha256": "7ffc276403b8a0d5794b29e11d744eb297deaeaf94f2b19dff5189c82056a60c",
+        "cursor": 37,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "c07980973baeb3a08e83a4199a3f91afbbcf72b62797515193fd7cdfb14192e3"
+      },
+      "shard-00037": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "392aa863b5ecac4e97e29531802cb5e1396631c79da59f7fad927fe9afade9d6",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-001",
+        "shard_token": "0351880ea4dcf03b20be3d96c1f0d8ac55d70db193a1bf4bf38cc519659e501e"
+      },
+      "shard-00038": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "705b0e527f8e51350748fccfe6ebd1c0b18c58cf96155ee2da0240bd7aec5f28",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-002",
+        "shard_token": "e37698d5f6ce4b9e0ccffa69c83821b3530d924a0757d32203f5e7c797e6d1cb"
+      },
+      "shard-00039": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "7c7c5cd82456ed3da745c173246f5dd32a7063609ee5181370632512b2efc5cd",
+        "completed": 1,
+        "completion_chain_sha256": "c2d686d77d921f0ca4d6ace2100b9145c7f31846bcc9d8b30a17b0c787bcd22f",
+        "cursor": 1,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-003",
+        "shard_token": "5fad0556c600d5dc4d98969ec28b7a29d8ba98d40074e582cd618d8785b2aa5f"
+      },
+      "shard-00040": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "fdf317f9f4cb8ff354da64b114cbad0518920034a5b8537ce7c3db7246ef0d41",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-004",
+        "shard_token": "499d28a3784871f7f15bbe9febb1c68ef3fb802a772c22a904f6c6176bfacd46"
+      },
+      "shard-00041": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "dd471138d690f4a7366c6556cb504dece0b28846633e34a2cf87a65e5af84d15",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-005",
+        "shard_token": "f3e61b15e68f1410b9874b3106318e4b5517b6a28fa3fd42eaf24b3ac6c6c157"
+      },
+      "shard-00042": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "c2ea48d09b4c5a8ecb8c627a9ffa3af1e0551593bbbdcf89a5a5983f2afb1bac",
+        "completed": 1,
+        "completion_chain_sha256": "64977167049d74ffda7a10c798a5aae06e6b6849c9f5f1c3d94b2754d7d86db8",
+        "cursor": 44,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-008",
+        "shard_token": "cccfe237df05f71557edc1d4364bc03efdab0f9d89ce0bfa9d26aec44da94cf8"
+      },
+      "shard-00043": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "5443ba0adb465db4c0deeecd2c2fa1d6fb31668f2879dd6978f7152a1fc17cb9",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-007",
+        "shard_token": "8006825d05f84ed0e6472094410419b0f330ebfacd0b5f5d110fcc95e13e60a3"
+      },
+      "shard-00044": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "e5ca699d733be9090028eddfb63b903f654d5453ade1734c49ef5f7c529d078e",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-008",
+        "shard_token": "964e2d8a96aee6ab96c05e94e4c55c49e2aef74ffcc104468d8ae30e2ec70c58"
+      },
+      "shard-00045": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "d1e3bfe827bbe2f85c550c4b158733d1559e8e556e362284b61dfb9c4b4d0ec2",
+        "completed": 1,
+        "completion_chain_sha256": "f115fa5caf68aad8fdc5d5b43d4491349429d09305689ce7afbd1737030bc497",
+        "cursor": 1,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-009",
+        "shard_token": "469ba225be3dd215453e1be206b21c886ccd6ca12354725b336e3c502ff76199"
+      },
+      "shard-00046": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "e2185413193860ec5a8da6d60e231518d6d9f2d29d053feee268d55635872af3",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "494b6fecd34d33703d32d259df06fdf0d884042a51b232cb325324ff253bbc17"
+      },
+      "shard-00047": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "92efd965027327d3a90ee8eb1a313ee216915db66a49ff8afb15bfbc4672d5b9",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-001",
+        "shard_token": "e1158ac4082237cc25189f914e258638b09b514f711f202345bd83ab911ae3c0"
+      },
+      "shard-00048": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "cd8b5fbd834d4c00a6795a5583b02c9b9ddb35c98ad129c2dbf945fa3c98fc80",
+        "completed": 1,
+        "completion_chain_sha256": "5391bd6051ce16266540d308da95437d6f9c357e7a718311500fd22c46c962fe",
+        "cursor": 49,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "c0c9a303eb7ea6c927a322c8e0fb71e98faacf7a36424c1f81a1ec441b912d19"
+      },
+      "shard-00049": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "47b90d4e776758941346d30d709177360a2df6a51a52e3ccf2788a1cc452eb6a",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-001",
+        "shard_token": "c5d637e7d470de52efd2e29fadd930b4c19cac9b16cd128b7ebd132528cdd501"
+      },
+      "shard-00050": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "3408d4b74365edc50f513fbf3da7df4f8a7db5776a3286f7b55cc907276d14bb",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-002",
+        "shard_token": "bea3373edd4401fee591a1e140e62cf264c0f23569837f3071b66e0d712a6cda"
+      },
+      "shard-00051": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "0c6363ac968f9cd68e3014985856f5d868587df5e7ad691d011dacadf4a8f501",
+        "completed": 1,
+        "completion_chain_sha256": "ab0a825d3966d577a3b3d445ca0c8ba4ed9d90d84ae2ae3b4435c3e8572de7d6",
+        "cursor": 1,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-003",
+        "shard_token": "028e7e03b69a0ca0784e8d4a67959a2ae6e979f6a3ede913d89a05d383a7ebd6"
+      },
+      "shard-00052": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "4e2bfaa3a9f2b19af5b501474b7eecf7fb7839a6d3102303a713bd0b3ff3639c",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-004",
+        "shard_token": "3e3f6916a84ef3c295d45f2ff1db431bb069f146a3a4ee1d0b0be44c64246a72"
+      },
+      "shard-00053": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "e0b3d61212164200e635422d90073edec0d58b2f221f7c9f38a57f729ef88cf5",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-005",
+        "shard_token": "ca4979bc4cd096c00ab9bdf8f7bc9217f15f88b7096b927693bef47a3d020020"
+      },
+      "shard-00054": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "3e94f7267085f3cbc6fce1905275cfcc4993bbb7e15cfaee25389749082f0ce9",
+        "completed": 1,
+        "completion_chain_sha256": "e22ba05b054ba08745fc83004c8165f946569408d47044038ec06063972ba5ac",
+        "cursor": 56,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "51ce57b7ceaefb48a00902e7347f3f8b8dc145b91a4e9983f8744c95a4aeb854"
+      },
+      "shard-00055": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "37c900771b3d6e9dad881702c9226903a0b4cf19417712eabe9292d695044db5",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-007",
+        "shard_token": "10a98deef1541738e3443b79575f880d7a40f31ec2398aa9d6e952d57ef77489"
+      },
+      "shard-00056": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "59c0b0b35eb470a90809b2b10be1ada58c36649c8a7af598decb45a73f7cd6b5",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-008",
+        "shard_token": "571e28dd081869b54a78b5c11186ba1eec3ef2b373318b5276385a575b0c7d80"
+      },
+      "shard-00057": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "060cc9cb522b4e51db85840113d2710947da46fd09a2ebb996d26d0c75541319",
+        "completed": 1,
+        "completion_chain_sha256": "b56dc077ffee74e2b8313f073ffa5a4bf6b8e576a27c6940d1fb7b483d869964",
+        "cursor": 1,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-009",
+        "shard_token": "874c58b7890213e508b0f68a7dcdbb30d8fb390c48ce2c13808ac876fbb0c6e4"
+      },
+      "shard-00058": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "b8dfcf6b4fe9146e43f6bdc56b283fd100132d7ecf7038da083fe150d2abbce8",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "cc746c2b9bdc40117d4203766ea39aa66b8959740214a8c9a5001f0631dc6d37"
+      },
+      "shard-00059": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "b685a781fb29cd726f9675a819658e3576bd706cd164c4dcd36f88e999728358",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-009",
+        "shard_token": "94438ee04c19e8f1e6e37afd43805d53e4711075da5f90ebf05aa6c728a536d8"
+      },
+      "shard-00060": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "293deef78fdc9894cf451fa7a1576b0f85678ecd38e5421b35b358313ac4679e",
+        "completed": 1,
+        "completion_chain_sha256": "7530361525a49591d82495f7b3ae0a238a94f34d8c9f02fabed7b71cb18b062e",
+        "cursor": 61,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "a8e34e9e8e475e69345685e3b3b729a9ef2fd2cdcf605fb77f6718dfd8fe4b98"
+      },
+      "shard-00061": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "9e867e78c26c4ade627b08b448199f2db63f27f1d280f4baf29bf3767bae0e95",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-001",
+        "shard_token": "b8503a779d56a9c2d7028085020d7ff71b53ac37d756eaac5b4ea5492dff416d"
+      },
+      "shard-00062": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "52ffb96532fba7d8e59e850901b44a7977203d4d981b8e1ed048fd19aa2936cd",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-002",
+        "shard_token": "edd673ea2c18dd2ea0b00d0a7dfdbf9fd30633b747f37ed5364176c6492b8f1c"
+      },
+      "shard-00063": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "1e7cbca943b08b3bcc568b495c1579cdf303ddadf72b3ee914b8ead138fb409f",
+        "completed": 1,
+        "completion_chain_sha256": "503bb0f467ecfffad4d6b06b15f550945ef800067d0b98572925e53d9e875c3a",
+        "cursor": 1,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-003",
+        "shard_token": "119f4be9461aa7b8106405d603a32a19fb3f426f59e1a8f6f83ea7cd4b0218d5"
+      },
+      "shard-00064": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "3e7a21e5bb022b9755ac800e329b49ec0b10f8b770c8f8ccdf8d33962d6e2ee5",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-004",
+        "shard_token": "2b07011b8189c57f57b8132a57f14135a5007626f74e770c6a6c4bd569e73969"
+      },
+      "shard-00065": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "760bfb199b519fb84de00aa5bfcbcbcad230d8804da805fa7f841c6ee1f0c02c",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-005",
+        "shard_token": "3fa1614d8601b7cc50dc972e6a87e11f4efd0076f7f32b724ee771c3df7e3961"
+      },
+      "shard-00066": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "3b8b348b36e2bc45238224066cf5233a142f766509215a1b7aec22465a4dd49c",
+        "completed": 1,
+        "completion_chain_sha256": "d55f06470d7ec38f240a5a3fcf8d8feb9aad8f8ae637a867a21bc7e21550d10d",
+        "cursor": 68,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "f2d86ea311fc9f1ddbda48c1e06d4dedab47e34fd430dd2ac9671bf5a3230f6c"
+      },
+      "shard-00067": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "5a2e11366d53636df2e7c494ebd9afe8da74cd3abb78debf2a04a878274d8dc5",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-007",
+        "shard_token": "c204ae44524626ac977d029ccd69f51324d7aa5779688f7eade2fe109c2780dc"
+      },
+      "shard-00068": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "53e28ff21afe8fa610b01057929d0d6dced0e8cfab6a0eadfad0060781ce90dc",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-008",
+        "shard_token": "2792507abb52b42cd1faafa91fc0aa17be09631ceab4835b48faf23632fd2bb2"
+      },
+      "shard-00069": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "43136eb217fd02018c56368ea212ff04f44caafad1d2572272a901b74f75760e",
+        "completed": 1,
+        "completion_chain_sha256": "99722c7a188024bf3424ec34b34398f5e6b0221a5dbc86b5c96e461ba12b4333",
+        "cursor": 1,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-009",
+        "shard_token": "3e31b12b4654d4b91d6743fd639e72fab46fee80eb75abebb39ba9bc12fbeaa2"
+      },
+      "shard-00070": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "40040e7b3bd043fed68cd674e9ebc0d2c82fd0d85e8d7049ff176954d9270ab8",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "16c0c49a25a0213073cb07ee54d3a1b213c08c2e9370dbea62f855f85696ce25"
+      },
+      "shard-00071": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "570c1e991f43bb210fc23a1bd9bf236be2e39212e45b4168a925d000a193cdda",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "625ea0262e40748b2c5417426d71b3940a4e788c3b4329af7dca81d7504fc56b"
+      },
+      "shard-00072": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "df756334fb424cc3ceb1552025fad6fb592e20cd1dc35b7ccd2b3d4b47e19116",
+        "completed": 1,
+        "completion_chain_sha256": "1d71303417c757ed8fa431384d581dbe4710b7e596f823005cdfcb83ba36d344",
+        "cursor": 73,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "06ab8965c859b6d644df2f6a514322d1d106a6e16f4911ff024cd6a17e294365"
+      },
+      "shard-00073": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "f7223d6db56cabe97977e26a507f5816964f9094490500f2ff9e4f281ae76073",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-001",
+        "shard_token": "74932e73a66fe331b7aec9c0616d2dd460ff9adb293b9b7026e2e8582d504dc1"
+      },
+      "shard-00074": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "36e2ea3d33de4ca2c2e738b625a908babfea1285de163516c3c924b9d1659101",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-002",
+        "shard_token": "dbcfaf207d5be425b1528d658ebe3c215d924a81cfbba377ef938dc64d254174"
+      },
+      "shard-00075": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "361d4710ad5b8f195c3d3c7ad1a0a602034bf7ab785ed8de16b84d31aa0c22b2",
+        "completed": 1,
+        "completion_chain_sha256": "97382b6648b3a634e3e5960723deb93f78fffb237350e5dbd80c696966fd5712",
+        "cursor": 1,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-003",
+        "shard_token": "86881a33a68b5d09795de2a4f09452469d0eb621d9920dc312144d1ded8f66dc"
+      },
+      "shard-00076": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "8e68c23e77d72b51df5f33a4adbeec2b1d239ea5148d1f73ec7f5403abaf4a2e",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-004",
+        "shard_token": "f9189d20be6e82169349a99890d4b52ccca2f233f15bccc05f8a98ccacd10238"
+      },
+      "shard-00077": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "b7f430212209a4d1354c7eb5c4cba6ff8fd758898b42d3fe5c13e08b970ed44f",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-005",
+        "shard_token": "0dce20176614164559155b79fd269da1ea7bbd57f3850aab3a8c3ca88faf37c0"
+      },
+      "shard-00078": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "2c3ff7a8f5c78b7b25624f7d80b564b89d4ddcf5ea32a2ae934c306309fc5072",
+        "completed": 1,
+        "completion_chain_sha256": "f7d4066a0c8914afa7deb5beae5efede526563e4235d858a2bccce76a48f00e0",
+        "cursor": 80,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-001",
+        "shard_token": "5cdb981f94345799046749107d87349acc412fd669c548086c3959c0cc9d83a4"
+      },
+      "shard-00079": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "40876e4b3b4ea8f192b3c8bd036099260727740866f5d495b599c137594f2902",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-007",
+        "shard_token": "78163c5c8d05a721aae0c813958630bba1e5e7688ac0ea897a0f7d1f976b0aa1"
+      },
+      "shard-00080": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "16cc7e40b303bf2b8dd55c9940a87736a03b4ef754b157a71349073e679e7564",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-008",
+        "shard_token": "1166e8a265e0903e626b01adc00ee4cf619fd497118af4d906b538ed192a5df7"
+      },
+      "shard-00081": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "f247662da1ec5f3337e073614b02e0ee50eae987fb8156f83aca632207f73ae1",
+        "completed": 1,
+        "completion_chain_sha256": "ab0484d79fc30e7e12043e6ee22ce7e2ae9f8fbd2d3a76b1aea583b8c6bfe0ef",
+        "cursor": 1,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-009",
+        "shard_token": "6c6315e8b80b9747d281b2d070ae92349b3a4181e8bc1615812ee8bc79587a1e"
+      },
+      "shard-00082": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "fc7e3ffb91ce54f2514c879e2ea589f5b520ae820c8b1787c0ee0e0b985d06f8",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "cf2442e86e5f2d3989294b59ccde36651e542612d408b264402a319bcfa6e969"
+      },
+      "shard-00083": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "1001cb3cedef1291c94d4c15f5a7119555ad37aeb6cdc20ef274d7e6963b6358",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "2b5bb9445c277c9ae4ab1f8ae957025781f8c24fd09cce1f8993bacc3bcabc0b"
+      },
+      "shard-00084": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "60f61c0a6e2140ad256da71fbabffd2a32b4516d8622af8afe6458f0d3978785",
+        "completed": 1,
+        "completion_chain_sha256": "f0fbeb571d899d4ccbeaa79e157826677c84804ce364440c8c89686e4f827acf",
+        "cursor": 85,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "2cabdc533829c5d8b2b55742304d50ac37acae8165e5f782c039ce01b1dcc764"
+      },
+      "shard-00085": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "cf7b6036adb5610774e9a65e3c92f5e70801f400dfeece148659c8c06617ed67",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-001",
+        "shard_token": "7bbf387416ffa2afe5ca990becec37c7a06e2e31f33854293ac1ea0232d0ad5c"
+      },
+      "shard-00086": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "946af77d53db93e2a7e08e1b6cbc8e82fa4eaa404e4cf85f49e3d8ab803f724a",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-002",
+        "shard_token": "1eb8bbd477000a2114e9e25cd6cca169fe389a375949871bc798e64bb8e44ec0"
+      },
+      "shard-00087": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "bc2fc9daef5e492fdec82194a0eeb1fee9199c06c5f4ea812f9955319f266bdc",
+        "completed": 1,
+        "completion_chain_sha256": "98d23357fa486861071d92c8dfb594909f963ecf6b52a9d742554ec6bb5238db",
+        "cursor": 1,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-003",
+        "shard_token": "eeb2dd7a08a417647930994e9345ff1a1957e119b2d36590f756a0ac59596e31"
+      },
+      "shard-00088": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "7c83565456581cf33f54946f0eaaa24f705441201dc0d9f5bf438e1ee098a6a0",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-004",
+        "shard_token": "4f612a3c06b5fb92150e0276bf2e0f117cd5112214be64e3fc3f7f402622b052"
+      },
+      "shard-00089": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "8c6ae8f7eb39518dacec6f1b0b4681dd0403c1366ec018f7de2b452f328eda1c",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-005",
+        "shard_token": "ae5cfd13e006990fa78996bcdef8093f4ad06831c428a3503963f67824c8ea13"
+      },
+      "shard-00090": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "019326631e8f8666f71e5811ef908e2bffffa644e9dcb34c3b9badc5c29b881c",
+        "completed": 1,
+        "completion_chain_sha256": "1afcd26e17d2d188aa09cada7cf5a21146b1de6f362c7e83c070a9c844bfd6a9",
+        "cursor": 92,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "a669fe9597c588af5b481b387a03cff74f47b326f6298eae21e227b55d144652"
+      },
+      "shard-00091": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "0e60e06fcad5854203828ca0d18f38d5bd267ee1506b89ec7464bc122e05558e",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-007",
+        "shard_token": "0d608ed393df3e9e04f92845c6a46eaeda68dfc4153d8f52b30ed44e62ff30dc"
+      },
+      "shard-00092": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "b9033ccd327a778959067907874d7534dc4d81d2a431f6ad9162819ebf957b91",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-008",
+        "shard_token": "48609cfa3c4a2081aade425d317d9e7b0efea11853fd95c44d11ee75701a6afc"
+      },
+      "shard-00093": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "aaa8fd207d2c1b6a9d480ede4a82bd85ebc27a99276920524f17c8d15d500a13",
+        "completed": 1,
+        "completion_chain_sha256": "ca0b10fa56b0595b387e9e9c3d2e52f5bbd1a930aa7870f7c82378b1cf91887d",
+        "cursor": 1,
+        "generation": 1,
+        "lease_ordinal": 2,
+        "owner_endpoint": "endpoint-009",
+        "shard_token": "874330999390a9a7beedc0504003cb0ff9ba4a43e101b98241a91681e519180f"
+      },
+      "shard-00094": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "12e62758e3cd975aeed78a92035c4d345af3629f176fa68f6888eb6af12fbb5b",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "7ae1bc96658e62740bed8b6337085186a3055e65212bf2cd5c5b46130257193c"
+      },
+      "shard-00095": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "ad8927cdc1d9897cb66a6b9766116df3d46637f7e6ed6f926090699aed70d30f",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-004",
+        "shard_token": "a77300671812750e007cb5d318ba263eb5d4a72828621714be4458dbe859a514"
+      }
+    },
+    "snapshot_sha256": "1a74c73267b28aad82edd3c8f8257878b81c2f1de7593d5db5d683881a42c8fb"
+  },
+  "plan": {
+    "base_generation": 0,
+    "base_generation_token": "27916ebdc9896357e9ce3670b2e07ca155a6dc6e0317d00363844ec175c99973",
+    "base_members": {
+      "endpoint-000": {
+        "host_id": "host-000",
+        "incarnation_sha256": "3bdd795afb15a896b7787e6f95b3f97408889c17d73fd4e7c015d386e685877d",
+        "rank": 0
+      },
+      "endpoint-001": {
+        "host_id": "host-000",
+        "incarnation_sha256": "f38478cef2b3cfe57893fc82de507ec11b32f0f4a6d877043b6c59e320d31581",
+        "rank": 1
+      },
+      "endpoint-002": {
+        "host_id": "host-000",
+        "incarnation_sha256": "bbb71b1f0178aca2c753ad331bb52e5325ba91f0d37d911952f3ab7a1f5d7d3b",
+        "rank": 2
+      },
+      "endpoint-003": {
+        "host_id": "host-000",
+        "incarnation_sha256": "9cfc61276907041530e7ebc028e290b9f022886d3ce19ae2bd08c41377b98713",
+        "rank": 3
+      },
+      "endpoint-004": {
+        "host_id": "host-001",
+        "incarnation_sha256": "e2029657768670e030ffd5b4a34bae78136411ed10b559d4e655572632913a0d",
+        "rank": 4
+      },
+      "endpoint-005": {
+        "host_id": "host-001",
+        "incarnation_sha256": "c9469f3edfa54ca64a7b9044d795ea95dc2ae094b99a16bf39fe65a66c44dc1f",
+        "rank": 5
+      },
+      "endpoint-006": {
+        "host_id": "host-001",
+        "incarnation_sha256": "b3e6fa009277e210867ae6dbdedfeebcbd8e8707cdf402e08714bdb63bbf5597",
+        "rank": 6
+      },
+      "endpoint-007": {
+        "host_id": "host-001",
+        "incarnation_sha256": "454e4eb8e4261c825272467cd0dc599a8490cbc77b9bd9fb76c4ca2ba17f3b18",
+        "rank": 7
+      },
+      "endpoint-008": {
+        "host_id": "host-002",
+        "incarnation_sha256": "be0b2fca0027e7413b79472ddda1d1d03f8728c4057e134af38db8553d96a1e0",
+        "rank": 8
+      },
+      "endpoint-009": {
+        "host_id": "host-002",
+        "incarnation_sha256": "1293a7b713ee46b099a7c0217801dbf1d59cd081a82f061c11ac48fd069bb8e8",
+        "rank": 9
+      },
+      "endpoint-010": {
+        "host_id": "host-002",
+        "incarnation_sha256": "52ca93343059a5fa2b6982193ba90e56343fd60319173472774a612e25a07adf",
+        "rank": 10
+      },
+      "endpoint-011": {
+        "host_id": "host-002",
+        "incarnation_sha256": "2b3f24c43cad971bf35e283b3e3328ebd1a063b10e1fe5072c57ad4dae777220",
+        "rank": 11
+      }
+    },
+    "in_flight": [
+      {
+        "checkpoint_sha256": "388e8877bb28d6a498229745c119af1d64b6719e2bff75a1a9e86bbf32e7d39a",
+        "cursor": 0,
+        "lease_token": "04f7bf71f42dead838f31a2d70b863dbb1905b5328eef5fe8d9fd9afeaab42d8",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00003",
+        "work_id": "query-00003"
+      },
+      {
+        "checkpoint_sha256": "8e8d7c8f9623a103cb23a5969a5317ef48d0dc47c0e95ca953cd7935ec686099",
+        "cursor": 7,
+        "lease_token": "b19f6eccf8f32fb7c4e2469b505538feafb31351de88f34ebf5376a2f2f9de76",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00006",
+        "work_id": "query-00006"
+      },
+      {
+        "checkpoint_sha256": "11355ff129f8c00d23e857f998850e758fd35eda120a37a574824f6e9e52d48e",
+        "cursor": 0,
+        "lease_token": "b4ca6e95036acb888b49fa6a7136ffa9507652458fc3cdbcd2219e71e4678548",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00009",
+        "work_id": "query-00009"
+      },
+      {
+        "checkpoint_sha256": "546915a3dd0532913b14dc816d299dcc239dbfb606c3d604178c99e394dc7e9e",
+        "cursor": 0,
+        "lease_token": "e50185c71b7dba3567cf0eb9d374d3215192d2e1ccd049e89ad1ce4cf913fc10",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00015",
+        "work_id": "query-00015"
+      },
+      {
+        "checkpoint_sha256": "6d43e90cf7a8592cd67146740114ec2648881bda8c223bdd170b943bea314228",
+        "cursor": 19,
+        "lease_token": "ec54ef968146455c0b60ebc3a372d3523c32a9fedd23b926b5e790b908e2c286",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00018",
+        "work_id": "query-00018"
+      },
+      {
+        "checkpoint_sha256": "5a693b22e92ed367973d3d84903848a4b3afdc00e5a4b4fc04c08402434d827d",
+        "cursor": 0,
+        "lease_token": "5bb0e05c2c3fa77826dadb634dfb61f6e214f9066532344f5f0c13cbdaa24756",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00021",
+        "work_id": "query-00021"
+      },
+      {
+        "checkpoint_sha256": "67c2845bb2cd8238e2f00e0960ea404b9c5aecdbaee41547b7c97652e5f8b692",
+        "cursor": 0,
+        "lease_token": "fd454b8350c763de1ac6228521872ed77256e490ec3b65022d8be425627b6c79",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00027",
+        "work_id": "query-00027"
+      },
+      {
+        "checkpoint_sha256": "50a953449bfad23a1614ce42e97d3638b1789063547a12dbf8c6c3266e554807",
+        "cursor": 31,
+        "lease_token": "6082d26b1fa807e8ae6f04349c8c7079e288fa74d90d293446e4801080d51477",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00030",
+        "work_id": "query-00030"
+      },
+      {
+        "checkpoint_sha256": "a1d4f6437557ca7d5030f7cb79af4bb61863ae4977bbee76841b2c077e925e8e",
+        "cursor": 0,
+        "lease_token": "7373d3e75b97aebe59e392b40121cd2485eeb040b813df03c5003ec680506c36",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00033",
+        "work_id": "query-00033"
+      },
+      {
+        "checkpoint_sha256": "f3a9c814ba9c67b69fac1d69be7ac7760d7b1f8dd8446c944f010707f5799e67",
+        "cursor": 0,
+        "lease_token": "8a148e0dab7b8bfe1677f5dd02497997b0bb34701a45d2b31ace713c4b788d37",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00039",
+        "work_id": "query-00039"
+      },
+      {
+        "checkpoint_sha256": "0159e4406c15bf3c3d9e6f7bc50bff384df44fa97eaebf80c87c7df03f693707",
+        "cursor": 43,
+        "lease_token": "e09482f0100725d6c4e592bf2f617aba2b2be0b1793436438b720132945b0477",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00042",
+        "work_id": "query-00042"
+      },
+      {
+        "checkpoint_sha256": "d43b5065ca7a72ed6080844db95871b36c599a931503397cbe6b2d1ada25ceb1",
+        "cursor": 0,
+        "lease_token": "ee49290055b4d2913730f979568a0257a535d234947dfdaee1c19b83da0e16ff",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00045",
+        "work_id": "query-00045"
+      },
+      {
+        "checkpoint_sha256": "48e9f8b5b3361b8922040181a8b1dcd2f84238ed2db0ac8ad09268a4a18a1ddd",
+        "cursor": 0,
+        "lease_token": "1c752c756866cb63e6d45afca9e5f809f69fb8ab88af2997b7f7eeb0c2adabb6",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00051",
+        "work_id": "query-00051"
+      },
+      {
+        "checkpoint_sha256": "4d0b143daac8de3002c8b1f89242739610f25e0484fbf09e2cbc1e05c39c4733",
+        "cursor": 55,
+        "lease_token": "4872f34f4f857f58de25e119f36a25f26d23fc2a70f1e3dd881fb195929c00ae",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00054",
+        "work_id": "query-00054"
+      },
+      {
+        "checkpoint_sha256": "7099a795d86ac6025de38f63fc31a5255f67479d43b0358424b44545a058aa28",
+        "cursor": 0,
+        "lease_token": "c1c0cd47b225b08b58d71b5a0fd7dd85824161868f023151a49561761084f677",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00057",
+        "work_id": "query-00057"
+      },
+      {
+        "checkpoint_sha256": "6856fa544524cc41a5d8c336f429dafce18b8dd7d7df1eb02855d44f358978ad",
+        "cursor": 0,
+        "lease_token": "8cda813309e4ea97a49871f22cd51b5a28e753626c4d2b54c2bce2bfa035e034",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00063",
+        "work_id": "query-00063"
+      },
+      {
+        "checkpoint_sha256": "b377dbd94a4d1c0ca3fae235abaa644ccfb974d1f654702471bf0c3c253527f3",
+        "cursor": 67,
+        "lease_token": "41f08565bd8eaefc369f31e923470bdbc558cc204c1e8d0123eba7fbbb7db04a",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00066",
+        "work_id": "query-00066"
+      },
+      {
+        "checkpoint_sha256": "dda1bc0e2275db361609ba80d5779ce4a9da4903a1aed53ce67a4ef688d2f890",
+        "cursor": 0,
+        "lease_token": "d84444d5fb668899ae146a911e3292392db996e0a34e6326b0dd75cda72cd10d",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00069",
+        "work_id": "query-00069"
+      },
+      {
+        "checkpoint_sha256": "954a25629044fdb12da67cd3d608da87ade23155077382d00b58da8510dc951a",
+        "cursor": 0,
+        "lease_token": "5a311fe4f549fb92d078933506097b20ad75eb52554d55b46536d8dcfd3dcf30",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00075",
+        "work_id": "query-00075"
+      },
+      {
+        "checkpoint_sha256": "3b5598c4a1896a5f820d45740ae744c1a00a583ed82dd0f8fcd97b39ee63c05d",
+        "cursor": 79,
+        "lease_token": "75bdae6c59bbd4023c568b012b71614d37fc3648df5afa8b6777008bec636007",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00078",
+        "work_id": "query-00078"
+      },
+      {
+        "checkpoint_sha256": "89f2a2e42b6b6d93131bd398d520d7c46758127c1d670e67ab4c637ca99ad145",
+        "cursor": 0,
+        "lease_token": "39c43f1a66aeed048b261ae188e6bf5deeacab4c1128dc7d7c585effe372cbb0",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00081",
+        "work_id": "query-00081"
+      },
+      {
+        "checkpoint_sha256": "8c857c7e641d8001a94766721c291f768468f7702af741b6e59bda942aac29d1",
+        "cursor": 0,
+        "lease_token": "21d0bd81dbb1fef94bc69177491f86a0bab237ccb14db298b2d4df2f01e7a6ca",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00087",
+        "work_id": "query-00087"
+      },
+      {
+        "checkpoint_sha256": "cbc3f3fa7d9cb1c8793f33cb1343239798e8cc197d2e79deb25ca3247d0c0c96",
+        "cursor": 91,
+        "lease_token": "76af343246631e6033cb980e772545c372edcac71f1c126ba2e90ddd596848d0",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00090",
+        "work_id": "query-00090"
+      },
+      {
+        "checkpoint_sha256": "6a52bfa33296d2b7caf8fcd65f84f3c5cb1a81b5df0f293a341a66f71d24cd14",
+        "cursor": 0,
+        "lease_token": "43e807b10ec93c89eafec76e9c030ba92f87abd158fee437349bb65f19bee220",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00093",
+        "work_id": "query-00093"
+      }
+    ],
+    "plan_sha256": "b371709bb0cb6a41799c8b16d0de036b62d3bea91e6180895667c64d1ccaa694",
+    "policy_sha256": "92b0f884d5a897891814c38bc9466f315440b47e9e63ae84a371abc7dc0d7fe6",
+    "preexisting_recovery_queue": [],
+    "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+    "run_id": "f441-deterministic-oracle",
+    "schema": "symcc-ulfm-recovery-plan-v1",
+    "suspected_failed_endpoints": [
+      "endpoint-006",
+      "endpoint-011"
+    ],
+    "target_generation": 1
+  },
+  "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+  "receipt": {
+    "base_generation": 0,
+    "conservation": {
+      "failed": 2,
+      "in_flight_before": 24,
+      "old_endpoints": 12,
+      "recovery_queue_after": 24,
+      "recovery_queue_before": 0,
+      "shards_after": 96,
+      "shards_before": 96,
+      "survivors": 10
+    },
+    "failed_endpoints": [
+      "endpoint-006",
+      "endpoint-011"
+    ],
+    "new_generation_token": "b9c49d7d9dfb226bd31b34a9587574f6a92843b5200245bf5cdf73a3f40e57cf",
+    "new_members": {
+      "endpoint-000": {
+        "host_id": "host-000",
+        "incarnation_sha256": "3bdd795afb15a896b7787e6f95b3f97408889c17d73fd4e7c015d386e685877d",
+        "rank": 0
+      },
+      "endpoint-001": {
+        "host_id": "host-000",
+        "incarnation_sha256": "f38478cef2b3cfe57893fc82de507ec11b32f0f4a6d877043b6c59e320d31581",
+        "rank": 1
+      },
+      "endpoint-002": {
+        "host_id": "host-000",
+        "incarnation_sha256": "bbb71b1f0178aca2c753ad331bb52e5325ba91f0d37d911952f3ab7a1f5d7d3b",
+        "rank": 2
+      },
+      "endpoint-003": {
+        "host_id": "host-000",
+        "incarnation_sha256": "9cfc61276907041530e7ebc028e290b9f022886d3ce19ae2bd08c41377b98713",
+        "rank": 3
+      },
+      "endpoint-004": {
+        "host_id": "host-001",
+        "incarnation_sha256": "e2029657768670e030ffd5b4a34bae78136411ed10b559d4e655572632913a0d",
+        "rank": 4
+      },
+      "endpoint-005": {
+        "host_id": "host-001",
+        "incarnation_sha256": "c9469f3edfa54ca64a7b9044d795ea95dc2ae094b99a16bf39fe65a66c44dc1f",
+        "rank": 5
+      },
+      "endpoint-007": {
+        "host_id": "host-001",
+        "incarnation_sha256": "454e4eb8e4261c825272467cd0dc599a8490cbc77b9bd9fb76c4ca2ba17f3b18",
+        "rank": 6
+      },
+      "endpoint-008": {
+        "host_id": "host-002",
+        "incarnation_sha256": "be0b2fca0027e7413b79472ddda1d1d03f8728c4057e134af38db8553d96a1e0",
+        "rank": 7
+      },
+      "endpoint-009": {
+        "host_id": "host-002",
+        "incarnation_sha256": "1293a7b713ee46b099a7c0217801dbf1d59cd081a82f061c11ac48fd069bb8e8",
+        "rank": 8
+      },
+      "endpoint-010": {
+        "host_id": "host-002",
+        "incarnation_sha256": "52ca93343059a5fa2b6982193ba90e56343fd60319173472774a612e25a07adf",
+        "rank": 9
+      }
+    },
+    "old_members": {
+      "endpoint-000": {
+        "host_id": "host-000",
+        "incarnation_sha256": "3bdd795afb15a896b7787e6f95b3f97408889c17d73fd4e7c015d386e685877d",
+        "rank": 0
+      },
+      "endpoint-001": {
+        "host_id": "host-000",
+        "incarnation_sha256": "f38478cef2b3cfe57893fc82de507ec11b32f0f4a6d877043b6c59e320d31581",
+        "rank": 1
+      },
+      "endpoint-002": {
+        "host_id": "host-000",
+        "incarnation_sha256": "bbb71b1f0178aca2c753ad331bb52e5325ba91f0d37d911952f3ab7a1f5d7d3b",
+        "rank": 2
+      },
+      "endpoint-003": {
+        "host_id": "host-000",
+        "incarnation_sha256": "9cfc61276907041530e7ebc028e290b9f022886d3ce19ae2bd08c41377b98713",
+        "rank": 3
+      },
+      "endpoint-004": {
+        "host_id": "host-001",
+        "incarnation_sha256": "e2029657768670e030ffd5b4a34bae78136411ed10b559d4e655572632913a0d",
+        "rank": 4
+      },
+      "endpoint-005": {
+        "host_id": "host-001",
+        "incarnation_sha256": "c9469f3edfa54ca64a7b9044d795ea95dc2ae094b99a16bf39fe65a66c44dc1f",
+        "rank": 5
+      },
+      "endpoint-006": {
+        "host_id": "host-001",
+        "incarnation_sha256": "b3e6fa009277e210867ae6dbdedfeebcbd8e8707cdf402e08714bdb63bbf5597",
+        "rank": 6
+      },
+      "endpoint-007": {
+        "host_id": "host-001",
+        "incarnation_sha256": "454e4eb8e4261c825272467cd0dc599a8490cbc77b9bd9fb76c4ca2ba17f3b18",
+        "rank": 7
+      },
+      "endpoint-008": {
+        "host_id": "host-002",
+        "incarnation_sha256": "be0b2fca0027e7413b79472ddda1d1d03f8728c4057e134af38db8553d96a1e0",
+        "rank": 8
+      },
+      "endpoint-009": {
+        "host_id": "host-002",
+        "incarnation_sha256": "1293a7b713ee46b099a7c0217801dbf1d59cd081a82f061c11ac48fd069bb8e8",
+        "rank": 9
+      },
+      "endpoint-010": {
+        "host_id": "host-002",
+        "incarnation_sha256": "52ca93343059a5fa2b6982193ba90e56343fd60319173472774a612e25a07adf",
+        "rank": 10
+      },
+      "endpoint-011": {
+        "host_id": "host-002",
+        "incarnation_sha256": "2b3f24c43cad971bf35e283b3e3328ebd1a063b10e1fe5072c57ad4dae777220",
+        "rank": 11
+      }
+    },
+    "plan_sha256": "b371709bb0cb6a41799c8b16d0de036b62d3bea91e6180895667c64d1ccaa694",
+    "policy_sha256": "92b0f884d5a897891814c38bc9466f315440b47e9e63ae84a371abc7dc0d7fe6",
+    "post_state_sha256": "570fe31c294c671bb1af90f50613983a85e671cb31c707e2e773556c46bd1094",
+    "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+    "reassignments": {
+      "shard-00006": {
+        "new_owner": "endpoint-010",
+        "old_owner": "endpoint-006"
+      },
+      "shard-00011": {
+        "new_owner": "endpoint-000",
+        "old_owner": "endpoint-011"
+      },
+      "shard-00018": {
+        "new_owner": "endpoint-009",
+        "old_owner": "endpoint-006"
+      },
+      "shard-00023": {
+        "new_owner": "endpoint-010",
+        "old_owner": "endpoint-011"
+      },
+      "shard-00030": {
+        "new_owner": "endpoint-005",
+        "old_owner": "endpoint-006"
+      },
+      "shard-00035": {
+        "new_owner": "endpoint-008",
+        "old_owner": "endpoint-011"
+      },
+      "shard-00042": {
+        "new_owner": "endpoint-008",
+        "old_owner": "endpoint-006"
+      },
+      "shard-00047": {
+        "new_owner": "endpoint-001",
+        "old_owner": "endpoint-011"
+      },
+      "shard-00054": {
+        "new_owner": "endpoint-010",
+        "old_owner": "endpoint-006"
+      },
+      "shard-00059": {
+        "new_owner": "endpoint-009",
+        "old_owner": "endpoint-011"
+      },
+      "shard-00066": {
+        "new_owner": "endpoint-000",
+        "old_owner": "endpoint-006"
+      },
+      "shard-00071": {
+        "new_owner": "endpoint-010",
+        "old_owner": "endpoint-011"
+      },
+      "shard-00078": {
+        "new_owner": "endpoint-001",
+        "old_owner": "endpoint-006"
+      },
+      "shard-00083": {
+        "new_owner": "endpoint-010",
+        "old_owner": "endpoint-011"
+      },
+      "shard-00090": {
+        "new_owner": "endpoint-000",
+        "old_owner": "endpoint-006"
+      },
+      "shard-00095": {
+        "new_owner": "endpoint-004",
+        "old_owner": "endpoint-011"
+      }
+    },
+    "receipt_sha256": "2bafa97e694e629ddd69fd25e626d681cdb63da82602b423a25a9681e6a0df86",
+    "requeued_work": [
+      {
+        "checkpoint_sha256": "388e8877bb28d6a498229745c119af1d64b6719e2bff75a1a9e86bbf32e7d39a",
+        "cursor": 0,
+        "lease_token": "04f7bf71f42dead838f31a2d70b863dbb1905b5328eef5fe8d9fd9afeaab42d8",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00003",
+        "work_id": "query-00003"
+      },
+      {
+        "checkpoint_sha256": "8e8d7c8f9623a103cb23a5969a5317ef48d0dc47c0e95ca953cd7935ec686099",
+        "cursor": 7,
+        "lease_token": "b19f6eccf8f32fb7c4e2469b505538feafb31351de88f34ebf5376a2f2f9de76",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00006",
+        "work_id": "query-00006"
+      },
+      {
+        "checkpoint_sha256": "11355ff129f8c00d23e857f998850e758fd35eda120a37a574824f6e9e52d48e",
+        "cursor": 0,
+        "lease_token": "b4ca6e95036acb888b49fa6a7136ffa9507652458fc3cdbcd2219e71e4678548",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00009",
+        "work_id": "query-00009"
+      },
+      {
+        "checkpoint_sha256": "546915a3dd0532913b14dc816d299dcc239dbfb606c3d604178c99e394dc7e9e",
+        "cursor": 0,
+        "lease_token": "e50185c71b7dba3567cf0eb9d374d3215192d2e1ccd049e89ad1ce4cf913fc10",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00015",
+        "work_id": "query-00015"
+      },
+      {
+        "checkpoint_sha256": "6d43e90cf7a8592cd67146740114ec2648881bda8c223bdd170b943bea314228",
+        "cursor": 19,
+        "lease_token": "ec54ef968146455c0b60ebc3a372d3523c32a9fedd23b926b5e790b908e2c286",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00018",
+        "work_id": "query-00018"
+      },
+      {
+        "checkpoint_sha256": "5a693b22e92ed367973d3d84903848a4b3afdc00e5a4b4fc04c08402434d827d",
+        "cursor": 0,
+        "lease_token": "5bb0e05c2c3fa77826dadb634dfb61f6e214f9066532344f5f0c13cbdaa24756",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00021",
+        "work_id": "query-00021"
+      },
+      {
+        "checkpoint_sha256": "67c2845bb2cd8238e2f00e0960ea404b9c5aecdbaee41547b7c97652e5f8b692",
+        "cursor": 0,
+        "lease_token": "fd454b8350c763de1ac6228521872ed77256e490ec3b65022d8be425627b6c79",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00027",
+        "work_id": "query-00027"
+      },
+      {
+        "checkpoint_sha256": "50a953449bfad23a1614ce42e97d3638b1789063547a12dbf8c6c3266e554807",
+        "cursor": 31,
+        "lease_token": "6082d26b1fa807e8ae6f04349c8c7079e288fa74d90d293446e4801080d51477",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00030",
+        "work_id": "query-00030"
+      },
+      {
+        "checkpoint_sha256": "a1d4f6437557ca7d5030f7cb79af4bb61863ae4977bbee76841b2c077e925e8e",
+        "cursor": 0,
+        "lease_token": "7373d3e75b97aebe59e392b40121cd2485eeb040b813df03c5003ec680506c36",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00033",
+        "work_id": "query-00033"
+      },
+      {
+        "checkpoint_sha256": "f3a9c814ba9c67b69fac1d69be7ac7760d7b1f8dd8446c944f010707f5799e67",
+        "cursor": 0,
+        "lease_token": "8a148e0dab7b8bfe1677f5dd02497997b0bb34701a45d2b31ace713c4b788d37",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00039",
+        "work_id": "query-00039"
+      },
+      {
+        "checkpoint_sha256": "0159e4406c15bf3c3d9e6f7bc50bff384df44fa97eaebf80c87c7df03f693707",
+        "cursor": 43,
+        "lease_token": "e09482f0100725d6c4e592bf2f617aba2b2be0b1793436438b720132945b0477",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00042",
+        "work_id": "query-00042"
+      },
+      {
+        "checkpoint_sha256": "d43b5065ca7a72ed6080844db95871b36c599a931503397cbe6b2d1ada25ceb1",
+        "cursor": 0,
+        "lease_token": "ee49290055b4d2913730f979568a0257a535d234947dfdaee1c19b83da0e16ff",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00045",
+        "work_id": "query-00045"
+      },
+      {
+        "checkpoint_sha256": "48e9f8b5b3361b8922040181a8b1dcd2f84238ed2db0ac8ad09268a4a18a1ddd",
+        "cursor": 0,
+        "lease_token": "1c752c756866cb63e6d45afca9e5f809f69fb8ab88af2997b7f7eeb0c2adabb6",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00051",
+        "work_id": "query-00051"
+      },
+      {
+        "checkpoint_sha256": "4d0b143daac8de3002c8b1f89242739610f25e0484fbf09e2cbc1e05c39c4733",
+        "cursor": 55,
+        "lease_token": "4872f34f4f857f58de25e119f36a25f26d23fc2a70f1e3dd881fb195929c00ae",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00054",
+        "work_id": "query-00054"
+      },
+      {
+        "checkpoint_sha256": "7099a795d86ac6025de38f63fc31a5255f67479d43b0358424b44545a058aa28",
+        "cursor": 0,
+        "lease_token": "c1c0cd47b225b08b58d71b5a0fd7dd85824161868f023151a49561761084f677",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00057",
+        "work_id": "query-00057"
+      },
+      {
+        "checkpoint_sha256": "6856fa544524cc41a5d8c336f429dafce18b8dd7d7df1eb02855d44f358978ad",
+        "cursor": 0,
+        "lease_token": "8cda813309e4ea97a49871f22cd51b5a28e753626c4d2b54c2bce2bfa035e034",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00063",
+        "work_id": "query-00063"
+      },
+      {
+        "checkpoint_sha256": "b377dbd94a4d1c0ca3fae235abaa644ccfb974d1f654702471bf0c3c253527f3",
+        "cursor": 67,
+        "lease_token": "41f08565bd8eaefc369f31e923470bdbc558cc204c1e8d0123eba7fbbb7db04a",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00066",
+        "work_id": "query-00066"
+      },
+      {
+        "checkpoint_sha256": "dda1bc0e2275db361609ba80d5779ce4a9da4903a1aed53ce67a4ef688d2f890",
+        "cursor": 0,
+        "lease_token": "d84444d5fb668899ae146a911e3292392db996e0a34e6326b0dd75cda72cd10d",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00069",
+        "work_id": "query-00069"
+      },
+      {
+        "checkpoint_sha256": "954a25629044fdb12da67cd3d608da87ade23155077382d00b58da8510dc951a",
+        "cursor": 0,
+        "lease_token": "5a311fe4f549fb92d078933506097b20ad75eb52554d55b46536d8dcfd3dcf30",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00075",
+        "work_id": "query-00075"
+      },
+      {
+        "checkpoint_sha256": "3b5598c4a1896a5f820d45740ae744c1a00a583ed82dd0f8fcd97b39ee63c05d",
+        "cursor": 79,
+        "lease_token": "75bdae6c59bbd4023c568b012b71614d37fc3648df5afa8b6777008bec636007",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00078",
+        "work_id": "query-00078"
+      },
+      {
+        "checkpoint_sha256": "89f2a2e42b6b6d93131bd398d520d7c46758127c1d670e67ab4c637ca99ad145",
+        "cursor": 0,
+        "lease_token": "39c43f1a66aeed048b261ae188e6bf5deeacab4c1128dc7d7c585effe372cbb0",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00081",
+        "work_id": "query-00081"
+      },
+      {
+        "checkpoint_sha256": "8c857c7e641d8001a94766721c291f768468f7702af741b6e59bda942aac29d1",
+        "cursor": 0,
+        "lease_token": "21d0bd81dbb1fef94bc69177491f86a0bab237ccb14db298b2d4df2f01e7a6ca",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00087",
+        "work_id": "query-00087"
+      },
+      {
+        "checkpoint_sha256": "cbc3f3fa7d9cb1c8793f33cb1343239798e8cc197d2e79deb25ca3247d0c0c96",
+        "cursor": 91,
+        "lease_token": "76af343246631e6033cb980e772545c372edcac71f1c126ba2e90ddd596848d0",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00090",
+        "work_id": "query-00090"
+      },
+      {
+        "checkpoint_sha256": "6a52bfa33296d2b7caf8fcd65f84f3c5cb1a81b5df0f293a341a66f71d24cd14",
+        "cursor": 0,
+        "lease_token": "43e807b10ec93c89eafec76e9c030ba92f87abd158fee437349bb65f19bee220",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00093",
+        "work_id": "query-00093"
+      }
+    ],
+    "run_id": "f441-deterministic-oracle",
+    "schema": "symcc-ulfm-recovery-receipt-v1",
+    "shard_assignment_sha256": "66a5b83a8495200933db9f7a4267a13c79389cd2719cf142cc051f7d289ae1aa",
+    "survivor_attestations": [
+      {
+        "attestation_sha256": "8d22e1ccef8077d677e5a1f669095c56017c65d506f56f05da3e7b9f04c7f36c",
+        "base_generation": 0,
+        "base_generation_token": "27916ebdc9896357e9ce3670b2e07ca155a6dc6e0317d00363844ec175c99973",
+        "endpoint_id": "endpoint-000",
+        "host_id": "host-000",
+        "incarnation_sha256": "3bdd795afb15a896b7787e6f95b3f97408889c17d73fd4e7c015d386e685877d",
+        "new_rank": 0,
+        "old_rank": 0,
+        "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+        "run_id": "f441-deterministic-oracle",
+        "schema": "symcc-ulfm-endpoint-attestation-v1"
+      },
+      {
+        "attestation_sha256": "01049d8fa9911618a8ce2899f4ab1bf2c8f0e3efb894f990023b72b9e721a463",
+        "base_generation": 0,
+        "base_generation_token": "27916ebdc9896357e9ce3670b2e07ca155a6dc6e0317d00363844ec175c99973",
+        "endpoint_id": "endpoint-001",
+        "host_id": "host-000",
+        "incarnation_sha256": "f38478cef2b3cfe57893fc82de507ec11b32f0f4a6d877043b6c59e320d31581",
+        "new_rank": 1,
+        "old_rank": 1,
+        "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+        "run_id": "f441-deterministic-oracle",
+        "schema": "symcc-ulfm-endpoint-attestation-v1"
+      },
+      {
+        "attestation_sha256": "74938fc42ac4694d6beef3bbca703af4cb33798e43fa2cb3dbe6691d2fba46cd",
+        "base_generation": 0,
+        "base_generation_token": "27916ebdc9896357e9ce3670b2e07ca155a6dc6e0317d00363844ec175c99973",
+        "endpoint_id": "endpoint-002",
+        "host_id": "host-000",
+        "incarnation_sha256": "bbb71b1f0178aca2c753ad331bb52e5325ba91f0d37d911952f3ab7a1f5d7d3b",
+        "new_rank": 2,
+        "old_rank": 2,
+        "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+        "run_id": "f441-deterministic-oracle",
+        "schema": "symcc-ulfm-endpoint-attestation-v1"
+      },
+      {
+        "attestation_sha256": "a70ce99a88839eefa83a6f6e801f8eb11c5883044db0c0358f753d931ce9abcf",
+        "base_generation": 0,
+        "base_generation_token": "27916ebdc9896357e9ce3670b2e07ca155a6dc6e0317d00363844ec175c99973",
+        "endpoint_id": "endpoint-003",
+        "host_id": "host-000",
+        "incarnation_sha256": "9cfc61276907041530e7ebc028e290b9f022886d3ce19ae2bd08c41377b98713",
+        "new_rank": 3,
+        "old_rank": 3,
+        "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+        "run_id": "f441-deterministic-oracle",
+        "schema": "symcc-ulfm-endpoint-attestation-v1"
+      },
+      {
+        "attestation_sha256": "7f381c9342be3e14f5b5aa7e808d4325b58565b239dd125f70f4c0e3337a5c05",
+        "base_generation": 0,
+        "base_generation_token": "27916ebdc9896357e9ce3670b2e07ca155a6dc6e0317d00363844ec175c99973",
+        "endpoint_id": "endpoint-004",
+        "host_id": "host-001",
+        "incarnation_sha256": "e2029657768670e030ffd5b4a34bae78136411ed10b559d4e655572632913a0d",
+        "new_rank": 4,
+        "old_rank": 4,
+        "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+        "run_id": "f441-deterministic-oracle",
+        "schema": "symcc-ulfm-endpoint-attestation-v1"
+      },
+      {
+        "attestation_sha256": "9a86711a1f3e2ff084f6eb0d2bf2125e6fcfc4e57b8e707d4b0e7a901d3f6800",
+        "base_generation": 0,
+        "base_generation_token": "27916ebdc9896357e9ce3670b2e07ca155a6dc6e0317d00363844ec175c99973",
+        "endpoint_id": "endpoint-005",
+        "host_id": "host-001",
+        "incarnation_sha256": "c9469f3edfa54ca64a7b9044d795ea95dc2ae094b99a16bf39fe65a66c44dc1f",
+        "new_rank": 5,
+        "old_rank": 5,
+        "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+        "run_id": "f441-deterministic-oracle",
+        "schema": "symcc-ulfm-endpoint-attestation-v1"
+      },
+      {
+        "attestation_sha256": "bd00b90a97f05d51603cb6d7e692f767cfc9f59d38adf3fe30d934b0f12ed6f2",
+        "base_generation": 0,
+        "base_generation_token": "27916ebdc9896357e9ce3670b2e07ca155a6dc6e0317d00363844ec175c99973",
+        "endpoint_id": "endpoint-007",
+        "host_id": "host-001",
+        "incarnation_sha256": "454e4eb8e4261c825272467cd0dc599a8490cbc77b9bd9fb76c4ca2ba17f3b18",
+        "new_rank": 6,
+        "old_rank": 7,
+        "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+        "run_id": "f441-deterministic-oracle",
+        "schema": "symcc-ulfm-endpoint-attestation-v1"
+      },
+      {
+        "attestation_sha256": "f41f016503c4e967c7f4223a06ce1c3710e9a0e33f7c8fe06acdbd73770596bd",
+        "base_generation": 0,
+        "base_generation_token": "27916ebdc9896357e9ce3670b2e07ca155a6dc6e0317d00363844ec175c99973",
+        "endpoint_id": "endpoint-008",
+        "host_id": "host-002",
+        "incarnation_sha256": "be0b2fca0027e7413b79472ddda1d1d03f8728c4057e134af38db8553d96a1e0",
+        "new_rank": 7,
+        "old_rank": 8,
+        "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+        "run_id": "f441-deterministic-oracle",
+        "schema": "symcc-ulfm-endpoint-attestation-v1"
+      },
+      {
+        "attestation_sha256": "06eaaf73b0d748946b35368056dfa1494837a4aa716ca78583ebd0fb70e0ef93",
+        "base_generation": 0,
+        "base_generation_token": "27916ebdc9896357e9ce3670b2e07ca155a6dc6e0317d00363844ec175c99973",
+        "endpoint_id": "endpoint-009",
+        "host_id": "host-002",
+        "incarnation_sha256": "1293a7b713ee46b099a7c0217801dbf1d59cd081a82f061c11ac48fd069bb8e8",
+        "new_rank": 8,
+        "old_rank": 9,
+        "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+        "run_id": "f441-deterministic-oracle",
+        "schema": "symcc-ulfm-endpoint-attestation-v1"
+      },
+      {
+        "attestation_sha256": "daee9624f87876a47f394d31fc6ea83cee7ba99c9b675ab71343b0c22d59e2d8",
+        "base_generation": 0,
+        "base_generation_token": "27916ebdc9896357e9ce3670b2e07ca155a6dc6e0317d00363844ec175c99973",
+        "endpoint_id": "endpoint-010",
+        "host_id": "host-002",
+        "incarnation_sha256": "52ca93343059a5fa2b6982193ba90e56343fd60319173472774a612e25a07adf",
+        "new_rank": 9,
+        "old_rank": 10,
+        "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+        "run_id": "f441-deterministic-oracle",
+        "schema": "symcc-ulfm-endpoint-attestation-v1"
+      }
+    ],
+    "target_generation": 1
+  },
+  "recovery_snapshot": {
+    "generation": 1,
+    "generation_token": "b9c49d7d9dfb226bd31b34a9587574f6a92843b5200245bf5cdf73a3f40e57cf",
+    "members": {
+      "endpoint-000": {
+        "host_id": "host-000",
+        "incarnation_sha256": "3bdd795afb15a896b7787e6f95b3f97408889c17d73fd4e7c015d386e685877d",
+        "rank": 0
+      },
+      "endpoint-001": {
+        "host_id": "host-000",
+        "incarnation_sha256": "f38478cef2b3cfe57893fc82de507ec11b32f0f4a6d877043b6c59e320d31581",
+        "rank": 1
+      },
+      "endpoint-002": {
+        "host_id": "host-000",
+        "incarnation_sha256": "bbb71b1f0178aca2c753ad331bb52e5325ba91f0d37d911952f3ab7a1f5d7d3b",
+        "rank": 2
+      },
+      "endpoint-003": {
+        "host_id": "host-000",
+        "incarnation_sha256": "9cfc61276907041530e7ebc028e290b9f022886d3ce19ae2bd08c41377b98713",
+        "rank": 3
+      },
+      "endpoint-004": {
+        "host_id": "host-001",
+        "incarnation_sha256": "e2029657768670e030ffd5b4a34bae78136411ed10b559d4e655572632913a0d",
+        "rank": 4
+      },
+      "endpoint-005": {
+        "host_id": "host-001",
+        "incarnation_sha256": "c9469f3edfa54ca64a7b9044d795ea95dc2ae094b99a16bf39fe65a66c44dc1f",
+        "rank": 5
+      },
+      "endpoint-007": {
+        "host_id": "host-001",
+        "incarnation_sha256": "454e4eb8e4261c825272467cd0dc599a8490cbc77b9bd9fb76c4ca2ba17f3b18",
+        "rank": 6
+      },
+      "endpoint-008": {
+        "host_id": "host-002",
+        "incarnation_sha256": "be0b2fca0027e7413b79472ddda1d1d03f8728c4057e134af38db8553d96a1e0",
+        "rank": 7
+      },
+      "endpoint-009": {
+        "host_id": "host-002",
+        "incarnation_sha256": "1293a7b713ee46b099a7c0217801dbf1d59cd081a82f061c11ac48fd069bb8e8",
+        "rank": 8
+      },
+      "endpoint-010": {
+        "host_id": "host-002",
+        "incarnation_sha256": "52ca93343059a5fa2b6982193ba90e56343fd60319173472774a612e25a07adf",
+        "rank": 9
+      }
+    },
+    "pending_recovery": null,
+    "policy": {
+      "collective_timeout_seconds": 20.0,
+      "max_endpoints": 16,
+      "max_recovery_queue": 128,
+      "max_repair_attempts": 3,
+      "max_shards": 128,
+      "poll_interval_seconds": 0.005,
+      "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+      "schema": "symcc-ulfm-recovery-policy-v1"
+    },
+    "policy_sha256": "92b0f884d5a897891814c38bc9466f315440b47e9e63ae84a371abc7dc0d7fe6",
+    "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+    "recovery_count": 1,
+    "recovery_queue": [
+      {
+        "checkpoint_sha256": "388e8877bb28d6a498229745c119af1d64b6719e2bff75a1a9e86bbf32e7d39a",
+        "cursor": 0,
+        "lease_token": "04f7bf71f42dead838f31a2d70b863dbb1905b5328eef5fe8d9fd9afeaab42d8",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00003",
+        "work_id": "query-00003"
+      },
+      {
+        "checkpoint_sha256": "8e8d7c8f9623a103cb23a5969a5317ef48d0dc47c0e95ca953cd7935ec686099",
+        "cursor": 7,
+        "lease_token": "b19f6eccf8f32fb7c4e2469b505538feafb31351de88f34ebf5376a2f2f9de76",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00006",
+        "work_id": "query-00006"
+      },
+      {
+        "checkpoint_sha256": "11355ff129f8c00d23e857f998850e758fd35eda120a37a574824f6e9e52d48e",
+        "cursor": 0,
+        "lease_token": "b4ca6e95036acb888b49fa6a7136ffa9507652458fc3cdbcd2219e71e4678548",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00009",
+        "work_id": "query-00009"
+      },
+      {
+        "checkpoint_sha256": "546915a3dd0532913b14dc816d299dcc239dbfb606c3d604178c99e394dc7e9e",
+        "cursor": 0,
+        "lease_token": "e50185c71b7dba3567cf0eb9d374d3215192d2e1ccd049e89ad1ce4cf913fc10",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00015",
+        "work_id": "query-00015"
+      },
+      {
+        "checkpoint_sha256": "6d43e90cf7a8592cd67146740114ec2648881bda8c223bdd170b943bea314228",
+        "cursor": 19,
+        "lease_token": "ec54ef968146455c0b60ebc3a372d3523c32a9fedd23b926b5e790b908e2c286",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00018",
+        "work_id": "query-00018"
+      },
+      {
+        "checkpoint_sha256": "5a693b22e92ed367973d3d84903848a4b3afdc00e5a4b4fc04c08402434d827d",
+        "cursor": 0,
+        "lease_token": "5bb0e05c2c3fa77826dadb634dfb61f6e214f9066532344f5f0c13cbdaa24756",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00021",
+        "work_id": "query-00021"
+      },
+      {
+        "checkpoint_sha256": "67c2845bb2cd8238e2f00e0960ea404b9c5aecdbaee41547b7c97652e5f8b692",
+        "cursor": 0,
+        "lease_token": "fd454b8350c763de1ac6228521872ed77256e490ec3b65022d8be425627b6c79",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00027",
+        "work_id": "query-00027"
+      },
+      {
+        "checkpoint_sha256": "50a953449bfad23a1614ce42e97d3638b1789063547a12dbf8c6c3266e554807",
+        "cursor": 31,
+        "lease_token": "6082d26b1fa807e8ae6f04349c8c7079e288fa74d90d293446e4801080d51477",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00030",
+        "work_id": "query-00030"
+      },
+      {
+        "checkpoint_sha256": "a1d4f6437557ca7d5030f7cb79af4bb61863ae4977bbee76841b2c077e925e8e",
+        "cursor": 0,
+        "lease_token": "7373d3e75b97aebe59e392b40121cd2485eeb040b813df03c5003ec680506c36",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00033",
+        "work_id": "query-00033"
+      },
+      {
+        "checkpoint_sha256": "f3a9c814ba9c67b69fac1d69be7ac7760d7b1f8dd8446c944f010707f5799e67",
+        "cursor": 0,
+        "lease_token": "8a148e0dab7b8bfe1677f5dd02497997b0bb34701a45d2b31ace713c4b788d37",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00039",
+        "work_id": "query-00039"
+      },
+      {
+        "checkpoint_sha256": "0159e4406c15bf3c3d9e6f7bc50bff384df44fa97eaebf80c87c7df03f693707",
+        "cursor": 43,
+        "lease_token": "e09482f0100725d6c4e592bf2f617aba2b2be0b1793436438b720132945b0477",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00042",
+        "work_id": "query-00042"
+      },
+      {
+        "checkpoint_sha256": "d43b5065ca7a72ed6080844db95871b36c599a931503397cbe6b2d1ada25ceb1",
+        "cursor": 0,
+        "lease_token": "ee49290055b4d2913730f979568a0257a535d234947dfdaee1c19b83da0e16ff",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00045",
+        "work_id": "query-00045"
+      },
+      {
+        "checkpoint_sha256": "48e9f8b5b3361b8922040181a8b1dcd2f84238ed2db0ac8ad09268a4a18a1ddd",
+        "cursor": 0,
+        "lease_token": "1c752c756866cb63e6d45afca9e5f809f69fb8ab88af2997b7f7eeb0c2adabb6",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00051",
+        "work_id": "query-00051"
+      },
+      {
+        "checkpoint_sha256": "4d0b143daac8de3002c8b1f89242739610f25e0484fbf09e2cbc1e05c39c4733",
+        "cursor": 55,
+        "lease_token": "4872f34f4f857f58de25e119f36a25f26d23fc2a70f1e3dd881fb195929c00ae",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00054",
+        "work_id": "query-00054"
+      },
+      {
+        "checkpoint_sha256": "7099a795d86ac6025de38f63fc31a5255f67479d43b0358424b44545a058aa28",
+        "cursor": 0,
+        "lease_token": "c1c0cd47b225b08b58d71b5a0fd7dd85824161868f023151a49561761084f677",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00057",
+        "work_id": "query-00057"
+      },
+      {
+        "checkpoint_sha256": "6856fa544524cc41a5d8c336f429dafce18b8dd7d7df1eb02855d44f358978ad",
+        "cursor": 0,
+        "lease_token": "8cda813309e4ea97a49871f22cd51b5a28e753626c4d2b54c2bce2bfa035e034",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00063",
+        "work_id": "query-00063"
+      },
+      {
+        "checkpoint_sha256": "b377dbd94a4d1c0ca3fae235abaa644ccfb974d1f654702471bf0c3c253527f3",
+        "cursor": 67,
+        "lease_token": "41f08565bd8eaefc369f31e923470bdbc558cc204c1e8d0123eba7fbbb7db04a",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00066",
+        "work_id": "query-00066"
+      },
+      {
+        "checkpoint_sha256": "dda1bc0e2275db361609ba80d5779ce4a9da4903a1aed53ce67a4ef688d2f890",
+        "cursor": 0,
+        "lease_token": "d84444d5fb668899ae146a911e3292392db996e0a34e6326b0dd75cda72cd10d",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00069",
+        "work_id": "query-00069"
+      },
+      {
+        "checkpoint_sha256": "954a25629044fdb12da67cd3d608da87ade23155077382d00b58da8510dc951a",
+        "cursor": 0,
+        "lease_token": "5a311fe4f549fb92d078933506097b20ad75eb52554d55b46536d8dcfd3dcf30",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00075",
+        "work_id": "query-00075"
+      },
+      {
+        "checkpoint_sha256": "3b5598c4a1896a5f820d45740ae744c1a00a583ed82dd0f8fcd97b39ee63c05d",
+        "cursor": 79,
+        "lease_token": "75bdae6c59bbd4023c568b012b71614d37fc3648df5afa8b6777008bec636007",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00078",
+        "work_id": "query-00078"
+      },
+      {
+        "checkpoint_sha256": "89f2a2e42b6b6d93131bd398d520d7c46758127c1d670e67ab4c637ca99ad145",
+        "cursor": 0,
+        "lease_token": "39c43f1a66aeed048b261ae188e6bf5deeacab4c1128dc7d7c585effe372cbb0",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00081",
+        "work_id": "query-00081"
+      },
+      {
+        "checkpoint_sha256": "8c857c7e641d8001a94766721c291f768468f7702af741b6e59bda942aac29d1",
+        "cursor": 0,
+        "lease_token": "21d0bd81dbb1fef94bc69177491f86a0bab237ccb14db298b2d4df2f01e7a6ca",
+        "owner_endpoint": "endpoint-003",
+        "shard_id": "shard-00087",
+        "work_id": "query-00087"
+      },
+      {
+        "checkpoint_sha256": "cbc3f3fa7d9cb1c8793f33cb1343239798e8cc197d2e79deb25ca3247d0c0c96",
+        "cursor": 91,
+        "lease_token": "76af343246631e6033cb980e772545c372edcac71f1c126ba2e90ddd596848d0",
+        "owner_endpoint": "endpoint-006",
+        "shard_id": "shard-00090",
+        "work_id": "query-00090"
+      },
+      {
+        "checkpoint_sha256": "6a52bfa33296d2b7caf8fcd65f84f3c5cb1a81b5df0f293a341a66f71d24cd14",
+        "cursor": 0,
+        "lease_token": "43e807b10ec93c89eafec76e9c030ba92f87abd158fee437349bb65f19bee220",
+        "owner_endpoint": "endpoint-009",
+        "shard_id": "shard-00093",
+        "work_id": "query-00093"
+      }
+    ],
+    "run_id": "f441-deterministic-oracle",
+    "schema": "symcc-ulfm-recovery-snapshot-v1",
+    "shards": {
+      "shard-00000": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "0c5a34d6e6af4242d3c5d95ef4d5df458517d33ff5dcf13379c1cc0b349a8a06",
+        "completed": 1,
+        "completion_chain_sha256": "6021c7cff7585ed9f197e863cd15679f1a5424bd9410b24f93fe11b19e6e63b4",
+        "cursor": 1,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "598a4ba31a7824aa324d3d489d703e222c15c2da1f7a6edc18cbed5be8b863fd"
+      },
+      "shard-00001": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "7d270b45a1aca48b833fc7a02604191b446559208733ec924803827ad08f8e2f",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-001",
+        "shard_token": "639261ca84b8c341964dee1692d1a7e85ece2d1b5c842697b3ecea81d690ab61"
+      },
+      "shard-00002": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "c6a490a67d25f3bca359125d7758834c0df7cec9a3fc5334450ba62c843e4950",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-002",
+        "shard_token": "887f1deeabca86ef231425f3d411d2b403f2b6e1f0970198206d09a38556e8b2"
+      },
+      "shard-00003": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "388e8877bb28d6a498229745c119af1d64b6719e2bff75a1a9e86bbf32e7d39a",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-003",
+        "shard_token": "c4311282f59ddeb2342c878bafa67c49e94c35461310973b93f1a668eea561b9"
+      },
+      "shard-00004": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "4c013515680d62f9a7777c8de29f5010480fb89bb588f57092d526cdc590a61c",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-004",
+        "shard_token": "0785d0b8b7dd7f5dac029751389a4b3736eb488ccdb4c26648a88a0e9901314e"
+      },
+      "shard-00005": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "e660a2925062f497e167875f7f73d6e7a72c68fbdd8a695ecab639355fb6a4a5",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-005",
+        "shard_token": "13e59aede53e819419c208e63af33fd8777a9b8361ece0775494b0d63b035ef2"
+      },
+      "shard-00006": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "8e8d7c8f9623a103cb23a5969a5317ef48d0dc47c0e95ca953cd7935ec686099",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 7,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "f31521f70a2763e6d297492de090a3f2d43e3c554346fa22f37e2dd9fd7b461e"
+      },
+      "shard-00007": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "7048e30373ac2e345e3a4cf9b0bdb4ccd533aaa6e462e9433ecbc20fbccc3493",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-007",
+        "shard_token": "00da87474e07c5a0fe5fbba5fe8fa697786e945bdaee2ed608da5233f8b93b26"
+      },
+      "shard-00008": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "a1ea72863dd68898ca44f45310a1342a5db80fbc3afda4e00806639c31ecb262",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-008",
+        "shard_token": "655926a8d6c308ccc3cb21433953271060dcfc97a6be0b6d9e2b465d40654854"
+      },
+      "shard-00009": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "11355ff129f8c00d23e857f998850e758fd35eda120a37a574824f6e9e52d48e",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-009",
+        "shard_token": "ac9f6cf380d9ff769877d38740af628c7335db46df062aca600dae2a63d44b38"
+      },
+      "shard-00010": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "670d8af5e06a3fc950b9a2a10bb23939ce850600f061b86de15f8864fe6acb35",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "a38a96b2626a916276956d675859191eb9203b82f8d9a2c409053271688caece"
+      },
+      "shard-00011": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "9ce86ba9d01964c534a8af2d9a83da1b6a36a89ccad6ddabe0f0d92f6eb37dae",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "7c5f31f55e4172cb2b150c3699a9c91093d5131d10285f2a5ea1d38156ae3a4f"
+      },
+      "shard-00012": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "9187dc61a82002ea1691efaf2629ee99d0719ba8927ac15e3953fa6d89b2cb5a",
+        "completed": 1,
+        "completion_chain_sha256": "38126686cb6638f2875e89d820faae0351f7f5c2edf01584d57fea1c67ea0cb2",
+        "cursor": 13,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "0825f2c5ff01fa1264e6f70fcc98e4dfd9f20b32badb30a49c5ee3851aa39bfe"
+      },
+      "shard-00013": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "9fc35732d69eef8b1e2871e069d15a211a4ace1da56d8ed02afbd4430c572ddd",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-001",
+        "shard_token": "fa415d13c18c0c8707894a672ac1b1fdddaeedfdbd1b035c1640be1cd08a02c4"
+      },
+      "shard-00014": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "43c71407849370e1867baf1f1405f81d56d7220d56e841eb987cd38a3d899b19",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-002",
+        "shard_token": "6f5ac46b2f27efc3d6a09aeee261961e95f1289de56cc227cd1b4408c7de9496"
+      },
+      "shard-00015": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "546915a3dd0532913b14dc816d299dcc239dbfb606c3d604178c99e394dc7e9e",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-003",
+        "shard_token": "163c85eeefc4fa5d798595ae3406c18079eaed8e6a9782f70a4a9a02dc18ab54"
+      },
+      "shard-00016": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "64619213a6a9d7572f952eb14a90c7bb60e063a1e5b358295747268bba76caa1",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-004",
+        "shard_token": "7fbac3867fe7f4fa8ffa0fe496e02f1fcd8c85c535c9d8bc486436876ea743fb"
+      },
+      "shard-00017": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "8ef3ea7de9fe0a7522eb529e4d811090bcdd097096daaebf2bb69763c8b92453",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-005",
+        "shard_token": "2d92e2f542e46a414dba6858d7018ca214061d1f3923a14217d3e9f6169b21ef"
+      },
+      "shard-00018": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "6d43e90cf7a8592cd67146740114ec2648881bda8c223bdd170b943bea314228",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 19,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-009",
+        "shard_token": "978e9699c7cb24b9d6ae4252b4eb7a546686ce3d4a23bb5a69d2a99bb295efa6"
+      },
+      "shard-00019": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "4c7cffb5051ecc13b4766272c20053ba0263788937c501438a67279baf33c3f1",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-007",
+        "shard_token": "87ad50733d7b8ae98d04ff1c3db1eab66d88c928d011a734c1126500526a37f6"
+      },
+      "shard-00020": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "173b9da7d4c15f61080e8017a2fe5278a791b5443a3f9f2e01b5cba225e67c4b",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-008",
+        "shard_token": "9189ae72bdf6b17077a3aea4be4d739adcafa32f685b5289a9ab72eefc1bdaeb"
+      },
+      "shard-00021": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "5a693b22e92ed367973d3d84903848a4b3afdc00e5a4b4fc04c08402434d827d",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-009",
+        "shard_token": "b75cb33e2052d21748c9c8f1cedbd0c36049f35747af85b71e02d9c2ac82c5f8"
+      },
+      "shard-00022": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "f85859f41e3a73fbc2bdebb1cbc8dc1faf6ed63cfbbcf30bb51362344e717bb9",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "07168d00afbe9302a2d8a377810bd29603a14ae85c66f249c0f77777c5d5eab4"
+      },
+      "shard-00023": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "3da72ef52e0ec5afe8fc3178a4acfe9df331f90637a59437eaa6bb4a6dce6aa3",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "e6ac924cec12b8baaabb20612791e72c6b5e92438d82c39aa9498f6a974f3a6e"
+      },
+      "shard-00024": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "946ac425d5e8d69a0838c8d3e50b57c68d4e9dd35f18d82bd3743de5323d08c3",
+        "completed": 1,
+        "completion_chain_sha256": "e8b1873925e37fea1be09dc5b6080e753b2cbff5d11f12376381f0e1c7ad49a8",
+        "cursor": 25,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "c9d6c7a630af3078f0e338f9df64d25a7a945ac0b35edc21882042e1a2f0fcb2"
+      },
+      "shard-00025": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "1920d458a0a55add9f92b3c18ad33d3b89fcaaf1c7b6a3146f07dbce4c900358",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-001",
+        "shard_token": "91bc2151728c4d7ed6ce9f0b4f81d85c9b1e9ade9d7fd8db060d24bf842838e2"
+      },
+      "shard-00026": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "b80db5a144bfc3c1aa19eaf1df58fb842525e7bdfaebf89c719f497d81d0b034",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-002",
+        "shard_token": "15c484661a2df9f8007e14d9f23d24441d378571ff7e4e3672293964d03d7285"
+      },
+      "shard-00027": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "67c2845bb2cd8238e2f00e0960ea404b9c5aecdbaee41547b7c97652e5f8b692",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-003",
+        "shard_token": "705b8583381a0c49efebb2d48325b12da22e7d9a02b64579cd05c5df7a7c1549"
+      },
+      "shard-00028": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "3d721a40cd21180f4bcec67dc705553050bfc353c16a44a4cc4c81f086937bbf",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-004",
+        "shard_token": "59501850a8de699e18b0490879ce27cb2d096d881d4676ba2aa75202a16387e9"
+      },
+      "shard-00029": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "2324430eee9ab40318bb0de79e2def8016ae4693345060696bae270e11934529",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-005",
+        "shard_token": "1f910bde79335ed4161cc60af4d11225b0d24686a5484d8a65075b521322f7cb"
+      },
+      "shard-00030": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "50a953449bfad23a1614ce42e97d3638b1789063547a12dbf8c6c3266e554807",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 31,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-005",
+        "shard_token": "0045ad75ec917ccdf380ba85911ca0371bdea22c108fb6e1dd4e9c1562a503ed"
+      },
+      "shard-00031": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "49e840057938ce5938fe270548f8a35215c7adc3818f166d6f3fd89f6049df34",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-007",
+        "shard_token": "9dc7725a7dbb3592e76e15bb9e6c948bafdf55bc78ade6182b66e900c2aab849"
+      },
+      "shard-00032": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "b2017b4ad6676faacc5168f9a3502326eac8a31559801108548c7f00957bba70",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-008",
+        "shard_token": "e18564f7b2a3b2c26ec0f064515be25089c0ddee3f3d75bdafbab3295784e865"
+      },
+      "shard-00033": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "a1d4f6437557ca7d5030f7cb79af4bb61863ae4977bbee76841b2c077e925e8e",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-009",
+        "shard_token": "a428216eb0c77f1ebfff0a4b7d9218cae8742fc6f1e44c15b2ba2f40afbaaae4"
+      },
+      "shard-00034": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "d13f8057541a2109cad9bf60ec51d9b3e3f39b0952774a5af4995e139c9e663f",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "2a3c7b682fc2aa0b8c585c4340be206f6c14747e65244c36c43d54504cd75042"
+      },
+      "shard-00035": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "b6b7c103c2cb949dfbe0ff8dc2256182c04acc978a0cf3dbd4f5c66d56e85e65",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-008",
+        "shard_token": "2f941bf213ef091f4df2d1e55f8de24cece0031287c304063279b58d87f222ce"
+      },
+      "shard-00036": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "504598562134e971c5d6dc4534b87ee757fd89b1d105463f17caeaede4312b41",
+        "completed": 1,
+        "completion_chain_sha256": "7ffc276403b8a0d5794b29e11d744eb297deaeaf94f2b19dff5189c82056a60c",
+        "cursor": 37,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "c07980973baeb3a08e83a4199a3f91afbbcf72b62797515193fd7cdfb14192e3"
+      },
+      "shard-00037": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "392aa863b5ecac4e97e29531802cb5e1396631c79da59f7fad927fe9afade9d6",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-001",
+        "shard_token": "0351880ea4dcf03b20be3d96c1f0d8ac55d70db193a1bf4bf38cc519659e501e"
+      },
+      "shard-00038": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "705b0e527f8e51350748fccfe6ebd1c0b18c58cf96155ee2da0240bd7aec5f28",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-002",
+        "shard_token": "e37698d5f6ce4b9e0ccffa69c83821b3530d924a0757d32203f5e7c797e6d1cb"
+      },
+      "shard-00039": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "f3a9c814ba9c67b69fac1d69be7ac7760d7b1f8dd8446c944f010707f5799e67",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-003",
+        "shard_token": "5fad0556c600d5dc4d98969ec28b7a29d8ba98d40074e582cd618d8785b2aa5f"
+      },
+      "shard-00040": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "fdf317f9f4cb8ff354da64b114cbad0518920034a5b8537ce7c3db7246ef0d41",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-004",
+        "shard_token": "499d28a3784871f7f15bbe9febb1c68ef3fb802a772c22a904f6c6176bfacd46"
+      },
+      "shard-00041": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "dd471138d690f4a7366c6556cb504dece0b28846633e34a2cf87a65e5af84d15",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-005",
+        "shard_token": "f3e61b15e68f1410b9874b3106318e4b5517b6a28fa3fd42eaf24b3ac6c6c157"
+      },
+      "shard-00042": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "0159e4406c15bf3c3d9e6f7bc50bff384df44fa97eaebf80c87c7df03f693707",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 43,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-008",
+        "shard_token": "cccfe237df05f71557edc1d4364bc03efdab0f9d89ce0bfa9d26aec44da94cf8"
+      },
+      "shard-00043": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "5443ba0adb465db4c0deeecd2c2fa1d6fb31668f2879dd6978f7152a1fc17cb9",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-007",
+        "shard_token": "8006825d05f84ed0e6472094410419b0f330ebfacd0b5f5d110fcc95e13e60a3"
+      },
+      "shard-00044": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "e5ca699d733be9090028eddfb63b903f654d5453ade1734c49ef5f7c529d078e",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-008",
+        "shard_token": "964e2d8a96aee6ab96c05e94e4c55c49e2aef74ffcc104468d8ae30e2ec70c58"
+      },
+      "shard-00045": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "d43b5065ca7a72ed6080844db95871b36c599a931503397cbe6b2d1ada25ceb1",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-009",
+        "shard_token": "469ba225be3dd215453e1be206b21c886ccd6ca12354725b336e3c502ff76199"
+      },
+      "shard-00046": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "e2185413193860ec5a8da6d60e231518d6d9f2d29d053feee268d55635872af3",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "494b6fecd34d33703d32d259df06fdf0d884042a51b232cb325324ff253bbc17"
+      },
+      "shard-00047": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "92efd965027327d3a90ee8eb1a313ee216915db66a49ff8afb15bfbc4672d5b9",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-001",
+        "shard_token": "e1158ac4082237cc25189f914e258638b09b514f711f202345bd83ab911ae3c0"
+      },
+      "shard-00048": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "cd8b5fbd834d4c00a6795a5583b02c9b9ddb35c98ad129c2dbf945fa3c98fc80",
+        "completed": 1,
+        "completion_chain_sha256": "5391bd6051ce16266540d308da95437d6f9c357e7a718311500fd22c46c962fe",
+        "cursor": 49,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "c0c9a303eb7ea6c927a322c8e0fb71e98faacf7a36424c1f81a1ec441b912d19"
+      },
+      "shard-00049": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "47b90d4e776758941346d30d709177360a2df6a51a52e3ccf2788a1cc452eb6a",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-001",
+        "shard_token": "c5d637e7d470de52efd2e29fadd930b4c19cac9b16cd128b7ebd132528cdd501"
+      },
+      "shard-00050": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "3408d4b74365edc50f513fbf3da7df4f8a7db5776a3286f7b55cc907276d14bb",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-002",
+        "shard_token": "bea3373edd4401fee591a1e140e62cf264c0f23569837f3071b66e0d712a6cda"
+      },
+      "shard-00051": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "48e9f8b5b3361b8922040181a8b1dcd2f84238ed2db0ac8ad09268a4a18a1ddd",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-003",
+        "shard_token": "028e7e03b69a0ca0784e8d4a67959a2ae6e979f6a3ede913d89a05d383a7ebd6"
+      },
+      "shard-00052": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "4e2bfaa3a9f2b19af5b501474b7eecf7fb7839a6d3102303a713bd0b3ff3639c",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-004",
+        "shard_token": "3e3f6916a84ef3c295d45f2ff1db431bb069f146a3a4ee1d0b0be44c64246a72"
+      },
+      "shard-00053": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "e0b3d61212164200e635422d90073edec0d58b2f221f7c9f38a57f729ef88cf5",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-005",
+        "shard_token": "ca4979bc4cd096c00ab9bdf8f7bc9217f15f88b7096b927693bef47a3d020020"
+      },
+      "shard-00054": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "4d0b143daac8de3002c8b1f89242739610f25e0484fbf09e2cbc1e05c39c4733",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 55,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "51ce57b7ceaefb48a00902e7347f3f8b8dc145b91a4e9983f8744c95a4aeb854"
+      },
+      "shard-00055": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "37c900771b3d6e9dad881702c9226903a0b4cf19417712eabe9292d695044db5",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-007",
+        "shard_token": "10a98deef1541738e3443b79575f880d7a40f31ec2398aa9d6e952d57ef77489"
+      },
+      "shard-00056": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "59c0b0b35eb470a90809b2b10be1ada58c36649c8a7af598decb45a73f7cd6b5",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-008",
+        "shard_token": "571e28dd081869b54a78b5c11186ba1eec3ef2b373318b5276385a575b0c7d80"
+      },
+      "shard-00057": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "7099a795d86ac6025de38f63fc31a5255f67479d43b0358424b44545a058aa28",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-009",
+        "shard_token": "874c58b7890213e508b0f68a7dcdbb30d8fb390c48ce2c13808ac876fbb0c6e4"
+      },
+      "shard-00058": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "b8dfcf6b4fe9146e43f6bdc56b283fd100132d7ecf7038da083fe150d2abbce8",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "cc746c2b9bdc40117d4203766ea39aa66b8959740214a8c9a5001f0631dc6d37"
+      },
+      "shard-00059": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "b685a781fb29cd726f9675a819658e3576bd706cd164c4dcd36f88e999728358",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-009",
+        "shard_token": "94438ee04c19e8f1e6e37afd43805d53e4711075da5f90ebf05aa6c728a536d8"
+      },
+      "shard-00060": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "293deef78fdc9894cf451fa7a1576b0f85678ecd38e5421b35b358313ac4679e",
+        "completed": 1,
+        "completion_chain_sha256": "7530361525a49591d82495f7b3ae0a238a94f34d8c9f02fabed7b71cb18b062e",
+        "cursor": 61,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "a8e34e9e8e475e69345685e3b3b729a9ef2fd2cdcf605fb77f6718dfd8fe4b98"
+      },
+      "shard-00061": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "9e867e78c26c4ade627b08b448199f2db63f27f1d280f4baf29bf3767bae0e95",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-001",
+        "shard_token": "b8503a779d56a9c2d7028085020d7ff71b53ac37d756eaac5b4ea5492dff416d"
+      },
+      "shard-00062": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "52ffb96532fba7d8e59e850901b44a7977203d4d981b8e1ed048fd19aa2936cd",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-002",
+        "shard_token": "edd673ea2c18dd2ea0b00d0a7dfdbf9fd30633b747f37ed5364176c6492b8f1c"
+      },
+      "shard-00063": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "6856fa544524cc41a5d8c336f429dafce18b8dd7d7df1eb02855d44f358978ad",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-003",
+        "shard_token": "119f4be9461aa7b8106405d603a32a19fb3f426f59e1a8f6f83ea7cd4b0218d5"
+      },
+      "shard-00064": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "3e7a21e5bb022b9755ac800e329b49ec0b10f8b770c8f8ccdf8d33962d6e2ee5",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-004",
+        "shard_token": "2b07011b8189c57f57b8132a57f14135a5007626f74e770c6a6c4bd569e73969"
+      },
+      "shard-00065": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "760bfb199b519fb84de00aa5bfcbcbcad230d8804da805fa7f841c6ee1f0c02c",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-005",
+        "shard_token": "3fa1614d8601b7cc50dc972e6a87e11f4efd0076f7f32b724ee771c3df7e3961"
+      },
+      "shard-00066": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "b377dbd94a4d1c0ca3fae235abaa644ccfb974d1f654702471bf0c3c253527f3",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 67,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "f2d86ea311fc9f1ddbda48c1e06d4dedab47e34fd430dd2ac9671bf5a3230f6c"
+      },
+      "shard-00067": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "5a2e11366d53636df2e7c494ebd9afe8da74cd3abb78debf2a04a878274d8dc5",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-007",
+        "shard_token": "c204ae44524626ac977d029ccd69f51324d7aa5779688f7eade2fe109c2780dc"
+      },
+      "shard-00068": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "53e28ff21afe8fa610b01057929d0d6dced0e8cfab6a0eadfad0060781ce90dc",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-008",
+        "shard_token": "2792507abb52b42cd1faafa91fc0aa17be09631ceab4835b48faf23632fd2bb2"
+      },
+      "shard-00069": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "dda1bc0e2275db361609ba80d5779ce4a9da4903a1aed53ce67a4ef688d2f890",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-009",
+        "shard_token": "3e31b12b4654d4b91d6743fd639e72fab46fee80eb75abebb39ba9bc12fbeaa2"
+      },
+      "shard-00070": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "40040e7b3bd043fed68cd674e9ebc0d2c82fd0d85e8d7049ff176954d9270ab8",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "16c0c49a25a0213073cb07ee54d3a1b213c08c2e9370dbea62f855f85696ce25"
+      },
+      "shard-00071": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "570c1e991f43bb210fc23a1bd9bf236be2e39212e45b4168a925d000a193cdda",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "625ea0262e40748b2c5417426d71b3940a4e788c3b4329af7dca81d7504fc56b"
+      },
+      "shard-00072": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "df756334fb424cc3ceb1552025fad6fb592e20cd1dc35b7ccd2b3d4b47e19116",
+        "completed": 1,
+        "completion_chain_sha256": "1d71303417c757ed8fa431384d581dbe4710b7e596f823005cdfcb83ba36d344",
+        "cursor": 73,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "06ab8965c859b6d644df2f6a514322d1d106a6e16f4911ff024cd6a17e294365"
+      },
+      "shard-00073": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "f7223d6db56cabe97977e26a507f5816964f9094490500f2ff9e4f281ae76073",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-001",
+        "shard_token": "74932e73a66fe331b7aec9c0616d2dd460ff9adb293b9b7026e2e8582d504dc1"
+      },
+      "shard-00074": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "36e2ea3d33de4ca2c2e738b625a908babfea1285de163516c3c924b9d1659101",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-002",
+        "shard_token": "dbcfaf207d5be425b1528d658ebe3c215d924a81cfbba377ef938dc64d254174"
+      },
+      "shard-00075": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "954a25629044fdb12da67cd3d608da87ade23155077382d00b58da8510dc951a",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-003",
+        "shard_token": "86881a33a68b5d09795de2a4f09452469d0eb621d9920dc312144d1ded8f66dc"
+      },
+      "shard-00076": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "8e68c23e77d72b51df5f33a4adbeec2b1d239ea5148d1f73ec7f5403abaf4a2e",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-004",
+        "shard_token": "f9189d20be6e82169349a99890d4b52ccca2f233f15bccc05f8a98ccacd10238"
+      },
+      "shard-00077": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "b7f430212209a4d1354c7eb5c4cba6ff8fd758898b42d3fe5c13e08b970ed44f",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-005",
+        "shard_token": "0dce20176614164559155b79fd269da1ea7bbd57f3850aab3a8c3ca88faf37c0"
+      },
+      "shard-00078": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "3b5598c4a1896a5f820d45740ae744c1a00a583ed82dd0f8fcd97b39ee63c05d",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 79,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-001",
+        "shard_token": "5cdb981f94345799046749107d87349acc412fd669c548086c3959c0cc9d83a4"
+      },
+      "shard-00079": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "40876e4b3b4ea8f192b3c8bd036099260727740866f5d495b599c137594f2902",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-007",
+        "shard_token": "78163c5c8d05a721aae0c813958630bba1e5e7688ac0ea897a0f7d1f976b0aa1"
+      },
+      "shard-00080": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "16cc7e40b303bf2b8dd55c9940a87736a03b4ef754b157a71349073e679e7564",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-008",
+        "shard_token": "1166e8a265e0903e626b01adc00ee4cf619fd497118af4d906b538ed192a5df7"
+      },
+      "shard-00081": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "89f2a2e42b6b6d93131bd398d520d7c46758127c1d670e67ab4c637ca99ad145",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-009",
+        "shard_token": "6c6315e8b80b9747d281b2d070ae92349b3a4181e8bc1615812ee8bc79587a1e"
+      },
+      "shard-00082": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "fc7e3ffb91ce54f2514c879e2ea589f5b520ae820c8b1787c0ee0e0b985d06f8",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "cf2442e86e5f2d3989294b59ccde36651e542612d408b264402a319bcfa6e969"
+      },
+      "shard-00083": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "1001cb3cedef1291c94d4c15f5a7119555ad37aeb6cdc20ef274d7e6963b6358",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "2b5bb9445c277c9ae4ab1f8ae957025781f8c24fd09cce1f8993bacc3bcabc0b"
+      },
+      "shard-00084": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "60f61c0a6e2140ad256da71fbabffd2a32b4516d8622af8afe6458f0d3978785",
+        "completed": 1,
+        "completion_chain_sha256": "f0fbeb571d899d4ccbeaa79e157826677c84804ce364440c8c89686e4f827acf",
+        "cursor": 85,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "2cabdc533829c5d8b2b55742304d50ac37acae8165e5f782c039ce01b1dcc764"
+      },
+      "shard-00085": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "cf7b6036adb5610774e9a65e3c92f5e70801f400dfeece148659c8c06617ed67",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-001",
+        "shard_token": "7bbf387416ffa2afe5ca990becec37c7a06e2e31f33854293ac1ea0232d0ad5c"
+      },
+      "shard-00086": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "946af77d53db93e2a7e08e1b6cbc8e82fa4eaa404e4cf85f49e3d8ab803f724a",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-002",
+        "shard_token": "1eb8bbd477000a2114e9e25cd6cca169fe389a375949871bc798e64bb8e44ec0"
+      },
+      "shard-00087": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "8c857c7e641d8001a94766721c291f768468f7702af741b6e59bda942aac29d1",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-003",
+        "shard_token": "eeb2dd7a08a417647930994e9345ff1a1957e119b2d36590f756a0ac59596e31"
+      },
+      "shard-00088": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "7c83565456581cf33f54946f0eaaa24f705441201dc0d9f5bf438e1ee098a6a0",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-004",
+        "shard_token": "4f612a3c06b5fb92150e0276bf2e0f117cd5112214be64e3fc3f7f402622b052"
+      },
+      "shard-00089": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "8c6ae8f7eb39518dacec6f1b0b4681dd0403c1366ec018f7de2b452f328eda1c",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-005",
+        "shard_token": "ae5cfd13e006990fa78996bcdef8093f4ad06831c428a3503963f67824c8ea13"
+      },
+      "shard-00090": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "cbc3f3fa7d9cb1c8793f33cb1343239798e8cc197d2e79deb25ca3247d0c0c96",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 91,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-000",
+        "shard_token": "a669fe9597c588af5b481b387a03cff74f47b326f6298eae21e227b55d144652"
+      },
+      "shard-00091": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "0e60e06fcad5854203828ca0d18f38d5bd267ee1506b89ec7464bc122e05558e",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-007",
+        "shard_token": "0d608ed393df3e9e04f92845c6a46eaeda68dfc4153d8f52b30ed44e62ff30dc"
+      },
+      "shard-00092": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "b9033ccd327a778959067907874d7534dc4d81d2a431f6ad9162819ebf957b91",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-008",
+        "shard_token": "48609cfa3c4a2081aade425d317d9e7b0efea11853fd95c44d11ee75701a6afc"
+      },
+      "shard-00093": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "6a52bfa33296d2b7caf8fcd65f84f3c5cb1a81b5df0f293a341a66f71d24cd14",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 1,
+        "owner_endpoint": "endpoint-009",
+        "shard_token": "874330999390a9a7beedc0504003cb0ff9ba4a43e101b98241a91681e519180f"
+      },
+      "shard-00094": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "12e62758e3cd975aeed78a92035c4d345af3629f176fa68f6888eb6af12fbb5b",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-010",
+        "shard_token": "7ae1bc96658e62740bed8b6337085186a3055e65212bf2cd5c5b46130257193c"
+      },
+      "shard-00095": {
+        "active_lease_token": "",
+        "active_work_id": "",
+        "checkpoint_sha256": "ad8927cdc1d9897cb66a6b9766116df3d46637f7e6ed6f926090699aed70d30f",
+        "completed": 0,
+        "completion_chain_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cursor": 0,
+        "generation": 1,
+        "lease_ordinal": 0,
+        "owner_endpoint": "endpoint-004",
+        "shard_token": "a77300671812750e007cb5d318ba263eb5d4a72828621714be4458dbe859a514"
+      }
+    },
+    "snapshot_sha256": "570fe31c294c671bb1af90f50613983a85e671cb31c707e2e773556c46bd1094"
+  },
+  "replay_claims_sha256": "7847cf891303e864cfb39efb0fc0734fff6f7ae062fb28f5925e82e98aa82a07",
+  "result_sha256": "d6a1c847c0372a3efb5422bb718657bd387a2ada5c6abfe4e51ed1a0d519ce42",
+  "schema": "symcc-f441-deterministic-recovery-oracle-v1",
+  "summary": {
+    "endpoints_after": 10,
+    "endpoints_before": 12,
+    "failed_endpoints": 2,
+    "final_recovery_queue": 0,
+    "leases_attached_before_failure": 32,
+    "leases_completed_before_failure": 8,
+    "leases_replayed": 24,
+    "leases_requeued": 24,
+    "old_lease_tokens_rejected": 24,
+    "shards": 96,
+    "shards_reassigned": 16
+  }
+}

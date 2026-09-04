@@ -1,0 +1,43 @@
+================================================================================
+  SymCC MPI Parallelization Benchmark Report
+  Generated: 2026-08-19 12:30:29
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+  Target: libarchive-archive_fuzzer
+────────────────────────────────────────────────────────────────────────────────
+
+  Mode         NP       Time   SymCCGen    AFLExec   Unique  ShowmapCov          Edges  FstatsCov         FEdges      AFL/s
+  ────────── ──── ────────── ────────── ────────── ──────── ─────────── ────────────── ────────── ────────────── ──────────
+  hybrid       16      46.1s          0        466     2289      12.92%     1770/13696      1.17%      926/79269     466000
+  seed          0       0.0s          0          0       13       6.10%      835/13696        N/A            N/A          0
+
+  Online SymCC -> AFL Native Peer Sync:
+    hybrid np=16: published=0.0, scanned=0.0, imported=0.0, not-retained=0.0, complete-runs=0/1
+
+  Edge Coverage Chart (afl-showmap):
+      hybrid np=16 |████████████████████████████████████████| 12.92%
+              seed |██████████████████░░░░░░░░░░░░░░░░░░░░░░| 6.10%
+
+  Coverage Gain over Seed Baseline:
+    Seed baseline: 6.10% (835 edges)
+        hybrid np=16: 12.92% (+6.82pp, +111.8% relative)
+
+  Like-for-like Throughput Speedup vs Serial:
+    hybrid np= 16 |                  N/A                   | different unit: afl-executions-plus-symcc-candidates-per-second
+    seed np=  0 |                  N/A                   | different unit: not-applicable
+
+
+================================================================================
+  OVERALL SUMMARY
+================================================================================
+
+  libarchive-archive_fuzzer: best = hybrid np=16 (46.1s, 2289 retained unique, 0 SymCC candidates, 466 AFL executions, edge_cov=12.92%)
+
+  Report files:
+    Text:  /home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/preflight_libarchive_current/benchmark_report.txt
+    CSV:   /home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/preflight_libarchive_current/benchmark_data.csv
+    JSON:  /home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/preflight_libarchive_current/benchmark_data.json
+
+================================================================================

@@ -1,0 +1,26 @@
+SymCC MPI Parallel Concolic Execution
+  Processes:     3
+  Mode:          single-master (2 workers)
+  Shared dir:    /tmp/symcc-f322-snapshot-future-lease.atBPV7/out
+  Input dir:     /tmp/symcc-f322-snapshot-future-lease.atBPV7/in
+  Target:        /bin/true
+  Timeout:       1s per execution
+  Work epoch:    3333333333333333333333333333333333333333333333333333333333333333 (configured recovery)
+  Wall timeout:  30s total
+
+[Master] Imported 0 initial inputs from /tmp/symcc-f322-snapshot-future-lease.atBPV7/in
+[Master] Using 1 master(s), 2 workers in this group
+[Master] Durable work ownership: rendezvous + 64 fenced shards, lease=120s
+[Master 0] Waiting for inputs... (0 generated, 0 interesting, 1 analyzed)
+[Master] No more inputs after 1.001s (limit 1s). Shutting down.
+[Master 0] Worker shutdown: acked=2/2 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+[Master 0] Work-control diagnostics: stale_results=0 recovered=1 replayed_commits=0 lost_leases=0 quarantined_control=0
+
+[Master] === Final Statistics ===
+[Master] Total analysis observations:       1
+[Master] Total test cases generated:  0
+[Master] New interesting test cases:  1
+[Master] Throughput:                  0.0 tc/s
+[Master] Masters used:               1
+[Master] Workers used:               2
+[Master] Analysis by master:         0=1

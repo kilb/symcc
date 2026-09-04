@@ -1,0 +1,63 @@
+{
+  "all_passed": true,
+  "claim_boundary": "native checked-clause activity mechanism and local MPI evidence only; no unique causality, solver speedup, fuzzing coverage, defect-yield, network, or multi-node scaling claim",
+  "focused_python": {
+    "passed": 27,
+    "subtests_passed": 0
+  },
+  "llvm17": {
+    "discovered": 326,
+    "failed": 0,
+    "passed": 324,
+    "unresolved": 0,
+    "unsupported": 2
+  },
+  "llvm18": {
+    "discovered": 326,
+    "failed": 0,
+    "passed": 325,
+    "unresolved": 0,
+    "unsupported": 1
+  },
+  "mpi": {
+    "activation_rate": 0.5,
+    "activity_receipts_independently_replayed": 4,
+    "conflict": 0,
+    "delivered": 8,
+    "expected": 8,
+    "repetitions": 2,
+    "unit": 4,
+    "unactivated": 4
+  },
+  "native_oracle": {
+    "cases_per_run": 128,
+    "checked_imports_delivered_per_run": 128,
+    "independent_replays_per_run": 128,
+    "repetitions": 2,
+    "tamper_rejections_per_run": 128,
+    "unit_receipts_per_run": 128
+  },
+  "nodeids_sha256": "13669444696c50f99b63842146ae4f00bdbf7d3966f50ae8bb993d53875ac468",
+  "python": {
+    "collected": 1274,
+    "deselected": 0,
+    "failed": 0,
+    "passed": 1274,
+    "skipped": 0,
+    "subtests_failed": 0,
+    "subtests_passed": 291,
+    "subtests_skipped": 0,
+    "xfailed": 0,
+    "xpassed": 0
+  },
+  "review_regression_python": {
+    "passed": 14,
+    "subtests_passed": 0
+  },
+  "sanitizer_oracle": {
+    "cases": 32,
+    "diagnostics": 0,
+    "status": "pass"
+  },
+  "schema": "symcc-f436-full-suite-summary-v1"
+}

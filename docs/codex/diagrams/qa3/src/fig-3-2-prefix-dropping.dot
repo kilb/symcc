@@ -1,0 +1,36 @@
+
+digraph G {
+  graph [
+    bgcolor="white", pad="0.28", nodesep="0.38", ranksep="0.58",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=26,
+    labelloc="t", labeljust="l"
+  ];
+  node [
+    shape=box, style="rounded,filled", margin="0.18,0.12",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=13,
+    color="#CBD5E1", penwidth=1.3, fillcolor="#F8FAFC"
+  ];
+  edge [
+    fontname="WenQuanYi Zen Hei", fontcolor="#64748B", fontsize=11,
+    color="#64748B", penwidth=1.5, arrowsize=0.75
+  ];
+
+  label="图 3-2  前缀约束保留粒度与可达性风险";
+  rankdir=TB;
+
+  prefix [label="目标相关路径切片\nC1 ∧ C2 ∧ C3 ∧ C4 ∧ C5 ∧ ¬branch", fillcolor="#FEF3C7", color="#D97706"];
+  slice [label="依赖切片 / nominal\n保留所有与目标共享输入的约束\nC1 C2 C3 C4 C5 + ¬branch", fillcolor="#DCFCE7", color="#15803D"];
+  back [label="backsolve Z3 回落\n仅去掉与 ITE 控制变量重叠的约束\nC1 · C3 · C5 + ¬branch", fillcolor="#FFEDD5", color="#C2410C"];
+  opt [label="optimistic\n清空全部前缀\n仅 ¬branch", fillcolor="#FEE2E2", color="#B91C1C"];
+  valid1 [label="满足已加载路径切片\n可达性保证最强", fillcolor="#DCFCE7", color="#15803D"];
+  valid2 [label="重验目标与保留前缀\n仍有部分不可达风险", fillcolor="#FFEDD5", color="#C2410C"];
+  valid3 [label="模型可能到不了目标分支\n依赖具体重放与 showmap 筛除", fillcolor="#FEE2E2", color="#B91C1C"];
+
+  prefix -> {slice back opt};
+  slice -> valid1;
+  back -> valid2;
+  opt -> valid3;
+  nonexistent [shape=note, label="实现中不存在\n“只保留最后 N 条”的窗口式策略", fillcolor="#F1F5F9"];
+  prefix -> nonexistent [style=dashed];
+
+}

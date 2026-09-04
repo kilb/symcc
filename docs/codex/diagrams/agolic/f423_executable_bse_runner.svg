@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="950" viewBox="0 0 1600 950" role="img" aria-labelledby="title desc">
+  <title id="title">F423 executable Agolic witness-guided bounded symbolic execution runner</title>
+  <desc id="desc">Three swimlanes show planning and admission, parallel bounded execution with a witness prefix and release, and serialized concrete replay with corpus publication.</desc>
+  <rect width="1600" height="950" fill="#f7f8fa"/>
+  <rect x="52" y="42" width="1496" height="86" rx="6" fill="#15263b"/>
+  <text x="88" y="82" fill="#ffffff" font-family="Inter,Arial,sans-serif" font-size="30" font-weight="700" letter-spacing="0">F423 · Executable Agolic Witness-Guided BSE</text>
+  <text x="88" y="111" fill="#cbd7e6" font-family="Inter,Arial,sans-serif" font-size="17" letter-spacing="0">Plan is advisory · worker candidates are private · replay is the coverage authority</text>
+
+  <rect x="52" y="154" width="1496" height="186" rx="6" fill="#fff7eb" stroke="#d8841d" stroke-width="2"/>
+  <rect x="52" y="154" width="184" height="186" rx="6" fill="#d8841d"/>
+  <text x="78" y="202" fill="#ffffff" font-family="Inter,Arial,sans-serif" font-size="20" font-weight="700" letter-spacing="0">PLANNING</text>
+  <text x="78" y="229" fill="#fff2dc" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">untrusted proposals</text>
+  <text x="78" y="253" fill="#fff2dc" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">single coordinator</text>
+
+  <rect x="276" y="190" width="234" height="112" rx="6" fill="#ffffff" stroke="#b46c18" stroke-width="2"/>
+  <text x="300" y="222" fill="#15263b" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="0">Replay evidence</text>
+  <text x="300" y="249" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">coverage map μᵣ</text>
+  <text x="300" y="273" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">history H · witnesses</text>
+
+  <path d="M510 246 H574" stroke="#6b7785" stroke-width="3" fill="none"/>
+  <path d="M566 238 L578 246 L566 254" fill="none" stroke="#6b7785" stroke-width="3"/>
+
+  <rect x="580" y="190" width="238" height="112" rx="6" fill="#ffffff" stroke="#b46c18" stroke-width="2"/>
+  <text x="604" y="222" fill="#15263b" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="0">Agentic planner</text>
+  <text x="604" y="249" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">target · mode · profile</text>
+  <text x="604" y="273" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">witness · release point</text>
+
+  <path d="M818 246 H882" stroke="#6b7785" stroke-width="3" fill="none"/>
+  <path d="M874 238 L886 246 L874 254" fill="none" stroke="#6b7785" stroke-width="3"/>
+
+  <rect x="888" y="180" width="306" height="132" rx="6" fill="#ffffff" stroke="#c54536" stroke-width="3"/>
+  <text x="914" y="214" fill="#9d2f24" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="0">Deterministic admission</text>
+  <text x="914" y="241" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">plan/fingerprint/program identity</text>
+  <text x="914" y="265" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">reviewed witness + unique release</text>
+  <text x="914" y="289" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">time · memory · input bounds</text>
+
+  <path d="M1194 246 H1260" stroke="#6b7785" stroke-width="3" fill="none"/>
+  <path d="M1252 238 L1264 246 L1252 254" fill="none" stroke="#6b7785" stroke-width="3"/>
+  <rect x="1266" y="190" width="238" height="112" rx="6" fill="#253f5f"/>
+  <text x="1290" y="222" fill="#ffffff" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="0">Admitted RunPlan</text>
+  <text x="1290" y="249" fill="#dbe7f3" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">content-bound contract</text>
+  <text x="1290" y="273" fill="#dbe7f3" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">parallel dispatchable</text>
+
+  <rect x="52" y="368" width="1496" height="278" rx="6" fill="#eef8f2" stroke="#26845a" stroke-width="2"/>
+  <rect x="52" y="368" width="184" height="278" rx="6" fill="#26845a"/>
+  <text x="78" y="416" fill="#ffffff" font-family="Inter,Arial,sans-serif" font-size="20" font-weight="700" letter-spacing="0">BSE WORKER</text>
+  <text x="78" y="443" fill="#dcf4e7" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">parallel · isolated</text>
+  <text x="78" y="467" fill="#dcf4e7" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">no corpus writes</text>
+
+  <rect x="276" y="414" width="248" height="160" rx="6" fill="#ffffff" stroke="#26845a" stroke-width="2"/>
+  <text x="300" y="447" fill="#15263b" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="0">Witness prefix</text>
+  <text x="300" y="476" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">one state · zero fork</text>
+  <text x="300" y="500" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">zero solver query</text>
+  <text x="300" y="524" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">retain memory / frames</text>
+  <text x="300" y="548" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">append route constraints</text>
+
+  <path d="M524 494 H600" stroke="#26845a" stroke-width="4" fill="none"/>
+  <path d="M590 484 L604 494 L590 504" fill="none" stroke="#26845a" stroke-width="4"/>
+  <circle cx="646" cy="494" r="40" fill="#f0b429" stroke="#a96d00" stroke-width="2"/>
+  <text x="611" y="489" fill="#15263b" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="0">RELEASE</text>
+  <text x="622" y="510" fill="#15263b" font-family="Inter,Arial,sans-serif" font-size="13" letter-spacing="0">boundary</text>
+
+  <path d="M686 494 H754" stroke="#26845a" stroke-width="4" fill="none"/>
+  <path d="M744 484 L758 494 L744 504" fill="none" stroke="#26845a" stroke-width="4"/>
+  <rect x="760" y="414" width="250" height="160" rx="6" fill="#ffffff" stroke="#26845a" stroke-width="2"/>
+  <text x="784" y="447" fill="#15263b" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="0">Ordinary exploration</text>
+  <text x="784" y="476" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">solver-backed feasibility</text>
+  <text x="784" y="500" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">fork + live-state policy</text>
+  <text x="784" y="524" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">step / state / wall bounds</text>
+  <text x="784" y="548" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">durable checkpoints</text>
+
+  <path d="M1010 494 H1072" stroke="#26845a" stroke-width="4" fill="none"/>
+  <path d="M1062 484 L1076 494 L1062 504" fill="none" stroke="#26845a" stroke-width="4"/>
+  <rect x="1078" y="414" width="202" height="160" rx="6" fill="#ffffff" stroke="#26845a" stroke-width="2"/>
+  <text x="1102" y="447" fill="#15263b" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="0">Exact model</text>
+  <text x="1102" y="476" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">full path frames</text>
+  <text x="1102" y="500" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">QF_BV assignment</text>
+  <text x="1102" y="524" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">byte-domain check</text>
+
+  <path d="M1280 494 H1330" stroke="#26845a" stroke-width="4" fill="none"/>
+  <path d="M1320 484 L1334 494 L1320 504" fill="none" stroke="#26845a" stroke-width="4"/>
+  <rect x="1336" y="414" width="168" height="160" rx="6" fill="#253f5f"/>
+  <text x="1360" y="447" fill="#ffffff" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="0">Private</text>
+  <text x="1360" y="470" fill="#ffffff" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="0">staging</text>
+  <text x="1360" y="505" fill="#dbe7f3" font-family="Inter,Arial,sans-serif" font-size="14" letter-spacing="0">SHA-256 bytes</text>
+  <text x="1360" y="529" fill="#dbe7f3" font-family="Inter,Arial,sans-serif" font-size="14" letter-spacing="0">not coverage yet</text>
+
+  <line x1="236" y1="674" x2="1548" y2="674" stroke="#c54536" stroke-width="3" stroke-dasharray="12 9"/>
+  <rect x="574" y="656" width="482" height="36" rx="5" fill="#f7f8fa" stroke="#c54536" stroke-width="2"/>
+  <text x="606" y="680" fill="#9d2f24" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="0">TRUST BOUNDARY · replay alone publishes coverage</text>
+
+  <rect x="52" y="710" width="1496" height="194" rx="6" fill="#edf7f8" stroke="#16808a" stroke-width="2"/>
+  <rect x="52" y="710" width="184" height="194" rx="6" fill="#16808a"/>
+  <text x="78" y="758" fill="#ffffff" font-family="Inter,Arial,sans-serif" font-size="20" font-weight="700" letter-spacing="0">REPLAY</text>
+  <text x="78" y="785" fill="#d9f1f3" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">serialized commit</text>
+  <text x="78" y="809" fill="#d9f1f3" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">coverage authority</text>
+
+  <rect x="276" y="750" width="238" height="116" rx="6" fill="#ffffff" stroke="#16808a" stroke-width="2"/>
+  <text x="300" y="782" fill="#15263b" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="0">Concrete-only replay</text>
+  <text x="300" y="809" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">entry → terminal</text>
+  <text x="300" y="833" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">0 fork · 0 solver · complete</text>
+
+  <path d="M514 808 H574" stroke="#16808a" stroke-width="4" fill="none"/>
+  <path d="M564 798 L578 808 L564 818" fill="none" stroke="#16808a" stroke-width="4"/>
+  <rect x="580" y="750" width="230" height="116" rx="6" fill="#ffffff" stroke="#16808a" stroke-width="2"/>
+  <text x="604" y="782" fill="#15263b" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="0">Replay evidence</text>
+  <text x="604" y="809" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">functions + branch T/F</text>
+  <text x="604" y="833" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">candidate identity verified</text>
+
+  <path d="M810 808 H870" stroke="#16808a" stroke-width="4" fill="none"/>
+  <path d="M860 798 L874 808 L860 818" fill="none" stroke="#16808a" stroke-width="4"/>
+  <rect x="876" y="750" width="206" height="116" rx="6" fill="#ffffff" stroke="#16808a" stroke-width="2"/>
+  <text x="900" y="782" fill="#15263b" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="0">Corpus commit</text>
+  <text x="900" y="809" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">content addressed</text>
+  <text x="900" y="833" fill="#40536a" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">atomic no-replace</text>
+
+  <path d="M1082 808 H1142" stroke="#16808a" stroke-width="4" fill="none"/>
+  <path d="M1132 798 L1146 808 L1132 818" fill="none" stroke="#16808a" stroke-width="4"/>
+  <rect x="1148" y="750" width="356" height="116" rx="6" fill="#253f5f"/>
+  <text x="1174" y="782" fill="#ffffff" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="0">Cumulative μᵣ₊₁ + outcome</text>
+  <text x="1174" y="809" fill="#dbe7f3" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">monotonic snapshot · replay identity</text>
+  <text x="1174" y="833" fill="#dbe7f3" font-family="Inter,Arial,sans-serif" font-size="15" letter-spacing="0">new reach / gain / no gain / miss</text>
+
+  <text x="54" y="933" fill="#536273" font-family="Inter,Arial,sans-serif" font-size="14" letter-spacing="0">Bounded continuation domain · public-campaign speedup and native KLEE equivalence are intentionally not claimed</text>
+</svg>

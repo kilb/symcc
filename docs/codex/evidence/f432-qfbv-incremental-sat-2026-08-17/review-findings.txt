@@ -1,0 +1,40 @@
+F432 multi-round review findings and resolutions
+
+R1 semantic encoding
+- Added increment max_variable to the formula identity and proof record.
+- Cross-checked all 38 operators with real CaDiCaL/cvc5 and 512 randomized
+  arithmetic/division/shift/rotate/comparison cases twice.
+
+R2 proof scope
+- Enforced exact formula-prefix digest, clause boundary, variable domain,
+  active failed assumptions, result protocol, and final-clause identity.
+- Rejected descendant-to-ancestor proof imports and recursive cycles.
+
+R3 backend authority
+- Native UNSAT never authorizes a result; an independent CLI LRAT path and
+  QueryStore replay remain mandatory.
+- Enforced SAT/UNSAT text versus process exit-code agreement.
+- Unsupported lowering returns untyped unknown rather than malformed evidence.
+
+R4 concurrency and lifecycle
+- Split state and solve locks so cancellation can reach an active native solve.
+- close() now serializes with solve before releasing native pointers.
+- Added sat-proof dependency edges and verified dependent-first GC order.
+
+R5 storage and resource bounds
+- Replaced path-relative proof object operations with descriptor-anchored,
+  no-follow CAS reads/publication/deletion.
+- Added shard-directory replacement fault injection.
+- Redirected solver output to bounded files and used stable no-follow LRAT
+  reads; retained process-group timeout/cancellation cleanup.
+
+R6 observability and delivery
+- Added QueryStore counters for results, verified UNSAT, proof creation,
+  import candidates/accepted clauses, checker time, and native cache hits.
+- Added lit RUN contracts for both external-tool experiment scripts after the
+  first full gate exposed two unresolved tests.
+- Visually reviewed the final 1600x1040 SVG/PNG and removed renderer artifacts.
+
+Residual limitations are documented, not hidden: exchange is synchronous at
+solve boundaries, context reuse is exact-formula, full active assumptions are
+used as the failed set, and no multi-node R-level campaign was run.

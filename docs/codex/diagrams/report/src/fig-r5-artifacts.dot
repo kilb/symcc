@@ -1,0 +1,55 @@
+
+digraph G {
+  graph [
+    bgcolor="white", pad="0.28", nodesep="0.38", ranksep="0.58",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=26,
+    labelloc="t", labeljust="l"
+  ];
+  node [
+    shape=box, style="rounded,filled", margin="0.18,0.12",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=13,
+    color="#CBD5E1", penwidth=1.3, fillcolor="#F8FAFC"
+  ];
+  edge [
+    fontname="WenQuanYi Zen Hei", fontcolor="#64748B", fontsize=11,
+    color="#64748B", penwidth=1.5, arrowsize=0.75
+  ];
+
+  label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3"><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="26"><B>图 R-5　一份源码 → 多个变体二进制 → 一次 campaign 的数据流</B></FONT><BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="14" COLOR="#64748B">判新永远用 *_afl 这一个二进制，因此换引擎不会让覆盖率口径漂移</FONT><BR ALIGN="LEFT"/></TD></TR></TABLE>>;
+  rankdir=TB; ranksep=0.45; nodesep=0.20;
+
+  src [label="目标源码\nlibxml2 / SQLite / libarchive /\npcre2 / libpng / coreutils", fillcolor="#FEF3C7", color="#D97706"];
+
+  subgraph cluster_v {
+    label="构建变体（同一份源码，不同插桩）"; fontsize=14;
+    color="#FCA5A5"; style="rounded,filled"; fillcolor="#FEF2F2";
+    v1 [label="*_symcc\nSymCC pass 插桩\n（concolic worker 跑）", fillcolor="#FEE2E2", color="#B91C1C"];
+    v2 [label="*_symsan\nDFSan 标签传播\n（--engine symsan）", fillcolor="#FFEDD5", color="#C2410C"];
+    v3 [label="*_afl\nAFL++ PCGUARD\n（AFL 实例 + 所有 showmap 判新）", fillcolor="#DBEAFE", color="#2563EB", penwidth=2.2];
+    v4 [label="*_afl_laf / _afl_ctx / _afl_ngram4 / _afl_laf_ctx\n共 5 种 AFL 构建变体 × 9 种运行 profile", fillcolor="#DBEAFE", color="#2563EB"];
+    v5 [label="*_afl_cmplog\nRedQueen 伴随二进制", fillcolor="#DBEAFE", color="#2563EB"];
+    v6 [label="*_native\n无插桩基线", fillcolor="#F1F5F9", color="#94A3B8"];
+  }
+
+  subgraph cluster_run {
+    label="一次 campaign 的进程与目录（work_dir/）"; fontsize=14;
+    color="#5EEAD4"; style="rounded,filled"; fillcolor="#F0FDFA";
+    d1 [label="afl_out/fuzzer01…NN/\nAFL 实例队列与 fuzzer_stats", fillcolor="#CCFBF1", color="#0F766E"];
+    d2 [label="symcc_all_outputs/\nconcolic 全部产出（--save-all）", fillcolor="#CCFBF1", color="#0F766E"];
+    d3 [label="target_cwd/ · hf_cwd/\nCWD 隔离，避免目标互相写脏", fillcolor="#CCFBF1", color="#0F766E"];
+    d4 [label="mpi_master.log\nphase timing · 漏斗计数", fillcolor="#CCFBF1", color="#0F766E"];
+    d5 [label="combined_output/\nseed ∪ AFL queues ∪ SymCC 产出", fillcolor="#DCFCE7", color="#15803D", penwidth=2];
+  }
+
+  cov [label="afl-showmap 离线重放并集语料\n→ ShowmapCov（主指标）", fillcolor="#EDE9FE", color="#6D28D9", penwidth=2.2];
+  csv [label="结果 CSV / JSON\nedge_cov_pct · afl_generated ·\nsymcc_generated · symcc_interesting", fillcolor="#EDE9FE", color="#6D28D9"];
+
+  src -> {v1 v2 v3 v4 v5 v6} [color="#CBD5E1"];
+  v3 -> d1 [color="#2563EB"];
+  v1 -> d2 [color="#B91C1C"]; v2 -> d2 [color="#C2410C"];
+  {d1 d2} -> d5 [color="#0F766E"];
+  d5 -> cov [color="#15803D", penwidth=2];
+  v3 -> cov [label="  用同一份 AFL 二进制测量", color="#2563EB", style=dashed];
+  cov -> csv;
+
+}

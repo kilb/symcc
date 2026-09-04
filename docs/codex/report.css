@@ -1,0 +1,175 @@
+:root {
+  --ink: #17212b;
+  --muted: #64748b;
+  --line: #cbd5e1;
+  --panel: #f8fafc;
+  --accent: #2563eb;
+  --code: #eef2f7;
+}
+
+html {
+  background: #f3f5f7;
+}
+
+body {
+  box-sizing: border-box;
+  max-width: 1180px;
+  margin: 28px auto;
+  padding: 52px 64px 80px;
+  color: var(--ink);
+  background: white;
+  border: 1px solid var(--line);
+  font-family: -apple-system, BlinkMacSystemFont, "Noto Sans CJK SC",
+    "Microsoft YaHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.72;
+}
+
+header {
+  margin-bottom: 2.5rem;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: var(--ink);
+  letter-spacing: 0;
+}
+
+h1 {
+  font-size: 2.15rem;
+}
+
+h2 {
+  margin-top: 3.2rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 2px solid var(--ink);
+}
+
+h3 {
+  margin-top: 2.4rem;
+}
+
+a {
+  color: var(--accent);
+}
+
+#TOC {
+  margin: 1.5rem 0 3rem;
+  padding: 1.3rem 1.6rem;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
+#TOC::before {
+  display: block;
+  margin-bottom: 0.65rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  content: "目录";
+}
+
+#TOC ul {
+  margin: 0.25rem 0;
+}
+
+img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: 920px;
+  margin: 1.35rem auto 0.6rem;
+  object-fit: contain;
+}
+
+blockquote {
+  margin: 0.75rem 0 1.4rem;
+  padding: 0.7rem 1rem;
+  color: var(--muted);
+  background: var(--panel);
+  border-left: 4px solid var(--accent);
+}
+
+table {
+  display: table;
+  width: 100%;
+  margin: 1.25rem 0 1.8rem;
+  font-size: 0.92rem;
+}
+
+thead {
+  background: var(--panel);
+}
+
+th,
+td {
+  padding: 0.48rem 0.62rem;
+  border: 1px solid var(--line);
+}
+
+tbody {
+  border: 0;
+}
+
+code {
+  padding: 0.12rem 0.3rem;
+  background: var(--code);
+  border-radius: 3px;
+}
+
+pre {
+  padding: 1rem 1.15rem;
+  background: #111827;
+  color: #e5e7eb;
+  border-radius: 5px;
+}
+
+pre code {
+  background: transparent;
+}
+
+@media (max-width: 760px) {
+  html {
+    background: white;
+  }
+
+  body {
+    margin: 0;
+    padding: 24px 18px 48px;
+    border: 0;
+    font-size: 15px;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+@media print {
+  html {
+    background: white;
+  }
+
+  body {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 10.5pt;
+  }
+
+  #TOC {
+    break-after: page;
+  }
+
+  img {
+    max-height: 180mm;
+    break-inside: avoid;
+  }
+}

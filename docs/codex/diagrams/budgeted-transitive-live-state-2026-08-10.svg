@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1300" viewBox="0 0 1900 1300">
+  <defs>
+    <style>
+      .title{font:700 40px Arial,sans-serif;fill:#102a43}.sub{font:24px Arial,sans-serif;fill:#486581}
+      .section{font:700 27px Arial,sans-serif;fill:#102a43}.h{font:700 21px Arial,sans-serif;fill:#102a43}
+      .body{font:18px Arial,sans-serif;fill:#334e68}.small{font:15px Arial,sans-serif;fill:#486581}
+      .mono{font:700 17px ui-monospace,SFMono-Regular,Consolas,monospace;fill:#243b53}
+      .white{fill:#fff}.arrow{stroke:#52606d;stroke-width:4;fill:none;marker-end:url(#arrow)}
+      .purple{stroke:#6c4ed9;stroke-width:4;fill:none;marker-end:url(#purpleArrow)}
+      .teal{stroke:#00897b;stroke-width:4;fill:none;marker-end:url(#tealArrow)}
+      .dash{stroke-dasharray:9 8}
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#52606d"/></marker>
+    <marker id="purpleArrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#6c4ed9"/></marker>
+    <marker id="tealArrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#00897b"/></marker>
+  </defs>
+
+  <rect width="1900" height="1300" fill="#f5f7fa"/>
+  <rect width="1900" height="14" fill="#167d7f"/>
+  <text x="88" y="76" class="title">F348 · Budgeted Transitive Live-State Restore</text>
+  <text x="88" y="113" class="sub">Validate one reachable Merkle DAG, read each digest once, and reject before crossing either resource budget</text>
+
+  <text x="88" y="166" class="section">1  Reachable continuation graph</text>
+  <rect x="88" y="190" width="1724" height="360" rx="8" fill="#fff" stroke="#b8c7da" stroke-width="2"/>
+
+  <rect x="112" y="214" width="245" height="140" rx="8" fill="#ede9fe" stroke="#6c4ed9" stroke-width="2"/>
+  <text x="137" y="251" class="h">Child checkpoint</text>
+  <text x="137" y="286" class="body">current execution roots</text>
+  <text x="137" y="320" class="mono">checkpoint C</text>
+  <rect x="112" y="384" width="245" height="140" rx="8" fill="#f3f0ff" stroke="#8b73df" stroke-width="2"/>
+  <text x="137" y="421" class="h">Parent checkpoint</text>
+  <text x="137" y="456" class="body">ancestor state roots</text>
+  <text x="137" y="490" class="mono">checkpoint P</text>
+  <path d="M235 354 L235 384" class="purple"/>
+
+  <rect x="430" y="214" width="905" height="310" rx="8" fill="#fbfcfe" stroke="#7b9cc5" stroke-width="2" stroke-dasharray="9 8"/>
+  <text x="456" y="246" class="small">Digest references from both descriptors converge on shared immutable nodes</text>
+  <rect x="464" y="272" width="220" height="86" rx="7" fill="#e3f2fd" stroke="#0288d1" stroke-width="2"/>
+  <text x="489" y="307" class="h">Solver frames</text><text x="489" y="337" class="small">parent chain + assertions</text>
+  <rect x="464" y="396" width="220" height="86" rx="7" fill="#e8f5e9" stroke="#009688" stroke-width="2"/>
+  <text x="489" y="431" class="h">Symbolic store</text><text x="489" y="461" class="small">unique names → expressions</text>
+  <rect x="758" y="272" width="250" height="86" rx="7" fill="#fff3e0" stroke="#ef6c00" stroke-width="2"/>
+  <text x="783" y="307" class="h">Memory root + pages</text><text x="783" y="337" class="small">page indexes + symbolic cells</text>
+  <rect x="758" y="396" width="250" height="86" rx="7" fill="#f1f8e9" stroke="#558b2f" stroke-width="2"/>
+  <text x="783" y="431" class="h">Program object</text><text x="783" y="461" class="small">immutable continuation IR</text>
+  <rect x="1080" y="324" width="220" height="106" rx="7" fill="#e0f2f1" stroke="#00897b" stroke-width="2"/>
+  <text x="1105" y="360" class="h">Expression leaves</text><text x="1105" y="392" class="body">shared by every root</text>
+  <path d="M357 270 C390 270 394 300 430 300" class="purple"/>
+  <path d="M357 452 C390 452 394 430 430 430" class="purple"/>
+  <path d="M684 315 C720 315 718 258 1028 258 C1060 258 1060 340 1080 350" class="purple"/>
+  <path d="M684 439 C716 439 712 377 758 377 L1040 377 L1080 377" class="purple"/>
+  <path d="M1008 315 C1040 315 1044 350 1080 350" class="purple"/>
+
+  <rect x="1380" y="214" width="408" height="310" rx="8" fill="#e8f5f3" stroke="#00897b" stroke-width="2"/>
+  <text x="1410" y="252" class="h">Restore-local verification ledger</text>
+  <text x="1410" y="292" class="mono">digest → parsed mapping</text>
+  <line x1="1410" y1="312" x2="1758" y2="312" stroke="#a7c9c5" stroke-width="2"/>
+  <text x="1410" y="350" class="body">unique_objects = |digest map|</text>
+  <text x="1410" y="386" class="body">canonical_bytes = Σ first-seen size</text>
+  <text x="1410" y="422" class="body">repeat reference = O(1) lookup</text>
+  <text x="1410" y="458" class="body">parent and child share one ledger</text>
+  <text x="1410" y="494" class="mono">no duplicate I/O or charging</text>
+  <path d="M1335 377 L1380 377" class="teal"/>
+
+  <text x="88" y="602" class="section">2  First-seen admission and failure boundary</text>
+  <rect x="88" y="626" width="1724" height="360" rx="8" fill="#fff" stroke="#b8c7da" stroke-width="2"/>
+  <rect x="112" y="650" width="185" height="312" rx="8" fill="#355d7a"/>
+  <text x="145" y="701" class="h white">FIRST-SEEN</text>
+  <text x="132" y="742" class="small white">stable no-follow</text><text x="132" y="772" class="small white">snapshot + SHA-256</text>
+  <text x="138" y="834" class="small white">existing digest?</text><text x="138" y="862" class="small white">return memoized</text>
+  <text x="138" y="922" class="mono white">bytes = identity</text>
+
+  <rect x="342" y="674" width="300" height="118" rx="8" fill="#fff3e0" stroke="#ef6c00" stroke-width="2"/>
+  <text x="370" y="713" class="h">Prospective quota check</text>
+  <text x="370" y="747" class="mono">objects + 1 ≤ Omax</text><text x="370" y="777" class="mono">bytes + size ≤ Bmax</text>
+  <rect x="342" y="830" width="300" height="108" rx="8" fill="#ffebee" stroke="#e53935" stroke-width="2"/>
+  <text x="370" y="870" class="h">REJECT before parse</text>
+  <text x="370" y="900" class="small">no partial bundle; no over-budget retention</text>
+  <path d="M297 730 L342 730" class="arrow"/>
+  <path d="M492 792 L492 830" class="arrow"/>
+
+  <rect x="710" y="674" width="320" height="118" rx="8" fill="#ede9fe" stroke="#6c4ed9" stroke-width="2"/>
+  <text x="738" y="713" class="h">Parse + schema validation</text>
+  <text x="738" y="747" class="body">descriptor identity · frame depth</text>
+  <text x="738" y="777" class="small">unique names/pages/cells · deep references</text>
+  <rect x="710" y="830" width="320" height="108" rx="8" fill="#ffebee" stroke="#e53935" stroke-width="2"/>
+  <text x="738" y="870" class="h">REJECT semantic failure</text>
+  <text x="738" y="905" class="body">revoke positive inode identity fact</text>
+  <path d="M642 730 L710 730" class="arrow"/>
+  <path d="M870 792 L870 830" class="arrow"/>
+
+  <rect x="1098" y="674" width="340" height="118" rx="8" fill="#e0f2f1" stroke="#00897b" stroke-width="2"/>
+  <text x="1128" y="713" class="h">Commit verified mapping</text>
+  <text x="1128" y="747" class="body">memo[digest] = parsed mapping</text>
+  <text x="1128" y="777" class="body">commit unique counters exactly once</text>
+  <path d="M1030 730 L1098 730" class="teal"/>
+
+  <rect x="1500" y="674" width="288" height="264" rx="8" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
+  <text x="1530" y="713" class="h">ACCEPT bundle</text>
+  <text x="1530" y="754" class="body">all reachable nodes verified</text>
+  <text x="1530" y="790" class="body">parent ancestry closed</text>
+  <text x="1530" y="826" class="body">observed totals exposed</text>
+  <line x1="1530" y1="850" x2="1758" y2="850" stroke="#a5d6a7" stroke-width="2"/>
+  <text x="1530" y="890" class="mono">I/O = unique nodes</text>
+  <text x="1530" y="920" class="small">shared DAG edges cost lookups only</text>
+  <path d="M1438 730 L1500 730" class="teal"/>
+
+  <text x="88" y="1038" class="section">3  Observed mechanism evidence</text>
+  <rect x="88" y="1062" width="520" height="174" rx="8" fill="#e0f2f1" stroke="#00897b" stroke-width="2"/>
+  <text x="120" y="1105" class="h">9 / 9 integration checks</text>
+  <text x="120" y="1144" class="body">2 descriptors · 8 unique objects · 2,062 bytes</text>
+  <text x="120" y="1180" class="mono">8 stable snapshots, not 2 × graph</text>
+  <text x="120" y="1212" class="small">deep parent fault and semantic cache failure rejected</text>
+
+  <rect x="638" y="1062" width="520" height="174" rx="8" fill="#ede9fe" stroke="#6c4ed9" stroke-width="2"/>
+  <text x="670" y="1105" class="h">Exact boundary semantics</text>
+  <text x="670" y="1144" class="body">8 objects / 2,062 bytes accepted</text>
+  <text x="670" y="1180" class="body">7 objects or 2,061 bytes rejected</text>
+  <text x="670" y="1212" class="small">full regression: 749 passed + 101 subtests</text>
+
+  <rect x="1188" y="1062" width="624" height="174" rx="8" fill="#fff3e0" stroke="#ef6c00" stroke-width="2"/>
+  <text x="1220" y="1105" class="h">Bounded claim</text>
+  <text x="1220" y="1144" class="body">local correctness and resource-admission evidence</text>
+  <text x="1220" y="1180" class="body">no MPI, solver, campaign, coverage, or LAVA-M uplift claim</text>
+  <text x="1220" y="1212" class="small">canonical bytes do not equal exact CPython heap overhead</text>
+
+  <text x="88" y="1274" class="small">Invariant: each reachable digest is stable-read, budget-admitted, parsed, schema-checked, and charged at most once per restore.</text>
+</svg>

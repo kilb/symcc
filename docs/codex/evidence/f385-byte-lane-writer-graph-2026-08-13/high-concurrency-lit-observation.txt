@@ -1,0 +1,783 @@
+-- Testing: 243 tests, 192 workers --
+Testing:  0
+FAIL: compiler :: poly_exact_widening_renaming.c (171 of 243)
+******************** TEST 'compiler :: poly_exact_widening_renaming.c' FAILED ********************
+Exit Code: 1
+
+Command Output (stdout):
+--
+# RUN: at line 2
+/home/ubuntu/code/symcc/build/test/../symcc -O0 /home/ubuntu/code/symcc/test/poly_exact_widening_renaming.c -o /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp
+# executed command: /home/ubuntu/code/symcc/build/test/../symcc -O0 /home/ubuntu/code/symcc/test/poly_exact_widening_renaming.c -o /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp
+# RUN: at line 3
+rm -rf /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-disabled && mkdir /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-disabled
+# executed command: rm -rf /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-disabled
+# executed command: mkdir /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-disabled
+# RUN: at line 4
+rm -f /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened.map /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-disabled.map /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened.json /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-disabled.json /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp.base /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened.cache /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-disabled.cache
+# executed command: rm -f /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened.map /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-disabled.map /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened.json /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-disabled.json /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp.base /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened.cache /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-disabled.cache
+# RUN: at line 5
+printf "1 sat 2 0:0,1:1 - -1:-1:0=-256,1=-1\n" > /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp.base
+# executed command: printf '1 sat 2 0:0,1:1 - -1:-1:0=-256,1=-1\n'
+# RUN: at line 6
+cp /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp.base /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened.cache && cp /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp.base /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-disabled.cache
+# executed command: cp /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp.base /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened.cache
+# executed command: cp /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp.base /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-disabled.cache
+# RUN: at line 7
+printf "\0\0\0\0" | env SYMCC_OUTPUT_DIR=/home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened SYMCC_AFL_COVERAGE_MAP=/home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened.map SYMCC_TELEMETRY_OUT=/home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened.json SYMCC_POLY_CACHE=/home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened.cache SYMCC_POLY_CROSS_PREFIX=1 SYMCC_POLY_PROJECTED_REUSE=1 SYMCC_POLY_EXACT_PROJECTION=1 SYMCC_POLY_EXACT_PROJECTION_VARS=2 SYMCC_POLY_FIELD_RENAMING=1 SYMCC_POLY_RENAME_VARS=6 SYMCC_POLY_RENAME_ATTEMPTS=128 SYMCC_POLY_RENAME_EXACT_PROBES=8 SYMCC_POLY_CROSS_PREFIX_PROBES=32 /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp
+# executed command: printf '\0\0\0\0'
+# executed command: env SYMCC_OUTPUT_DIR=/home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened SYMCC_AFL_COVERAGE_MAP=/home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened.map SYMCC_TELEMETRY_OUT=/home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened.json SYMCC_POLY_CACHE=/home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened.cache SYMCC_POLY_CROSS_PREFIX=1 SYMCC_POLY_PROJECTED_REUSE=1 SYMCC_POLY_EXACT_PROJECTION=1 SYMCC_POLY_EXACT_PROJECTION_VARS=2 SYMCC_POLY_FIELD_RENAMING=1 SYMCC_POLY_RENAME_VARS=6 SYMCC_POLY_RENAME_ATTEMPTS=128 SYMCC_POLY_RENAME_EXACT_PROBES=8 SYMCC_POLY_CROSS_PREFIX_PROBES=32 /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp
+# .---command stderr------------
+# | This is SymCC running with the QSYM backend
+# | [STAT] SMT: { "solving_time": 0, "total_time": 23548 }
+# | [STAT] SMT: { "solving_time": 293 }
+# | [INFO] New testcase: /home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened/000000
+# | [STAT] SMT: { "solving_time": 293, "total_time": 24434 }
+# | [STAT] SMT: { "solving_time": 490 }
+# | [STAT] SMT: { "solving_time": 490, "total_time": 24669 }
+# | [STAT] SMT: { "solving_time": 589 }
+# | [STAT] SMT: { "solving_time": 589, "total_time": 24786 }
+# | [STAT] SMT: { "solving_time": 679 }
+# | [STAT] SMT: { "solving_time": 679, "total_time": 24893 }
+# | [STAT] SMT: { "solving_time": 766 }
+# | [STAT] SMT: { "solving_time": 766, "total_time": 24996 }
+# | [STAT] SMT: { "solving_time": 852 }
+# | [STAT] SMT: { "solving_time": 852, "total_time": 25098 }
+# | [STAT] SMT: { "solving_time": 940 }
+# | [STAT] SMT: { "solving_time": 940, "total_time": 25201 }
+# | [STAT] SMT: { "solving_time": 1027 }
+# | [STAT] SMT: { "solving_time": 1027, "total_time": 25296 }
+# | [STAT] SMT: { "solving_time": 1117 }
+# | [STAT] SMT: { "solving_time": 1117, "total_time": 25398 }
+# | [STAT] SMT: { "solving_time": 1198 }
+# | [STAT] SMT: { "solving_time": 1198, "total_time": 25502 }
+# | [STAT] SMT: { "solving_time": 1285 }
+# | [STAT] SMT: { "solving_time": 1285, "total_time": 25596 }
+# | [STAT] SMT: { "solving_time": 1373 }
+# | [STAT] SMT: { "solving_time": 1373, "total_time": 25693 }
+# | [STAT] SMT: { "solving_time": 1459 }
+# | [STAT] SMT: { "solving_time": 1459, "total_time": 25788 }
+# | [STAT] SMT: { "solving_time": 1546 }
+# | [STAT] SMT: { "solving_time": 1546, "total_time": 25883 }
+# | [STAT] SMT: { "solving_time": 1633 }
+# | [STAT] SMT: { "solving_time": 1633, "total_time": 25977 }
+# | [STAT] SMT: { "solving_time": 1718 }
+# | [STAT] SMT: { "solving_time": 1718, "total_time": 26085 }
+# | [STAT] SMT: { "solving_time": 1830 }
+# | [STAT] SMT: { "solving_time": 1830, "total_time": 26214 }
+# | [STAT] SMT: { "solving_time": 1921 }
+# | [STAT] SMT: { "solving_time": 1921, "total_time": 26318 }
+# | [STAT] SMT: { "solving_time": 2010 }
+# | [STAT] SMT: { "solving_time": 2010, "total_time": 26419 }
+# | [STAT] SMT: { "solving_time": 2119 }
+# | [STAT] SMT: { "solving_time": 2119, "total_time": 26541 }
+# | [STAT] SMT: { "solving_time": 2210 }
+# | [STAT] SMT: { "solving_time": 2210, "total_time": 26645 }
+# | [STAT] SMT: { "solving_time": 2298 }
+# | [STAT] SMT: { "solving_time": 2298, "total_time": 26747 }
+# | [STAT] SMT: { "solving_time": 2390 }
+# | [STAT] SMT: { "solving_time": 2390, "total_time": 26848 }
+# | [STAT] SMT: { "solving_time": 2480 }
+# | [STAT] SMT: { "solving_time": 2480, "total_time": 26945 }
+# | [STAT] SMT: { "solving_time": 2562 }
+# | [STAT] SMT: { "solving_time": 2562, "total_time": 27034 }
+# | [STAT] SMT: { "solving_time": 2641 }
+# | [STAT] SMT: { "solving_time": 2641, "total_time": 27121 }
+# | [STAT] SMT: { "solving_time": 2726 }
+# | [STAT] SMT: { "solving_time": 2726, "total_time": 27213 }
+# | [STAT] SMT: { "solving_time": 2808 }
+# | [STAT] SMT: { "solving_time": 2808, "total_time": 27302 }
+# | [STAT] SMT: { "solving_time": 2891 }
+# | [STAT] SMT: { "solving_time": 2891, "total_time": 27392 }
+# | [STAT] SMT: { "solving_time": 2977 }
+# | [STAT] SMT: { "solving_time": 2977, "total_time": 27502 }
+# | [STAT] SMT: { "solving_time": 3066 }
+# | [STAT] SMT: { "solving_time": 3066, "total_time": 27601 }
+# | [STAT] SMT: { "solving_time": 3158 }
+# | [STAT] SMT: { "solving_time": 3158, "total_time": 27710 }
+# | [STAT] SMT: { "solving_time": 3255 }
+# | [STAT] SMT: { "solving_time": 3255, "total_time": 27820 }
+# | [STAT] SMT: { "solving_time": 3341 }
+# | [STAT] SMT: { "solving_time": 3341, "total_time": 27922 }
+# | [STAT] SMT: { "solving_time": 3443 }
+# | [STAT] SMT: { "solving_time": 3443, "total_time": 28038 }
+# | [STAT] SMT: { "solving_time": 3535 }
+# | [STAT] SMT: { "solving_time": 3535, "total_time": 28143 }
+# | [STAT] SMT: { "solving_time": 3619 }
+# | [STAT] SMT: { "solving_time": 3619, "total_time": 28240 }
+# | [STAT] SMT: { "solving_time": 3702 }
+# | [STAT] SMT: { "solving_time": 3702, "total_time": 28335 }
+# | [STAT] SMT: { "solving_time": 3788 }
+# | [STAT] SMT: { "solving_time": 3788, "total_time": 28432 }
+# | [STAT] SMT: { "solving_time": 3884 }
+# | [STAT] SMT: { "solving_time": 3884, "total_time": 28535 }
+# | [STAT] SMT: { "solving_time": 3962 }
+# | [STAT] SMT: { "solving_time": 3962, "total_time": 28620 }
+# | [STAT] SMT: { "solving_time": 4036 }
+# | [STAT] SMT: { "solving_time": 4036, "total_time": 28700 }
+# | [STAT] SMT: { "solving_time": 4115 }
+# | [STAT] SMT: { "solving_time": 4115, "total_time": 28786 }
+# | [STAT] SMT: { "solving_time": 4193 }
+# | [STAT] SMT: { "solving_time": 4193, "total_time": 28872 }
+# | [STAT] SMT: { "solving_time": 4275 }
+# | [STAT] SMT: { "solving_time": 4275, "total_time": 28961 }
+# | [STAT] SMT: { "solving_time": 4355 }
+# | [STAT] SMT: { "solving_time": 4355, "total_time": 29049 }
+# | [STAT] SMT: { "solving_time": 4438 }
+# | [STAT] SMT: { "solving_time": 4438, "total_time": 29139 }
+# | [STAT] SMT: { "solving_time": 4521 }
+# | [STAT] SMT: { "solving_time": 4521, "total_time": 29239 }
+# | [STAT] SMT: { "solving_time": 4604 }
+# | [STAT] SMT: { "solving_time": 4604, "total_time": 29335 }
+# | [STAT] SMT: { "solving_time": 4690 }
+# | [STAT] SMT: { "solving_time": 4690, "total_time": 29434 }
+# | [STAT] SMT: { "solving_time": 4785 }
+# | [STAT] SMT: { "solving_time": 4785, "total_time": 29543 }
+# | [STAT] SMT: { "solving_time": 4874 }
+# | [STAT] SMT: { "solving_time": 4874, "total_time": 29645 }
+# | [STAT] SMT: { "solving_time": 4959 }
+# | [STAT] SMT: { "solving_time": 4959, "total_time": 29742 }
+# | [STAT] SMT: { "solving_time": 5043 }
+# | [STAT] SMT: { "solving_time": 5043, "total_time": 29838 }
+# | [STAT] SMT: { "solving_time": 5131 }
+# | [STAT] SMT: { "solving_time": 5131, "total_time": 29933 }
+# | [STAT] SMT: { "solving_time": 5218 }
+# | [STAT] SMT: { "solving_time": 5218, "total_time": 30027 }
+# | [STAT] SMT: { "solving_time": 5296 }
+# | [STAT] SMT: { "solving_time": 5296, "total_time": 30114 }
+# | [STAT] SMT: { "solving_time": 5373 }
+# | [STAT] SMT: { "solving_time": 5373, "total_time": 30199 }
+# | [STAT] SMT: { "solving_time": 5450 }
+# | [STAT] SMT: { "solving_time": 5450, "total_time": 30284 }
+# | [STAT] SMT: { "solving_time": 5528 }
+# | [STAT] SMT: { "solving_time": 5528, "total_time": 30370 }
+# | [STAT] SMT: { "solving_time": 5608 }
+# | [STAT] SMT: { "solving_time": 5608, "total_time": 30458 }
+# | [STAT] SMT: { "solving_time": 5711 }
+# | [STAT] SMT: { "solving_time": 5711, "total_time": 30569 }
+# | [STAT] SMT: { "solving_time": 5795 }
+# | [STAT] SMT: { "solving_time": 5795, "total_time": 30661 }
+# | [STAT] SMT: { "solving_time": 5878 }
+# | [STAT] SMT: { "solving_time": 5878, "total_time": 30838 }
+# | [STAT] SMT: { "solving_time": 6365 }
+# | [STAT] SMT: { "solving_time": 6365, "total_time": 31347 }
+# | [STAT] SMT: { "solving_time": 6684 }
+# | [STAT] SMT: { "solving_time": 6684, "total_time": 31683 }
+# | [STAT] SMT: { "solving_time": 6970 }
+# | [STAT] SMT: { "solving_time": 6970, "total_time": 31983 }
+# | [STAT] SMT: { "solving_time": 7255 }
+# | [STAT] SMT: { "solving_time": 7255, "total_time": 32282 }
+# | [STAT] SMT: { "solving_time": 7559 }
+# | [STAT] SMT: { "solving_time": 7559, "total_time": 32601 }
+# | [STAT] SMT: { "solving_time": 7870 }
+# | [STAT] SMT: { "solving_time": 7870, "total_time": 32929 }
+# | [STAT] SMT: { "solving_time": 8194 }
+# | [STAT] SMT: { "solving_time": 8194, "total_time": 33268 }
+# | [STAT] SMT: { "solving_time": 8547 }
+# | [STAT] SMT: { "solving_time": 8547, "total_time": 33635 }
+# | [STAT] SMT: { "solving_time": 8908 }
+# | [STAT] SMT: { "solving_time": 8908, "total_time": 34011 }
+# | [STAT] SMT: { "solving_time": 9281 }
+# | [STAT] SMT: { "solving_time": 9281, "total_time": 34398 }
+# | [STAT] SMT: { "solving_time": 9690 }
+# | [STAT] SMT: { "solving_time": 9690, "total_time": 34821 }
+# | [STAT] SMT: { "solving_time": 10104 }
+# | [STAT] SMT: { "solving_time": 10104, "total_time": 35254 }
+# | [STAT] SMT: { "solving_time": 10537 }
+# | [STAT] SMT: { "solving_time": 10537, "total_time": 35700 }
+# | [STAT] SMT: { "solving_time": 10977 }
+# | [STAT] SMT: { "solving_time": 10977, "total_time": 36155 }
+# | [STAT] SMT: { "solving_time": 11450 }
+# | [STAT] SMT: { "solving_time": 11450, "total_time": 36644 }
+# | [STAT] SMT: { "solving_time": 12168 }
+# | [STAT] SMT: { "solving_time": 12168, "total_time": 37378 }
+# | [STAT] SMT: { "solving_time": 12688 }
+# | [STAT] SMT: { "solving_time": 12688, "total_time": 37916 }
+# | [STAT] SMT: { "solving_time": 13187 }
+# | [STAT] SMT: { "solving_time": 13187, "total_time": 38434 }
+# | [STAT] SMT: { "solving_time": 13807 }
+# | [STAT] SMT: { "solving_time": 13807, "total_time": 39074 }
+# | [STAT] SMT: { "solving_time": 14372 }
+# | [STAT] SMT: { "solving_time": 14372, "total_time": 39656 }
+# | [STAT] SMT: { "solving_time": 14917 }
+# | [STAT] SMT: { "solving_time": 14917, "total_time": 40215 }
+# | [STAT] SMT: { "solving_time": 15491 }
+# | [STAT] SMT: { "solving_time": 15491, "total_time": 40804 }
+# | [STAT] SMT: { "solving_time": 16074 }
+# | [STAT] SMT: { "solving_time": 16074, "total_time": 41402 }
+# | [STAT] SMT: { "solving_time": 16665 }
+# | [STAT] SMT: { "solving_time": 16665, "total_time": 42008 }
+# | [STAT] SMT: { "solving_time": 17276 }
+# | [STAT] SMT: { "solving_time": 17276, "total_time": 42634 }
+# | [STAT] SMT: { "solving_time": 17883 }
+# | [STAT] SMT: { "solving_time": 17883, "total_time": 43257 }
+# | [STAT] SMT: { "solving_time": 18523 }
+# | [STAT] SMT: { "solving_time": 18523, "total_time": 43911 }
+# | [STAT] SMT: { "solving_time": 19180 }
+# | [STAT] SMT: { "solving_time": 19180, "total_time": 44585 }
+# | [STAT] SMT: { "solving_time": 19844 }
+# | [STAT] SMT: { "solving_time": 19844, "total_time": 45263 }
+# | [STAT] SMT: { "solving_time": 20532 }
+# | [STAT] SMT: { "solving_time": 20532, "total_time": 45964 }
+# | [STAT] SMT: { "solving_time": 21217 }
+# | [STAT] SMT: { "solving_time": 21217, "total_time": 46666 }
+# | [STAT] SMT: { "solving_time": 21988 }
+# | [STAT] SMT: { "solving_time": 21988, "total_time": 47463 }
+# | [STAT] SMT: { "solving_time": 27033 }
+# | [STAT] SMT: { "solving_time": 27033, "total_time": 52585 }
+# | [STAT] SMT: { "solving_time": 27939 }
+# | [STAT] SMT: { "solving_time": 27939, "total_time": 53511 }
+# | [STAT] SMT: { "solving_time": 28750 }
+# | [STAT] SMT: { "solving_time": 28750, "total_time": 54339 }
+# | [STAT] SMT: { "solving_time": 29533 }
+# | [STAT] SMT: { "solving_time": 29533, "total_time": 55136 }
+# | [STAT] SMT: { "solving_time": 30313 }
+# | [STAT] SMT: { "solving_time": 30313, "total_time": 55928 }
+# | [STAT] SMT: { "solving_time": 31096 }
+# | [STAT] SMT: { "solving_time": 31096, "total_time": 56725 }
+# | [STAT] SMT: { "solving_time": 31887 }
+# | [STAT] SMT: { "solving_time": 31887, "total_time": 57528 }
+# | [STAT] SMT: { "solving_time": 32684 }
+# | [STAT] SMT: { "solving_time": 32684, "total_time": 58336 }
+# | [STAT] SMT: { "solving_time": 33482 }
+# | [STAT] SMT: { "solving_time": 33482, "total_time": 59146 }
+# | [STAT] SMT: { "solving_time": 34292 }
+# | [STAT] SMT: { "solving_time": 34292, "total_time": 59969 }
+# | [STAT] SMT: { "solving_time": 35086 }
+# | [STAT] SMT: { "solving_time": 35086, "total_time": 60786 }
+# | [STAT] SMT: { "solving_time": 35573 }
+# | [STAT] SMT: { "solving_time": 35573, "total_time": 61281 }
+# | [STAT] SMT: { "solving_time": 36035 }
+# | [STAT] SMT: { "solving_time": 36035, "total_time": 61751 }
+# | [STAT] SMT: { "solving_time": 36501 }
+# | [STAT] SMT: { "solving_time": 36501, "total_time": 62223 }
+# | [STAT] SMT: { "solving_time": 36966 }
+# | [STAT] SMT: { "solving_time": 36966, "total_time": 62695 }
+# | [STAT] SMT: { "solving_time": 37652 }
+# | [STAT] SMT: { "solving_time": 37652, "total_time": 63400 }
+# | [STAT] SMT: { "solving_time": 38444 }
+# | [STAT] SMT: { "solving_time": 38444, "total_time": 64205 }
+# | [STAT] SMT: { "solving_time": 39208 }
+# | [STAT] SMT: { "solving_time": 39208, "total_time": 64978 }
+# | [STAT] SMT: { "solving_time": 39961 }
+# | [STAT] SMT: { "solving_time": 39961, "total_time": 65740 }
+# | [STAT] SMT: { "solving_time": 40679 }
+# | [STAT] SMT: { "solving_time": 40679, "total_time": 66465 }
+# | [STAT] SMT: { "solving_time": 41413 }
+# | [STAT] SMT: { "solving_time": 41413, "total_time": 67206 }
+# | [STAT] SMT: { "solving_time": 42147 }
+# | [STAT] SMT: { "solving_time": 42147, "total_time": 67948 }
+# | [STAT] SMT: { "solving_time": 42904 }
+# | [STAT] SMT: { "solving_time": 42904, "total_time": 68714 }
+# | [STAT] SMT: { "solving_time": 43667 }
+# | [STAT] SMT: { "solving_time": 43667, "total_time": 69489 }
+# | [STAT] SMT: { "solving_time": 44452 }
+# | [STAT] SMT: { "solving_time": 44452, "total_time": 70283 }
+# | [STAT] SMT: { "solving_time": 45255 }
+# | [STAT] SMT: { "solving_time": 45255, "total_time": 71095 }
+# | [STAT] SMT: { "solving_time": 46012 }
+# | [STAT] SMT: { "solving_time": 46012, "total_time": 71859 }
+# | [STAT] SMT: { "solving_time": 46777 }
+# | [STAT] SMT: { "solving_time": 46777, "total_time": 72632 }
+# | [STAT] SMT: { "solving_time": 47546 }
+# | [STAT] SMT: { "solving_time": 47546, "total_time": 73407 }
+# | [STAT] SMT: { "solving_time": 48331 }
+# | [STAT] SMT: { "solving_time": 48331, "total_time": 74199 }
+# | [STAT] SMT: { "solving_time": 49125 }
+# | [STAT] SMT: { "solving_time": 49125, "total_time": 75001 }
+# | [STAT] SMT: { "solving_time": 49930 }
+# | [STAT] SMT: { "solving_time": 49930, "total_time": 75825 }
+# | [STAT] SMT: { "solving_time": 50778 }
+# | [STAT] SMT: { "solving_time": 50778, "total_time": 76681 }
+# | [STAT] SMT: { "solving_time": 51632 }
+# | [STAT] SMT: { "solving_time": 51632, "total_time": 77542 }
+# | [STAT] SMT: { "solving_time": 52497 }
+# | [STAT] SMT: { "solving_time": 52497, "total_time": 78417 }
+# | [STAT] SMT: { "solving_time": 53389 }
+# | [STAT] SMT: { "solving_time": 53389, "total_time": 79326 }
+# | [STAT] SMT: { "solving_time": 54278 }
+# | [STAT] SMT: { "solving_time": 54278, "total_time": 80229 }
+# | [STAT] SMT: { "solving_time": 55199 }
+# | [STAT] SMT: { "solving_time": 55199, "total_time": 81166 }
+# | [STAT] SMT: { "solving_time": 56113 }
+# | [STAT] SMT: { "solving_time": 56113, "total_time": 82089 }
+# | [STAT] SMT: { "solving_time": 57057 }
+# | [STAT] SMT: { "solving_time": 57057, "total_time": 83045 }
+# | [STAT] SMT: { "solving_time": 57985 }
+# | [STAT] SMT: { "solving_time": 57985, "total_time": 83988 }
+# | [STAT] SMT: { "solving_time": 58916 }
+# | [STAT] SMT: { "solving_time": 58916, "total_time": 84926 }
+# | [STAT] SMT: { "solving_time": 59870 }
+# | [STAT] SMT: { "solving_time": 59870, "total_time": 85888 }
+# | [STAT] SMT: { "solving_time": 60838 }
+# | [STAT] SMT: { "solving_time": 60838, "total_time": 86869 }
+# | [STAT] SMT: { "solving_time": 61798 }
+# | [STAT] SMT: { "solving_time": 61798, "total_time": 87841 }
+# | [STAT] SMT: { "solving_time": 62759 }
+# | [STAT] SMT: { "solving_time": 62759, "total_time": 88812 }
+# | [STAT] SMT: { "solving_time": 63450 }
+# | [STAT] SMT: { "solving_time": 63450, "total_time": 89512 }
+# | [STAT] SMT: { "solving_time": 64139 }
+# | [STAT] SMT: { "solving_time": 64139, "total_time": 90219 }
+# | [STAT] SMT: { "solving_time": 64854 }
+# | [STAT] SMT: { "solving_time": 64854, "total_time": 90946 }
+# | [STAT] SMT: { "solving_time": 65571 }
+# | [STAT] SMT: { "solving_time": 65571, "total_time": 91673 }
+# | [STAT] SMT: { "solving_time": 66287 }
+# | [STAT] SMT: { "solving_time": 66287, "total_time": 92397 }
+# | [STAT] SMT: { "solving_time": 67014 }
+# | [STAT] SMT: { "solving_time": 67014, "total_time": 93133 }
+# | [STAT] SMT: { "solving_time": 68137 }
+# | [STAT] SMT: { "solving_time": 68137, "total_time": 94278 }
+# | [STAT] SMT: { "solving_time": 69326 }
+# | [STAT] SMT: { "solving_time": 69326, "total_time": 95495 }
+# | [STAT] SMT: { "solving_time": 70475 }
+# | [STAT] SMT: { "solving_time": 70475, "total_time": 96661 }
+# | [STAT] SMT: { "solving_time": 71601 }
+# | [STAT] SMT: { "solving_time": 71601, "total_time": 97802 }
+# | [STAT] SMT: { "solving_time": 72710 }
+# | [STAT] SMT: { "solving_time": 72710, "total_time": 98925 }
+# | [STAT] SMT: { "solving_time": 73859 }
+# | [STAT] SMT: { "solving_time": 73859, "total_time": 100099 }
+# | [STAT] SMT: { "solving_time": 75086 }
+# | [STAT] SMT: { "solving_time": 75086, "total_time": 101347 }
+# | [STAT] SMT: { "solving_time": 76284 }
+# | [STAT] SMT: { "solving_time": 76284, "total_time": 102558 }
+# | [STAT] SMT: { "solving_time": 77427 }
+# | [STAT] SMT: { "solving_time": 77427, "total_time": 103709 }
+# | [STAT] SMT: { "solving_time": 78575 }
+# | [STAT] SMT: { "solving_time": 78575, "total_time": 104864 }
+# | [STAT] SMT: { "solving_time": 79751 }
+# | [STAT] SMT: { "solving_time": 79751, "total_time": 106049 }
+# | [STAT] SMT: { "solving_time": 80923 }
+# | [STAT] SMT: { "solving_time": 80923, "total_time": 107255 }
+# | [STAT] SMT: { "solving_time": 82171 }
+# | [STAT] SMT: { "solving_time": 82171, "total_time": 108513 }
+# | [STAT] SMT: { "solving_time": 83441 }
+# | [STAT] SMT: { "solving_time": 83441, "total_time": 109794 }
+# | [STAT] SMT: { "solving_time": 84696 }
+# | [STAT] SMT: { "solving_time": 84696, "total_time": 111059 }
+# | [STAT] SMT: { "solving_time": 85933 }
+# | [STAT] SMT: { "solving_time": 85933, "total_time": 112304 }
+# | [STAT] SMT: { "solving_time": 87205 }
+# | [STAT] SMT: { "solving_time": 87205, "total_time": 113587 }
+# | [STAT] SMT: { "solving_time": 88467 }
+# | [STAT] SMT: { "solving_time": 88467, "total_time": 114858 }
+# | [STAT] SMT: { "solving_time": 89757 }
+# | [STAT] SMT: { "solving_time": 89757, "total_time": 116156 }
+# | [STAT] SMT: { "solving_time": 91069 }
+# | [STAT] SMT: { "solving_time": 91069, "total_time": 117480 }
+# | [STAT] SMT: { "solving_time": 92380 }
+# | [STAT] SMT: { "solving_time": 92380, "total_time": 118802 }
+# | [STAT] SMT: { "solving_time": 93589 }
+# | [STAT] SMT: { "solving_time": 93589, "total_time": 120020 }
+# | [STAT] SMT: { "solving_time": 94501 }
+# | [STAT] SMT: { "solving_time": 94501, "total_time": 120940 }
+# | [STAT] SMT: { "solving_time": 95409 }
+# | [STAT] SMT: { "solving_time": 95409, "total_time": 121855 }
+# | [STAT] SMT: { "solving_time": 96335 }
+# | [STAT] SMT: { "solving_time": 96335, "total_time": 122788 }
+# | [STAT] SMT: { "solving_time": 97266 }
+# | [STAT] SMT: { "solving_time": 97266, "total_time": 123725 }
+# | [STAT] SMT: { "solving_time": 98216 }
+# | [STAT] SMT: { "solving_time": 98216, "total_time": 124684 }
+# | [STAT] SMT: { "solving_time": 99187 }
+# | [STAT] SMT: { "solving_time": 99187, "total_time": 125665 }
+# | [STAT] SMT: { "solving_time": 100422 }
+# | [STAT] SMT: { "solving_time": 100422, "total_time": 126929 }
+# | [STAT] SMT: { "solving_time": 101858 }
+# | [STAT] SMT: { "solving_time": 101858, "total_time": 128384 }
+# | [STAT] SMT: { "solving_time": 103279 }
+# | [STAT] SMT: { "solving_time": 103279, "total_time": 129816 }
+# | [STAT] SMT: { "solving_time": 104690 }
+# | [STAT] SMT: { "solving_time": 104690, "total_time": 131238 }
+# | [STAT] SMT: { "solving_time": 106110 }
+# | [STAT] SMT: { "solving_time": 106110, "total_time": 132667 }
+# | [STAT] SMT: { "solving_time": 107548 }
+# | [STAT] SMT: { "solving_time": 107548, "total_time": 134114 }
+# | [STAT] SMT: { "solving_time": 109001 }
+# | [STAT] SMT: { "solving_time": 109001, "total_time": 135576 }
+# | [STAT] SMT: { "solving_time": 110430 }
+# | [STAT] SMT: { "solving_time": 110430, "total_time": 137013 }
+# | [STAT] SMT: { "solving_time": 111878 }
+# | [STAT] SMT: { "solving_time": 111878, "total_time": 138470 }
+# | [STAT] SMT: { "solving_time": 113366 }
+# | [STAT] SMT: { "solving_time": 113366, "total_time": 139971 }
+# | [STAT] SMT: { "solving_time": 114869 }
+# | [STAT] SMT: { "solving_time": 114869, "total_time": 141503 }
+# | [STAT] SMT: { "solving_time": 116377 }
+# | [STAT] SMT: { "solving_time": 116377, "total_time": 143021 }
+# | [STAT] SMT: { "solving_time": 117894 }
+# | [STAT] SMT: { "solving_time": 117894, "total_time": 144550 }
+# | [STAT] SMT: { "solving_time": 119460 }
+# | [STAT] SMT: { "solving_time": 119460, "total_time": 146126 }
+# | [STAT] SMT: { "solving_time": 121046 }
+# | [STAT] SMT: { "solving_time": 121046, "total_time": 147721 }
+# | [STAT] SMT: { "solving_time": 122632 }
+# | [STAT] SMT: { "solving_time": 122632, "total_time": 149324 }
+# | [STAT] SMT: { "solving_time": 124226 }
+# | [STAT] SMT: { "solving_time": 124226, "total_time": 150948 }
+# | [STAT] SMT: { "solving_time": 125903 }
+# | [STAT] SMT: { "solving_time": 125903, "total_time": 152648 }
+# | [STAT] SMT: { "solving_time": 127528 }
+# | [STAT] SMT: { "solving_time": 127528, "total_time": 154293 }
+# | [STAT] SMT: { "solving_time": 129185 }
+# | [STAT] SMT: { "solving_time": 129185, "total_time": 155965 }
+# | [STAT] SMT: { "solving_time": 130885 }
+# | [STAT] SMT: { "solving_time": 130885, "total_time": 157697 }
+# | [STAT] SMT: { "solving_time": 132579 }
+# | [STAT] SMT: { "solving_time": 132579, "total_time": 159401 }
+# | [STAT] SMT: { "solving_time": 134304 }
+# | [STAT] SMT: { "solving_time": 134304, "total_time": 161135 }
+# | [STAT] SMT: { "solving_time": 136037 }
+# | [STAT] SMT: { "solving_time": 136037, "total_time": 162878 }
+# | [STAT] SMT: { "solving_time": 137844 }
+# | [STAT] SMT: { "solving_time": 137844, "total_time": 164721 }
+# | [STAT] SMT: { "solving_time": 139150 }
+# | [STAT] SMT: { "solving_time": 139150, "total_time": 166043 }
+# | [STAT] SMT: { "solving_time": 141195 }
+# | [STAT] SMT: { "solving_time": 141195, "total_time": 168113 }
+# | [STAT] SMT: { "solving_time": 142688 }
+# | [STAT] SMT: { "solving_time": 142688, "total_time": 169627 }
+# | [STAT] SMT: { "solving_time": 144002 }
+# | [STAT] SMT: { "solving_time": 144002, "total_time": 170955 }
+# | [STAT] SMT: { "solving_time": 145237 }
+# | [STAT] SMT: { "solving_time": 145237, "total_time": 172201 }
+# | [STAT] SMT: { "solving_time": 146554 }
+# | [STAT] SMT: { "solving_time": 146554, "total_time": 173530 }
+# | [STAT] SMT: { "solving_time": 147904 }
+# | [STAT] SMT: { "solving_time": 147904, "total_time": 174892 }
+# | [STAT] SMT: { "solving_time": 149833 }
+# | [STAT] SMT: { "solving_time": 149833, "total_time": 176834 }
+# | [STAT] SMT: { "solving_time": 151801 }
+# | [STAT] SMT: { "solving_time": 151801, "total_time": 178836 }
+# | [STAT] SMT: { "solving_time": 153860 }
+# | [STAT] SMT: { "solving_time": 153860, "total_time": 180909 }
+# | [STAT] SMT: { "solving_time": 155998 }
+# | [STAT] SMT: { "solving_time": 155998, "total_time": 183066 }
+# | [STAT] SMT: { "solving_time": 158039 }
+# | [STAT] SMT: { "solving_time": 158039, "total_time": 185122 }
+# | [STAT] SMT: { "solving_time": 159935 }
+# | [STAT] SMT: { "solving_time": 159935, "total_time": 187030 }
+# | [STAT] SMT: { "solving_time": 162704 }
+# | [STAT] SMT: { "solving_time": 162704, "total_time": 189813 }
+# | [STAT] SMT: { "solving_time": 164602 }
+# | [STAT] SMT: { "solving_time": 164602, "total_time": 191722 }
+# | [STAT] SMT: { "solving_time": 166480 }
+# | [STAT] SMT: { "solving_time": 166480, "total_time": 193612 }
+# | [STAT] SMT: { "solving_time": 168345 }
+# | [STAT] SMT: { "solving_time": 168345, "total_time": 195492 }
+# | [STAT] SMT: { "solving_time": 170240 }
+# | [STAT] SMT: { "solving_time": 170240, "total_time": 197402 }
+# | [STAT] SMT: { "solving_time": 172102 }
+# | [STAT] SMT: { "solving_time": 172102, "total_time": 199273 }
+# | [STAT] SMT: { "solving_time": 173911 }
+# | [STAT] SMT: { "solving_time": 173911, "total_time": 201093 }
+# | [STAT] SMT: { "solving_time": 175549 }
+# | [STAT] SMT: { "solving_time": 175549, "total_time": 202745 }
+# | [STAT] SMT: { "solving_time": 176929 }
+# | [STAT] SMT: { "solving_time": 176929, "total_time": 204135 }
+# | [STAT] SMT: { "solving_time": 178297 }
+# | [STAT] SMT: { "solving_time": 178297, "total_time": 205513 }
+# | [STAT] SMT: { "solving_time": 179659 }
+# | [STAT] SMT: { "solving_time": 179659, "total_time": 206883 }
+# | [STAT] SMT: { "solving_time": 181629 }
+# | [STAT] SMT: { "solving_time": 181629, "total_time": 208894 }
+# | [STAT] SMT: { "solving_time": 183968 }
+# | [STAT] SMT: { "solving_time": 183968, "total_time": 211259 }
+# | [STAT] SMT: { "solving_time": 186342 }
+# | [STAT] SMT: { "solving_time": 186342, "total_time": 213665 }
+# | [STAT] SMT: { "solving_time": 188465 }
+# | [STAT] SMT: { "solving_time": 188465, "total_time": 215810 }
+# | [STAT] SMT: { "solving_time": 189980 }
+# | [STAT] SMT: { "solving_time": 189980, "total_time": 217339 }
+# | [STAT] SMT: { "solving_time": 191621 }
+# | [STAT] SMT: { "solving_time": 191621, "total_time": 218994 }
+# | [STAT] SMT: { "solving_time": 198134 }
+# | [STAT] SMT: { "solving_time": 198134, "total_time": 225576 }
+# | [STAT] SMT: { "solving_time": 200056 }
+# | [STAT] SMT: { "solving_time": 200056, "total_time": 227521 }
+# | [STAT] SMT: { "solving_time": 202064 }
+# | [STAT] SMT: { "solving_time": 202064, "total_time": 229549 }
+# | [STAT] SMT: { "solving_time": 205089 }
+# | [STAT] SMT: { "solving_time": 205089, "total_time": 232599 }
+# | [STAT] SMT: { "solving_time": 207274 }
+# | [STAT] SMT: { "solving_time": 207274, "total_time": 234800 }
+# | [STAT] SMT: { "solving_time": 209533 }
+# | [STAT] SMT: { "solving_time": 209533, "total_time": 237073 }
+# | [STAT] SMT: { "solving_time": 211950 }
+# | [STAT] SMT: { "solving_time": 211950, "total_time": 239510 }
+# | [STAT] SMT: { "solving_time": 214218 }
+# | [STAT] SMT: { "solving_time": 214218, "total_time": 241792 }
+# | [STAT] SMT: { "solving_time": 216475 }
+# | [STAT] SMT: { "solving_time": 216475, "total_time": 244061 }
+# | [STAT] SMT: { "solving_time": 218920 }
+# | [STAT] SMT: { "solving_time": 218920, "total_time": 246524 }
+# | [STAT] SMT: { "solving_time": 221397 }
+# | [STAT] SMT: { "solving_time": 221397, "total_time": 249026 }
+# | [STAT] SMT: { "solving_time": 223968 }
+# | [STAT] SMT: { "solving_time": 223968, "total_time": 251651 }
+# | [STAT] SMT: { "solving_time": 226504 }
+# | [STAT] SMT: { "solving_time": 226504, "total_time": 254213 }
+# | [STAT] SMT: { "solving_time": 229050 }
+# | [STAT] SMT: { "solving_time": 229050, "total_time": 256785 }
+# | [STAT] SMT: { "solving_time": 231360 }
+# | [STAT] SMT: { "solving_time": 231360, "total_time": 259109 }
+# | [STAT] SMT: { "solving_time": 233623 }
+# | [STAT] SMT: { "solving_time": 233623, "total_time": 261384 }
+# | [STAT] SMT: { "solving_time": 236626 }
+# | [STAT] SMT: { "solving_time": 236626, "total_time": 264410 }
+# | [STAT] SMT: { "solving_time": 238912 }
+# | [STAT] SMT: { "solving_time": 238912, "total_time": 266710 }
+# | [STAT] SMT: { "solving_time": 241175 }
+# | [STAT] SMT: { "solving_time": 241175, "total_time": 268985 }
+# | [STAT] SMT: { "solving_time": 243586 }
+# | [STAT] SMT: { "solving_time": 243586, "total_time": 271418 }
+# | [STAT] SMT: { "solving_time": 246099 }
+# | [STAT] SMT: { "solving_time": 246099, "total_time": 273950 }
+# | [STAT] SMT: { "solving_time": 248449 }
+# | [STAT] SMT: { "solving_time": 248449, "total_time": 276315 }
+# | [STAT] SMT: { "solving_time": 250877 }
+# | [STAT] SMT: { "solving_time": 250877, "total_time": 278770 }
+# | [STAT] SMT: { "solving_time": 252878 }
+# | [STAT] SMT: { "solving_time": 252878, "total_time": 280789 }
+# | [STAT] SMT: { "solving_time": 254489 }
+# | [STAT] SMT: { "solving_time": 254489, "total_time": 282408 }
+# | [STAT] SMT: { "solving_time": 256176 }
+# | [STAT] SMT: { "solving_time": 256176, "total_time": 284104 }
+# | [STAT] SMT: { "solving_time": 257967 }
+# | [STAT] SMT: { "solving_time": 257967, "total_time": 285909 }
+# | [STAT] SMT: { "solving_time": 259878 }
+# | [STAT] SMT: { "solving_time": 259878, "total_time": 287863 }
+# | [STAT] SMT: { "solving_time": 261796 }
+# | [STAT] SMT: { "solving_time": 261796, "total_time": 289798 }
+# | [STAT] SMT: { "solving_time": 263853 }
+# | [STAT] SMT: { "solving_time": 263853, "total_time": 291872 }
+# | [STAT] SMT: { "solving_time": 265791 }
+# | [STAT] SMT: { "solving_time": 265791, "total_time": 293825 }
+# | [STAT] SMT: { "solving_time": 267757 }
+# | [STAT] SMT: { "solving_time": 267757, "total_time": 295804 }
+# | [STAT] SMT: { "solving_time": 269713 }
+# | [STAT] SMT: { "solving_time": 269713, "total_time": 297773 }
+# | [STAT] SMT: { "solving_time": 271613 }
+# | [STAT] SMT: { "solving_time": 271613, "total_time": 299686 }
+# | [STAT] SMT: { "solving_time": 273537 }
+# | [STAT] SMT: { "solving_time": 273537, "total_time": 301622 }
+# | [STAT] SMT: { "solving_time": 275522 }
+# | [STAT] SMT: { "solving_time": 275522, "total_time": 303620 }
+# | [STAT] SMT: { "solving_time": 277485 }
+# | [STAT] SMT: { "solving_time": 277485, "total_time": 305598 }
+# | [STAT] SMT: { "solving_time": 279401 }
+# | [STAT] SMT: { "solving_time": 279401, "total_time": 307527 }
+# | [STAT] SMT: { "solving_time": 281034 }
+# | [STAT] SMT: { "solving_time": 281034, "total_time": 309168 }
+# | [STAT] SMT: { "solving_time": 282673 }
+# | [STAT] SMT: { "solving_time": 282673, "total_time": 310815 }
+# | [STAT] SMT: { "solving_time": 284321 }
+# | [STAT] SMT: { "solving_time": 284321, "total_time": 312470 }
+# | [STAT] SMT: { "solving_time": 285961 }
+# | [STAT] SMT: { "solving_time": 285961, "total_time": 314117 }
+# | [STAT] SMT: { "solving_time": 287780 }
+# | [STAT] SMT: { "solving_time": 287780, "total_time": 315947 }
+# | [STAT] SMT: { "solving_time": 289773 }
+# | [STAT] SMT: { "solving_time": 289773, "total_time": 317952 }
+# | [STAT] SMT: { "solving_time": 291674 }
+# | [STAT] SMT: { "solving_time": 291674, "total_time": 319879 }
+# | [STAT] SMT: { "solving_time": 293820 }
+# | [STAT] SMT: { "solving_time": 293820, "total_time": 322049 }
+# | [STAT] SMT: { "solving_time": 295529 }
+# | [STAT] SMT: { "solving_time": 295529, "total_time": 323770 }
+# | [STAT] SMT: { "solving_time": 297295 }
+# | [STAT] SMT: { "solving_time": 297295, "total_time": 325550 }
+# | [STAT] SMT: { "solving_time": 299057 }
+# | [STAT] SMT: { "solving_time": 299057, "total_time": 327331 }
+# | [STAT] SMT: { "solving_time": 300792 }
+# | [STAT] SMT: { "solving_time": 300792, "total_time": 329077 }
+# | [STAT] SMT: { "solving_time": 302589 }
+# | [STAT] SMT: { "solving_time": 302589, "total_time": 330888 }
+# | [STAT] SMT: { "solving_time": 304298 }
+# | [STAT] SMT: { "solving_time": 304298, "total_time": 332607 }
+# | [STAT] SMT: { "solving_time": 306009 }
+# | [STAT] SMT: { "solving_time": 306009, "total_time": 334331 }
+# | [STAT] SMT: { "solving_time": 308016 }
+# | [STAT] SMT: { "solving_time": 308016, "total_time": 336359 }
+# | [STAT] SMT: { "solving_time": 309771 }
+# | [STAT] SMT: { "solving_time": 309771, "total_time": 338126 }
+# | [STAT] SMT: { "solving_time": 311701 }
+# | [STAT] SMT: { "solving_time": 311701, "total_time": 340070 }
+# | [STAT] SMT: { "solving_time": 313437 }
+# | [STAT] SMT: { "solving_time": 313437, "total_time": 341816 }
+# | [STAT] SMT: { "solving_time": 315196 }
+# | [STAT] SMT: { "solving_time": 315196, "total_time": 343585 }
+# | [STAT] SMT: { "solving_time": 317144 }
+# | [STAT] SMT: { "solving_time": 317144, "total_time": 345550 }
+# | [STAT] SMT: { "solving_time": 318978 }
+# | [STAT] SMT: { "solving_time": 318978, "total_time": 347395 }
+# | [STAT] SMT: { "solving_time": 320755 }
+# | [STAT] SMT: { "solving_time": 320755, "total_time": 349181 }
+# | [STAT] SMT: { "solving_time": 322566 }
+# | [STAT] SMT: { "solving_time": 322566, "total_time": 351019 }
+# | [STAT] SMT: { "solving_time": 324411 }
+# | [STAT] SMT: { "solving_time": 324411, "total_time": 352878 }
+# | [STAT] SMT: { "solving_time": 326249 }
+# | [STAT] SMT: { "solving_time": 326249, "total_time": 354728 }
+# | [STAT] SMT: { "solving_time": 328150 }
+# | [STAT] SMT: { "solving_time": 328150, "total_time": 356647 }
+# | [STAT] SMT: { "solving_time": 329921 }
+# | [STAT] SMT: { "solving_time": 329921, "total_time": 358428 }
+# | [STAT] SMT: { "solving_time": 331698 }
+# | [STAT] SMT: { "solving_time": 331698, "total_time": 360216 }
+# | [STAT] SMT: { "solving_time": 333521 }
+# | [STAT] SMT: { "solving_time": 333521, "total_time": 362050 }
+# | [STAT] SMT: { "solving_time": 335329 }
+# | [STAT] SMT: { "solving_time": 335329, "total_time": 363867 }
+# | [STAT] SMT: { "solving_time": 337118 }
+# | [STAT] SMT: { "solving_time": 337118, "total_time": 365665 }
+# | [STAT] SMT: { "solving_time": 339477 }
+# | [STAT] SMT: { "solving_time": 339477, "total_time": 368044 }
+# | [STAT] SMT: { "solving_time": 341282 }
+# | [STAT] SMT: { "solving_time": 341282, "total_time": 369860 }
+# | [STAT] SMT: { "solving_time": 343338 }
+# | [STAT] SMT: { "solving_time": 343338, "total_time": 371955 }
+# | [STAT] SMT: { "solving_time": 345253 }
+# | [STAT] SMT: { "solving_time": 345253, "total_time": 373884 }
+# | [STAT] SMT: { "solving_time": 347063 }
+# | [STAT] SMT: { "solving_time": 347063, "total_time": 375702 }
+# | [STAT] SMT: { "solving_time": 348872 }
+# | [STAT] SMT: { "solving_time": 348872, "total_time": 377520 }
+# | [STAT] SMT: { "solving_time": 350713 }
+# | [STAT] SMT: { "solving_time": 350713, "total_time": 379369 }
+# | [STAT] SMT: { "solving_time": 352573 }
+# | [STAT] SMT: { "solving_time": 352573, "total_time": 381238 }
+# | [STAT] SMT: { "solving_time": 354458 }
+# | [STAT] SMT: { "solving_time": 354458, "total_time": 383149 }
+# | [STAT] SMT: { "solving_time": 356411 }
+# | [STAT] SMT: { "solving_time": 356411, "total_time": 385113 }
+# | [STAT] SMT: { "solving_time": 358319 }
+# | [STAT] SMT: { "solving_time": 358319, "total_time": 387029 }
+# | [STAT] SMT: { "solving_time": 360218 }
+# | [STAT] SMT: { "solving_time": 360218, "total_time": 388939 }
+# | [STAT] SMT: { "solving_time": 362136 }
+# | [STAT] SMT: { "solving_time": 362136, "total_time": 390864 }
+# | [STAT] SMT: { "solving_time": 364030 }
+# | [STAT] SMT: { "solving_time": 364030, "total_time": 392765 }
+# | [STAT] SMT: { "solving_time": 365950 }
+# | [STAT] SMT: { "solving_time": 365950, "total_time": 394691 }
+# | [STAT] SMT: { "solving_time": 367901 }
+# | [STAT] SMT: { "solving_time": 367901, "total_time": 396650 }
+# | [STAT] SMT: { "solving_time": 369813 }
+# | [STAT] SMT: { "solving_time": 369813, "total_time": 398569 }
+# | [STAT] SMT: { "solving_time": 371793 }
+# | [STAT] SMT: { "solving_time": 371793, "total_time": 400559 }
+# | [STAT] SMT: { "solving_time": 373820 }
+# | [STAT] SMT: { "solving_time": 373820, "total_time": 402595 }
+# | [STAT] SMT: { "solving_time": 375800 }
+# | [STAT] SMT: { "solving_time": 375800, "total_time": 404584 }
+# | [STAT] SMT: { "solving_time": 377797 }
+# | [STAT] SMT: { "solving_time": 377797, "total_time": 406588 }
+# | [STAT] SMT: { "solving_time": 379768 }
+# | [STAT] SMT: { "solving_time": 379768, "total_time": 408567 }
+# | [STAT] SMT: { "solving_time": 381736 }
+# | [STAT] SMT: { "solving_time": 381736, "total_time": 410542 }
+# | [STAT] SMT: { "solving_time": 383694 }
+# | [STAT] SMT: { "solving_time": 383694, "total_time": 412509 }
+# | [STAT] SMT: { "solving_time": 385703 }
+# | [STAT] SMT: { "solving_time": 385703, "total_time": 414526 }
+# | [STAT] SMT: { "solving_time": 387754 }
+# | [STAT] SMT: { "solving_time": 387754, "total_time": 416605 }
+# | [STAT] SMT: { "solving_time": 389832 }
+# | [STAT] SMT: { "solving_time": 389832, "total_time": 418695 }
+# | [STAT] SMT: { "solving_time": 391917 }
+# | [STAT] SMT: { "solving_time": 391917, "total_time": 420788 }
+# | [STAT] SMT: { "solving_time": 393972 }
+# | [STAT] SMT: { "solving_time": 393972, "total_time": 422852 }
+# | [STAT] SMT: { "solving_time": 396018 }
+# | [STAT] SMT: { "solving_time": 396018, "total_time": 424905 }
+# | [STAT] SMT: { "solving_time": 398060 }
+# | [STAT] SMT: { "solving_time": 398060, "total_time": 426963 }
+# | [STAT] SMT: { "solving_time": 400126 }
+# | [STAT] SMT: { "solving_time": 400126, "total_time": 429037 }
+# | [STAT] SMT: { "solving_time": 402234 }
+# | [STAT] SMT: { "solving_time": 402234, "total_time": 431155 }
+# | [STAT] SMT: { "solving_time": 404308 }
+# | [STAT] SMT: { "solving_time": 404308, "total_time": 433236 }
+# | [STAT] SMT: { "solving_time": 406344 }
+# | [STAT] SMT: { "solving_time": 406344, "total_time": 435283 }
+# | [STAT] SMT: { "solving_time": 408332 }
+# | [STAT] SMT: { "solving_time": 408332, "total_time": 437279 }
+# | [STAT] SMT: { "solving_time": 410315 }
+# | [STAT] SMT: { "solving_time": 410315, "total_time": 439269 }
+# | [STAT] SMT: { "solving_time": 412306 }
+# | [STAT] SMT: { "solving_time": 412306, "total_time": 441268 }
+# | [STAT] SMT: { "solving_time": 414288 }
+# | [STAT] SMT: { "solving_time": 414288, "total_time": 443259 }
+# | [STAT] SMT: { "solving_time": 416327 }
+# | [STAT] SMT: { "solving_time": 416327, "total_time": 445306 }
+# | [STAT] SMT: { "solving_time": 418339 }
+# | [STAT] SMT: { "solving_time": 418339, "total_time": 447324 }
+# | [STAT] SMT: { "solving_time": 420360 }
+# | [STAT] SMT: { "solving_time": 420360, "total_time": 449351 }
+# | [STAT] SMT: { "solving_time": 422405 }
+# | [STAT] SMT: { "solving_time": 422405, "total_time": 451415 }
+# | [STAT] SMT: { "solving_time": 424498 }
+# | [STAT] SMT: { "solving_time": 424498, "total_time": 453517 }
+# | [STAT] SMT: { "solving_time": 426616 }
+# | [STAT] SMT: { "solving_time": 426616, "total_time": 455643 }
+# | [STAT] SMT: { "solving_time": 428707 }
+# | [STAT] SMT: { "solving_time": 428707, "total_time": 457741 }
+# | [STAT] SMT: { "solving_time": 430806 }
+# | [STAT] SMT: { "solving_time": 430806, "total_time": 459847 }
+# | [STAT] SMT: { "solving_time": 432901 }
+# | [STAT] SMT: { "solving_time": 432901, "total_time": 461949 }
+# | [STAT] SMT: { "solving_time": 435024 }
+# | [STAT] SMT: { "solving_time": 435024, "total_time": 464079 }
+# | [STAT] SMT: { "solving_time": 437166 }
+# | [STAT] SMT: { "solving_time": 437166, "total_time": 466230 }
+# | [STAT] SMT: { "solving_time": 439294 }
+# | [STAT] SMT: { "solving_time": 439294, "total_time": 468367 }
+# | [STAT] SMT: { "solving_time": 441408 }
+# | [STAT] SMT: { "solving_time": 441408, "total_time": 470496 }
+# | [STAT] SMT: { "solving_time": 443535 }
+# | [STAT] SMT: { "solving_time": 443535, "total_time": 472631 }
+# | [STAT] SMT: { "solving_time": 445663 }
+# | [STAT] SMT: { "solving_time": 445663, "total_time": 474770 }
+# | [STAT] SMT: { "solving_time": 447786 }
+# | [STAT] SMT: { "solving_time": 447786, "total_time": 476901 }
+# | [STAT] SMT: { "solving_time": 449923 }
+# | [STAT] SMT: { "solving_time": 449923, "total_time": 479046 }
+# | [STAT] SMT: { "solving_time": 452108 }
+# | [STAT] SMT: { "solving_time": 452108, "total_time": 481239 }
+# | [STAT] SMT: { "solving_time": 454293 }
+# | [STAT] SMT: { "solving_time": 454293, "total_time": 483431 }
+# | [STAT] SMT: { "solving_time": 456460 }
+# | [STAT] SMT: { "solving_time": 456460, "total_time": 485605 }
+# | [STAT] SMT: { "solving_time": 458693 }
+# `-----------------------------
+# RUN: at line 8
+python3 -c "from pathlib import Path; values=[p.read_bytes() for p in Path(r'/home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened').iterdir() if p.is_file()]; assert any(v == b'\x01\0\0\0' for v in values), values"
+# executed command: python3 -c 'from pathlib import Path; values=[p.read_bytes() for p in Path(r'"'"'/home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened'"'"').iterdir() if p.is_file()]; assert any(v == b'"'"'\x01\0\0\0'"'"' for v in values), values'
+# RUN: at line 9
+python3 -c "import json; data=json.load(open(r'/home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened.json')); assert data['poly_renaming_relations'] >= 1, data; assert data['poly_renaming_hits'] >= 1, data; assert data['poly_exact_projection_relations'] >= 1, data; assert data['poly_exact_projection_hits'] >= 1, data"
+# executed command: python3 -c 'import json; data=json.load(open(r'"'"'/home/ubuntu/code/symcc/build/test/Output/poly_exact_widening_renaming.c.tmp-widened.json'"'"')); assert data['"'"'poly_renaming_relations'"'"'] >= 1, data; assert data['"'"'poly_renaming_hits'"'"'] >= 1, data; assert data['"'"'poly_exact_projection_relations'"'"'] >= 1, data; assert data['"'"'poly_exact_projection_hits'"'"'] >= 1, data'
+# .---command stderr------------
+# | Traceback (most recent call last):
+# |   File "<string>", line 1, in <module>
+# | AssertionError: {'schema': 3, 'input_bytes': 4, 'symbolic_branches': 1, 'interesting_branches': 1, 'skipped_branches': 0, 'directed_pruned_branches': 0, 'unique_sites': 1, 'path_hash': 3243885662321932660, 'target_branch': 0, 'target_reached': False, 'target_status': 'none', 's2f_action_branches': 0, 's2f_action_reached': 0, 's2f_solve_actions': 0, 's2f_sample_actions': 0, 's2f_skip_actions': 0, 'solver_queries': 361, 'solver_sat': 142, 'solver_unsat': 219, 'solver_unknown': 0, 'solver_time_us': 458693, 'fast_solves': 0, 'z3_solves': 1, 'z3_timeouts': 0, 'backsolver_targets': 0, 'backsolver_attempts': 0, 'backsolver_sat': 0, 'backsolver_constraints_kept': 0, 'backsolver_constraints_dropped': 0, 'backsolver_direct_attempts': 0, 'backsolver_direct_sat': 0, 'backsolver_validations': 0, 'backsolver_validation_failures': 0, 'backsolver_z3_fallbacks': 0, 'poly_cache_hits': 0, 'poly_cache_entries': 1, 'poly_samples': 0, 'poly_template_constraints': 16, 'poly_dense_walks': 0, 'poly_john_steps': 0, 'poly_dense_fallbacks': 2, 'poly_cross_prefix_probes': 1, 'poly_cross_prefix_relations': 1, 'poly_cross_prefix_hits': 0, 'poly_cross_prefix_validation_failures': 1, 'poly_projection_attempts': 1, 'poly_projection_relations': 1, 'poly_projection_hits': 0, 'poly_exact_projection_attempts': 1, 'poly_exact_projection_relations': 0, 'poly_exact_projection_unknown': 1, 'poly_exact_projection_hits': 0, 'poly_renaming_attempts': 0, 'poly_renaming_relations': 0, 'poly_renaming_hits': 0, 'poly_sample_validations': 0, 'poly_sample_validation_failures': 0, 'prefix_context_hits': 0, 'prefix_context_entries': 0, 'query_exports': 0, 'query_export_failures': 0, 'query_deferred': 0, 'query_ir_nodes': 0, 'query_ir_input_bytes': 0, 'query_ir_max_bits': 0, 'query_ir_comparison_ops': 0, 'query_ir_nonlinear_ops': 0, 'query_ir_bitwise_ops': 0, 'query_ir_structural_ops': 0, 'unsat_core_hits': 0, 'unsat_core_entries': 0, 'unsat_core_clauses': 0, 'unsat_core_minimized': 0, 'unsat_core_unification_hits': 0, 'linear_subsumption_prunes': 0, 'generated': 1, 'relevant_input_bytes': 4, 'dependency_bytes_sum': 4, 'max_dependency_bytes': 4, 'elapsed_us': 488014, 'open_branches': [], 'branch_trace': [[1469598103934665603, 3243885662321932660, 3243886761833560871, 16544397531306646847, 0, 1]], 'data_comparisons': 0, 'data_coverage_map_updates': 0, 'empirical_domain_profiles_loaded': 0, 'empirical_domain_context_skips': 0, 'empirical_domain_parse_failures': 0, 'empirical_domain_attempts': 0, 'empirical_domain_prefilter_rejects': 0, 'empirical_domain_solver_queries': 0, 'empirical_domain_solver_time_us': 0, 'empirical_domain_sat': 0, 'empirical_domain_validated': 0, 'empirical_domain_validation_failures': 0, 'empirical_domain_unsat_fallbacks': 0, 'empirical_domain_unknown_fallbacks': 0, 'empirical_domain_feedback': [], 'data_features': [], 'empirical_value_profile_context': '', 'empirical_value_profiles': [], 'static_data_regions': 0, 'static_data_objects': 0, 'static_data_segments': 0, 'static_data_accesses': 0, 'data_switches': 0, 'data_switch_probes': 0, 'static_data_features': [], 'comparison_taints': [[16544397531306646847, 3243885662321932660, 4, 0, 3, 0, 1]]}
+# `-----------------------------
+# error: command failed with exit status: 1
+
+--
+
+********************
+Testing:  0.. 10.. 20.. 30.. 40.. 50.. 60.. 70.. 80.. 90.. 
+********************
+Failed Tests (1):
+  compiler :: poly_exact_widening_renaming.c
+
+
+Testing Time: 209.41s
+
+Total Discovered Tests: 243
+  Unsupported:   1 (0.41%)
+  Passed     : 241 (99.18%)
+  Failed     :   1 (0.41%)

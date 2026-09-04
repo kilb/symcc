@@ -1,0 +1,12 @@
+build LLVM 18 SymCC: PASS
+build LLVM 17 SymCC: PASS
+py_compile: PASS
+ruff check: PASS
+git diff --check: PASS
+technology index: PASS
+diagram render and visual inspection: PASS
+15 RUN commands: PASS
+producer/consumer bound-width closure: PASS
+in-domain concrete heap lifecycle regression: PASS
+out-of-domain concrete alias infeasibility: PASS
+public coverage/solver/bug-yield/end-to-end speedup claim: intentionally absent

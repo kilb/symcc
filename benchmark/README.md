@@ -121,6 +121,7 @@ execution, and produces reports comparing throughput at different process counts
 --rounds N         Rounds per configuration (default: 3)
 --timeout SEC      Timeout per run in seconds (default: 60)
 --output DIR       Output directory (default: benchmark_results)
+--bin-dir DIR      Shared prebuilt binary directory (default: OUTPUT/bin)
 --skip-build       Skip compilation step (reuse existing binaries)
 --simulation       Use gcc instead of SymCC (tests MPI framework only)
 --public [SPECS]   Add public benchmark targets (see below)
@@ -152,6 +153,2086 @@ Results are written to the output directory (`benchmark_results/` by default):
 - `benchmark_report.txt` — Human-readable summary
 - `benchmark_data.csv` — CSV data for plotting
 - `benchmark_data.json` — Full results in JSON format
+
+## LAVA-M DSE Solver Ablation
+
+For retained, single-process LAVA-M solver experiments use the DSE case runner
+instead of the MPI/AFL benchmark runner. It keeps the generated corpus,
+telemetry JSON, target stdout/stderr, strategy-label counts, and listed-bug
+replay result in one case directory:
+
+```bash
+python3 benchmark/run_lava_dse_case.py \
+  --program base64 \
+  --seed benchmark/public/seeds/lava-m/base64/rand.b64 \
+  --profile runtime-full \
+  --timeout 60 \
+  --replay-timeout 2 \
+  --run-dir /tmp/lava_case_base64_rand_full
+```
+
+Batch all public seeds for a target and summarize the retained case outputs:
+
+```bash
+python3 benchmark/run_lava_dse_ablation.py \
+  --program base64 \
+  --timeout 60 \
+  --replay-timeout 2 \
+  --out-dir /tmp/lava_dse_ablation_base64
+python3 benchmark/analyze_lava_dse_ablation.py \
+  /tmp/lava_dse_ablation_base64 \
+  --json-out /tmp/lava_dse_ablation_base64/summary.json \
+  --csv-out /tmp/lava_dse_ablation_base64/summary.csv
+```
+
+Profiles are closed configurations:
+
+| profile | Purpose |
+|---|---|
+| `strict-z3` | current binary, strict full-prefix Z3 baseline |
+| `fast-optimistic` | fast solve, optimistic-first, backsolver, selective query |
+| `runtime-full` | fast solve, optimistic-first, backsolver, multi-solve, poly cache/cross-prefix, prefix context, UNSAT core cache, selective query, data coverage |
+
+The replay counter separates listed LAVA bug IDs from extra IDs observed in
+program output; only `listed_hits` should be used for LAVA-M listed-bug tables.
+
+Hybrid adaptive runs also record solver-policy artifacts in `benchmark_data.*`:
+`offline_events`, `offline_approved_action`, `offline_trajectory`,
+`offline_policy`, `smt_algorithm_state`, `smt_sequence_prior_sha256`,
+`smt_sequence_prior_kind`,
+`smt_sequence_prior_recommendations`, `smt_sequence_prior_matches`, and
+`smt_sequence_prior_match_rate`. F240 additionally records
+`smt_sequence_prior_budgeted_assignments` and
+`smt_sequence_prior_schedule_completions`. Re-run the conservative
+off-policy evaluator on any recorded trajectory with:
+
+```bash
+python3 util/offline_policy.py benchmark_results/.../.offline_trajectory.jsonl
+```
+
+Build and verify the F239 context-specific X-means/BIC censored-PAR-2 prior on
+a completed tuning trajectory:
+
+```bash
+python3 util/smt_sequence_training.py \
+  benchmark_results/.../.offline_trajectory.jsonl \
+  --output benchmark_results/.../.smt_sequence_policy.json \
+  --timeout-sec 30 --max-clusters 8 --min-cluster-size 8
+python3 util/smt_sequence_training.py \
+  --verify benchmark_results/.../.smt_sequence_policy.json
+```
+
+Use the artifact only in a separate holdout/confirmatory run through
+`SYMCC_SMT_ALGORITHM_PRIOR`. Compare static sequence, the existing online
+moment-split scheduler, global conservative policy, F239 prior, and combined
+online+offline adaptation under identical CPU/wall budgets. Report BIC-selected
+cluster count/sizes, split acceptance, per-cluster action samples/ESS/censoring,
+PAR-2 cost, supported/unsupported cluster rate, prior match rate, solver CPU,
+valid candidates/query, coverage AUC, final coverage, and coverage/CPU-hour.
+Training and evaluation on the same trajectory is not confirmatory evidence.
+
+For F240, train and verify the ensemble schedule artifact:
+
+```bash
+python3 util/smt_sequence_optimizer.py \
+  benchmark_results/.../.offline_trajectory.jsonl \
+  --output benchmark_results/.../.smt_sequence_ensemble.json \
+  --timeout-sec 30 --min-model-samples 8 \
+  --bag-estimators 7 --boost-rounds 5 --tree-depth 3 \
+  --max-schedule-length 3 --slice-fractions 0.25,0.5,1
+python3 util/smt_sequence_optimizer.py \
+  --verify benchmark_results/.../.smt_sequence_ensemble.json
+```
+
+Compare F239 single-action prior, F240 bag-only, boost-only, combined ensemble,
+best-single fallback, and budgeted sequence search. Record model sample/weight,
+tree count/depth, residual RMSE, candidate schedules, best-single delta,
+predicted and observed PAR-2, unsolved rate, schedule completion, stage-budget
+utilization, route timeout scaling, solver CPU, and coverage/CPU-hour. Use input
+`instance_id` to construct paired action matrices where repeated exploration
+provides them; report matrix completeness instead of treating missing actions
+as failures.
+
+For F241, optimize and verify schedules over the sealed F240 ensemble:
+
+```bash
+python3 util/smt_schedule_smbo.py \
+  benchmark_results/.../.smt_sequence_ensemble.json \
+  --output benchmark_results/.../.smt_schedule_smbo.json \
+  --evaluation-budget 64 --initial-design 12 \
+  --max-candidates 1024 --max-schedule-length 3 \
+  --slice-fractions 0.25,0.5,1
+python3 util/smt_schedule_smbo.py \
+  --verify benchmark_results/.../.smt_schedule_smbo.json
+```
+
+Run the resulting artifact only on a disjoint holdout via
+`SYMCC_SMT_ALGORITHM_PRIOR`. Compare F240 beam and F241 EI with the same
+candidate pool, selection-evaluation budget, initial single-action design, and
+charged optimizer CPU. Report acquisition EI/uncertainty, incumbent curve,
+selected schedule, model-objective simple regret, post-hoc oracle call count,
+holdout observed PAR-2/unsolved rate, solver CPU, stage utilization, coverage
+AUC, final coverage, and coverage/CPU-hour. The artifact's exhaustive oracle is
+diagnostic and runs after selection; do not omit its CPU from one arm while
+charging it to another. Model-objective regret is not a real solver result.
+
+F243 adds a feature-contract ablation over the same trajectory and solver
+budgets. New training defaults to `symcc-smt-context-features-v2`; historical
+v1 artifacts remain executable and therefore provide the control without
+rewriting their digest. For each completed execution, retain the raw
+`query_exports`, `query_ir_nodes`, `query_ir_input_bytes`,
+`query_ir_max_bits`, and four `query_ir_*_ops` fields from telemetry. Compare:
+
+1. the historical 9-dimensional v1 prior;
+2. v2 with all seven structural dimensions;
+3. v2 scale-only (zero the four operator groups in a copied trajectory);
+4. v2 histogram-only (zero node/input/width fields);
+5. the online scheduler without an offline prior.
+
+Use disjoint tuning and holdout campaigns with identical CPU allocations.
+Report missing-structure rate, query count, feature saturation, cluster
+count/stability and assignment entropy, per-action calibration/Brier score,
+prior match rate, PAR-2, solver CPU, valid candidates/query, coverage AUC,
+final coverage, and coverage/CPU-hour. Because structural statistics are
+available only after one execution of a seed, separately report cold-seed and
+replayed-seed outcomes. Do not interpret v2 artifact self-consistency as a
+performance result.
+
+The adaptive scheduler state also contains a versioned `data_coverage` object.
+Schema 3 stores comparison rows and static rows
+`[object_id, byte_offset, matched_bits, width_bits, seed_path,
+code_summary, kind]`. Aggregate snapshots expose `data_static_sites` and
+`data_corpus_refinements`. Per-execution QSYM telemetry schema 3 additionally
+reports `static_data_objects`, `static_data_segments`, `static_data_accesses`,
+`data_switches`, `data_switch_probes`, and `static_data_features`. These fields
+are functional/ablation metrics; they are not evidence of coverage improvement
+until compared under equal CPU budgets and repeated runs.
+
+Asynchronous Query IR runs may also create a query store below
+`$AFL_OUT/<symcc-name>/.query_store` or the configured `SYMCC_QUERY_STORE`.
+Reusable solution generators are written to
+`generators/<hash-prefix>/<hash>.json`, and generated candidates record
+`generator_hash`, `model_index`, `solver_verified`, and pending concrete
+`verified` status in their manifest. For G02/G18 ablations, collect at least:
+`generators`, `generator_models`, models/query, candidate validity after replay,
+unique edges/query, prefix-cache hit rate, poly sample yield, and
+coverage/CPU-hour. Compare `SYMCC_GENERATOR_SAMPLES=0`, single-model,
+range-generator, poly-only, and full-generator modes under the same CPU budget.
+
+String-constraint runs may write `symcc-string-constraint-v1` JSONL through
+`SYMCC_STRING_CONSTRAINT_OUT`. For G04 ablations, track records/execution,
+complete patch ratio, string-stage candidates, replay validity, string-target
+reachability, and unique edges/query. Compare string hints only, offset-aware
+string constraints, and future SMT string backends separately.
+
+Solver-portfolio runs record `symcc-solver-portfolio-v1` inside query results.
+For G06 ablations, track portfolio_results, portfolio_disagreements,
+portfolio_cancel_requests, portfolio_cancelled_attempts,
+portfolio_incomplete_consensus, attempts/query, winner distribution,
+prefix-cache hit by solver, SAT/UNSAT/unknown rates, solver CPU, and
+coverage/CPU-hour. Do not merge disputed SAT/UNSAT
+queries into model or proof caches; the implementation returns them as unknown.
+F237 `smtlib-qfbv` attempts additionally record capability/lowering certificate
+digests, capability rejection, independent model-verification, and explicit
+UNSAT authorization. Compare Z3-only, cvc5-only, Z3+cvc5 sequential, and
+Z3+cvc5 parallel under the same total CPU allocation; separately report
+unsupported-query rate, invalid/missing-model rate, authorized-UNSAT rate,
+disagreement rate, solver wall/CPU time, valid candidates/query, and
+coverage/CPU-hour. `accept_unsat=false` and `accept_unsat=true` are different
+trust configurations and must not be pooled. Record `cvc5 --version` or
+`bitwuzla --version` with the campaign manifest. F244 supplies a fixed-version
+pre-campaign gate:
+
+```bash
+benchmark/install_bitwuzla_0_9_1.sh
+export PATH="$HOME/.local/opt/bitwuzla-0.9.1/bin:$PATH"
+python3 util/qf_bv_conformance.py \
+  --output benchmark/evidence/qfbv_conformance_f244.json
+python3 util/qf_bv_conformance.py \
+  --verify benchmark/evidence/qfbv_conformance_f244.json
+python3 util/qf_bv_conformance.py \
+  --replay benchmark/evidence/qfbv_conformance_f244.json \
+  --output /tmp/qfbv-conformance-replay.json
+```
+
+The gate requires the canonical 38-operator SAT model to pass adapter and
+QueryStore validation, rejects UNSAT without capability authorization, accepts
+the same contradiction only with authorization, and reconstructs lowering
+certificates offline. The checked artifact contains Z3 4.8.12, cvc5 1.1.2,
+and Bitwuzla 0.9.1. Its semantic digest excludes host path, binary hash, timestamp, and
+elapsed time only; commands, versions, capabilities, models, statuses, and
+certificates remain replay-critical.
+
+Passing conformance is not a performance result. The confirmatory matrix should
+add Bitwuzla-only, Z3+Bitwuzla, cvc5+Bitwuzla, and three-solver arms to the
+existing controls, keep total CPU-hours equal, and report the binary SHA-256
+from each run. The query-service Bitwuzla row is:
+
+F242 cancellation experiments must compare grace `-1,0,10,50,200` ms under the
+same total CPU allocation. Report cancel-request/success rate, process cleanup
+latency, incomplete-consensus rate, disagreement observed inside the grace,
+invalid SAT rejection, persistent cold-rebuild rate, solver CPU saved, PAR-2,
+and coverage/CPU-hour. A smaller wall time alone is insufficient because
+unobserved disagreements and extra cold starts are part of the tradeoff.
+
+```json
+{"kind":"smtlib-qfbv","name":"bitwuzla",
+ "command":["bitwuzla","--lang","smt2","--produce-models",
+            "--time-limit","{timeout_ms}","{query}"],
+ "capabilities":{"accept_unsat":true}}
+```
+
+F245 provides the sealed individual-solver holdout layer required before that
+matrix is interpreted:
+
+```bash
+python3 util/qf_bv_campaign.py \
+  --corpus /frozen/query-spool \
+  --conformance benchmark/evidence/qfbv_conformance_f244.json \
+  --split-seed study-v1 --split-parts 5 --holdout-parts 1 \
+  --timeout-ms 5000 --repetitions 20 --confirmatory \
+  --output benchmark_results/qfbv-holdout.json
+python3 util/qf_bv_campaign.py \
+  --verify benchmark_results/qfbv-holdout.json
+```
+
+The corpus artifact embeds each full Query IR envelope, content-addressed query
+ID, lowering certificate digest, and deterministic train/holdout membership.
+Campaign execution is holdout-only. Every selected binary must still match the
+F244 conformance version and SHA-256. Tasks have equal query count and wall
+timeout, run in a stable randomized order, and record child CPU; this is not a
+claim that observed CPU is equal. Report backend and paired PAR-2, child CPU,
+solved quadrants, SAT/UNSAT disagreement, and any-backend complementarity.
+
+`--confirmatory` rejects fewer than 20 repetitions, synthetic smoke input, and
+a missing disjoint train split. `--smoke-corpus` and the checked
+`benchmark/evidence/qfbv_holdout_f245_smoke.json` test only the mechanism; their
+timings must not be used to rank solvers. Join real campaign query IDs back to
+seed/target/coverage records before making hybrid-fuzzing conclusions.
+
+F246 runs the learned and cancellation strategies on that exact split:
+
+```bash
+python3 util/qf_bv_strategy_campaign.py \
+  --base-campaign benchmark_results/qfbv-holdout.json \
+  --training-trajectory benchmark_results/qfbv-train-trajectory.jsonl \
+  --beam-policy benchmark_results/qfbv-beam.json \
+  --smbo-policy benchmark_results/qfbv-smbo.json \
+  --timeout-ms 5000 --cancel-grace-ms 50 \
+  --repetitions 20 --confirmatory \
+  --output benchmark_results/qfbv-strategies.json
+python3 util/qf_bv_strategy_campaign.py \
+  --verify benchmark_results/qfbv-strategies.json
+```
+
+Each trajectory row must bind `context.query_id` to the F245 train split.
+Verification retrains F240 and F241 exactly, then reconstructs every holdout
+feature vector and schedule. The common manifest contains each individual
+backend, F240 beam, F241 SMBO, and F242 parallel cancellation. Sequence budgets
+sum to the shared declared wall budget; parallel CPU is measured but not
+pre-equalized. Report child CPU or enforce an outer CPU quota before comparing
+parallel and sequential arms. Also report grace/cancel/incomplete-consensus,
+internal disagreement, paired PAR-2, and coverage/CPU-hour.
+
+`--smoke-policy` is functional only. The checked
+`benchmark/evidence/qfbv_strategy_f246_smoke.json` uses synthetic train labels
+and four tiny holdout queries, so its timings are not research results.
+
+F247 joins those exact solver outputs to authoritative AFL edge/data replay:
+
+```bash
+cc -O2 -shared -fPIC util/afl_data_coverage_rt.c \
+  -o build/libafl_data_coverage_rt.so -ldl
+python3 util/qf_bv_coverage_join.py \
+  --strategy-campaign benchmark_results/qfbv-strategies.json \
+  --target-command-json \
+    '["/absolute/path/to/afl-instrumented-target","@@"]' \
+  --data-preload /absolute/path/to/libafl_data_coverage_rt.so \
+  --map-repetitions 2 --confirmatory \
+  --output benchmark_results/qfbv-coverage.json
+python3 util/qf_bv_coverage_join.py \
+  --verify benchmark_results/qfbv-coverage.json
+```
+
+The target, `afl-showmap`, and preload binaries are sealed by path, version,
+and SHA-256. SAT assignments are materialized and content-deduplicated together
+with every original witness. Two persistent `afl-showmap -S -e` instances
+replay each input repeatedly. Both load the preload to preserve identical
+PCGUARD IDs; one disables data writes and the other enables them. The native
+runtime reserves a low 64 KiB data namespace before AFL++ map negotiation, so
+`combined - edge` is a well-defined data-feature set. A bitmap or status that
+changes across repetitions aborts the campaign.
+
+Report candidate-vs-witness edge/data novelty, per-strategy union gain,
+coverage per measured solver child CPU second, pairwise Jaccard/complementarity,
+and showmap replay cost separately. The artifact also trains F243 v1/v2
+calibrators only from the embedded train trajectories and evaluates
+Brier/log-loss/ECE only on individual-backend holdout rows. `--confirmatory`
+requires a confirmatory F246 source and at least two stable map repetitions.
+
+The checked `benchmark/evidence/qfbv_coverage_f247_smoke.json` has five unique
+one-byte inputs and 24 join rows. It verifies the mechanism, including an
+actual matched-prefix data gain, but its synthetic four-query holdout and
+hand-authored training labels prohibit strategy-ranking claims.
+
+F248 evaluates a profiled Hydra-transformed binary without granting it result
+authority:
+
+```bash
+# Build and execute this exact baseline when collecting the telemetry.
+../build/symcc -O0 target.c -o ../build/target.original
+
+python3 ../util/hydra_transform.py profile telemetry/*.json \
+  --profiled-command-json '["/absolute/build/target.original"]' \
+  --profile-output ../build/hydra.profile \
+  --artifact-output benchmark_results/hydra-profile.json
+
+SYMCC_HYDRA=1 \
+SYMCC_HYDRA_PROFILE=../build/hydra.profile \
+SYMCC_HYDRA_MODE=aggressive \
+SYMCC_HYDRA_MANIFEST_OUT=../build/hydra-manifest.jsonl \
+  ../build/symcc -O0 target.c -o ../build/target.hydra
+
+python3 ../util/verify_hydra_transform_manifest.py \
+  ../build/hydra-manifest.jsonl
+
+python3 ../util/hydra_transform.py campaign \
+  --original-command-json '["/absolute/build/target.original"]' \
+  --transformed-command-json '["/absolute/build/target.hydra"]' \
+  --input-dir /absolute/hydra-generated-inputs \
+  --site <single-manifest-site> \
+  --manifest ../build/hydra-manifest.jsonl \
+  --profile-artifact benchmark_results/hydra-profile.json \
+  --denylist-output ../build/hydra-denylist.txt \
+  --output benchmark_results/hydra-replay.json
+python3 ../util/hydra_transform.py verify \
+  benchmark_results/hydra-replay.json
+python3 ../util/hydra_transform.py replay \
+  benchmark_results/hydra-replay.json \
+  --output benchmark_results/hydra-replay-check.json
+```
+
+The compiler manifest must contain exactly one transformed site. Every
+transformed input is run on the original binary regardless of transformed
+status. Report `real-failure`, `spurious-transformed-failure`,
+`failure-preservation-violation`, timeout, original-validated counts, solver
+fork/CPU reduction, coverage AUC, and denylist convergence. Never count a
+transformed-only failure as a target failure. The checked
+`evidence/hydra_f248_smoke.json` deliberately contains one real and one
+spurious failure at site `424248`; it validates the replay protocol only.
+
+F268 extends the same single-site protocol to equal-length linear arms with
+one to four blocks per side. F272 independently allows one to four blocks on
+each side, so the block and instruction counts may differ, while retaining the
+same bounded linear-CFG requirement and a 64-instruction limit per arm. Its v2
+manifest binds separate arm sizes, the deterministic compatible-LCS algorithm,
+every edit slot's site/opcode/block ordinal, one-sided edit distance, output
+PHI sites, and a structure fingerprint. F273 adds bounded internal branch
+trees: at most seven blocks, three internal conditions, four merge leaves and
+64 instructions per arm, with unique-parent DFS topology and no tree-local
+reconvergence. Its v3 proof binds every parent/edge/successor/terminator and
+canonical leaf edge. `hydra_transform.py campaign` rejects an invalid
+new-format manifest before executing candidates. Run the mechanism regression
+with:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  lit -v ../build/test/hydra_transform.ll \
+         ../build/test/hydra_multiblock.ll \
+         ../build/test/hydra_unequal_max.ll \
+         ../build/test/hydra_internal_tree.ll \
+         ../build/test/hydra_internal_tree_memory.ll
+```
+
+The tests compare equal 2x2, unequal 2x1 with a one-sided edit, and maximal 1x4
+cross-block def-use regions, a minimal 3x1 tree, a maximal 7x7/8-leaf tree, and
+an aggressive matched-store tree against original IR on all 256 byte values.
+They verify symbolized IR; reject block/alignment/ordinal/edit/hash and
+parent/leaf/successor tampering through the direct verifier and campaign gate;
+and keep a one-by-five pure-linear region, fourth internal condition, empty
+tree, or tree-local reconvergence unchanged. This is functional evidence only.
+A public campaign must report region shape and rejection taxonomy,
+alignment/edit size, internal-branch/leaf distribution, solver child CPU,
+transformed/original coverage AUC, spurious failures, and denylist convergence
+under paired equal-CPU runs.
+
+F249's bounded multi-arm IFSS mechanism is checked by native compiler/runtime
+tests before any performance campaign:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  lit -v ../build/test/backsolver_multiarm_ifss.ll \
+         ../build/test/backsolver_multiarm_ifss_reject.ll
+```
+
+The first test requires a three-arm implicit-flow target to produce a
+Backsolver candidate that crosses the root controller while preserving a
+second-byte condition. The second forces a late unsupported-arm rejection and
+checks LLVM verification plus absence of speculative IFSS calls. For a public
+campaign, compare `SYMCC_BACKSOLVER=0`, the existing two-arm workload, and
+multi-arm targets under identical outer CPU budgets and randomized blocks.
+Record region arms/blocks/paths, synthesized ITE count, rejection reason,
+Backsolver attempts/SAT/validated candidates, solver child CPU, coverage AUC,
+and final coverage. The native smoke is mechanism evidence and must not be
+reported as a coverage or performance result.
+
+F250 adds the strict MemorySSA/AA write-state subset:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  lit -v ../build/test/backsolver_memory_state.ll \
+         ../build/test/backsolver_memory_state_reject.ll
+```
+
+The positive test must contain `must-alias-memoryssa-v1` metadata and produce
+a candidate for the non-taken store arm. The rejection test covers NoAlias
+locations, a late unsupported stored value, and poison. Public evaluation
+should additionally record MemoryPhi candidates, MustAlias acceptances,
+No/May/PartialAlias and ModRef rejection counts, recovered ITE size,
+Backsolver validated yield, solver child CPU, and coverage AUC. Compare
+ordinary shadow memory and IFSS memory state under equal outer CPU budgets;
+the one-byte smoke is not a performance result.
+
+F251 extends the same test plane with a bounded NoMod def chain:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  lit -v ../build/test/backsolver_memory_def_chain.ll \
+         ../build/test/backsolver_memory_state_reject.ll
+```
+
+The positive metadata must report the per-arm skipped-definition counts and
+sites. The negative matrix includes MayAlias, more than eight otherwise
+NoAlias definitions, and a volatile definition. Public runs should report the
+accepted chain-length distribution, per-reason rejection counts, compilation
+cost, and a `0..8` budget sensitivity analysis in addition to the F250 metrics.
+
+F252 exercises the shared data/memory partition and multi-arm state:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  lit -v ../build/test/backsolver_multiarm_ifss.ll \
+         ../build/test/backsolver_multiarm_memory_state.ll \
+         ../build/test/backsolver_memory_state_reject.ll
+```
+
+The memory test requires three arms, one NoMod skip per arm, two ITE layers,
+and a candidate for the middle store. Its proof metadata exposes arm/path/skip
+counts. Public campaigns should stratify results by `(arms, paths,
+max-chain-length)` and report expression-DAG growth, compilation cost,
+validated candidate yield, solver CPU, and coverage AUC; do not pool these
+shapes without reporting their distribution.
+
+F253 verifies partition-scoped condition-DAG reuse and computation ownership:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  lit -v ../build/test/backsolver_ifss_condition_cache.ll
+```
+
+The test contains independent four-arm data and MemorySSA partitions. Repeated
+path literals must yield exactly two synthesized internal-condition
+computations per partition, each marked
+`partition-condition-cache-v1`; the generated module must pass LLVM
+verification. Native execution must produce a validated cross-controller
+memory witness (`41 00 59`) rather than an undefined-expression runtime
+lookup. Public evaluation should record enumerated path-condition references,
+unique original conditions, synthesized condition computations, reuse ratio,
+condition/ITE DAG nodes, compile CPU and peak RSS, solver child CPU, and
+validated yield. Compare cache disabled/enabled under identical outer CPU
+budgets and stratify by arms and path count. This smoke proves dominance and
+ownership, not a public-target performance gain.
+
+F254 tests bounded normal-return exit-state lowering and cross-call recovery:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  lit -v ../build/test/backsolver_multi_exit_return.ll \
+         ../build/test/backsolver_multi_exit_return_reject.ll
+```
+
+The positive case requires a three-return callee to lower to one certified
+state PHI, pass LLVM verification, propagate its two-level ITE through the
+return-expression ABI, and generate a candidate for a non-executed return
+while retaining an independent byte. The negative matrix covers switch,
+reachable cycle, aggregate, poison, nine returns, and musttail, plus explicit
+flag-off behavior. For public campaigns compare
+`SYMCC_IFSS_EXIT_STATE=0/1` under identical runtime Backsolver settings and
+outer CPU budgets. Record structural candidates/acceptances, subsequent
+symbolic-state acceptances, rejection taxonomy, `(arms,blocks,paths)`, return
+ITE/DAG nodes, compile CPU/RSS, solver child CPU, cross-call validated yield,
+coverage AUC, and final coverage. Separate lowering acceptance from successful
+symbolic synthesis; the native smoke is not performance evidence.
+
+F255 covers strict switch fanout, shared state, and pass composition:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  lit -v ../build/test/backsolver_switch_ifss.ll \
+         ../build/test/backsolver_switch_ifss_reject.ll
+```
+
+The positive test verifies pure switch-chain IR, LLVM validity, flag-off
+fallback, data-PHI and MemorySSA recovery, exactly one non-dominating internal
+condition per partition, native generation of case `B` from input `A`, and
+switch→multi-return composition with F254. The rejection matrix covers shared
+destinations, external predecessors, conditional arms, nine successors, and
+mixed exits. Public campaigns should compare
+`SYMCC_IFSS_SWITCH_STATE=0/1`, then linear source order against balanced and
+profile-guided variants under equal outer CPU budgets. Record structural and
+symbolic acceptances, rejection taxonomy, case/arm count, chain depth,
+condition-cache and ITE nodes, compile CPU/RSS, branch solver CPU, validated
+case yield, coverage AUC, and final coverage. Report switch and return-exit
+interaction separately; this smoke does not establish an optimal lowering
+order or performance gain.
+
+F256 compares linear and unsigned range-balanced switch shapes:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  lit -v ../build/test/backsolver_switch_balanced.ll
+```
+
+The eight-arm test checks seven linear equality nodes versus six balanced
+range nodes plus seven equality leaves, a root upper bound of two, default PHI
+fan-in expansion from one to seven, LLVM verification, twelve internal
+condition computations, seven state ITEs, and a native case-6 witness from
+case-0 input. Public evaluation must treat balanced lowering as a trade-off:
+report total comparisons, maximum and profile-weighted decision depth,
+default path multiplicity, IR/DAG nodes, compile CPU/RSS, solver child CPU,
+validated yield, and coverage AUC. Compare `linear` and `balanced` on uniform
+and skewed switch profiles with equal outer CPU budgets; a lower static depth
+alone is not a performance claim.
+
+F257 checks profile-weighted optimal alphabetic switch lowering:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  lit -v ../build/test/backsolver_switch_profile.ll
+```
+
+The test binds a seven-case switch to stable site `257257`, gives case zero
+weight 1000 and every other case weight one, and requires the optimal root
+upper bound to move from balanced value two to value zero. It also checks the
+full profile proof, LLVM verification, incomplete/unreadable/duplicate
+fallback reasons, symbolic state synthesis, and a native case-6 witness.
+Public campaigns must collect profiles on a disjoint training run, freeze the
+profile and binary identity, then compare `linear`, `balanced`, and `profile`
+under equal outer CPU budgets. Report weighted and maximum depth, profile
+coverage/mismatch rate, proof-objective recomputation, compilation CPU/RSS,
+solver child CPU, validated yield, coverage AUC, and confidence intervals.
+The aggregate default weight is not a gap distribution and must not be counted
+in a claimed optimal objective for this implementation.
+
+F258 checks shared switch destinations and edge/PHI multiplicity:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  lit -v ../build/test/backsolver_switch_shared.ll \
+         ../build/test/backsolver_switch_ifss_reject.ll
+```
+
+The positive test uses four logical edges but two unique destinations:
+default, case A, and case C share one destination while case B is independent.
+It requires linear PHI multiplicity `3→3`, balanced/profile multiplicity
+`3→5`, coexistence of weighted and shared-edge root proofs, full-path data
+state, multi-path MustAlias memory state, shared-return composition, and a
+validated `A→B` witness through the Z3 Backsolver fallback. The rejection test
+keeps an all-edges-to-one-destination switch unchanged.
+
+Public evaluation should report logical edges, unique destinations,
+original/lowered per-destination multiplicity, default leaf-miss expansion,
+partition paths, unique/cached conditions, ITE/DAG size, direct/fallback solve
+rates, compile CPU/RSS, solver child CPU, validated yield, and coverage AUC.
+Compare unique-only acceptance against shared acceptance under equal outer CPU
+budgets; count a switch only after both structural lowering and symbolic state
+synthesis succeed.
+
+F259 checks LLVM profile import and replay-verifiable tree artifacts:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  lit -v ../build/test/backsolver_switch_profile.ll \
+         ../build/test/backsolver_switch_branch_weight_reject.ll
+
+python3 ../util/verify_ifss_switch_manifest.py switch-trees.jsonl
+```
+
+The first test compares an explicit stable-site profile with a standard LLVM
+default-plus-case `branch_weights` vector. Both must produce root bound zero,
+objective 2028, complete JSONL records, and independently reproducible profile
+and tree fingerprints. An explicit incomplete file remains authoritative and
+falls back to balanced even when LLVM metadata exists. The second test proves
+that a zero LLVM weight is rejected; a single-field root tamper must also fail
+offline verification.
+
+For campaigns, remove the append-only manifest before each build, collect
+training profiles on disjoint executions, archive the input IR/profile and
+compiler identity, verify every record before execution, and join runtime
+results by stable site plus tree fingerprint. Report external/LLVM/missing/
+invalid source counts, profile coverage, fallback taxonomy, objective and
+weighted depth, tree/multiplicity distribution, compile CPU/RSS, solver child
+CPU, validated yield, coverage AUC, and confidence intervals. Do not interpret
+the aggregate default count as a measured distribution over case gaps.
+
+F260 checks bounded multi-continuation exit identity and scalar live-out
+tuples:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  lit -v ../build/test/backsolver_continuation_tuple.ll \
+         ../build/test/backsolver_continuation_shared.ll \
+         ../build/test/backsolver_continuation_tuple_reject.ll
+```
+
+The main test lowers three logical exits into one capture/dispatch/resume
+state, with two continuation destinations and two scalar PHI slots. LLVM
+verification must pass before and after symbolization; the shared IFSS
+partition must construct six ITEs for exit identity plus tuple state. Starting
+on exit 2 with input `C`, the native run must generate input `B`, which selects
+the other continuation through the second real exit-ID comparison. The shared
+test preserves two logical edges from one predecessor as two capture/resume
+edges, while the rejection matrix covers one destination, vector state,
+poison, and a reachable cycle. Flag-off output must retain the original CFG.
+
+For public campaigns compare `SYMCC_IFSS_CONTINUATION_STATE=0/1` under the same
+Backsolver configuration and outer CPU budget. Report structural candidates,
+accepted regions, rejection taxonomy, exits/destinations/slots/blocks/paths,
+repeated-edge multiplicity, IFSS ITE and condition-DAG size, additional branch
+constraints, compile CPU/RSS, solver child CPU, direct/fallback validation,
+cross-destination candidate yield, coverage AUC, and final coverage. Separate
+successful CFG lowering from successful symbolic tuple synthesis. The native
+one-byte regression is mechanism evidence, not a performance result.
+
+F261 checks proof-carrying bounded affine natural-loop summaries:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  lit -v ../build/test/backsolver_loop_summary.ll \
+         ../build/test/backsolver_loop_summary_reject.ll \
+         ../build/test/backsolver_loop_triangular.ll
+```
+
+The positive test accelerates `state += constant` loops whose symbolic trip
+count is masked to 0--7. It covers one i8 state, two i16 states driven by an i8
+trip count, exit-PHI repair, flag-off behavior, and verifier-clean
+symbolization. Original and summarized IR are replayed with `lli` for inputs
+0x00 through 0x1f; every return status must match. The native target starts at
+zero iterations and solves `initial + trip*step == 25` in one SAT query,
+producing input `05`. The rejection test retains loops with a bound of 15,
+memory effects, nonlinear recurrence, signed comparison, `nuw`, or poison
+trip count.
+
+F266 adds a same-width 2--4 state unit-diagonal upper-triangular form. The
+three-state regression summarizes `x'=x+2y+3`, `y'=y+z`, `z'=z+1` using a
+nilpotent/binomial closed form, checks 32 differential executions, and solves
+the trip-5 target in one SAT query. Generate and verify algebra evidence with:
+
+```bash
+export SYMCC_IFSS_LOOP_MANIFEST_OUT=loops.jsonl
+python3 ../util/verify_ifss_loop_recurrence_manifest.py loops.jsonl
+```
+
+The verifier recomputes upper-triangular and unit-diagonal constraints,
+modular `A^t` and accumulated offsets for every bounded trip, and the content
+fingerprint. Matrix, derived-power and fingerprint tampering are separate
+negative tests. Keep the append-only manifest in a fresh per-process file.
+
+F267/F271 cover one or a bounded ordered set of post-update equality breaks:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  lit -v ../build/test/backsolver_loop_break.ll \
+         ../build/test/backsolver_loop_break_reject.ll \
+         ../build/test/backsolver_loop_multibreak.ll \
+         ../build/test/backsolver_loop_multibreak_reject.ll \
+         ../build/test/backsolver_loop_three_break_triangular.ll
+
+export SYMCC_IFSS_LOOP_EXIT_MANIFEST_OUT=loop-exits.jsonl
+python3 ../util/verify_ifss_loop_exit_manifest.py loop-exits.jsonl
+```
+
+The positive case compares all 64 trip/break pairs and requires a solver
+candidate with `break_at=2` and `trip>=3`. The exit artifact binds normal
+header state versus post-update break state and includes the complete bounded
+execution truth table. Report normal/break yields separately; a transformed
+loop still requires original-binary replay for authoritative coverage.
+
+F271's canonical update block may feed two or three ordered equality-check
+blocks. The summary chooses the minimum `(break_at, ordinal)`, so an earlier
+iteration wins and equal values preserve CFG priority. The two-break test
+checks all 512 trip/break vectors, a tie resolved to ordinal zero, a
+break1-only solver witness, and winner/site/live-out/fingerprint tampering.
+The three-break test composes the maximum break count with F266
+upper-triangular recurrence, verifies both manifests, and compares all 256
+bounded inputs. Four checks, a non-equality predicate, and reversed successor
+polarity remain unchanged.
+
+V2 exit records use `post-update-priority-equality-break-v2` and store ordered
+condition/exit/value identities plus a complete trip-by-break-vector table.
+The verifier recomputes the lexicographic winner and execution count. At the
+maximum trip bound and break count, the table contains 9^4=6561 rows. Report
+accepted/rejected break topology, winner ordinal, generated circuit size,
+solver CPU, and normal/per-break candidate yield; continue to use original
+replay for authoritative coverage because the transformation removes loop and
+check edges.
+
+For public campaigns compare `SYMCC_IFSS_LOOP_SUMMARY=0/1` under equal outer
+CPU budgets and replay candidates on the original binary. Report candidate
+loops, accepted/rejected forms, proven maximum trip, state count and widths,
+removed dynamic branch evaluations, generated arithmetic/DAG size, compile
+CPU/RSS, solver queries/child CPU, candidate validity, original-replay coverage
+AUC, and final coverage. Because summary lowering removes loop edges from the
+instrumented binary, transformed bitmap coverage is not directly comparable
+to the baseline; use original replay as the coverage authority.
+
+F262/F269/F270 check MemorySSA/AA-proven continuation memory tuples:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  lit -v ../build/test/backsolver_continuation_memory.ll \
+         ../build/test/backsolver_continuation_initial_memory.ll \
+         ../build/test/backsolver_continuation_nested_memory.ll \
+         ../build/test/backsolver_continuation_memory_reject.ll
+```
+
+The positive test lowers three exits and two continuation destinations with
+two scalar memory locations. Each relevant MemorySSA incoming skips one
+NoMod-proven store before reaching an equal-width MustAlias writer. The
+dispatch receives two memory PHIs with typed neutral values only on exits that
+cannot consume that destination slot. Flag-off and enabled IR are compared
+with `lli` for all 256 one-byte inputs. The native run starts from input `C`
+and must produce a backsolve file containing `B`. The rejection matrix covers
+MayAlias interference, a missing reaching store, volatile load, external
+destination predecessor, destination-prefix write, and atomic rejection of a
+controller with a fifth memory slot.
+
+F269 adds a three-exit partial-state case: two exits reach the same
+destination, one through a MustAlias store and one through a one-entry NoMod
+chain ending at Function LiveOnEntry. The latter gets a capture-local snapshot
+rather than a zero or a controller-wide speculative load. The test compares
+all 256 inputs, obtains a `B` Backsolver witness from `C`, rejects state-kind
+tampering, and performs sealed independent replay. It then replaces the
+snapshot PHI incoming with constant 99; the IR remains verifier-clean and can
+receive a fresh valid seal, but semantic replay must reject the tuple-value
+tamper. A partial path containing a MayAlias write remains rejected.
+
+F270 adds a two-level, non-dispatch MemoryPhi provenance tree. The compiler
+unfolds at most four acyclic 2--4-arm phis and 16 total nodes per relevant
+exit, applies the existing eight-entry NoMod bound on every edge, and
+materializes scalar PHIs bottom-up in the original MemoryPhi blocks. The test
+compares 256 selectors times four nested control values (1024 executions),
+requires symbolized LLVM verification, and obtains an `A` witness with its
+second byte congruent to zero modulo four from seed `C 03`. The v3 manifest
+binds canonical node/edge identities and its independent replay checks actual
+nested scalar-PHI incoming values. An edge-index tamper and a verifier-clean,
+freshly sealed deepest-incoming change from 10 to 99 must fail. Inner-arm
+MayAlias interference and a five-incoming MemoryPhi retain the original load.
+
+F275 adds bounded byte-lane partial-overlap recovery for 2--8-byte integer
+loads. If any relevant exit cannot use the equal-width v1--v3 proof, all
+relevant exits switch to one uniform v4 proof. A reverse linear MemorySSA scan
+of at most 16 definitions assigns each address-order byte to the latest
+overlapping 1--8-byte integer store; uncovered bytes may use a capture-local
+LiveOnEntry snapshot. Addresses require the same base plus inbounds constant
+offset, and the generated extract/shift/OR circuit follows DataLayout
+endianness.
+
+Run the little- and big-endian positives together with the rejection matrix:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  python3 /usr/lib/llvm-18/build/utils/lit/lit.py -sv \
+  --filter='backsolver_continuation_(byte_lane|memory_reject)' ../build/test
+```
+
+The little-endian case composes a full i16 store overwritten in its high byte
+and a low-byte store completed from LiveOnEntry. It checks all 256 selectors,
+requires a `C` to `B` Backsolver witness, verifies the v4 manifest, performs
+both continuation and unified sealed replay, and rejects a verifier-clean
+store-value tamper after fresh sealing. The big-endian module checks reversed
+bit positions. Dynamic offsets, volatile partial stores and partial stores
+behind a MemoryPhi retain the original load.
+
+F276 admits one finite symbolic alias partition on a path. A simple store
+pointer may be a two-arm LLVM pointer select when its instruction-valued guard
+dominates the capture and each arm is either an exact same-base constant
+overlap or AA-proven NoAlias. A conditionally overlapping byte is overlaid on
+the older F275 source with an i8 select. The v5 proof binds the guard site,
+polarity, store and source byte, and replay parses that actual select.
+
+`backsolver_continuation_guarded_byte_lane.ll` checks 256 selectors by four
+guard values, v5 verification, both seal/replay paths, a cross-continuation
+model, guard-record tampering and a verifier-clean selected-byte tamper.
+`backsolver_continuation_guarded_byte_lane_reject.ll` keeps the original load
+for an unknown alias arm, two distinct guarded stores on one path, and an
+argument guard without stable site identity.
+
+F277 adds a canonical loop-carried byte-lane value state. The loop must have
+one header MemoryPhi, one unconditional entry and one unconditional latch.
+Entry lanes use the F275 proof; on the latch, exact partial stores replace
+covered lanes while other lanes carry bytes from the same integer cycle PHI.
+The v6 proof binds the three topology sites, both NoMod chains, entry state and
+the complete store/carry transfer. It is distinct from the live-continuation
+F151 definedness sidecar: F277 reconstructs the concrete value that reaches an
+F260 continuation capture.
+
+Run the little-endian semantic/replay test, big-endian mapping test and strict
+rejection matrix with:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  python3 /usr/lib/llvm-18/build/utils/lit/lit.py -sv \
+  --filter='backsolver_continuation_cyclic_byte_lane' ../build/test
+```
+
+The positive executes 256 selectors at four iteration counts, checks both
+seal/replay paths, obtains a cross-continuation Backsolver model, and rejects a
+carry-record tamper plus a freshly sealed latch-value tamper. The rejection
+file reaches cycle analysis and rejects conditional MemoryPhi, dynamic offset,
+volatile update, full-width no-carry transfer and multiple backedges.
+
+F278 expands one pointer-select store to a depth-two finite union with up to
+three internal decisions and four address leaves. Every leaf is separately
+classified as an exact overlap or AA NoAlias, and the v7 proof binds the
+preorder tree plus every leaf's lane-source vector.
+`backsolver_continuation_pointer_union.ll` exercises the maximal 3-node/4-leaf
+tree over 1024 inputs, both sealed replay paths, a solver model and topology/
+leaf-value tampering. The rejection test covers depth three, unknown alias,
+shared select DAG and a second partition store.
+
+F279 composes two single-level guarded writes in MemorySSA order. Priority zero
+is the newest store; lowering applies the older select first and the newest
+select last. `backsolver_continuation_guarded_priority.ll` checks all 1024
+selector/guard combinations, v8 verification, both replay paths, a model that
+requires the new guard, priority tampering and an outer-value tamper. Three
+guarded stores remain fail closed.
+
+F280 admits one strict conditional loop transfer. The latch MemoryPhi has a
+single partial-write arm and a direct self-carry arm, both selected by one
+instruction-valued guard and reconverging through unique unconditional edges.
+`backsolver_continuation_conditional_cyclic_byte_lane.ll` checks 1024
+selector/iteration/write combinations, a Backsolver model, both sealed replay
+paths and polarity/value tampering. The big-endian test covers false polarity;
+the rejection matrix covers argument guards, two writer arms, unknown ModRef
+and non-strict joins. Multi-latch and general loop-memory summaries remain
+outside this v9 subset.
+
+F281 accepts exactly two unconditional loop latches. Each latch independently
+proves a partial-store/self-carry transfer to the same header MemoryPhi, and
+lowering emits a three-input integer PHI without inventing a latch priority.
+`backsolver_continuation_multi_latch_cyclic_byte_lane.ll` alternates low- and
+high-byte updates, checks 1024 executions, both sealed replay paths, a solver
+model and transfer/value tampering. The rejection file covers a third latch,
+full-width no-carry transfer and a nested conditional latch.
+
+F282 composes one newest depth-two pointer-union writer with one older
+single-level guarded writer. Lowering builds the older guarded byte first and
+uses it as the fallback of every NoAlias union leaf, preserving
+`union-hit ? union-byte : (old-guard ? old-byte : base-byte)`.
+`backsolver_continuation_pointer_union_priority.ll` checks the maximal
+3-node/4-leaf tree over 1024 executions, symbolized verification, both sealed
+replay paths, a Backsolver model, guarded-polarity tampering and a freshly
+sealed selected-value tamper. The rejection file keeps the original load when
+the writer order is reversed, two older guarded writers precede the union, or
+another exit in the same slot would require the incompatible v8 priority
+schema.
+
+F283 composes conditional and unconditional transfers in one exact two-latch
+cycle. The header still has one external entry and two actual LLVM backedges;
+each latch independently supplies a partial-store/self-carry transfer, and at
+least one latch must be a strict write/carry diamond. Lowering preserves the
+three-input PHI and the original per-latch guard polarity without inventing a
+writer order between mutually exclusive predecessors.
+
+`backsolver_continuation_conditional_multi_latch_cyclic_byte_lane.ll` uses one
+conditional low-byte latch and one unconditional high-byte latch. It checks
+1024 executions, symbolized verification, a cross-continuation Backsolver
+model, both seal/replay paths, manifest polarity tampering and a freshly
+sealed selected-value tamper. The big-endian companion uses two conditional
+latches with opposite polarity and one shared dominating guard; it verifies
+address-order lane mapping, the v12 manifest and independent replay. The
+rejection file first proves that continuation lowering ran, then retains the
+original load for an argument-only guard, two writer arms, and an unknown
+ModRef on the write arm.
+
+Run the complete v12 group with:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  python3 /usr/lib/llvm-18/build/utils/lit/lit.py -sv \
+  --filter='conditional_multi_latch_cyclic_byte_lane' ../build/test
+```
+
+The three F283 tests pass together. The complete continuation-memory v1--v12
+compatibility set passes 23/23; the corresponding full gates pass 174/174 LLVM
+lit tests and 459/459 Python tests. These are functional regressions, not a
+public-target performance result.
+
+F284 extends the same predecessor-selected fixed point to two through four
+latches. A v13 slot is selected only when at least one relevant state has
+three or four transfers; another state in that slot may have two through four.
+Every v13 transfer emits a conditional-presence tag, including ordinary
+unconditional transfers, so the proof layout does not depend on whether a
+guard happens to occur.
+
+`backsolver_continuation_bounded_multi_latch_cyclic_byte_lane.ll` exercises the
+four-latch maximum with two conditional and two unconditional transfers, one
+shared guard and opposite store polarities. It checks 2560 executions,
+symbolized verification, a Backsolver model, both sealed replay paths,
+canonical-ordinal tampering and a freshly sealed selected-byte tamper. The
+big-endian companion uses three all-unconditional latches and independently
+replays the tagged v13 proof. The rejection file reaches continuation lowering
+but retains the original load for a five-latch header.
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  python3 /usr/lib/llvm-18/build/utils/lit/lit.py -sv \
+  --filter='bounded_multi_latch_cyclic_byte_lane' ../build/test
+```
+
+All three F284 tests pass. The continuation-memory v1--v13 compatibility set
+passes 26/26, including the 2560-case four-latch differential test; the
+corresponding full gates pass 177/177 LLVM lit tests and 459/459 Python tests.
+These are functional and proof-compatibility regressions, not a public-target
+coverage or throughput result.
+
+F285 generalizes one backedge transfer from a strict two-leaf diamond to a
+bounded unique-parent binary predicate tree. The budget is three internal
+conditional branches and four leaves. A leaf may be pure carry or a proven
+partial-store/carry state, and at least one leaf must write. The lowering emits
+the full integer expression in each original leaf block and a predecessor-
+selected leaf PHI in the latch, preserving path-local evaluation and allowing
+different leaves to update different byte lanes.
+
+`backsolver_continuation_nested_predicate_cyclic_byte_lane.ll` exercises the
+maximum three-node/four-leaf tree with three distinct partial writers and one
+pure-carry leaf. It checks 5120 original/lowered executions, symbolized
+verification, a Backsolver model, both sealed replay paths, child-topology
+tampering and a freshly sealed selected-byte tamper. The PowerPC64 companion
+combines a three-leaf tree transfer with an ordinary second latch and verifies
+big-endian lane mapping plus global v14 transfer tagging. The rejection file
+retains the original load for a five-leaf tree after continuation lowering.
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  python3 /usr/lib/llvm-18/build/utils/lit/lit.py -sv \
+  --filter='nested_predicate_cyclic_byte_lane' ../build/test
+```
+
+These tests establish bounded functional/proof behavior. They do not establish
+the public-target acceptance rate, solver-CPU effect or equal-CPU coverage
+improvement of nested loop predicates.
+
+The three F285 tests pass together. The continuation-memory v1--v14
+compatibility set passes 29/29; the corresponding full gates pass 180/180 LLVM
+lit tests and 459/459 Python tests.
+
+F286 replaces the fixed F282 writer order with a bounded newest-first sequence.
+One path may carry up to four layers, with no more than two depth-two pointer
+partitions and two single-level guarded stores. Lowering reconstructs the base
+and applies layers in reverse record order, so the newest MemorySSA definition
+is the outermost select. Lanes shadowed by a newer unconditional definition are
+masked from older layers.
+
+`backsolver_continuation_ordered_writer_graph.ll` exercises the maximum
+guard/partition/guard/partition proof. It covers all 64 writer-condition
+combinations across three continuation selectors, symbolized verification,
+Backsolver, both sealed replay paths and ordinal, polarity and freshly sealed
+expression tampering. A direct write after the oldest partition also verifies
+that every shadowed high-lane source is canonicalized to fallback while its
+visible low-lane source remains. The PowerPC64 companion verifies two ordered
+partitions and big-endian lane zero. F291 supersedes the former third-partition
+rejection with a v16 exact extension; the two v15 fixtures still prove that
+shapes inside the original budget retain the original schema.
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  /home/ubuntu/venv/symcc/bin/lit -sv ../build/test \
+  --filter='ordered_writer_graph'
+```
+
+The F286 v15 tests and the F291 migration test pass. The continuation-memory
+v1--v15 compatibility group
+passes 32/32 in 132.21 seconds. The corresponding full gates pass 183/183 LLVM
+lit tests in 135.31 seconds and 459/459 Python tests in 77.937 seconds. This
+demonstrates bounded semantic and proof compatibility, not public-target
+coverage or solver-cost improvement.
+
+F287 extends the F273 Hydra tree schema only when an arm contains a real
+multi-predecessor local merge. The compiler selects the unique outer merge
+with a post-dominator query, topologically orders each acyclic arm with stable
+site IDs, reconstructs incoming-edge path guards and folds local PHIs into
+selects before aligning ordinary instructions. The v4 bound is ten blocks,
+four internal branches, eight outer-merge leaf edges, three local merges,
+eight local PHIs and 64 instructions per arm.
+
+`hydra_internal_dag.ll` covers two left and one right local merge, three local
+PHIs and two output PHIs. It compares all 256 byte inputs, checks symbolized
+IR, the campaign manifest loader, direct verification, unified seal/replay and
+predecessor, PHI-site and freshly sealed lowered-IR tampering.
+`hydra_internal_dag_memory.ll` separately exercises aggressive mode: values
+from two local PHIs feed one guarded same-address readback store and agree with
+the original CFG for all 256 inputs. The rejection test keeps a cross-arm
+external predecessor, a cycle and a four-merge/13-block region unchanged.
+The old F273 internal-reconvergence negative is now a v4 positive, while its
+four-branch no-reconvergence case and the F272 1x5 linear arm remain rejected.
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  /home/ubuntu/venv/symcc/bin/lit -sv ../build/test \
+  --filter='hydra_(transform|multiblock|unequal_max|internal_tree|internal_dag)'
+```
+
+The three F287 tests pass, and the Hydra v1--v4 compatibility group passes
+9/9. The corresponding full gates pass 186/186 LLVM lit tests in 135.16
+seconds and 459/459 Python tests in 76.879 seconds. These tests establish
+bounded functional and artifact behavior. They do not establish the
+public-target region acceptance rate, solver-query reduction or equal-CPU
+coverage improvement.
+
+F288 closes the profile-to-campaign identity gap and makes compiler JSONL
+publication safe for cooperating local processes. New profiles use
+`symcc-hydra-profile-v2`: the artifact records the resolved profiling argv,
+input mode, producing executable SHA-256 and command SHA-256, while the text
+profile carries those identities into the compiler. A v2 compiler record binds
+the profile artifact, executable and command digests plus the selected site's
+four statistics. `hydra_transform.py campaign --profile-artifact ...` requires
+the embedded command to equal the original authority command and independently
+matches all those fields before executing the corpus. Missing headers,
+duplicate sites, invalid values, unreadable profiles and valid empty profiles
+all fail closed; the legacy v1 format remains verifiable without a binary
+identity claim.
+
+All four compiler manifest producers now publish a complete batch under an
+exclusive advisory `flock`, using `O_APPEND`, partial-write/EINTR handling and
+`fsync`. The F288 stress regression runs 24 simultaneous `opt` processes
+against one Hydra manifest and requires exactly 24 independently verified JSON
+records. The CLI end-to-end regression generates a v2 profile, compiles a
+profile-selected region, verifies a replay-v2 campaign, and rejects a changed
+original executable. This is local cooperative concurrency and hash binding,
+not a signature, transparency log, network-filesystem guarantee or cross-host
+transport protocol.
+The corresponding full gates pass 187/187 LLVM lit tests in 135.52 seconds
+and 461/461 Python tests in 77.260 seconds.
+
+F289 transports an F274 seal and every artifact it names without relying on a
+shared filesystem. Generate separate Ed25519 artifact/log key pairs, then
+publish a self-contained bundle:
+
+```bash
+python3 ../util/transform_artifact_bundle.py keygen \
+  --private-key keys/artifact-private.pem \
+  --public-key keys/artifact-public.pem
+python3 ../util/transform_artifact_bundle.py keygen \
+  --private-key keys/log-private.pem \
+  --public-key keys/log-public.pem
+
+python3 ../util/transform_artifact_bundle.py publish \
+  --seal transformation.seal.json \
+  --artifact input-ir=input.ll \
+  --artifact lowered-ir=lowered.ll \
+  --artifact compiler=../build/libsymcc.so \
+  --artifact llvm-tool=/absolute/path/to/opt \
+  --artifact manifest:hydra=hydra-manifest.jsonl \
+  --private-key keys/artifact-private.pem \
+  --public-key keys/artifact-public.pem \
+  --log benchmark_results/transparency.jsonl \
+  --log-private-key keys/log-private.pem \
+  --log-public-key keys/log-public.pem \
+  --output benchmark_results/transformation.bundle.zip
+
+python3 ../util/transform_artifact_bundle.py verify \
+  benchmark_results/transformation.bundle.zip \
+  --public-key trusted/artifact-public.pem \
+  --log-public-key trusted/log-public.pem \
+  --extract-dir imported/transformation
+```
+
+The canonical descriptor is domain-separated and signed; the local append-only
+log uses RFC 9162-style leaf/node hashing, signed previous-root tree heads and
+an offline inclusion proof. Verification treats the supplied public keys as
+the trust roots, checks exact ZIP membership, every blob and the embedded
+F274 seal, and atomically creates a fresh import directory. Six tests cover
+API/CLI operation, two historical heads, eight concurrent publishers,
+signature/proof/blob tampering, wrong keys, log rewriting, missing roles and
+duplicate extraction. This is functional artifact evidence. It is not a
+public transparency service, timestamp, HSM/key-lifecycle system, gossip-based
+rollback detector, reproducible-build proof or benchmark performance result.
+The corresponding full gates pass 188/188 LLVM lit tests in 134.79 seconds
+and 467/467 Python tests in 79.299 seconds.
+
+F290 makes the Hydra LLVM semantic boundary explicit and checks exact replay
+across supported compiler majors. A Hydra record now binds the LLVM version,
+poison/undef/freeze refinement policy, safe inactive-operand policy, exception
+rejection policy, and recomputable freeze counts. Paired freezes preserve one
+dynamic freeze per alignment slot, one-sided freezes are path-predicated, an
+inactive integer divisor is replaced with one, and invoke/EH regions remain
+untransformed.
+
+Given an F274 baseline seal, run a candidate built against another LLVM ABI:
+
+```bash
+python3 ../util/cross_llvm_transform_replay.py audit \
+  --pipeline hydra --manifest hydra=hydra.jsonl \
+  --input-ir "$PWD/input.ll" --lowered-ir lowered.ll \
+  --compiler "$PWD/../build/libsymcc.so" \
+  --llvm-tool /usr/lib/llvm-18/bin/opt \
+  --seal transformation.seal.json \
+  --candidates cross-llvm-candidates.json \
+  --output benchmark_results/cross-llvm-certificate.json
+
+python3 ../util/cross_llvm_transform_replay.py verify \
+  --certificate benchmark_results/cross-llvm-certificate.json
+```
+
+The candidate document uses schema `symcc-cross-llvm-candidates-v1`; each row
+provides `label`, `opt`, ABI-matched `compiler`, and optional same-major
+`llvm_diff`. The audit independently replays the baseline, verifies candidate
+IR, verifies each manifest, compares ordered proof identities and manifests
+after removing only LLVM version fields, runs candidate `llvm-diff`, and
+requires byte-identical textual IR. Manifest major claims must match the actual
+tool identity; candidate tool/plugin hashes are checked before and after replay,
+and the baseline seal is reverified at the end. Same-major-only audits fail.
+
+Checked evidence is
+`evidence/hydra_f290_cross_llvm_certificate.json`: LLVM 18.1.3 and 17.0.6
+produce lowered SHA-256
+`ecf1990d2d4e41763fccb994b1b3a8ddbbab4ccdc28abcfd507f7207f89d6ebc`
+and normalized-manifest SHA-256
+`08dfcb0515d45446ecffda1e037d6adf4b696cc503efedac3d975593653a8644`.
+Full gates pass 191/191 LLVM 18 lit tests, 190 LLVM 17 tests with the
+cross-major driver unsupported in that secondary suite, and 471/471 Python
+tests. This is fixture-specific exact structural replay, not arbitrary-IR
+formal equivalence or benchmark evidence. The certificate is self-hashed, not
+signed; use F289 for authenticated transport.
+
+F291 adds an exact symbolic-index writer layer for one fixed heap object.
+For a load lane `l` and store source byte `s`, the compiler emits only the
+overlap equality
+
+```text
+index = load_offset + l - s - writer_base_offset
+```
+
+and selects the stored byte over the older MemorySSA byte. It therefore does
+not enumerate the full 32/64-bit index domain. V16
+`symbolic-region-writer-graph-continuation-memory-tuple-v16` binds the
+allocation site, constant extent, index site/width, signed base offset,
+per-lane signed cases and newest-first writer order. It also raises the total
+writer budget from four to eight, so three pointer partitions are representable
+without changing their v15 semantics. Old shapes remain v15.
+
+The accepted region is deliberately narrow: address-space-0 external
+`malloc/calloc`, constant extent `1..2^32`, a fixed 2--8-byte integer load,
+and a simple 1--8-byte store through a one-index pointer-width
+`inbounds gep i8`. Dynamic extent, argument/user-defined allocator base,
+symbolic base, pointer PHI, non-byte/strided GEP, realloc, volatile/atomic,
+unknown ModRef and cyclic MemoryPhi retain the original load.
+
+Run the focused evidence with:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  /home/ubuntu/venv/symcc/bin/lit -sv ../build/test \
+  --filter='symbolic_(heap|calloc)_region|ordered_writer_graph_reject'
+
+python3 ../util/cross_llvm_transform_replay.py verify \
+  --certificate evidence/ifss_f291_cross_llvm_certificate.json
+```
+
+The malloc fixture compares 768 original/lowered executions, checks negative
+index equalities, manifest and freshly sealed IR tampering, both replay paths,
+symbolization, and a real Backsolver model with `index mod 7 = 2`. Companion
+tests cover `calloc(4,2)` with nonzero base offset, PowerPC64 big-endian byte
+selection, unknown extent/external base rejection and the third-partition v16
+migration. LLVM 17 and 18 focused suites pass. The checked certificate records
+equal proof identity `17025496568858965401` and byte-identical lowered SHA-256
+`ff1c921372b1c7bc7b334260e427fb9791c0af0f7a3fe31683798f3dabfb7192`.
+The post-F291 full gates pass 195/195 LLVM 18 lit tests, 194 LLVM 17 tests
+with one unsupported cross-major driver, and 471/471 Python tests.
+This is correctness and structural evidence, not a public-target profitability
+claim or general heap/array summarization.
+
+F292 extends the same fixed-region equality to one exact loop recurrence.
+Rather than unrolling iterations or modeling the whole allocation as an SMT
+array, it keeps only the fixed 2--8-byte read window in an integer PHI:
+
+```text
+X[next,lane] =
+  ite(index == load_offset + lane - source_byte - base_offset,
+      stored_byte,
+      X[current,lane])
+```
+
+Schema `symbolic-region-cyclic-byte-lane-continuation-memory-tuple-v17`
+requires one entry, one unconditional backedge, one symbolic writer and an
+all-carry base for every backedge lane. The nested
+`backedge_state.symbolic_region_writer` record uses the v16 region/index/case
+fields. Compiler replay checks the actual PHI and `icmp/select` chain; the
+independent verifier recomputes the cycle topology, all-carry state, signed
+case bounds and combined fingerprint.
+
+Run the focused tests with:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  /home/ubuntu/venv/symcc/bin/lit -sv ../build/test \
+  --filter='symbolic_heap_region_cycle'
+
+python3 ../util/cross_llvm_transform_replay.py verify \
+  --certificate evidence/ifss_f292_cross_llvm_certificate.json
+```
+
+The primary test compares 270 original/lowered executions, exercises both
+seal formats, manifest and freshly sealed IR tampering, symbolization and a
+real Backsolver model. A PowerPC64 test checks two-byte writer extraction and
+negative cases. Argument regions, dynamic extents, two dynamic writers,
+fixed/dynamic mixtures and nonstandard allocator prototypes fail closed.
+LLVM 17/18 focused groups pass 6/6. Their checked certificate has equal proof
+identity `11600885392756402730`, lowered SHA-256
+`6e5e4c5c8fbc76d79a603a874dd78161803f5b54aeedf9c30ee05365efe91189`,
+and normalized-manifest SHA-256
+`2eb7bf054afdbc666c0fa9929c1c429bb80dce6dcb63fbf1dc6b29353c1c1901`.
+The post-F292 full gates pass 198/198 LLVM 18 lit tests, 197 LLVM 17 tests
+with one unsupported cross-major driver, and 471/471 Python tests.
+This v17 artifact is a fixed-window scalar recurrence, not conditional/
+multi-latch array summarization, general heap reasoning or public-target
+profitability evidence. F294 adds a separate bounded v18 multi-latch subset.
+
+F294 lifts the same scalarized region transfer to 2--4 mutually exclusive
+MemoryPhi latches. A latch has at most one F291-compatible symbolic writer and
+may guard it with one branch condition. For latch `j`, its lane transfer is:
+
+```text
+region_j = ite(index_j == overlap_case_j, stored_byte_j, carried_byte)
+next_j   = ite(store_guard_j, region_j, carried_byte)  # conditional only
+```
+
+The header PHI selects one entry/latch state. It does not execute latch writers
+in ordinal order. This distinction is required for loops with alternate
+continue edges: sequential composition would fabricate writes that cannot
+occur in the same iteration.
+
+Run the x86 differential/replay test, the PowerPC64 four-latch upper-bound
+test, and the rejection matrix with:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  /home/ubuntu/venv/symcc/bin/lit -sv ../build/test \
+  --filter='symbolic_heap_region_multi_latch'
+
+python3 ../util/cross_llvm_transform_replay.py verify \
+  --certificate evidence/ifss_f294_cross_llvm_certificate.json
+```
+
+Schema
+`symbolic-region-multi-latch-cyclic-byte-lane-continuation-memory-tuple-v18`
+stores an optional `symbolic_region_writer` on every transfer. Its presence
+bit, allocator/extent, store/index identity, signed overlap cases, conditional
+guard site/polarity and ordinal are included in the proof fingerprint.
+Compiler replay peels the actual cycle PHI, outer guard and inner equality
+chain; the independent verifier requires an all-carry ordinary lane base for
+every symbolic transfer.
+
+The two-latch positive compares 126 original/lowered executions and also
+checks both seal formats, manifest/IR tampering, symbolization and a real
+Backsolver model. The big-endian fixture reaches the four-latch bound with
+i16 writers and verifies source-byte cases `(0,0)` and `(-1,1)`. Two symbolic
+writers on one latch, a dynamic allocation extent and five latches fail
+closed. LLVM 17/18 focused groups pass 3/3. The checked certificate binds
+proof identity `2389278380394154034`, lowered SHA-256
+`c2802fe2c1015fc0117954e0f74c3edcf19d6cac2d67cabd400825ebe87f3769`,
+and normalized-manifest SHA-256
+`296583a8c561d62aa2abaecca7e844a7c5edb1aa4c5dcecca7ef51638e0ca409`.
+This is not same-latch ordered multi-writer composition, nested predicates,
+dynamic extent, symbolic-base/strided array reasoning or public-target
+profitability evidence.
+The post-F294 full gates pass 202/202 LLVM 18 lit tests at `-j16`, 201 LLVM
+17 tests plus one unsupported cross-major driver at `-j16`, and 471/471
+Python tests. Their sequential wall times were 134.31, 134.07, and 79.584
+seconds.
+
+F296 extends the single-latch v17 recurrence to an ordered 2--4-writer
+fixed-region subset:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  /home/ubuntu/venv/symcc/bin/lit -sv ../build/test \
+  --filter='continuation_(symbolic_heap_region|ordered_symbolic_region)'
+
+python3 ../util/cross_llvm_transform_replay.py verify \
+  --certificate evidence/ifss_f296_cross_llvm_certificate.json
+```
+
+Schema
+`ordered-symbolic-region-cyclic-byte-lane-continuation-memory-tuple-v19`
+records `symbolic_region_writers` in MemorySSA newest-first order. Each of
+the 2--4 entries binds a distinct store site, the same fixed allocation and
+extent, its pointer-width index, base offset, and canonical signed byte-overlap
+cases. For a lane, ordinal zero wins when its equality is true; otherwise the
+chain falls through toward older writers and finally the previous cycle PHI
+byte. Lowering constructs the chain from oldest to newest so the newest writer
+is the outer select. Compiler replay peels that actual expression in the
+opposite direction, while the independent verifier checks canonical ordinals,
+shared region identity, v17/v19 field exclusion, and the same fingerprint.
+
+The little-endian fixture executes three stores per iteration, including two
+writes to the same dynamic address, and compares 105 original/lowered inputs.
+It also checks both seal formats, order/extent/actual-equality tampering,
+symbolization, and a real Backsolver model. A PowerPC64 fixture verifies two
+i16 writers and big-endian byte cases. Five relevant writers and an unknown
+ModRef between writers fail closed. The v16--v19 compatibility group passes
+12/12 on LLVM 17 and 18.
+
+The exact certificate binds proof identity `3118488025292340061`, lowered
+SHA-256
+`cd776afe464d40533caae83d942d1eded06b5174652585128feae7ad313e03c5`,
+and normalized-manifest SHA-256
+`d83e318f2ec82a93aab8894eab29c278b5a91a9254a1470cb35221c4f7fabe55`.
+This remains a fixed allocation/window, linear MemorySSA-chain model. It is
+not nested-predicate or conditional same-latch composition, multi-writer
+multi-latch transfer, symbolic-base/general-heap reasoning, or public-target
+profitability evidence.
+The post-F296 full gates pass 206/206 LLVM 18 lit tests in 135.31 seconds,
+205 LLVM 17 tests with one expected unsupported cross-major driver in
+139.22 seconds, and 471/471 Python tests in 80.736 seconds.
+
+F293 extends the Hydra v4 acyclic SESE proof only after the old 10-block/
+3-local-merge domain rejects a candidate. V5 accepts at most 14 blocks,
+5 internal branches, 10 external-merge leaf edges, 4 local merges, 12 local
+PHIs and 96 instructions per arm. Every arm edge guard is hash-consed by
+`(predecessor ordinal, successor index)`; predicate negations are shared
+across both arms by lowered SSA identity. This prevents local-PHI and leaf
+replay from rebuilding the same guard while preserving distinct edge
+ownership.
+
+Run the compatibility and certificate checks with:
+
+```bash
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  /home/ubuntu/venv/symcc/bin/lit -sv ../build/test \
+  --filter='hydra_(transform|multiblock|unequal_max|internal_tree|internal_dag|shared_predicate_dag)'
+
+python3 ../util/cross_llvm_transform_replay.py verify \
+  --certificate evidence/hydra_f293_cross_llvm_certificate.json
+```
+
+The 13-block positive has four local merges/PHIs and reuses one internal
+predicate. Its manifest proves 18 canonical CFG edges, three unique predicate
+identities, one repeated occurrence, eight edge-cache hits and at least one
+negation reuse. The test compares all 256 byte inputs, checks symbolization,
+manifest/campaign loading, seal/replay, edge/predicate tampering and a freshly
+sealed lowered-IR opcode change. A 16-block/five-merge graph fails closed.
+An additional 13-block/four-merge fixture has no local PHI and proves that a
+legal zero edge-cache-hit observation is accepted consistently rather than
+being confused with absence of the cache policy.
+Hydra v1--v5 compatibility passes 9/9 on LLVM 17 and 18. The exact certificate
+binds proof identity `3502535688576112958`, lowered SHA-256
+`cd12b34975f22a06c2c8de323509511dc576b94693ed38f1f767df7dc0e6d700`,
+and normalized-manifest SHA-256
+`409fe0b27aaf5699d4f86f3e30f14322fad721e730f6dcbd5e13754ed17f3e9f`.
+The post-F293 full gates pass 199/199 LLVM 18 lit tests at `-j16`, 198 LLVM
+17 tests at `-j16` with one unsupported cross-major driver, and 471/471
+Python tests. These suites were run sequentially; running both default
+192-worker lit suites concurrently can starve the exact-polyhedral and
+persistent-helper stress cases.
+Hash-consing remains local to one selected Hydra region and is not a public
+target profitability result or arbitrary-CFG lowering.
+
+F295 adds an explicit multi-site compiler experiment without changing the
+default single-site benchmark path:
+
+```bash
+export SYMCC_HYDRA=1
+export SYMCC_HYDRA_MODE=safe
+export SYMCC_HYDRA_SITES=7001,7002
+export SYMCC_HYDRA_MANIFEST_OUT=hydra-transaction.jsonl
+
+PATH=/usr/lib/llvm-18/bin:$PATH \
+  /home/ubuntu/venv/symcc/bin/lit -sv ../build/test \
+  --filter='hydra_cross_region_hash_cons'
+
+python3 ../util/verify_hydra_transform_manifest.py \
+  hydra-transaction.jsonl
+python3 ../util/cross_llvm_transform_replay.py verify \
+  --certificate evidence/hydra_f295_cross_llvm_certificate.json
+```
+
+The ordered list must contain 2--4 distinct sites in one function. Every site
+must independently be an F293 v5 DAG; region-owned blocks must be disjoint,
+entries must form the listed dominance chain, and all regions must share at
+least one original SSA predicate. A cached predicate negation is reused only
+if a fresh DominatorTree proves that its instruction dominates the next
+region's insertion point.
+
+The checked two-site fixture contains two 13-block/four-local-merge regions
+sharing three predicate arguments. Independent lowering would emit eight
+`xor i1` negations; v6 emits five, and the second manifest record attributes
+at least three cross-region hits to producer site 7001. All 256 byte inputs
+agree between original and lowered IR. The lit also covers symbolization,
+two-record seal/replay, actual-IR and transaction tampering, and complete
+rejection of reverse order, duplicate/missing sites, and a same-function pair
+with no common predicate. Hydra v1--v6 compatibility passes 11/11 on LLVM 17
+and 18.
+
+The exact certificate binds structure identities `8175852705754774924` and
+`1889164356607597381`, lowered SHA-256
+`a0df2ebd9b22a950a6301330cdbdc421fbc6bf35cc3b4eab0a458c2cf957a937`,
+and normalized-manifest SHA-256
+`31a953eeb4e74106e7bbadb2e66af29fa725db8e8745cc4c43827cbf5942d4c8`.
+This mechanism is not cross-function/general-expression CSE, overlapping or
+non-dominating region melding, dynamic multi-site selection, or evidence of
+public-target profitability. `util/hydra_transform.py` campaigns remain
+single-site, so current public evaluation should keep
+`SYMCC_HYDRA_SITES` unset until a separately sealed multi-site protocol is
+added.
+
+The post-F295 full gates were run sequentially: LLVM 18 passed 203/203 lit
+tests in 134.10 seconds, LLVM 17 passed 202 tests with one expected unsupported
+cross-major driver in 133.26 seconds, and Python passed 471/471 tests in
+79.599 seconds.
+
+The same positive lit also exercises F263 continuation manifests. A build with
+
+```bash
+export SYMCC_IFSS_CONTINUATION_MANIFEST_OUT=continuations.jsonl
+python3 ../util/verify_ifss_continuation_manifest.py continuations.jsonl
+```
+
+must emit `llvm-memoryssa-aa-revalidated-v1` for all-store memory tuples,
+`llvm-memoryssa-aa-live-on-entry-revalidated-v2` for F269 mixed tuples, and
+`llvm-memoryssa-aa-nested-phi-revalidated-v3` for F270 provenance trees; it
+emits `llvm-memoryssa-aa-byte-lane-revalidated-v4` for F275 lane compositions
+and `llvm-memoryssa-aa-guarded-byte-lane-revalidated-v5` for F276 finite alias
+partitions. F277 cycle tuples emit
+`llvm-memoryssa-aa-cyclic-byte-lane-revalidated-v6`; cyclic exits include
+header/entry/backedge sites, a nested entry byte state and latch store/carry
+lanes. F278 and F279 emit
+`llvm-memoryssa-aa-finite-pointer-union-revalidated-v7` and
+`llvm-memoryssa-aa-guarded-write-priority-revalidated-v8`. F280 emits
+`llvm-memoryssa-aa-conditional-cyclic-byte-lane-revalidated-v9` and binds the
+branch/arm/guard topology plus update polarity. F281 emits
+`llvm-memoryssa-aa-multi-latch-cyclic-byte-lane-revalidated-v10` with two
+per-latch transfer records. F282 emits
+`llvm-memoryssa-aa-pointer-union-priority-revalidated-v11`, combining the
+older guarded fallback identity with the newer partition tree. F283 emits
+`llvm-memoryssa-aa-conditional-multi-latch-cyclic-byte-lane-revalidated-v12`;
+each ordered transfer declares whether it is conditional and, when needed,
+binds branch/arm/guard sites and polarity. A dominating guard may be shared
+between latch branches because data identity is not CFG-node ownership.
+F284 emits
+`llvm-memoryssa-aa-bounded-multi-latch-cyclic-byte-lane-revalidated-v13`;
+the verifier accepts two through four tagged transfers per cyclic state but
+requires at least one three/four-transfer state in every v13 slot.
+F285 emits
+`llvm-memoryssa-aa-nested-predicate-cyclic-byte-lane-revalidated-v14`;
+the verifier requires at least one predicate-tree transfer, validates a unique
+root and unit indegree for every non-root node/leaf, and binds all leaf states
+into the fingerprint.
+F286 emits `llvm-memoryssa-aa-ordered-writer-graph-revalidated-v15`; every exit
+contains plain base lanes and zero to four canonical `writer_layers`. The
+verifier checks layer kind budgets, newest-first ordinals, per-lane fallback
+and polarity, complete pointer-tree ownership and the combined fingerprint.
+F291 emits
+`llvm-memoryssa-aa-symbolic-region-writer-graph-revalidated-v16`; v16 allows
+up to eight layers, adds `symbolic-region-write`, and verifies region/index/
+case fields plus signed two's-complement fingerprint encoding.
+F292 emits
+`llvm-memoryssa-aa-symbolic-region-cyclic-byte-lane-revalidated-v17`; v17
+requires a single-backedge all-carry fixed point plus one nested symbolic
+region writer record.
+Scalar-only records emit `structural-only-v1`. The verifier rejects
+independent exit-destination, state-kind, NoMod-chain, provenance-edge, tree,
+lane, endianness, cycle topology/polarity, pointer tree, write priority and
+fingerprint tampering. Use one fresh file per compiler process; concurrent
+append sealing and compiler/IR binary hashes are intentionally outside manifest
+schema v1.
+
+F264 seals those external identities after the compiler has produced its final
+IR:
+
+```bash
+python3 ../util/seal_ifss_continuation_artifact.py seal \
+  --manifest continuations.jsonl \
+  --input-ir input.ll --lowered-ir lowered.ll \
+  --compiler ../build/libsymcc.so --llvm-tool /usr/lib/llvm-18/bin/opt \
+  --output continuations.seal.json
+
+python3 ../util/seal_ifss_continuation_artifact.py verify \
+  --manifest continuations.jsonl \
+  --input-ir input.ll --lowered-ir lowered.ll \
+  --compiler ../build/libsymcc.so --llvm-tool /usr/lib/llvm-18/bin/opt \
+  --seal continuations.seal.json
+```
+
+The write-once envelope binds ordered proof fingerprints, five file
+size/SHA-256 identities and bounded LLVM version output. It is committed with
+an advisory lock, file/directory fsync and atomic rename. Verification must
+rehash every supplied artifact. Archive the seal in the F67 run manifest; use
+one output per job on a filesystem with working POSIX locks.
+
+F265 then replays the sealed semantic proof in a separate LLVM process:
+
+```bash
+python3 ../util/replay_ifss_continuation_artifact.py \
+  --seal continuations.seal.json \
+  --manifest continuations.jsonl \
+  --input-ir input.ll --lowered-ir lowered.ll \
+  --compiler ../build/libsymcc.so --llvm-tool /usr/lib/llvm-18/bin/opt
+```
+
+The tool first performs the complete F264 verification. It then invokes the
+sealed `opt` and plugin with lowering disabled, reconstructs the manifest from
+the sealed lowered IR using current MemorySSA/AA, independently verifies that
+manifest, and requires exact JSON-record equality. Keep seal verification and
+semantic replay as separate result fields: a valid newly generated seal can
+bind an alias-modified IR, while replay must reject its stale NoMod chain.
+
+F274 provides the common, stronger path for continuation, loop and Hydra. It
+independently reruns the complete transformation from the original input IR
+and requires both regenerated proof records and regenerated lowered textual IR
+to match exactly:
+
+```bash
+# Continuation: use continuation=continuations.jsonl.
+# Hydra: use hydra=hydra.jsonl.
+python3 ../util/seal_transform_artifact.py seal \
+  --pipeline loop \
+  --manifest loop-recurrence=loops.jsonl \
+  --manifest loop-exit=loop-exits.jsonl \
+  --input-ir input.ll --lowered-ir lowered.ll \
+  --compiler ../build/libsymcc.so --llvm-tool /usr/lib/llvm-18/bin/opt \
+  --output transformation.seal.json
+
+python3 ../util/seal_transform_artifact.py verify \
+  --pipeline loop \
+  --manifest loop-recurrence=loops.jsonl \
+  --manifest loop-exit=loop-exits.jsonl \
+  --input-ir input.ll --lowered-ir lowered.ll \
+  --compiler ../build/libsymcc.so --llvm-tool /usr/lib/llvm-18/bin/opt \
+  --seal transformation.seal.json
+
+python3 ../util/replay_transform_artifact.py \
+  --pipeline loop \
+  --manifest loop-recurrence=loops.jsonl \
+  --manifest loop-exit=loop-exits.jsonl \
+  --input-ir input.ll --lowered-ir lowered.ll \
+  --compiler ../build/libsymcc.so --llvm-tool /usr/lib/llvm-18/bin/opt \
+  --seal transformation.seal.json
+```
+
+Archive the input IR, lowered IR, every named manifest, compiler plugin, LLVM
+tool identity and unified seal under the same run ID. Record seal verification
+and independent replay as separate booleans. A run is transformation-valid
+only when both pass; a fresh seal over a verifier-clean modified lowered IR is
+not sufficient. Continuation automatically restores memory-off for an
+all-`structural-only-v1` manifest. The mechanism assumes deterministic
+`opt -S` output, the exact sealed compiler/LLVM versions and a local filesystem
+with POSIX locking. It is not a remote signature or a substitute for replaying
+generated test cases on the original target for authoritative coverage and
+failure classification.
+
+For public campaigns use both `SYMCC_IFSS_CONTINUATION_STATE=1` and
+`SYMCC_IFSS_CONTINUATION_MEMORY=1`, and compare against the same continuation
+build with the memory flag disabled. Report candidate/accepted locations,
+controller-level budget rejection, destination and relevant-exit counts,
+MustAlias/LiveOnEntry mix, NoMod chain length and rejection taxonomy,
+snapshot/tuple/ITE growth, compile CPU/RSS, solver child CPU, direct/fallback
+validation, original-replay validity, cross-destination yield, coverage AUC,
+and final coverage. The IR metadata is mechanism evidence; archive the
+pre/post IR and compiler identity with the verified manifest. The compiler
+replays MemorySSA/AA before emission, while the offline verifier checks
+artifact structure and content identity.
+
+F238 persistent `smtlib-qfbv` runs additionally expose
+`backend_context_protocol=smtlib-prefix-process-push-pop-v1`,
+`prefix_cache_hit`, and `prefix_cache_entries`. Compare one-shot against
+incremental caches of 1/4/16/64 processes while holding solver CPU and memory
+limits constant. Report cold builds, exact-prefix hit rate, LRU evictions,
+process failures/timeouts, cold recovery success, peak RSS, wall/CPU time per
+query, and coverage/CPU-hour. A timeout kills only its prefix process; count the
+following cold rebuild separately. Do not compare an incremental run with
+`accept_unsat=true` against a one-shot run with the default false trust setting.
+
+Partial-solution-cache runs record SQLite `partial_solutions` and
+`partial_solution_candidates`, with source-clause overlap stored through
+`partial_solution_clauses`. F236 additionally records proof-carrying
+assumption-conflict assignments, normalized signed-literal relevance through
+`query_literals`/`partial_solution_literals`, source provenance, core proof
+JSON, and independent Query IR conflict verification. Partial candidate manifests set
+`solver_verified=false`, `partial_solution_verified=true`, and
+`query_ir_verified=true`; conflict-derived manifests also expose
+`partial_solution_provenance=z3-assumption-conflict`,
+`partial_solution_source_verified`, proof digest, and literal/clause overlap.
+For G07 ablations, track partial_solutions/query, model-vs-conflict entries,
+conflict checks and retained cores, core size/minimality, clause/literal links,
+lookup scan cost, overlap distribution, Query IR verification pass rate,
+`async-partial-*` replay validity, unique edges/query, solved-query latency,
+exact solver CPU saved, and coverage/CPU-hour. Compare cache disabled,
+SAT-model-only, witness-conflict-only, cached-miss conflict collection,
+core-minimization budgets, ingest-only lookup, pending-query rescan, and the
+full combination under equal CPU budgets.
+
+For exploratory summaries of legacy result files, run:
+
+```bash
+python3 benchmark/analyze_ablation.py benchmark_results/benchmark_data.csv \
+  --baseline-mode baseline --output-dir benchmark_results/ablation
+```
+
+The default metric is `edge_cov_pct`, matching the CSV schema emitted by
+`run_benchmark.py`. The runner now also emits `experiment_id`, `run_id`,
+`protocol_run_id`, `pair_id`, phase, seed, completion status, failure reason,
+allocated cores, CPU/wall budget and `coverage_auc`. Campaign budget exhaustion
+is a successful final-corpus observation; genuine nonzero exits remain failed.
+With `--timeseries N`, serial, MPI, hybrid, and AFL-only all emit comparable
+coverage curves. Each tick hard-links the initial corpus and live queues into a
+point-in-time snapshot; hybrid also includes raw SymCC and optional structural
+or heterogeneous-engine corpora. Content de-duplication and showmap replay run
+only after the campaign stops, so they do not consume its assigned CPUs.
+Public-target arguments are applied consistently to execution and every replay.
+Keep work/snapshot storage on one filesystem and reserve equal post-run wall
+grace for all compared configurations.
+
+## Confirmatory Research Protocol
+
+Do not use the runner's legacy mode-grouped loop as final evidence. Create a
+sealed randomized-block protocol instead. A protocol pairs configurations by
+target and repeat, randomizes both block and within-block order, uses common
+random numbers, verifies source/corpus/environment provenance, and enforces the
+same CPU-second budget with CPU affinity.
+`wall_grace_seconds` is an explicit teardown/artifact-collection allowance
+outside the campaign window. Keep it identical across configurations and keep
+the target's own timeout equal to `cpu_budget_seconds / cpu_cores`.
+
+Example `experiment.json`:
+
+```json
+{
+  "experiment_id": "dpor-ablation-2026-07",
+  "phase": "confirmatory",
+  "repeats": 20,
+  "cpu_budget_seconds": 240,
+  "random_seed": 20260727,
+  "targets": ["maze", "parser"],
+  "inputs": ["research_binaries", "benchmark/seeds"],
+  "configurations": [
+    {
+      "name": "baseline",
+      "cpu_cores": 4,
+      "wall_grace_seconds": 30,
+      "environment": {"SYMCC_DPOR": "0"},
+      "command": [
+        "python3", "benchmark/run_benchmark.py", "--skip-build",
+        "--bin-dir", "research_binaries",
+        "--no-public", "--no-serial", "--np-list", "4", "--rounds", "1",
+        "--timeout", "60", "--targets", "{target}",
+        "--output", "{run_dir}/benchmark"
+      ]
+    },
+    {
+      "name": "full",
+      "cpu_cores": 4,
+      "wall_grace_seconds": 30,
+      "environment": {"SYMCC_DPOR": "1"},
+      "command": [
+        "python3", "benchmark/run_benchmark.py", "--skip-build",
+        "--bin-dir", "research_binaries",
+        "--no-public", "--no-serial", "--np-list", "4", "--rounds", "1",
+        "--timeout", "60", "--targets", "{target}",
+        "--output", "{run_dir}/benchmark"
+      ]
+    }
+  ]
+}
+```
+
+Build the immutable target/AFL binaries once in `research_binaries/` before
+sealing the protocol; the directory is listed in `inputs`, so every binary is
+included in the corpus-tree digest. Then create, verify, and execute:
+
+```bash
+mkdir -p research_binaries
+for target in maze parser; do
+  build/symcc "benchmark/targets/${target}.c" \
+    -o "research_binaries/${target}_symcc"
+  afl-clang-fast "benchmark/targets/${target}.c" \
+    -o "research_binaries/${target}_afl"
+done
+
+python3 benchmark/research_protocol.py plan experiment.json \
+  --output protocol.json
+python3 benchmark/research_protocol.py verify protocol.json
+python3 benchmark/research_protocol.py run protocol.json \
+  --output-dir research_results --resume
+python3 benchmark/research_protocol.py verify protocol.json \
+  --results-dir research_results
+```
+
+Every scheduled cell has an atomic `runs/<run-id>/result.json` plus raw
+stdout/stderr. `research_results.jsonl` retains success, nonzero failure and
+timeout rows. A confirmatory plan with fewer than 20 repeats, a modified
+manifest, an incomplete matrix, duplicated run id, inconsistent pair seed, or
+unequal CPU budget is rejected. Result verification also rehashes the complete
+run artifact tree, including nested benchmark CSV/JSON/timeseries files.
+Before every new or resumed schedule cell, the executor also recomputes the
+sealed Git worktree, submodule, tool-environment, and explicit-input identities.
+Any live provenance drift is rejected, so one result matrix cannot silently mix
+two source trees or corpora. Completed artifacts remain independently verifiable
+from their manifest after the development worktree moves on.
+
+Analyze the inner benchmark CSV files with explicit pairing:
+
+```bash
+python3 benchmark/analyze_ablation.py \
+  $(find research_results/runs -name benchmark_data.csv -print) \
+  --baseline-mode baseline \
+  --metric edge_cov_pct --metric coverage_auc \
+  --strict-confirmatory --output-dir research_results/analysis
+```
+
+The analyzer retains failure/timeout/censored counts and reports paired median
+difference bootstrap intervals, paired sign-flip randomization p-values,
+direction-aware Vargha-Delaney A12 and Cliff's delta, plus Holm correction.
+With `--timeseries ... --time-to-target EDGES`, it derives normalized coverage
+AUC and right-censored time-to-target. Time-to-target A12 uses pairwise
+right-censored concordance; the censoring flag is deliberately ignored for
+coverage/AUC metrics. Creating the framework does not itself
+upgrade existing measurements to R-level evidence; the sealed 20-repeat
+campaign must actually be run.
+
+For scale analysis, `analyze_parallel_scaling.py` keeps resource dimensions
+separate. Pure MPI is modeled against concolic workers. Hybrid shared-corpus
+throughput and coverage are modeled against total compute workers
+(`num_workers + afl_instances`), while SymCC and AFL component USLs use their
+own axes. AFL executions and concolic candidates are different work units, so
+their legacy sum is never fitted. A formal ceiling decision additionally
+requires at least three independent random seeds per complete allocation,
+the same seed blocks at every scale level, stable run IDs, explicit and equal
+planned wall budgets (1% maximum relative span by default), at least four
+distinct parallelism levels, and one unconfounded resource allocation per
+modeled level. Hybrid campaigns must keep both the AFL:SymCC worker ratio and
+coordinator count fixed. Repeating the same seed is recorded as a technical
+replicate and cannot satisfy the independent-evidence gate. Uncertainty is
+estimated with a paired cluster bootstrap over complete seed blocks, preserving
+the cross-scale dependence induced by a seed. Repeated bootstrap multisets are
+cached, but each requested replicate remains in the percentile distribution.
+The v6 analyzer keeps within-level residuals when fitting per-level sufficient
+statistics, so adding noisy rounds cannot manufacture `R²=1`.
+
+Hybrid CSV rows must also contain `auxiliary_compute_slots`, emitted by the
+runtime as the total configured concurrency of query solving, result admission,
+AFL coverage replay, density profiling, and auxiliary showmap pools. The
+log parser accepts only bounded ASCII decimal ledger values, so malformed
+campaign output cannot enter the resource model. The
+physical resource ceiling is
+`physical_cores - num_masters - auxiliary_compute_slots`; omitting this field
+or changing it across hybrid scale levels makes the decision ineligible. The
+consistency check includes failed and timed-out attempts, so a
+resource-changing failure cannot be compared as the same allocation. Pure MPI
+records zero because its standalone driver has no out-of-rank compute pool.
+USL and coverage ceilings are withheld when `R² < 0.50`, when any evidence gate
+fails, or when coverage observations cannot support the monotone saturation
+model. These rules make the reported ceiling a campaign-local decision aid,
+not a hardware-independent system limit.
+
+The protocol exports both `SYMCC_CPU_BUDGET_SECONDS` and `SYMCC_CPU_CORES`.
+Inner result rows therefore use the manifest's affinity allocation when
+deriving wall budget and normalized AUC, including configurations whose mode
+name or internal `np` does not encode the assigned core count.
+
+### Five-level PCFG ablation
+
+For the hierarchical grammar model, avoid manually copying five nearly
+identical configurations. Use `pcfg_context_ablation`; planning expands the
+base command into `pcfg-global`, `pcfg-parent`, `pcfg-circuit`,
+`pcfg-sibling`, and `pcfg-history` with identical command, cores and teardown
+grace:
+
+```json
+{
+  "experiment_id": "pcfg-order-ablation-2026-07",
+  "phase": "confirmatory",
+  "repeats": 20,
+  "cpu_budget_seconds": 240,
+  "random_seed": 20260728,
+  "targets": ["parser"],
+  "inputs": ["research_binaries", "benchmark/seeds"],
+  "pcfg_context_ablation": {
+    "name_prefix": "pcfg",
+    "levels": ["global", "parent", "circuit", "sibling", "history"],
+    "base_configuration": {
+      "name": "replaced-by-level",
+      "cpu_cores": 4,
+      "wall_grace_seconds": 30,
+      "command": [
+        "python3", "benchmark/run_benchmark.py", "--skip-build",
+        "--bin-dir", "research_binaries", "--no-public",
+        "--no-serial", "--no-mpi", "--hybrid",
+        "--np-list", "4", "--rounds", "1", "--timeout", "60",
+        "--targets", "{target}", "--output", "{run_dir}/benchmark"
+      ]
+    }
+  }
+}
+```
+
+The expansion sets `SYMCC_PCFG_CONTEXT_ORDER` and
+`SYMCC_PCFG_REQUIRE_ARTIFACT=1`. The MPI master atomically writes
+`runs/<run-id>/pcfg_research_artifact.json`; it contains a canonical digest,
+protocol binding, enabled order, prequential/adaptive NLL and robust gain,
+certificate delay and alpha use, plus context/receipt/state/transition costs.
+A successful process without a valid artifact is retained as a failed result.
+Do not share a semantic state directory between levels.
+
+Join verified PCFG metrics to the benchmark rows and analyze them with the same
+paired design:
+
+```bash
+python3 benchmark/analyze_ablation.py \
+  $(find research_results/runs -name benchmark_data.csv -print) \
+  --pcfg-artifact research_results \
+  --baseline-mode pcfg-global \
+  --metric edge_cov_pct --metric coverage_auc \
+  --metric pcfg_prequential_context_gain_bits \
+  --metric pcfg_history_prequential_mean_robust_gain_bits \
+  --metric pcfg_history_anytime_mean_detection_delay_fragments \
+  --strict-confirmatory --output-dir research_results/pcfg-analysis
+```
+
+At a disabled level, zero NLL/gain is structural rather than an observation;
+use `pcfg_{parent,circuit,sibling,history}_enabled` together with the matching
+`*_prequential_observations` field. Cross-level model-quality comparisons
+should use mean NLL or mean robust gain, not cumulative NLL. The protocol and
+artifact pipeline establish reproducibility; an R-level claim still requires
+executing and reporting the sealed campaign.
+
+### Native parser ablation
+
+For native parser cost/reuse experiments, use
+`parser_incremental_ablation`. Planning creates equal-CPU `parser-cold` and
+`parser-incremental` cells from one base command:
+
+```json
+{
+  "experiment_id": "parser-cache-ablation-2026-07",
+  "phase": "confirmatory",
+  "repeats": 20,
+  "cpu_budget_seconds": 240,
+  "random_seed": 20260728,
+  "targets": ["parser"],
+  "parser_incremental_ablation": {
+    "name_prefix": "parser",
+    "base_configuration": {
+      "name": "replaced-by-mode",
+      "cpu_cores": 4,
+      "wall_grace_seconds": 30,
+      "environment": {
+        "SYMCC_PROPOSAL_PARSER": "python3 util/tree_sitter_incremental_parser.py parse --socket /tmp/symcc-ts.sock --input {input} --trace {trace} --cache {cache}"
+      },
+      "command": ["./run-one-parser-campaign", "{target}", "{run_dir}"]
+    }
+  }
+}
+```
+
+The cold cell sets `SYMCC_PROPOSAL_PARSER_CACHE=0`; the incremental cell sets
+it to `1`. Both require a sealed `parser_research_artifact.json`. Join verified
+metrics with:
+
+```bash
+python3 benchmark/analyze_ablation.py benchmark_data.csv \
+  --parser-artifact research_results \
+  --baseline-mode parser-cold \
+  --metric proposal_parser_mean_wall_time_us \
+  --metric proposal_parser_incremental_receipt_rate \
+  --metric proposal_parser_mean_reused_nodes_per_receipt
+```
+
+Manager wall time is the primary cost; parser-reported time separates native
+parsing from RPC/process overhead. Also report offer/receipt/zero-reuse rates,
+node-ID proofs, trace bytes, invalidated/reused nodes, valid-candidate/CPU and
+coverage AUC. A receipt rate by itself is not evidence of speedup.
+
+### Complete ambiguous SPPF parser
+
+F229 supplies a persistent generalized Earley provider when an experiment
+needs all bounded grammar ambiguities rather than Tree-sitter's selected CST.
+Write a byte-compatible Lark grammar, start the service once per run, and use
+the ordinary proposal parser contract:
+
+```bash
+python3 util/lark_sppf_parser.py serve \
+  --socket /tmp/symcc-lark-parser.sock \
+  --grammar benchmark/grammars/parser.lark \
+  --start start --parser-name parser-lark-earley &
+export SYMCC_PROPOSAL_PARSER='python3 util/lark_sppf_parser.py parse --socket /tmp/symcc-lark-parser.sock --input {input} --trace {trace}'
+```
+
+The service uses Lark Earley with `ambiguity=forest`, byte mode and
+`dynamic_complete`; accepted traces therefore carry the complete acyclic SPPF
+under the trace-v3/v4 hard bounds. Nullable subforests become independently
+checked v4 nullable rules. Infinite ambiguity, an over-limit forest, an
+invalid grammar, or an internal conversion error fails the parser gate rather
+than emitting a truncated trace.
+
+Do not place this command in the F228 cold/incremental ablation and interpret
+it as an incremental comparison: the Lark service amortizes grammar
+construction but reparses each candidate. A Tree-sitter/Lark comparison also
+changes parser semantics and must be labeled a cross-parser calibration,
+reporting acceptance disagreement, trace nodes/bytes, parser wall time,
+valid-candidate/CPU and coverage AUC.
+
+Generate that calibration as a sealed three-cell matrix:
+
+```json
+{
+  "experiment_id": "parser-forest-calibration-2026-07",
+  "phase": "confirmatory",
+  "repeats": 20,
+  "cpu_budget_seconds": 240,
+  "random_seed": 20260728,
+  "targets": ["parser"],
+  "parser_forest_ablation": {
+    "name_prefix": "parser-forest",
+    "selected_parser_command": "python3 util/tree_sitter_incremental_parser.py parse --socket /tmp/symcc-ts.sock --input {input} --trace {trace} --cache {cache}",
+    "forest_parser_command": "python3 util/lark_sppf_parser.py parse --socket /tmp/symcc-lark.sock --input {input} --trace {trace}",
+    "forest_grammar_sha256": "REPLACE_WITH_64_HEX_GRAMMAR_DIGEST",
+    "base_configuration": {
+      "name": "replaced-by-mode",
+      "cpu_cores": 4,
+      "wall_grace_seconds": 30,
+      "command": ["./run-one-parser-campaign", "{target}", "{run_dir}"]
+    }
+  }
+}
+```
+
+All three cells set `SYMCC_PROPOSAL_PARSER_CACHE=0`; this removes incremental
+reuse as a confounder. They bind `SYMCC_PARSER_FOREST_MODE` to
+`off/selected/complete` and require the same sealed parser artifact. Analyze
+forest-specific cost and structure with:
+
+```bash
+python3 benchmark/analyze_ablation.py benchmark_data.csv \
+  --parser-artifact research_results \
+  --baseline-mode parser-forest-off \
+  --metric coverage_auc \
+  --metric proposal_parser_mean_wall_time_us \
+  --metric proposal_parser_forest_complete_rate \
+  --metric proposal_parser_forest_mean_encoded_nodes \
+  --metric proposal_parser_forest_mean_edges
+```
+
+The comparison is interpretable only with parser acceptance/disagreement and
+valid-candidate counts. `selected` and `complete` use different grammar
+implementations, so a coverage difference cannot be attributed solely to
+forest packing.
+
+F230's three independent cells compare aggregate rates; they do not parse the
+same generated candidate in both implementations. Use F231's paired oracle
+when an actual candidate-level confusion matrix is required:
+
+```json
+{
+  "experiment_id": "parser-cross-calibration-2026-07",
+  "phase": "confirmatory",
+  "repeats": 20,
+  "cpu_budget_seconds": 240,
+  "random_seed": 20260728,
+  "targets": ["parser"],
+  "parser_cross_calibration": {
+    "name_prefix": "parser-cross",
+    "selected_parser_command": "python3 util/tree_sitter_incremental_parser.py parse --socket /tmp/symcc-ts.sock --input {input} --trace {trace}",
+    "forest_parser_command": "python3 util/lark_sppf_parser.py parse --socket /tmp/symcc-lark.sock --input {input} --trace {trace}",
+    "paired_parser_command": "python3 util/cross_parser_oracle.py --input {input} --trace {trace} --primary-command 'python3 util/lark_sppf_parser.py parse --socket /tmp/symcc-lark.sock --input {input} --trace {trace}' --secondary-command 'python3 util/tree_sitter_incremental_parser.py parse --socket /tmp/symcc-ts.sock --input {input} --trace {trace}'",
+    "forest_grammar_sha256": "REPLACE_WITH_64_HEX_GRAMMAR_DIGEST",
+    "base_configuration": {
+      "name": "replaced-by-mode",
+      "cpu_cores": 4,
+      "wall_grace_seconds": 30,
+      "command": ["./run-one-parser-campaign", "{target}", "{run_dir}"]
+    }
+  }
+}
+```
+
+The generated `selected/complete/paired` cells use equal CPU budgets and
+disable parser caching. In the paired cell, `cross_parser_oracle.py` runs both
+child argv concurrently on the exact same candidate. The complete-SPPF trace
+remains the primary admission oracle; the selected CST is embedded only as
+calibration evidence. The manager independently validates both traces and
+exports `proposal_parser_cross_both_accept`, `_primary_only`,
+`_secondary_only`, and `_both_reject`. It also seals both child command
+digests, the candidate digest, grammar digest, per-child elapsed time, and the
+four-cell sum. A child timeout, return code other than zero/one, invalid nested
+trace, digest mismatch, or changed command pair invalidates the parser trace.
+For both-accepted pairs, state v14 also exports selected-projection and
+full-forest span precision/recall/Jaccard plus internal-boundary Jaccard.
+These are computed from unique byte yields after both traces are validated;
+they do not rely on parser-specific symbol names. Report boundary agreement
+before interpreting span disagreement, and do not call byte-span agreement a
+semantic production mapping.
+
+State v15 adds conservative symbol and production correspondence. Provider
+wrappers such as packed/item/token nodes are transparent; real grammar nodes
+are grouped by exact byte span and recursive ordered child-extent shape. A
+symbol mapping is observed only for a bucket that is unique on both sides.
+Unresolved buckets are counted as ambiguous instead of being matched by name
+or node order. A production mapping additionally needs an equal non-empty
+ordered child partition.
+
+`parser_research_artifact.json` contains the complete sorted
+`parser_cross_symbol_correspondence` and
+`parser_cross_production_correspondence` tables with parser identities,
+labels/states, production-shape digests, and support counts. Report
+`proposal_parser_cross_primary_symbol_alignment_rate`,
+`proposal_parser_cross_secondary_symbol_alignment_rate`,
+`proposal_parser_cross_production_alignment_rate`, and the ambiguity count.
+Use a disjoint holdout candidate set before interpreting a high-support map as
+a stable grammar relationship. The mapping is not a CFG-equivalence proof and
+does not grant the secondary parser admission authority.
+
+For small protocol alphabets, add an exact finite-domain preflight:
+
+```bash
+python3 util/parser_equivalence_audit.py \
+  --primary-command "python3 util/lark_sppf_parser.py parse --socket /tmp/symcc-lark.sock --input {input} --trace {trace}" \
+  --secondary-command "python3 util/parglare_sppf_parser.py parse --socket /tmp/symcc-parglare.sock --input {input} --trace {trace}" \
+  --alphabet-hex 002c3a6162 \
+  --max-length 4 \
+  --output parser_equivalence_artifact.json \
+  --require-equivalent
+python3 util/parser_equivalence_audit.py \
+  --verify parser_equivalence_artifact.json
+```
+
+The domain includes the empty string and is capped at 65,536 shortlex cases.
+Each case still passes through both structural trace validators. Exit 1 means
+the complete artifact contains at least one parser disagreement; exit 2 means
+the audit itself was incomplete or invalid. Record the artifact even on exit
+1 because it contains the minimal counterexample, four acceptance quadrants,
+both command digests, and the transcript digest. The result is exact only for
+the declared alphabet and length bound.
+
+F233 can replace the secondary selected parser with an independent GLR/SPPF
+oracle when the research question is Earley-versus-GLR forest agreement:
+
+```bash
+python3 util/parglare_sppf_parser.py serve \
+  --socket /tmp/symcc-parglare.sock \
+  --grammar benchmark/grammars/parser.pg \
+  --parser-name parser-parglare-glr
+```
+
+Use its ordinary `parse --socket ... --input {input} --trace {trace}` command
+as `secondary_parser_command` inside `cross_parser_oracle.py`. Parglare's
+Parent/possibility SPPF is embedded directly and independently revalidated by
+the manager. This differential cell should report the F231 acceptance
+quadrants and F232 structural metrics in both parser orderings. It tests
+algorithm/grammar agreement; because parglare is also pure Python and reparses
+each candidate, it is not a native/incremental performance baseline.
 
 ## Public Benchmark Suites
 
@@ -270,6 +2351,660 @@ cd benchmark/
 python3 run_benchmark.py --public --np-list 1,2,4,8 --rounds 3 --timeout 120
 ```
 
+### UCSan Mechanism Benchmarks
+
+The UCSan mechanism drivers consume executables produced by the lit tests. They
+measure deterministic whole-process outcomes, not coverage or vulnerability
+yield:
+
+```bash
+python3 benchmark_ucsan_explicit_objects.py \
+  ../build/test/Output/ucsan_explicit_objects.c.tmp \
+  --samples 11 --output f394-explicit-objects.json
+
+python3 benchmark_ucsan_uninitialized.py \
+  ../build/test/Output/ucsan_uninitialized.c.tmp \
+  --samples 11 --output f395-byte-initialization.json
+```
+
+The F395 matrix contains 28 modes and expects 308/308 outcomes across 11
+samples per mode. Abort-path latency includes signal delivery and the host core
+handler, so it is not per-check instruction overhead. Public equal-CPU repeated
+campaigns are required before making coverage, bug-yield, or speedup claims.
+
+### Native Parameter-Provider Mechanism Benchmark
+
+F396 measures the one-time cost and determinism of discovering an executable
+`symcc-parameter-provider-v1` contract:
+
+```bash
+python3 benchmark_self_config_provider.py \
+  --provider ../build/SymCCRuntime-prefix/src/SymCCRuntime-build/src/backends/qsym/symcc-query-solver \
+  --iterations 100 --warmup 10 --output f396-provider.json
+```
+
+The driver requires every iteration to have two accepted providers, a registry
+larger than the coordinator-only baseline, no error/conflict, one stable
+provider digest, and one stable registry hash. It reports startup latency and
+task/query-service/coordinator-campaign counts. This is a mechanism benchmark,
+not ParaSuit coverage, solver-throughput, or bug-yield evidence.
+
+### ParaSuit Value-Policy Mechanism Benchmark
+
+F397 exercises the bounded MeanShift/silhouette gate, the existing Thompson
+baseline, adaptive value selection, and program-bound state reload without a
+third-party clustering dependency:
+
+```bash
+python3 benchmark_parasuit_value_policy.py \
+  --iterations 1000 --output f397-value-policy.json
+```
+
+The synthetic oracle contains two known `(value, utility)` regions. The driver
+requires a stable two-cluster partition and decision digest, sweeps 201
+silhouette thresholds, verifies exact history replay, and reports latency for
+analysis, baseline/adaptive selection, and state reload. These numbers isolate
+policy mechanism cost; they do not establish target coverage, solver
+throughput, or bug-finding improvement.
+
+### Compatible Branch Coverage Mechanism Benchmark
+
+F402 compares exhaustive FIFO execution with the production `cbc` fork filter
+on a bounded chain of pairwise independent symbolic branches:
+
+```bash
+python3 benchmark/check_live_cbc_oracles.py
+python3 benchmark/benchmark_live_cbc.py \
+  --branches 6 --repeats 11 --threshold 1 \
+  --output f402-live-cbc.json
+```
+
+The oracle enumerates every Boolean pattern for 2 through 8 branches and
+requires both outcomes of every branch to remain represented. The benchmark
+reports terminal states, forks, checkpoints, feasibility checks, CBC checks,
+pruned states, static graph construction, and wall-clock distributions. It is
+a deliberately favorable synthetic mechanism test, not a public-target
+coverage, bug-yield, or general speedup result.
+
+### Concrete Constraint Guided Scheduling Mechanism Benchmark
+
+F403 checks the production `cgs` scheduler against independent exhaustive
+bit-vector predicates and a live continuation containing one long ordinary
+state plus one store that satisfies a previously uncovered concrete branch:
+
+```bash
+python3 benchmark/check_live_cgs_oracles.py
+python3 benchmark/benchmark_live_cgs.py \
+  --distractor-instructions 500 --repeats 11 \
+  --output f403-live-cgs.json
+```
+
+The oracle evaluates all ten integer predicates for every value at widths 1
+through 8. The mechanism benchmark reports the minimum interpreted-instruction
+budget at which BFS and CGS first reach the target outcome, final halt order,
+terminal-set equality, static graph cost, and complete-run wall time. It is a
+synthetic target-latency experiment. It is not a public-target campaign,
+completeness proof, bug-yield result, or solver-speedup claim.
+
+### TopSeed Campaign-Selection Mechanism Benchmark
+
+F404 validates the cross-run selector with independently implemented finite
+formulas, then measures bounded proposal/snapshot costs on 10,000 synthetic
+candidates:
+
+```bash
+python3 benchmark/check_topseed_oracles.py
+python3 benchmark/benchmark_topseed_selector.py \
+  --candidates 10000 --groups 2500 --repeats 11
+```
+
+The oracle checks exact AFL bucket-bit encoding, coverage-equivalence groups,
+all deterministic within-group policies, the five group features, inverse
+frequency reward, globally optimal one-dimensional `k=2` clustering, and
+restart-equivalent proposals. The benchmark reports explore/exploit proposal,
+snapshot, and restore cost. Its fixed-weight target example only demonstrates
+that the configured scoring path can move one planted high-value group ahead
+of 500 distractors while preserving the candidate set. It is not a public
+target coverage, solver-time, bug-yield, or end-to-end speedup result.
+
+### Certified Finite Heap-Lifetime Union Mechanism Benchmark
+
+F405 validates conditional `free` over a compiler-certified finite set of
+ordinary heap bases. The oracle independently interprets persisted expression
+DAGs for all byte inputs and domains 1 through 16, checks pause/resume equality,
+and rejects four certificate mutations:
+
+```bash
+python3 benchmark/check_heap_lifetime_union_oracles.py
+python3 benchmark/benchmark_heap_lifetime_union.py \
+  --domain 16 --repeats 11
+```
+
+The benchmark reports `resume` wall time, interpreted steps, continuation fork
+count, and an analytic comparison between a fork-per-object resolver and one
+conditional lifetime state. It does not run a second object-forking executor,
+so the state-cardinality ratio must not be reported as a wall-time speedup. It
+also does not reproduce POSE initial symbolic heaps or establish public-target
+coverage, solver-throughput, bug-yield, or end-to-end performance.
+
+### Collective Dominating Heap-Union Initialization Benchmark
+
+F406 independently checks the finite set-cover/dominance formula that admits a
+survivor load after symbolic `free`, then measures bounded reference-proof cost:
+
+```bash
+python3 benchmark/check_collective_heap_union_initialization_oracles.py
+python3 benchmark/benchmark_collective_heap_union_initialization.py \
+  --domain 32 --repeats 11 --iterations 10000
+```
+
+The oracle covers domains 2 through 32, widths 1 through 8, all distinct
+victim/survivor pairs, incomplete and non-dominating covers, and four production
+artifact-validator mutations. The benchmark reports a Python reference formula's
+batch and per-proof time plus analytic state cardinality. It does not measure the
+C++ LLVM pass, a fork-per-object baseline executor, a complete MemorySSA/POSE
+implementation, public-target coverage, solver throughput, bug yield, or
+end-to-end speedup.
+
+### Guard-Correlated Heap-Union Initialization Benchmark
+
+F407 independently models complete acyclic binary guard trees, exact
+path-to-object selection, and same-path scalar store interval coverage. It also
+builds a hand-authored live-program artifact to exercise the production
+consumer without invoking the C++ proof helper:
+
+```bash
+python3 benchmark/check_guarded_heap_union_initialization_oracles.py
+python3 benchmark/benchmark_guarded_heap_union_initialization.py \
+  --depth 6 --repeats 11 --iterations 10000
+```
+
+The oracle covers depths 1 through 6, widths 1 through 8, 1,008 path
+assignments, missing/mismatched/partial store negatives, and ten artifact
+mutations. The producer boundary fixture is generated separately by
+`generate_guarded_heap_union_initialization_fixture.py` and exercised by lit at
+64 paths. The benchmark reports only Python reference-proof cost and analytic
+state cardinality; it is not production pass latency, a general MemorySSA/POSE
+implementation, public-target coverage, solver throughput, bug yield, or
+end-to-end speedup.
+
+### LLVM MemorySSA/AA Heap Initialization Benchmark
+
+F408 independently checks a bounded MemoryPhi/MemoryDef graph, full-width
+terminal stores, disjoint/NoAlias skips, NoModRef call identities, and exact
+base coverage:
+
+```bash
+python3 benchmark/check_memoryssa_aa_heap_initialization_oracles.py
+python3 benchmark/benchmark_memoryssa_aa_heap_initialization.py \
+  --paths 64 --repeats 11 --iterations 10000
+```
+
+The oracle enumerates fan-in 2 through 64 and load widths 1 through 8, totaling
+504 accepted graphs and 16,632 incoming interval checks. It rejects a missing
+store, partial store, and alias mismatch at every incoming, then executes eight
+independent certificate mutations. The lit fixture separately exercises the
+real LLVM 17/18 producer, production consumer, NoAlias/NoModRef transcript,
+source negatives, nested graph, and 64-way boundary.
+
+The timing is only the Python reference validator's batch/per-proof cost. The
+reported 64-to-1 value is analytic state cardinality, not LLVM pass latency,
+coverage, solver throughput, bug yield, or end-to-end speedup.
+
+### Interprocedural Heap Effect Summary Benchmark
+
+F409 independently checks callsite-instantiated heap effects for returned
+allocations and argument initializers, including exact half-open interval cover
+and rejection of facts borrowed from a different callsite:
+
+```bash
+python3 benchmark/check_interprocedural_heap_effect_oracles.py
+python3 benchmark/benchmark_interprocedural_heap_effect_summary.py \
+  --callsites 64 --repeats 11 --iterations 1000
+python3 benchmark/generate_interprocedural_heap_effect_fixture.py \
+  --calls 64 --output /tmp/f409-64.ll
+```
+
+The oracle enumerates callsite counts 2 through 64 and object sizes 1 through
+8, validates every cover/non-cover interval, rejects wrong-callsite reuse, and
+executes eight structured certificate mutations. The generated fixture tests
+the real LLVM producer at the 64-callsite conformance boundary. The benchmark
+reports Python reference-validation cost and compares analytic relation-check
+cardinality (4096 context-insensitive pairs versus 64 instantiated pairs); it
+does not measure LLVM summary construction, executor throughput, public-target
+coverage, solver time, bug yield, or end-to-end speedup.
+
+### Symbolic-Length Dynamic Byte-Lane Cover Benchmark
+
+F410 independently checks that every address/lane pair in a finite dynamic-load
+domain maps into a bounded symbolic-length region and that runtime lane guards
+match half-open interval semantics:
+
+```bash
+python3 benchmark/check_symbolic_length_byte_lane_oracles.py
+python3 benchmark/benchmark_symbolic_length_byte_lane_cover.py \
+  --aliases 64 --repeats 11 --iterations 1000
+python3 benchmark/generate_symbolic_length_byte_lane_fixture.py \
+  --object-bytes 64 --load-bytes 8 --output /tmp/f410-64-wide.ll
+```
+
+The oracle covers object sizes 2--12, scalar widths 1--8, 48,294 interval
+cases, 364,317 lane checks, 102,004 runtime guard equivalences, and ten
+structured certificate mutations. The generated fixture exercises the real
+LLVM lowering at the 64-byte capacity and 456-lane boundary. The benchmark
+measures only Python reference validation; its 65 bounded length values, 64
+conditional writes, and zero continuation state forks are analytic/runtime
+mechanism properties, not a 65x speedup or a public-target performance result.
+
+### Loop MemoryPhi Byte-Lane Induction Benchmark
+
+F411 independently checks canonical unit-step loop cover, runtime byte-init
+bitmap equivalence, and a generated producer boundary:
+
+```bash
+python3 benchmark/check_loop_memoryphi_byte_lane_oracles.py
+python3 benchmark/benchmark_loop_memoryphi_byte_lane.py \
+  --object-bytes 64 --load-bytes 8 --repeats 11 --iterations 1000
+python3 benchmark/generate_loop_memoryphi_byte_lane_fixture.py \
+  --object-bytes 64 --load-bytes 8 --output /tmp/f411-64-wide.ll
+```
+
+The oracle enumerates 8,019 cases across object sizes 2--16, load widths 1--8,
+three seeds, three steps, three bound widths, and three load-domain shapes. It
+performs 91,773 lane checks and 22,154 runtime bitmap equivalences, and rejects
+12 structured mutations. The 64-byte boundary has 64 writer aliases, 57 load
+aliases, 456 byte-lane witnesses, and two MemoryPhi incoming edges. Timing is
+only Python reference-validator cost; these cardinalities are not state counts,
+speedups, public-target coverage, solver throughput, or bug-yield evidence.
+
+### Ordered Multi-Writer MemoryPhi Transfer Benchmark
+
+F415 independently checks the distinction between mutually exclusive
+backedge transfers and ordered stores inside one transfer. It compares both
+runtime initialized-byte sets and last-writer provenance against a separately
+constructed transfer replay:
+
+```bash
+python3 benchmark/check_ordered_multilatch_memoryphi_oracles.py
+python3 benchmark/benchmark_ordered_multilatch_memoryphi.py \
+  --object-bytes 64 --stride 8 --writer-bytes 8 --load-bytes 8 \
+  --writers-per-transfer 4 --repeats 11 --iterations 1000
+python3 benchmark/generate_ordered_multilatch_memoryphi_fixture.py \
+  --object-bytes 64 --stride 8 --writer-bytes 8 --load-bytes 8 \
+  --writers-per-transfer 4 --output /tmp/f415-boundary.ll
+```
+
+The oracle enumerates 13,632 cases, accepts 3,312 complete ordered fixed
+points, rejects 10,320 unsupported or partial cases, performs 231,282 runtime
+bitmap equivalences and 718,968 last-writer provenance cell comparisons, and
+rejects 22 structured mutations. The generated producer boundary contains
+four latches with four writers each and produces 456 witnesses with 7,296
+alternatives. The reference benchmark uses two four-writer sequences and
+reports certificate cardinality plus Python validation cost only; it is not an
+LLVM, solver, coverage, bug-yield, or end-to-end speed measurement.
+
+### Nested-Loop MemoryPhi Summary Composition Benchmark
+
+F416 independently checks that an inner ordered-writer effect can be composed
+as the outer MemoryPhi backedge without changing the concrete initialized-byte
+set or last-writer provenance:
+
+```bash
+python3 benchmark/check_nested_loop_memoryphi_summary_oracles.py
+python3 benchmark/benchmark_nested_loop_memoryphi_summary.py \
+  --object-bytes 64 --outer-step 1 --inner-step 8 \
+  --writer-widths 1,2,4,8 --load-bytes 8 \
+  --repeats 11 --iterations 1000
+python3 benchmark/generate_nested_loop_memoryphi_summary_fixture.py \
+  --object-bytes 64 --outer-step 1 --inner-step 8 \
+  --writer-widths 1,2,4,8 --load-bytes 8 \
+  --output /tmp/f416-boundary.ll
+```
+
+The finite oracle enumerates 18,240 cases, accepts 670 complete two-level
+summaries, rejects 17,570 unsupported or partial shapes, performs 21,480
+runtime-bitmap/composed-summary equivalences and 52,662 last-writer provenance
+cell comparisons, and rejects 26 structured mutations. The generated producer
+boundary has two loop levels, two MemoryPhi nodes, four ordered writers, 456
+byte-lane witnesses, 855 alternatives, and nine fixed-point rounds including
+stability.
+
+The reference benchmark reports Python validation cost and certificate
+cardinality only. It does not measure LLVM analysis, executor throughput, SMT
+solving, fuzzing coverage, bug yield, a general LoopSCC implementation, or
+end-to-end speedup.
+
+### Nested-Loop MemoryPhi Last-Write Value Summary Benchmark
+
+F417 upgrades a complete F416 certificate only when every real inner-body
+store has a byte-complete 8--64-bit constant integer operand. The independent model expands each
+operand into target-endian memory bytes, orders every load-lane candidate by
+descending inner induction and writer ordinal, and compares first-match
+selection with direct nested-loop memory execution:
+
+```bash
+python3 benchmark/check_nested_loop_memoryphi_value_summary_oracles.py
+python3 benchmark/benchmark_nested_loop_memoryphi_value_summary.py \
+  --object-bytes 64 --inner-step 8 \
+  --writer-widths 1,2,4,8 \
+  --writer-values 17,4660,305419896,72623859790382856 \
+  --load-bytes 8 --repeats 11 --iterations 1000
+python3 benchmark/generate_nested_loop_memoryphi_value_summary_fixture.py \
+  --object-bytes 64 --inner-step 8 \
+  --writer-widths 1,2,4,8 \
+  --writer-values 17,4660,305419896,72623859790382856 \
+  --load-bytes 8 --output /tmp/f417-boundary.ll
+```
+
+The oracle enumerates 3,456 cases, accepts 496 value summaries, rejects 2,960
+unsupported or partial cases, and compares 16,416 runtime load vectors and
+62,112 defined value bytes. It records 43,212 complete and 57,572
+uninitialized/partial load observations and rejects 18 structured mutations.
+The 64-byte certificate has four writer-value records, 15 stored bytes, 456
+witnesses, and 855 last-write cases, with at most four cases per lane.
+
+The reference benchmark reports Python certificate-validation and first-match
+selection cost only. It is not an LLVM producer, executor, SMT, fuzzing
+coverage, defect-yield, or end-to-end speed measurement. Dynamic store values
+fall back to F416 v6 and are outside this value-summary benchmark. Non-byte-sized
+integer stores are rejected rather than assigning unproved padding-bit values.
+
+### Nested-Loop MemoryPhi Two-Dimensional Affine Summary Benchmark
+
+F418 extends the F417 constant-value domain to writer addresses of the exact
+form `base + pointer_scale * (constant + outer_scale * outer_iv +
+inner_scale * inner_iv)`. The independent oracle enumerates the complete
+finite domain induced by narrow outer/inner bound arguments, reconstructs
+direct nested-loop byte writes, and compares them with the certificate's
+descending `(outer, inner, writer ordinal)` first-match selection:
+
+```bash
+python3 benchmark/check_nested_loop_memoryphi_two_dimensional_affine_oracles.py
+python3 benchmark/benchmark_nested_loop_memoryphi_two_dimensional_affine.py \
+  --object-bytes 24 --outer-step 1 --inner-step 2 \
+  --outer-scale 8 --inner-scale 1 \
+  --writer-widths 2,1 --writer-values 4660,170 \
+  --load-bytes 2 --repeats 9 --iterations 500
+python3 benchmark/generate_nested_loop_memoryphi_two_dimensional_affine_fixture.py \
+  --object-bytes 24 --outer-step 1 --inner-step 2 \
+  --outer-scale 8 --inner-scale 1 \
+  --writer-widths 2,1 --writer-values 4660,170 \
+  --load-bytes 2 --output /tmp/f418-boundary.ll
+```
+
+The finite oracle enumerates 4,608 configurations, accepts 28 complete v8
+summaries, rejects 4,580 unsupported or partial shapes, compares 608 runtime
+load vectors and 3,384 defined value bytes, and rejects 18 structured
+mutations. Across the accepted configurations it observes 1,692 complete and
+5,252 uninitialized/partial loads. Two byte-identical oracle runs have SHA-256
+`7be3e10a9aead4949038be68c0bd5a4b82639156fa5c64f55df9494d2d1ddd4e`.
+
+The frozen reference certificate has two writer-value records, 24 writer
+instances, 12 fixed-point pairs, 46 byte-lane witnesses, and 69 last-write
+cases. Its Python reference validation and selection medians are 53,528 ns per
+certificate and 13,745 ns per query. These are mechanism costs only: they do
+not measure LLVM analysis, executor throughput, SMT solving, fuzzing coverage,
+defect yield, or end-to-end speedup. General polyhedral/ISL analysis,
+piecewise-affine or non-affine addresses, symbolic writer values, multi-object
+summaries, and loop skipping remain outside this benchmark.
+
+### Nested-Loop MemoryPhi Affine Symbolic Value Summary Benchmark
+
+F419 extends the exact F418 two-dimensional writer-address domain with a
+byte-complete affine bit-vector value:
+
+```text
+V(o,i,x) = constant + outer_scale*o + inner_scale*i + input_scale*x
+           modulo 2^bits
+```
+
+The independent oracle executes the nested loops concretely and compares each
+load with the certificate's descending `(outer, inner, writer ordinal)`
+first-match byte expression. It covers modular-overflow inputs, little and big
+endian extraction, constant overlays, partial initialization, and structured
+certificate mutations:
+
+```bash
+python3 benchmark/check_nested_loop_memoryphi_affine_symbolic_value_oracles.py
+python3 benchmark/benchmark_nested_loop_memoryphi_affine_symbolic_value.py \
+  --repeats 9 --iterations 500
+python3 benchmark/generate_nested_loop_memoryphi_affine_symbolic_value_fixture.py \
+  --output /tmp/f419-boundary.ll
+SYMCC_LIVE_ALIAS_LIMIT=64 \
+  python3 util/llvm_to_continuation.py /tmp/f419-boundary.ll \
+  --entry generated_nested_loop_memoryphi_affine_symbolic_value \
+  --output /tmp/f419-boundary.json
+```
+
+The finite oracle enumerates 1,152 configurations, accepts six complete v9
+summaries, rejects 1,146 unsupported or partial shapes, compares 384 runtime
+load vectors and 1,392 defined bytes, and rejects 18 structured mutations. It
+observes 696 complete and 2,504 uninitialized/partial loads. Two byte-identical
+oracle runs have SHA-256
+`fae5d9ccaaa58ed3735bfce1ca83885cb6f4d3b67087e0e3b636e196097dfa04`.
+
+The frozen reference certificate has two writer-value records, 24 writer
+instances, 46 byte-lane witnesses, 69 last-write cases, and 46 symbolic byte
+expressions. Its Python reference validation and selection medians are 43,406
+ns per certificate and 10,863 ns per query. These are mechanism costs only;
+they do not measure LLVM analysis, executor throughput, SMT solving, fuzzing
+coverage, defect yield, or end-to-end speedup. General SCEV/Polly/ISL,
+piecewise-affine values, multiple inputs, multi-object summaries, and loop
+skipping remain outside this benchmark.
+
+### Nested-Loop MemoryPhi Piecewise-Affine Value Summary Benchmark
+
+F420 extends F419 with a direct induction guard selecting between two affine
+bit-vector value arms:
+
+```text
+g(o,i) = icmp P (outer_iv or inner_iv), constant
+V(o,i,x) = select(g(o,i), affine_true(o,i,x), affine_false(o,i,x))
+```
+
+The finite F418 writer-instance domain makes the guard decidable for each
+instance. The reference implementation specializes the selected arm before
+target-endian byte extraction. The independent oracle executes the nested
+loops concretely and checks predicates, operand order, induction choice,
+endianness, partial initialization, modular arm equivalence, and structured
+certificate mutations:
+
+```bash
+python3 benchmark/check_nested_loop_memoryphi_piecewise_affine_value_oracles.py
+python3 benchmark/benchmark_nested_loop_memoryphi_piecewise_affine_value.py \
+  --repeats 9 --iterations 500
+python3 benchmark/generate_nested_loop_memoryphi_piecewise_affine_value_fixture.py \
+  --output /tmp/f420-boundary.ll
+SYMCC_LIVE_ALIAS_LIMIT=64 \
+  python3 util/llvm_to_continuation.py /tmp/f420-boundary.ll \
+  --entry generated_nested_loop_memoryphi_piecewise_affine_value \
+  --output /tmp/f420-boundary.json
+```
+
+The oracle evaluates 96 configurations: 48 supported predicate/order/
+induction/endian combinations and 48 deliberately unsupported shapes. It
+compares 6,144 runtime load vectors and 58,752 defined value bytes, observes
+29,376 complete and 111,936 uninitialized/partial loads, and rejects 22
+structured mutations. Two byte-identical runs have SHA-256
+`c6d13d7149e38ad67e09726746f466583735d9870c2d6205010d4c7fe64a631b`.
+
+The frozen reference certificate has two writer-value records, 24 writer
+instances, 46 byte-lane witnesses, 69 last-write cases, and 46
+guard-specialized expressions. Its Python reference validation and selection
+medians are 50,978 ns per certificate and 10,814 ns per query. These are
+mechanism costs only; they do not measure LLVM analysis, executor throughput,
+SMT solving, fuzzing coverage, defect yield, or end-to-end speedup. General
+decision DAGs, input-dependent guards, signed predicates, multi-object
+summaries, and loop skipping remain outside this benchmark.
+
+### Nested-Loop MemoryPhi Affine Decision DAG Value Summary Benchmark
+
+F421 generalizes F420 from one direct select to a postorder, shared, bounded
+Decision DAG. Guard nodes bind actual equality/unsigned `icmp` definitions;
+leaves bind F419 affine bit-vector expressions. The strict consumer rebuilds
+the topology and specializes each finite writer instance independently.
+
+```bash
+python3 benchmark/check_nested_loop_memoryphi_decision_dag_oracles.py \
+  --output /tmp/f421-oracle.json
+python3 benchmark/benchmark_nested_loop_memoryphi_decision_dag.py \
+  --repeats 9 --iterations 500 --output /tmp/f421-benchmark.json
+python3 benchmark/generate_nested_loop_memoryphi_decision_dag_fixture.py \
+  --shared-subtree --output /tmp/f421-boundary.ll
+SYMCC_LIVE_ALIAS_LIMIT=64 \
+  python3 util/llvm_to_continuation.py /tmp/f421-boundary.ll \
+  --entry generated_nested_loop_memoryphi_decision_dag \
+  --output /tmp/f421-boundary.json
+```
+
+The independent oracle covers 1,152 guard/order/induction/endian/sharing
+configurations, 55,296 load-vector equivalences, 608,256 scalar loads,
+165,888 defined bytes, and both one- and two-guard specialized paths. The
+reference benchmark reports median costs of 357 ns per sealed-domain
+validation, 347 ns per instance guard selection, and 9,511 ns per last-write
+query. These are Python mechanism measurements, not LLVM lowering or
+end-to-end speedup. F421 still executes the real loop; transactional loop
+replacement is the separate F422 refinement stage.
+
+### Executable Nested-Loop Memory Summary Transfer Differential
+
+F422 installs an explicitly enabled `loop_summary_transfer` on the outer
+preheader edge. The runtime applies the finite v11 writer instances as a
+transactional ITE memory and initializedness transformer, while the default
+mode follows the original loop. The differential oracle below executes the
+source-level loop independently; it does not consume the producer transcript
+or normalized write program.
+
+```bash
+SYMCC_LIVE_ALIAS_LIMIT=64 \
+  python3 util/llvm_to_continuation.py \
+  test/live_nested_loop_memoryphi_executable_transfer.ll \
+  --entry executable_nested_summary_i16 \
+  --output /tmp/f422.json
+python3 benchmark/check_executable_loop_summary_transfer_oracles.py \
+  /tmp/f422.json --payload 0x1234 --output /tmp/f422-oracle.json
+```
+
+The fixed domain contains 176 configurations: 11 valid in-object i16 load
+offsets, four i2 outer bounds, and four i2 inner bounds. The current result is
+2,112/2,112 memory-byte equivalences, 2,112/2,112 initializedness
+equivalences, and 33/33 fully initialized load-value equivalences. The other
+143 loads are partial or uninitialized and retain their definedness domain;
+their backing zero is not treated as a program value. All 176 transfers use
+zero forks and at most 27 steps. These are bounded mechanism results, not a
+general LoopSCC, solver-time, coverage, defect-yield, or end-to-end campaign
+speedup claim.
+
+### Executable Agolic Witness-Guided BSE Oracle
+
+F423 connects an admitted F374 plan to the live-continuation executor. Before
+the configured release boundary, the worker follows the reviewed witness as a
+single concrete route while retaining symbolic memory, frames, and route
+constraints; feasibility queries and forks are forbidden. At release it resumes
+ordinary solver-backed exploration, obtains exact QF_BV models for terminal
+checkpoints, and writes candidates only to plan-private staging. A serialized
+coordinator then performs concrete-only replay before corpus publication or
+coverage accounting.
+
+Run the independent finite source oracle and focused integration tests with:
+
+```bash
+python3 benchmark/check_agolic_bse_runner_oracles.py \
+  --output /tmp/f423-oracle.json
+python3 -m pytest -q test/test_agolic_bse_runner.py
+```
+
+The current oracle result is:
+
+```json
+{"all_passed":true,"candidates":8,"claim_boundary":"Finite two-byte continuation fixture with source-level replay; not native KLEE equivalence, arbitrary external effects, coverage speedup, or public-campaign evidence","configurations":8,"mutation_rejections":6,"planner_outcomes":8,"released_configurations":4,"schema":"symcc-agolic-bse-finite-oracle-v1","source_replay_equivalences":8,"target_false_sets":4,"target_true_sets":4,"unreleased_configurations":4}
+```
+
+The expected semantics are calculated by a separate two-byte source model:
+route byte `A` enters release and payload byte `B` takes the target. Four routes
+reach release and yield eight replay-equivalent candidates covering both target
+outcomes; four routes do not reach release and yield no candidate. Six mutations
+of program/witness/release/candidate/resource/mode evidence are rejected. The
+focused suite has 15 tests, including harness-entry exploration and a real subprocess CLI/resource-limit
+round trip and fail-closed target/witness/checkpoint/status/prior/frontier
+counterexamples. These figures validate the bounded mechanism only; they are not
+coverage, wall-time, or defect-yield improvements on a public benchmark.
+
+### Selective Concolic Relation-Graph and MDP Oracle
+
+F424 extends the persistent QF_BV helper with a bounded weighted variable
+relation graph. It solves the low-cost side `PC_c`, binds the shared-boundary
+model, completes random-only variables, and checks every candidate against the
+original full formula. The Prefix DAG independently uses Laplace-smoothed
+branch probabilities and synchronous value iteration for cyclic scheduling
+state. Run the finite source oracle and focused tests with:
+
+```bash
+python3 benchmark/check_selective_concolic_mdp_oracles.py \
+  --output /tmp/f424-oracle.json
+python3 -m pytest -q test/test_selective_concolic_mdp.py \
+  test/test_hybrid_feedback.py test/test_query_store.py
+lit -sv build/test --filter='query_solver_selective.py'
+```
+
+The current independent oracle returns:
+
+```json
+{"all_passed":true,"candidate_hits":16,"claim_boundary":"Finite four-bit source model and analytic two-state MDP; not an FM 2026 KLEE/JFS/METIS/SVM reproduction or public coverage result","configurations":16,"cut_weight":1,"cycle_closed_form":0.5368472425573451,"cycle_value":0.5368472425572233,"domain_size":16,"fallback_required":0,"false_sat":0,"false_unsat":0,"full_model_x_values":[2,3,5,6,7,9,10,13,14,15],"full_models":10,"laplace_probabilities":[0.9090909090909091,0.09090909090909091],"partial_models":1,"random_assertions":1,"random_only_variables":1,"relation_edges":4,"schema":"symcc-selective-concolic-mdp-finite-oracle-v1","shared_variables":1,"smt_assertions":3,"value_iterations":17,"value_residual":5.536682223805656e-13,"witness_first_hits":10}
+```
+
+This proves exactness only for the enumerated four-bit formula and analytic
+two-state MDP. It does not reproduce the FM 2026 KLEE/JFS/METIS/SVM stack, its
+BVFP/public-function evaluation, or its reported coverage and time gains.
+
+### Native ConDPOR and C11 Atomic-Replay Oracle
+
+F425 adds lossless atomic-value trace evidence, two-phase atomic commit replay,
+bounded SC/TSO/RA `rf/mo/sc` graph certificates, and a fresh-process native
+campaign. Run the independent finite litmus model and 40 native replays per LLVM
+version with:
+
+```bash
+python3 benchmark/check_native_condpor_c11_oracles.py \
+  --symcc build/symcc --runtime build/libsymcc_schedule_rt.so \
+  --repetitions 20 --output /tmp/f425-llvm18.json
+python3 benchmark/check_native_condpor_c11_oracles.py \
+  --symcc build-llvm17/symcc \
+  --runtime build-llvm17/libsymcc_schedule_rt.so \
+  --repetitions 20 --output /tmp/f425-llvm17.json
+```
+
+The independent SC interleaving oracle yields only `(0,1)`, `(1,0)`, and
+`(1,1)` for store buffering. The production certificates report SC 3 SAT / 1
+UNSAT, TSO and RA 4 SAT / 0 UNSAT, reject stale RA message-passing data, and
+enumerate all six modification orders for three writers. LLVM 17 and LLVM 18
+each produce 40/40 prefix-selected reads with zero fallback, commit mismatch,
+or pending conflict; each native campaign reaches its bounded fixed point in
+three fresh processes with zero invalid runs. This is finite semantic and
+mechanism evidence, not a full C11/herd7 corpus, unbounded ConDPOR theorem, or
+public-target coverage/time result.
+
+### Cross-Worker Incremental QF_BV Context Oracle
+
+`check_cross_worker_context_oracles.py` validates F426 without treating a
+cache hit as a solver proof. Its independent encoder recomputes canonical
+parent/root/term/capability identities over 32 bounded chains. The live oracle
+uses cvc5 to solve a one-level prefix, extend the same process to its two-level
+child, and reconstruct that child from the shared CAS in a new worker. Every
+SAT assignment is committed through QueryStore's independent Query IR model
+gate. The evidence also covers store-configuration drift, symlink/tamper
+rejection, fenced lease cancellation, expiry takeover, quota timeout, and
+concurrent publication convergence.
+
+```bash
+python3 benchmark/check_cross_worker_context_oracles.py \
+  --iterations 20 --output /tmp/f426-cross-worker-context.json
+```
+
+`mechanism_cost` measures an eight-level exact republish plus verified resolve.
+It is not an end-to-end solver speedup, public-target result, serialized solver
+state, learned-clause exchange, or a checkable SMT UNSAT proof.
+
 ## Prerequisites
 
 **For running benchmarks:**
@@ -305,3 +3040,731 @@ use `--simulation` to compile targets with gcc. This tests:
 
 It does **not** test actual symbolic execution performance, since gcc-compiled
 programs don't generate symbolic constraints.
+## F427 QF_BV proof-receipt oracle
+
+Install the content-pinned cvc5 1.3.4, matching Ethos checker, and CPC Eunoia
+signatures with:
+
+```bash
+benchmark/install_cvc5_cpc_ethos_1_3_4.sh
+```
+
+Then run the real proof-generation, independent-checking, cross-worker reuse,
+reference-tamper, and CAS-tamper oracle:
+
+```bash
+python3 benchmark/check_qfbv_proof_receipt_oracles.py \
+  --repetitions 5 \
+  --output /tmp/f427-qfbv-proof-receipt.json
+```
+
+The output schema is `symcc-f427-qfbv-proof-receipt-oracle-v1`. It records the
+cvc5 version and binary digest, Ethos digest, CPC signature-file count, checked
+generation count, exact cross-worker reuse count, rejected mutation counts,
+false authorizations, unique receipt count, proof-store cardinality, and raw
+microsecond samples.
+
+`reuse_total` deliberately includes fresh QueryStore and proof-store startup,
+generator/checker/signature content hashing, backend Ethos execution,
+QueryStore Ethos execution, and process startup. It is a protocol mechanism
+cost, not solver speedup. A performance experiment must compare disabled,
+local-only, shared-context, and proof-receipt modes on the same public targets,
+hardware, CPU budget, initial corpus, and repeated seeds.
+
+## F428 verified QF_BV learned-lemma oracle
+
+Run the independent finite oracle and the real producer/fresh-worker protocol
+with the pinned F427 toolchain:
+
+```bash
+python3 benchmark/check_qfbv_lemma_exchange_oracles.py \
+  --repetitions 5 \
+  --output /tmp/f428-qfbv-verified-lemma.json
+```
+
+The output schema is ``symcc-f428-qfbv-verified-lemma-oracle-v1``. The finite
+oracle enumerates all 65,536 ``(x,y)`` byte valuations independently of the
+production parser and proof code. The live oracle makes cvc5 extract one
+literal from a full SAT formula, proves it with CPC/Ethos, commits the
+publication through QueryStore, and then starts fresh persistent workers whose
+prefixes contain the producer formula. It records injected counts, backend and
+store checker time, total protocol time, context/proof/lemma store sizes, tool
+digests, and four negative checks: sibling context, false lemma, record tamper,
+and proof CAS tamper.
+
+The consumer total deliberately includes fresh process/store setup,
+full-formula learned-literal extraction, proof generation for newly learned
+knowledge, CAS publication, active-record checking, and published-record
+checking. It is not a comparison against disabled lemma exchange and must not
+be reported as coverage, throughput, or solver speedup. A confirmatory study
+must use equal CPU and repeated public targets across disabled, context-only,
+proof-only, and verified-lemma modes.
+
+## F429 QF_BV artifact lifecycle oracle
+
+Run the independent finite-graph oracle and real five-artifact cvc5/Ethos
+store lifecycle with:
+
+```bash
+python3 benchmark/check_qfbv_artifact_lifecycle_oracles.py \
+  --graphs 64 \
+  --output /tmp/f429-qfbv-artifact-lifecycle.json
+```
+
+The output schema is ``symcc-f429-qfbv-artifact-lifecycle-oracle-v1``. The
+finite component generates deterministic dependency DAGs and compares the
+production collector against an independent set-closure and topological-delete
+reference. It reports false deletions, missed deletions, and dependency-order
+violations.
+
+The live component constructs two F426 contexts, one CPC proof, one F427
+receipt, and one F428 lemma. It verifies that an active fenced job protects all
+five objects, release permits dependent-first deletion of all five, a stale
+generation cannot regain a root, and a context object published before its
+store-index commit is later reclaimed. It also reports complete pre-GC
+inventory scans and final per-store cardinalities.
+
+For 64 graphs, the sealed runs each checked 1,024 nodes with zero false
+deletions, zero missed deletions, and zero dependency-order violations. Both
+real runs protected 5/5 active objects, deleted 5/5 after release, rejected one
+stale generation, and recovered one orphan. The two outputs are semantically
+identical after excluding ``live.elapsed_us``. Elapsed time is a descriptive
+mechanism cost, not a solver, coverage, or end-to-end speedup result.
+
+## F430 native QF_BV solver-state fork oracle
+
+Build the Linux helper against a known Z3 distribution, then compare one warm
+native parent with same-version cold Z3 processes:
+
+```bash
+python3 benchmark/check_qfbv_native_state_fork_oracles.py \
+  --helper build/symcc-qfbv-z3-forkserver \
+  --z3 /opt/z3-5.0.0/bin/z3 \
+  --cases 128 --seed 430 \
+  --output /tmp/f430-qfbv-native-state-fork.json
+```
+
+The output schema is ``symcc-qfbv-native-state-fork-oracle-v1``. A seeded
+target stream is solved both by per-target copy-on-write children of one warmed
+parent and by fresh same-version Z3 processes. The oracle compares status and
+SAT models and records snapshot generation/query counts, child PIDs, solve and
+fork round-trip time, minor/major faults, maximum RSS, and a deterministic
+timeout/recovery experiment.
+
+The sealed runs each checked 128 targets with zero status mismatch, zero invalid
+SAT model, 128 unique child PIDs, and successful recovery in generation 1 after
+killing a delayed child. The observed cold/native total mechanism-cost ratios
+were 2.252x and 2.249x. These ratios include parent initialization on the native
+side and process startup, parsing, and prefix replay on every cold query. They
+apply only to this one-byte fixed-prefix microbenchmark and must not be reported
+as application coverage, throughput, or bug-finding uplift.
+
+## F431 verified variable-substitution UNSAT-core oracle
+
+Run the finite-domain cross-oracle and two proof-reuse mechanism profiles with
+the pinned cvc5 1.3.4/Ethos/CPC bundle:
+
+```bash
+python3 test/qfbv_substitution_core_oracle.py --cases 512
+python3 test/qfbv_substitution_core_benchmark.py --rounds 64 --padding 0
+python3 test/qfbv_substitution_core_benchmark.py --rounds 64 --padding 128
+```
+
+The oracle exhaustively enumerates every function from the source offset set to
+the target offset set and independently recomputes substituted content-addressed
+roots. It does not use the production clause-row natural join to decide whether
+a match exists. Both sealed runs contain 512 formulas: 294 positive, 218
+negative, 97 positive with a non-injective mapping, and zero mismatch.
+
+The benchmark first proves and publishes a two-clause source core. The baseline
+generates and checks a fresh target CPC proof; cold reuse starts a fresh consumer
+and replays Ethos once; warm reuse retains only the verified source-core theorem
+and still repeats exact target substitution. Over 64 targets, the two-clause
+profile recorded 6,595,236 us baseline and 475,796 us warm total (13.861x); the
+130-clause profile recorded 6,713,512 us baseline and 1,124,011 us warm total
+(5.973x). Cold reuse took 119,787 us and 134,715 us respectively and was slower
+than the corresponding baseline median.
+
+These are proof/cache mechanism measurements. They do not measure fuzzing
+coverage, defect yield, solver portfolio throughput, multi-node scaling, or the
+74% reuse reported by Cache-a-lot. Raw sealed data is under
+``docs/codex/evidence/f431-qfbv-substitution-core-2026-08-17``.
+
+## F432 verified incremental QF_BV SAT oracle and benchmark
+
+Build the pinned CaDiCaL 3.0.1 command-line solver and shared C API first:
+
+```bash
+bash benchmark/install_cadical_3_0_1.sh
+```
+
+Run the seeded semantic oracle:
+
+```bash
+python3 test/qfbv_incremental_sat_oracle.py \
+  --cadical /path/to/cadical \
+  --cvc5 /usr/bin/cvc5 \
+  --cases 512 --seed 62514 \
+  --output /tmp/f432-oracle.json
+```
+
+Schema ``symcc-f432-bitblast-oracle-v1`` rotates through 23 complex binary
+operators, fixes both input bytes, independently computes the expected result,
+and solves the activation-guarded CNF with real CaDiCaL. It additionally runs
+the complete 38-operator matrix through CaDiCaL and cvc5 and lifts a real LRAT
+UNSAT proof into an LRUP clause. The two sealed 512-case runs have zero mismatch,
+the common matrix model ``{0: 66, 1: 3}``, and 24 proof steps with 22
+propagations.
+
+Measure exact-context reuse separately:
+
+```bash
+python3 test/qfbv_incremental_sat_benchmark.py \
+  --cadical /path/to/cadical \
+  --library /path/to/libcadical.so \
+  --rounds 64 \
+  --output /tmp/f432-benchmark.json
+```
+
+Schema ``symcc-f432-incremental-sat-benchmark-v1`` compares a fresh CaDiCaL
+subprocess on every round with a same-process native context over the same
+38-operator SAT formula. The sealed cold/native total ratios are 1.755x and
+1.765x; median ratios are 1.739x and 1.755x. These measurements include model
+recovery and Query IR replay but exclude network, distributed scheduling and
+real fuzzing campaigns. They must not be reported as coverage, throughput,
+defect-yield, or multi-node scaling improvements. Raw records are under
+``docs/codex/evidence/f432-qfbv-incremental-sat-2026-08-17``.
+
+## F433 realtime checked QF_BV proof-stream oracle and benchmark
+
+The pinned installer also builds ``libsymcc_qfbv_cadical_realtime.so`` against
+the exact CaDiCaL 3.0.1 C++ API. Run the real native oracle with:
+
+```bash
+python3 test/qfbv_realtime_stream_oracle.py \
+  --library /path/to/libsymcc_qfbv_cadical_realtime.so \
+  --cases 512 --seed 62515 \
+  --output /tmp/f433-oracle.json
+```
+
+Schema ``symcc-f433-realtime-stream-oracle-v1`` compares a no-import native
+solve with a proof-checked external-clause solve for every randomized 8-bit
+equality. It validates both models, replays every ACK against the durable event
+and LRUP record, mutates one ACK, and checks pre-solve cancellation. The two
+sealed runs each report zero mismatch and 512/512 delivered/replayed imports.
+
+Measure local transport/checker cost with:
+
+```bash
+python3 test/qfbv_realtime_stream_benchmark.py \
+  --library /path/to/libsymcc_qfbv_cadical_realtime.so \
+  --rounds 64 --output /tmp/f433-benchmark.json
+```
+
+Schema ``symcc-f433-realtime-stream-benchmark-v1`` compares ordinary native
+cold context construction with a cold checked-import path, and native warm
+reuse with an idle realtime session. Both sealed runs deliver 64/64 imports.
+The checked-import cold total-cost ratios are 1.499x and 1.488x. Idle session
+medians are 2367 us and 2339 us on native warm medians of 110 us and 116 us.
+
+These are correctness and mechanism-cost experiments. They do not measure
+fuzzing coverage, defect yield, network transport, or multi-node scaling. Raw
+records are under
+``docs/codex/evidence/f433-realtime-proof-stream-2026-08-18``.
+
+## F434 qualified multi-rank realtime proof evaluation
+
+Use the MPI runner to distinguish a proof that was preloaded before solve from
+a proof that was published while all consumers were verifiably inside native
+CaDiCaL solves:
+
+```bash
+mpiexec -n 5 python3 benchmark/run_qfbv_realtime_multirank.py \
+  --library /path/to/libsymcc_qfbv_cadical_realtime.so \
+  --proof-root /shared/f434-runs \
+  --publishers 2 --rounds 2 --variables 200 --clauses 860 \
+  --mode active --output /tmp/f434-active.json
+```
+
+The result schema is ``symcc-f434-multirank-result-v1``. It embeds every rank
+report, exact formula/CNF/library identities, filesystem qualification,
+publisher record/event pairs, consumer ACKs, root replay count and same-clock
+timing summaries. Active mode fails if any consumer cannot prove
+``solve_generation=1`` and ``solving=1`` before publication. Multi-host jobs
+also fail unless the configured proof root passes the cross-host lock and
+namespace qualification protocol.
+
+Run one preloaded and repeated active jobs while retaining result JSON plus
+stdout/stderr with:
+
+```bash
+python3 benchmark/check_qfbv_realtime_multirank_oracles.py \
+  --library /path/to/libsymcc_qfbv_cadical_realtime.so \
+  --output-dir /tmp/f434-oracles \
+  --processes 5 --publishers 2 --rounds 2 --active-repetitions 2
+```
+
+The sealed local evidence reports 24/24 native deliveries and 24/24 root ACK
+replays across three jobs. These are protocol and local-host MPI mechanism
+results. The runner deliberately does not subtract clocks from different
+hosts, and its output must not be reported as fuzzing coverage, defect yield or
+multi-node speedup. See
+``docs/codex/research-progress/Qualified_Multirank_Realtime_Proof_Evaluation_F434_2026-08-18.md``.
+
+## F435 adaptive checked-proof admission oracle
+
+Compare the old one-shot enqueue behavior with bounded adaptive deferral on the
+same real CaDiCaL 3.0.1 shim:
+
+```bash
+python3 benchmark/check_qfbv_adaptive_exchange_oracle.py \
+  --library /path/to/libsymcc_qfbv_cadical_realtime.so \
+  --output-dir /tmp/f435-adaptive \
+  --records 8 --queue-capacity 2
+```
+
+Schema ``symcc-f435-adaptive-proof-oracle-v1`` builds one
+200-variable/860-clause bit-blast plan, publishes eight proof-checked and
+canonically distinct base clauses, and waits for all candidates to reach a
+settled state before starting solve. Static mode attempts each import once;
+adaptive mode first defers while native solve is inactive, then retries in a
+deterministic bounded order after solve becomes active. Every ACK and adaptive
+trace is independently replayed before the result is sealed.
+
+Six independent runs each report static 2/8 delivery and 6 backpressure drops,
+versus adaptive 8/8 delivery and zero backpressure: +6 delivered clauses,
++75 percentage points, or 4.0x the static delivery count in this synchronized
+burst. The oracle does not randomize solve timing or measure coverage, defect
+yield, network traffic, public targets, or solver speedup. See
+``docs/codex/research-progress/Adaptive_Checked_Proof_Admission_F435_2026-08-18.md``.
+
+## F436 native checked-clause activity oracle and MPI evidence
+
+Run the real CaDiCaL 3.0.1 oracle after building the pinned realtime shim:
+
+```bash
+python3 benchmark/check_qfbv_clause_activity_oracles.py \
+  --library /path/to/libsymcc_qfbv_cadical_realtime.so \
+  --cases 128 --seed 62518 \
+  --output /tmp/f436-clause-activity.json
+```
+
+Schema ``symcc-f436-clause-activity-oracle-v1`` generates unique checked RUP
+clauses and verifies that each one becomes unit on the observed native trail.
+It independently replays proof records, delivery ACKs and activity receipts,
+rejects a re-sealed witness mutation, exercises assumption/root unit,
+root-conflict and satisfied-unactivated states, and checks the solve-lifecycle
+fence. Two sealed 128-case runs report 128/128 delivery, unit activity,
+independent replay and tamper rejection. A separate 32-case ASan/UBSan run
+reports no diagnostics.
+
+Collect qualified active-solve MPI telemetry with:
+
+```bash
+mpiexec -n 5 python3 benchmark/run_qfbv_realtime_multirank.py \
+  --library /path/to/libsymcc_qfbv_cadical_realtime.so \
+  --proof-root /tmp/f436-mpi \
+  --publishers 2 --rounds 1 --variables 200 --clauses 860 \
+  --mode active --track-clause-activity \
+  --output /tmp/f436-mpi.json
+```
+
+The two sealed local trials each deliver 4/4 checked imports while reporting
+two unit receipts and two unactivated imports. Across both trials, delivery is
+8/8 and semantic activation is 4/8 (50%). This demonstrates that native
+delivery and a propagation/conflict opportunity are distinct observables. It
+does not establish unique causal clause use, solver speedup, fuzzing coverage,
+defect yield, network scalability, or a public-workload utilization rate. Raw
+evidence and exact commands are under
+``docs/codex/evidence/f436-native-clause-activity-2026-08-18``; the design and
+claim boundary are documented in
+``docs/codex/research-progress/Native_Clause_Activity_and_Utility_Feedback_F436_2026-08-18.md``.
+
+## F437 utility-aware proof-worker pairing oracle
+
+Compare full checked delivery with utility-aware suppression using the same
+formula, CNF, native library and seed in each pair:
+
+```bash
+python3 benchmark/check_qfbv_utility_pairing_oracles.py \
+  --library /path/to/libsymcc_qfbv_cadical_realtime.so \
+  --output-dir /tmp/f437-pairing \
+  --processes 5 --publishers 2 --rounds 3 \
+  --variables 200 --clauses 860 --repetitions 2
+```
+
+The oracle first runs the no-pairing baseline and then enables a persistent
+controller per consumer. It independently validates configuration and formula
+identity, pairing decision/outcome/snapshot replay, opportunity/admit/delivery/
+activity conservation, nonzero suppression and activation retention. At least
+three rounds are required so the default two-sample exploration phase can be
+observed before exploitation.
+
+The sealed two-pair result has 24 opportunities, 20 admitted/delivered and four
+suppressed imports. Both groups retain 12 native unit/conflict activations;
+unactivated delivery falls from 12 to eight and this fixture's activation rate
+rises from 50% to 60%. Per-seed solve-time changes have opposite signs. These
+numbers demonstrate the pairing mechanism only and must not be reported as a
+solver speedup, fuzzing coverage, defect-yield, unique clause causality,
+network-efficiency or multi-node result. See
+``docs/codex/research-progress/Utility_Aware_Proof_Worker_Pairing_F437_2026-08-18.md``.
+
+## F438 generation-fenced malleable worker oracle
+
+Run a physical MPI membership and operation-ownership trial with:
+
+```bash
+mpiexec -n 5 python3 benchmark/run_qfbv_malleable_multirank.py \
+  --epochs 8 --jobs 3 --backlog-per-slot 2 --seed 62520 \
+  --output /tmp/f438-mpi-62520.json
+```
+
+Rank 0 builds a deterministic multi-job grow/drain/migrate/shrink trace. Every
+rank independently verifies every operation from an empty controller; worker
+ranks then attest only digests owned by their physical ``slot-(rank-1)``.
+Root requires exact physical membership and exact operation ownership before
+writing the sealed artifact. The verifier rejects a changed rank, host,
+operation digest, allocation, lease, proof cursor, restart checkpoint or stale
+fence result even when the outer artifact is re-sealed.
+
+The sealed seeds 62520 and 128057 each use five physical ranks, eight epochs
+and three logical jobs. Together they report 38 lease attachments and 38
+retirements, 38 durable proofs, 31 expected stale-fence rejections and 145
+worker-operation attestations. These results validate protocol conservation
+and physical participation. They do not measure dynamic MPI spawn, solver
+throughput, fuzzing coverage, defect yield, network scaling or node-failure
+recovery. See
+``docs/codex/research-progress/Generation_Fenced_Malleable_Worker_Pool_F438_2026-08-18.md``.
+
+## F439 strict LIDRUP and PalRUP fragment interoperability oracle
+
+Build the exact external tools, then execute the cross-implementation oracle:
+
+```bash
+bash benchmark/install_lidrup_check_0_0_7.sh
+bash benchmark/install_palrup_check_sat2026.sh
+python3 benchmark/check_qfbv_proof_wire_oracles.py \
+  --lidrup-check "$HOME/.local/opt/lidrup-check-0.0.7/bin/lidrup-check" \
+  --palrup-converter \
+    "$HOME/.local/opt/palrup-check-sat2026/bin/proof_fragment_to_txt" \
+  --output /tmp/f439-proof-wire-oracle.json
+```
+
+The oracle has no silent-skip path. It checks each executable against the
+pinned source commit and content identity, constructs a recursive project LRUP
+DAG, exports matched ICNF/LIDRUP files, invokes ``lidrup-check 0.0.7 --strict``,
+imports the files back into a fresh project proof record and replays the result.
+It separately encodes official PalRUP ``produce/import/delete`` directives and
+requires the pinned ``proof_fragment_to_txt`` output to match the independent
+local decoder byte-for-byte.
+
+The current fixture records one recursive import, two flattened learned
+clauses, 64 ICNF bytes, 110 LIDRUP bytes and a three-directive/16-byte PalRUP
+fragment. The LIDRUP result is an externally checked UNSAT authorization. The
+PalRUP result is deliberately scoped to fragment-syntax interoperability; it
+is not a substitute for the paper's multi-worker redistribution and global
+confirmation pipeline. Design, exact identities and claim boundaries are in
+``docs/codex/research-progress/LIDRUP_PalRUP_Proof_Wire_Interoperability_F439_2026-08-18.md``.
+
+## F440 official PalRUP global-confirmation oracle
+
+Build the pinned official checker and run its full three-stage mechanism over
+the repository's fixed 12-fragment fixture:
+
+```bash
+bash benchmark/install_palrup_check_sat2026.sh
+python3 benchmark/check_qfbv_palrup_global_oracles.py \
+  --source-root /path/to/PalRUP-Check-at-pinned-commit \
+  --output /tmp/f440-palrup-global-oracle.json
+```
+
+There is no silent-skip branch. The oracle verifies the official source commit,
+the adjacent installed commit marker and exact content SHA-256 for
+``palrup_local_check``, ``palrup_redistribute`` and ``palrup_confirm``. It also
+requires the tracked ``r3unsat_200`` formula/proof bytes to be clean relative
+to that commit.
+
+For ``N=12``, the pipeline snapshots all inputs and runs 12 local checks,
+``ceil(sqrt(12))^2 = 16`` redistribution cells and 12 confirmations. The
+square count follows the pinned implementation's integration test and
+``pal.sh`` matrix, including padding imports. Root then requires the exact 12
+``.check_ok`` directories and a nonempty, in-range ``.unsat_found`` witness
+set before issuing a content-addressed receipt. Receipt validation reruns the
+whole pipeline by default.
+
+The sealed mechanism result has 8,452,282 fragment bytes, all 12 confirmations,
+witness rank 3 and 40 stage artifacts totalling 8,644 bytes. Stable input and
+workspace identities are recorded separately from run-dependent phase timing.
+This result does not measure native SymCC PalRUP generation, solver speedup,
+fuzzing coverage, defect yield, network transport, node recovery or multi-node
+scaling. Design and exact boundaries are in
+``docs/codex/research-progress/PalRUP_Global_Confirmation_Pipeline_F440_2026-08-18.md``.
+
+## F441 generation-fenced MPI / ULFM recovery oracle
+
+Install the pinned runtime and run all three evidence levels with:
+
+```bash
+bash benchmark/install_openmpi_ulfm_5_0_10.sh
+F441_OUTPUT_DIR=/tmp/f441 benchmark/run_f441_ulfm_tests.sh
+```
+
+The installer pins Open MPI 5.0.10 by source SHA-256 and configures
+``--with-ft=ulfm --enable-mpi-ext=ftmpi``. It fails unless the installed
+library advertises FT support and exports the public revoke, shrink, agree,
+get-failed and ack-failed symbols.
+
+The one-click gate first builds a deterministic 12-endpoint/96-shard protocol
+oracle, then runs a four-rank no-failure semantic capability probe, and finally
+kills rank 3 and requires all three survivors to shrink from world size four
+to three and commit an identical sealed recovery receipt. The local physical
+failure experiment uses ``pml=ob1`` and ``btl=tcp,self``; the shared-memory
+transport did not converge within the qualifying deadline on this host.
+Launcher status 86 is expected only for the deliberately killed rank and is
+accepted only after independent verification of ``live-failure.json``.
+
+The deterministic fixture reassigns 16 of 96 shards and replays all 24
+in-flight leases while rejecting all 24 old-generation tokens. The live result
+has receipt SHA-256
+``451a6b2a60783919cc008ad469581eb5b99caba8eb1c7ea2a2841913a36211e8``.
+These are protocol and local process-failure results, not main-executor
+integration, multi-node MTTR, solver speedup, fuzzing coverage or defect-yield
+results. See
+``docs/codex/research-progress/Generation_Fenced_ULFM_Recovery_F441_2026-08-19.md``.
+
+## F446 elastic multi-master ULFM gate
+
+After installing the same pinned Open MPI runtime, run:
+
+```bash
+F446_OUTPUT_DIR=/tmp/f446 benchmark/run_f446_elastic_ulfm_tests.sh
+```
+
+The gate executes four real process-failure campaigns: a worker failure in a
+two-master topology, failure of the original global root, deterministic
+promotion from a two-process warm-spare pool, and two consecutive failures
+that consume both spares. It requires launcher status 86 only after
+``check_f446_elastic_ulfm_oracles.py`` independently verifies the complete
+global receipt sequence, sealed generation layouts, exact active/standby role
+simulation, drained final group state, shared-WAL commit manifests, every
+content-addressed corpus object, and agreement between final log metrics and
+durable facts.
+
+The same-host gate is a recovery-mechanism test, not a performance benchmark.
+Multi-node campaigns must additionally pass the oracle with
+``--minimum-hosts 2``; 8/32/128-worker throughput and coverage results belong
+to the separately identified R-grade scaling protocol. Design and current
+evidence are documented in
+``docs/codex/research-progress/Elastic_Multi_Master_ULFM_F446_2026-08-25.md``.
+
+## F448 proof-prefix certified partition oracle
+
+Run the deterministic mechanism oracle with:
+
+```bash
+python3 benchmark/check_qfbv_proof_prefix_partition_oracles.py \
+  --rounds 10 --cube-counts 1,3,5,8,32,128,512 \
+  --output /tmp/f448-proof-prefix-partition.json
+```
+
+The fixture constructs a two-byte QF_BV bit-blast plan and twelve independently
+checked proof/ACK/activity triples. For every requested cube count it builds a
+proof-guided and a static-order certificate, replays the certificate, and
+enumerates all assignments over the selected split prefix to establish exactly
+one matching leaf. It also checks 32-way CAS convergence, malleable slot
+conservation and dependent-first deletion of partition and ``sat-proof``
+objects.
+
+The timing fields measure certificate construction and replay, including proof
+receipt verification and durable store synchronization. They are not solver
+runtime, fuzzing coverage, defect yield or end-to-end speedup measurements.
+Design, results and claim boundaries are documented in
+``docs/codex/research-progress/Proof_Prefix_Guided_Certified_Partitioning_F448_2026-08-25.md``.
+
+## F450 closure-bound proof replay cache oracle
+
+Run the fixed-depth proof-DAG replay comparison with:
+
+```bash
+python3 benchmark/check_qfbv_proof_replay_cache_oracles.py \
+  --rounds 10 --depths 8,32,64 \
+  --output /tmp/f450-proof-replay-cache.json
+```
+
+Each fixture is a canonical imported-LRUP chain in the production
+``IncrementalProofStore``. The enabled checker first performs a cold complete
+replay, then every hot replay batch-attests the exact transitive CAS closure.
+The disabled checker recursively loads, parses and replays the entire chain on
+every round. The oracle fails unless authorizations agree, cache accounting is
+exact, all expected closure objects are rehashed and attestation failures are
+zero.
+
+The output schema is ``symcc-f450-proof-replay-cache-oracle-v1``. The
+``mechanism_replay_ratio`` compares wall-clock medians of proof authorization
+only. It is not a SAT-solving speedup and contains no target execution,
+coverage or defect measurement. See
+``docs/codex/research-progress/Closure_Bound_Proof_Replay_Cache_F450_2026-08-25.md``.
+
+## F451 generation-fenced distributed certified-cube oracles
+
+Run the five-round logical-topology mechanism oracle:
+
+```bash
+python3 benchmark/check_qfbv_distributed_partition_oracles.py \
+  --rounds 5 --cube-count 8 --output /tmp/f451-logical.json
+```
+
+Each round executes a same-host endpoint failure, a logical two-host whole-side
+failure, and a no-failure SAT winner. The oracle requires every ambiguous
+in-flight cube to receive a new outer fence and inner token, semantic attempt
+counts to remain exact, all UNSAT leaves to aggregate, and all SAT peers to be
+cancelled.
+
+Run the physical two-host application adapter oracle:
+
+```bash
+python3 benchmark/check_qfbv_distributed_crosshost_oracles.py \
+  --rounds 3 --remote root@down.kew.ac \
+  --output /tmp/f451-crosshost.json
+```
+
+The driver pins the remote worker by SHA-256, sends a strict canonical lease,
+requires the first remote process to exit 86, advances the generation, requeues
+all in-flight cubes, and accepts a request-digest-bound SAT response from the
+surviving remote endpoint. Duplicate JSON members, non-finite numbers, extra
+fields, lease tamper and response splice fail closed.
+
+The second command is an application-level SSH transport oracle. F447 owns the
+physical MPI/ULFM communicator-repair evidence; neither command is a solver,
+coverage, defect-yield, or production-network benchmark. See
+``docs/codex/research-progress/Generation_Fenced_Distributed_Cube_Execution_F451_2026-08-26.md``.
+
+## F452 native checker clause-compression oracle
+
+Build and benchmark the production codec, optionally including a real pinned
+CaDiCaL 3.0.1 callback case:
+
+```bash
+python3 benchmark/check_qfbv_clause_compression_oracles.py \
+  --cases 20000 --clauses 512 --repeats 9 \
+  --cadical-source /path/to/cadical-3.0.1 \
+  --output /tmp/f452-clause-compression.json
+```
+
+The output schema is ``symcc-f452-native-clause-compression-oracle-v1``. It
+records exact literal payload and compressed bytes for 1/3/6/7/8/16/32/64/256
+literal workloads, inline counts, two-call ctypes encode/decode medians,
+canonical round-trips, corruption rejection, zero partial writes, and native
+delivery/ACK telemetry. The CaDiCaL source must be commit
+``c60730422e758ef1cebe7aeddf2dda31c996bf04`` with a shared build.
+
+``original_literal_payload_bytes`` is exactly four times the literal count and
+excludes vector/allocator overhead. Timing includes Python/ctypes. The oracle is
+checker storage/codec mechanism evidence, not RSS, SAT speedup, coverage, or
+defect-yield evidence. See
+``docs/codex/research-progress/Native_Checker_Clause_Compression_F452_2026-08-26.md``.
+
+## F453 online activity/cost-guided cubing oracle
+
+Run the three-arm equal-budget mechanism experiment:
+
+```bash
+python3 benchmark/check_qfbv_online_cubing_oracles.py \
+  --rounds 5 --cube-candidates 2,4,8,16 \
+  --output /tmp/f453-online-cubing.json
+```
+
+The oracle uses a single synthetic contradictory QF_BV formula family and the
+production F448/F449 paths. Static, checked-activity and observed-cost arms each
+receive exactly five trials. The cost arm explores candidate cube counts and
+then exploits observed utility. Every guided trial builds activity receipts
+from real project proof records, independently checks them, deducts prerun from
+the configured CPU-ms ceiling, executes certified cubes and persists a verified
+outcome.
+
+The output schema is ``symcc-f453-online-cubing-oracle-v1``. It records arm and
+cube propensities, partition/build/total timings, checked receipt counts,
+configured/effective budgets, policy identity and the final store snapshot.
+The fixture is intended to verify the adaptive mechanism and exposes guidance
+overhead; it is not public-target solver speedup, fuzzing coverage or defect
+yield evidence. See
+``docs/codex/research-progress/Online_Activity_Cost_Guided_Cubing_F453_2026-08-26.md``.
+
+## F454 solver-native PalRUP production oracle
+
+Install the pinned Mallob CaDiCaL fork and native wrappers, then run the
+production oracle:
+
+```bash
+benchmark/install_cadical_palrup_sat2026.sh
+python3 benchmark/check_qfbv_native_palrup_oracles.py \
+  --rounds 3 --solver-counts 1 2 4 \
+  --output /tmp/f454-native-palrup.json
+```
+
+The output schema is ``symcc-f454-native-palrup-official-oracle-v1``. The oracle
+generates deterministic pigeonhole(9,8), runs the actual N-rank CaDiCaL pool,
+requires native cross-rank clause imports for N > 1, and drives the pinned
+official PalRUP local-check, redistribute and confirm tools both before and
+after publication. It also checks exact fan-out accounting and rejects a SAT
+negative without publishing a proof root.
+
+The native pool uses a bounded in-memory ClauseBus. Each accepted short learned
+clause is numeric-sorted before delivery because the official checker requires
+semi-sorted communication clauses. Queue drops are permitted performance loss,
+not a correctness shortcut; global proof replay remains mandatory.
+
+The mechanism result is not a SAT-speedup benchmark. On the sealed short UNSAT
+fixture, median native pool time remains near 0.3 seconds while proof generation,
+redistribution, checking and rechecking make the end-to-end time grow with rank.
+See
+``docs/codex/research-progress/Solver_Native_Clause_Sharing_PalRUP_Production_F454_2026-08-26.md``.
+
+## F455 structured agentic three-arm oracle
+
+Run the fixed-backend protocol oracle:
+
+```bash
+python3 benchmark/check_structured_agentic_oracles.py \
+  --workdir /tmp/f455-oracle \
+  --output /tmp/f455-oracle.json
+```
+
+The output schema is `symcc-f455-structured-agentic-oracle-v1`. It evaluates
+four content-addressed inputs under `online`, `shadow`, and `fallback` policies
+with one fixed command/model/prompt identity. The reactive gate suppresses the
+productive input and triggers the same three solver-barrier tasks in each arm.
+The comparison fails if the base policies or exact triggered task multisets
+differ. Online and shadow must both validate the structured response; only
+online may admit its candidate bytes, and fallback must make no backend call.
+Declared zero-token usage is replaced by conservative request/response byte
+accounting.
+
+This is a control-protocol and ablation-integrity oracle. It does not simulate
+an LLM quality gain and must not be reported as coverage evidence. Production
+coverage attribution comes from the post-merge AFL triage callback, after real
+target/branch validation and optional parser/Query IR gates. See
+`docs/codex/research-progress/Structured_Agentic_Concolic_Closed_Loop_F455_2026-08-26.md`.
+
+## F456 POSE-C initial symbolic heap oracle
+
+Run the independent alias/path oracle and bounded mechanism benchmark:
+
+```bash
+python3 benchmark/check_pose_symbolic_heap_oracles.py \
+  --output /tmp/f456-pose-oracle.json
+python3 benchmark/benchmark_pose_symbolic_heap.py \
+  --repeats 11 --output /tmp/f456-pose-benchmark.json
+```
+
+The oracle exhaustively checks 27 three-reference alias assignments for both
+read and conditional store, exact snapshot/checkpoint recovery, model gating,
+and three POSE motivating styles. Heap operations create zero paths; the local
+CFG path counts are swap 2, sum 1 and bounded-list `max=10` 12. Paper-reported
+lazy trace counts (21/23/78) remain tagged as literature values.
+
+The benchmark measures Python domain construction, byte loads and canonical
+snapshot generation for 1/2/4/8/16 references. The analytic partition count is
+not a measured lazy baseline. Neither artifact establishes public-target
+coverage, defect yield, solver throughput or end-to-end speedup. See
+`docs/codex/research-progress/POSE_C_Initial_Symbolic_Heap_F456_2026-08-26.md`.

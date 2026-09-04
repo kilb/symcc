@@ -1,0 +1,8 @@
+$ python3 -m ruff check inventory/gate/contract tests
+All checks passed!
+$ python3 -m py_compile inventory/gate/contract tests
+py_compile: PASS
+$ actionlint v1.7.7 .github/workflows/run_tests.yml
+actionlint: PASS
+$ git diff --check -- F361 implementation files
+git diff --check: PASS

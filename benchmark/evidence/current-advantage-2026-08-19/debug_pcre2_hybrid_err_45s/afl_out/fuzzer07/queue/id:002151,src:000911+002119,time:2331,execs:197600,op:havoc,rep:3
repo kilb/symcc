@@ -1,0 +1,4 @@
+(foo|b*foo|b*
+
+)*
+(Koo|bad)ad

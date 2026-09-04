@@ -1,0 +1,16 @@
+schema=symcc-f384-evidence-v1
+feature=F384
+capability=bounded-shared-phi-edge-discriminator
+ordered_discriminators=1
+ordered_alias_graph_edges=1
+reordered_discriminators=1
+reordered_alias_graph_edges=1
+reordered_llvm17_discriminators=1
+reordered_llvm17_alias_graph_edges=1
+function_pointer_discriminators=1
+function_pointer_alias_graph_edges=0
+reordered_left_cases=64:1,65:2
+reordered_right_cases=66:2,65:1
+same_block_only=true
+general_path_relation=false
+benchmark_claim=false

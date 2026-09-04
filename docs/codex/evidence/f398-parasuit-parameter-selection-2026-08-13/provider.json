@@ -1,0 +1,61 @@
+{
+  "parameters": {
+    "SYMCC_SELF_CONFIG_MAX_COVERAGE_FEATURES": {
+      "active_when": {
+        "SYMCC_SELF_CONFIG_PARAMETER_POLICY": [
+          "parasuit",
+          "hybrid"
+        ]
+      },
+      "max": 128,
+      "min": 16,
+      "numeric": true,
+      "values": [
+        "32",
+        "64",
+        "128"
+      ]
+    },
+    "SYMCC_SELF_CONFIG_PARAMETER_POLICY": {
+      "values": [
+        "hybrid",
+        "parasuit",
+        "hierarchical"
+      ]
+    },
+    "SYMCC_SELF_CONFIG_PARASUIT_WEIGHT": {
+      "active_when": {
+        "SYMCC_SELF_CONFIG_PARAMETER_POLICY": [
+          "hybrid"
+        ]
+      },
+      "max": 1.0,
+      "min": 0.0,
+      "numeric": true,
+      "values": [
+        "0.4",
+        "0.6",
+        "0.8"
+      ]
+    },
+    "SYMCC_SELF_CONFIG_SELECTION_WINDOW": {
+      "active_when": {
+        "SYMCC_SELF_CONFIG_PARAMETER_POLICY": [
+          "parasuit",
+          "hybrid"
+        ]
+      },
+      "max": 256,
+      "min": 16,
+      "numeric": true,
+      "values": [
+        "64",
+        "128",
+        "256"
+      ]
+    }
+  },
+  "provider": "symcc-parasuit-parameter-selection",
+  "schema": "symcc-parameter-provider-v1",
+  "scope": "coordinator-campaign"
+}

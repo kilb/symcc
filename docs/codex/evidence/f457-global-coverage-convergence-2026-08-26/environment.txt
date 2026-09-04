@@ -1,0 +1,7 @@
+utc=2026-08-26T12:22:57Z
+python=Python 3.12.3
+pytest=pytest 9.1.1
+ruff=ruff 0.15.20
+platform=Linux cuda-ke 7.0.0-28-generic #28~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Wed Jul  1 15:50:57 UTC 2 x86_64 x86_64 x86_64 GNU/Linux
+git_head=146e01b2d6f8e02fd2526764d46ea0d80a4bb6f6
+worktree_status_entries=653

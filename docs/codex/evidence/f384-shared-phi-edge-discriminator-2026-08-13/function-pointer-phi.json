@@ -1,0 +1,306 @@
+{
+  "endianness": "little",
+  "entry": "indirect_phi",
+  "functions": {
+    "indirect_left": {
+      "blocks": {
+        "bb0": [
+          {
+            "bits": 8,
+            "dst": "v0",
+            "left": {
+              "var": "arg0"
+            },
+            "op": "binary",
+            "operator": "add",
+            "right": {
+              "bits": 8,
+              "const": 1
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "var": "v0"
+            }
+          }
+        ]
+      },
+      "entry": "bb0",
+      "function_id": 1,
+      "param_bits": [
+        8
+      ],
+      "params": [
+        "arg0"
+      ],
+      "return_bits": 8
+    },
+    "indirect_phi": {
+      "blocks": {
+        "bb0": [
+          {
+            "dst": "input_raw_0",
+            "offset": 0,
+            "op": "input"
+          },
+          {
+            "bits": 1,
+            "dst": "input_ext_1",
+            "op": "unary",
+            "operator": "zext",
+            "value": {
+              "var": "input_raw_0"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "arg0",
+            "op": "unary",
+            "operator": "trunc",
+            "value": {
+              "var": "input_ext_1"
+            }
+          },
+          {
+            "dst": "input_raw_2",
+            "offset": 1,
+            "op": "input"
+          },
+          {
+            "bits": 8,
+            "dst": "input_ext_3",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "input_raw_2"
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "arg1",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "input_ext_3"
+            }
+          },
+          {
+            "condition": {
+              "var": "arg0"
+            },
+            "false": "bb2",
+            "op": "branch",
+            "site": "1010507794829135674",
+            "true": "bb1"
+          }
+        ],
+        "bb1": [
+          {
+            "op": "jump",
+            "target": "edge_bb1_bb3"
+          }
+        ],
+        "bb2": [
+          {
+            "op": "jump",
+            "target": "edge_bb2_bb3"
+          }
+        ],
+        "bb3": [
+          {
+            "args": [
+              {
+                "var": "arg1"
+              }
+            ],
+            "dst": "v1",
+            "op": "indirect_call",
+            "result_bits": 8,
+            "target": {
+              "var": "v0"
+            },
+            "target_bits": 64,
+            "targets": [
+              {
+                "function": "indirect_left",
+                "guards": [
+                  {
+                    "bits": 32,
+                    "equals": 1,
+                    "value": {
+                      "var": "bb3_pointer_edge_tag"
+                    }
+                  }
+                ],
+                "id": 1
+              },
+              {
+                "function": "indirect_right",
+                "guards": [
+                  {
+                    "bits": 32,
+                    "equals": 2,
+                    "value": {
+                      "var": "bb3_pointer_edge_tag"
+                    }
+                  }
+                ],
+                "id": 2
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "var": "v1"
+            }
+          }
+        ],
+        "edge_bb1_bb3": [
+          {
+            "bits": 32,
+            "dst": "bb3_pointer_edge_tag",
+            "op": "const",
+            "value": 1
+          },
+          {
+            "bits": 64,
+            "dst": "phi_in_4",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "bits": 64,
+              "const": 1
+            }
+          },
+          {
+            "bits": 64,
+            "dst": "v0",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "phi_in_4"
+            }
+          },
+          {
+            "op": "jump",
+            "target": "bb3"
+          }
+        ],
+        "edge_bb2_bb3": [
+          {
+            "bits": 32,
+            "dst": "bb3_pointer_edge_tag",
+            "op": "const",
+            "value": 2
+          },
+          {
+            "bits": 64,
+            "dst": "phi_in_5",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "bits": 64,
+              "const": 2
+            }
+          },
+          {
+            "bits": 64,
+            "dst": "v0",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "phi_in_5"
+            }
+          },
+          {
+            "op": "jump",
+            "target": "bb3"
+          }
+        ]
+      },
+      "entry": "bb0",
+      "param_bits": [],
+      "params": [],
+      "phi_edge_discriminators": [
+        {
+          "bits": 32,
+          "block": "bb3",
+          "incoming": [
+            {
+              "edge": "edge_bb2_bb3",
+              "predecessor": "bb2",
+              "value": 2
+            },
+            {
+              "edge": "edge_bb1_bb3",
+              "predecessor": "bb1",
+              "value": 1
+            }
+          ],
+          "tag": "bb3_pointer_edge_tag"
+        }
+      ],
+      "return_bits": 8
+    },
+    "indirect_right": {
+      "blocks": {
+        "bb0": [
+          {
+            "bits": 8,
+            "dst": "v0",
+            "left": {
+              "var": "arg0"
+            },
+            "op": "binary",
+            "operator": "add",
+            "right": {
+              "bits": 8,
+              "const": 2
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "var": "v0"
+            }
+          }
+        ]
+      },
+      "entry": "bb0",
+      "function_id": 2,
+      "param_bits": [
+        8
+      ],
+      "params": [
+        "arg0"
+      ],
+      "return_bits": 8
+    }
+  },
+  "input_size": 2,
+  "lowering": {
+    "capabilities": [
+      "integer-ssa",
+      "scalar-mem2reg",
+      "phi-edge-copies",
+      "switch-chain",
+      "direct-internal-calls",
+      "bounded-bitvectors",
+      "static-global-memory",
+      "constant-gep",
+      "multi-byte-memory",
+      "bounded-shared-phi-edge-discriminator",
+      "bounded-indirect-call-dispatch"
+    ],
+    "entry": "indirect_phi",
+    "input_abi": "integer-arguments-little-endian",
+    "llvm_version": "18.1.3",
+    "schema": "symcc-llvm-continuation-lowering-v1",
+    "source_module": "/home/ubuntu/code/symcc/test/live_continuation_lowering.ll",
+    "status": "lowered"
+  },
+  "memory_size": 0,
+  "schema": "symcc-live-program-v1"
+}

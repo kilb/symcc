@@ -1,0 +1,198 @@
+{
+  "endianness": "little",
+  "entry": "lifecycle_rethrow",
+  "functions": {
+    "lifecycle_rethrow": {
+      "blocks": {
+        "bb0": [
+          {
+            "dst": "input_raw_0",
+            "offset": 0,
+            "op": "input"
+          },
+          {
+            "bits": 1,
+            "dst": "input_ext_1",
+            "op": "unary",
+            "operator": "zext",
+            "value": {
+              "var": "input_raw_0"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "arg0",
+            "op": "unary",
+            "operator": "trunc",
+            "value": {
+              "var": "input_ext_1"
+            }
+          },
+          {
+            "args": [
+              {
+                "var": "arg0"
+              }
+            ],
+            "dst": "v0",
+            "function": "lifecycle_rethrow_inner",
+            "normal_target": "bb1",
+            "op": "call",
+            "result_bits": 64,
+            "unwind_target": "bb2"
+          }
+        ],
+        "bb1": [
+          {
+            "op": "return",
+            "value": {
+              "var": "v0"
+            }
+          }
+        ],
+        "bb2": [
+          {
+            "catch_all": false,
+            "cleanup": false,
+            "op": "exception_match",
+            "types": [
+              1937073397
+            ]
+          },
+          {
+            "bits": 64,
+            "dst": "v2",
+            "op": "exception_token"
+          },
+          {
+            "op": "exception_begin_catch",
+            "token": {
+              "var": "v2"
+            },
+            "token_bits": 64
+          },
+          {
+            "op": "exception_end_catch"
+          },
+          {
+            "op": "return",
+            "value": {
+              "bits": 64,
+              "const": 222
+            }
+          }
+        ]
+      },
+      "entry": "bb0",
+      "param_bits": [],
+      "params": [],
+      "return_bits": 64
+    },
+    "lifecycle_rethrow_inner": {
+      "blocks": {
+        "bb0": [
+          {
+            "condition": {
+              "var": "arg0"
+            },
+            "exception": {
+              "bits": 64,
+              "const": 42
+            },
+            "exception_bits": 64,
+            "normal": "bb1",
+            "op": "throw_if",
+            "site": "11297269664778036120",
+            "type_id": 1937073397,
+            "unwind": "bb2"
+          }
+        ],
+        "bb1": [
+          {
+            "op": "return",
+            "value": {
+              "bits": 64,
+              "const": 7
+            }
+          }
+        ],
+        "bb2": [
+          {
+            "catch_all": false,
+            "cleanup": false,
+            "op": "exception_match",
+            "types": [
+              1937073397
+            ]
+          },
+          {
+            "bits": 64,
+            "dst": "v1",
+            "op": "exception_token"
+          },
+          {
+            "op": "exception_begin_catch",
+            "token": {
+              "var": "v1"
+            },
+            "token_bits": 64
+          },
+          {
+            "op": "exception_rethrow",
+            "unwind": "bb3"
+          }
+        ],
+        "bb3": [
+          {
+            "catch_all": false,
+            "cleanup": true,
+            "op": "exception_match",
+            "types": []
+          },
+          {
+            "normal": "bb4",
+            "op": "exception_end_catch"
+          }
+        ],
+        "bb4": [
+          {
+            "op": "throw"
+          }
+        ]
+      },
+      "entry": "bb0",
+      "param_bits": [
+        1
+      ],
+      "params": [
+        "arg0"
+      ],
+      "return_bits": 64
+    }
+  },
+  "input_size": 1,
+  "lowering": {
+    "capabilities": [
+      "integer-ssa",
+      "scalar-mem2reg",
+      "phi-edge-copies",
+      "switch-chain",
+      "direct-internal-calls",
+      "bounded-bitvectors",
+      "static-global-memory",
+      "constant-gep",
+      "multi-byte-memory",
+      "bounded-cleanup-exception-unwind",
+      "bounded-typed-exception-matching",
+      "bounded-exception-catch-lifecycle"
+    ],
+    "entry": "lifecycle_rethrow",
+    "input_abi": "integer-arguments-little-endian",
+    "llvm_version": "18.1.3",
+    "schema": "symcc-llvm-continuation-lowering-v1",
+    "source_module": "/home/ubuntu/code/symcc/test/live_continuation_lowering.ll",
+    "status": "lowered"
+  },
+  "memory_size": 0,
+  "schema": "symcc-live-program-v1"
+}

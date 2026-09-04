@@ -1,0 +1,7 @@
+experiment_id,run_id,pair_id,target,configuration,mode,np,round,timestamp_sec,edge_cov_pct,edges_found,edges_total,total_cases
+symcc-36b4512793d6eb20,87b5b90b5aa258614984cf28,9c7072da364d047f127b10f9,sqlite-sqlite_fuzzer,hybrid,hybrid,16,1,0.0,13.89,4381,31552,25
+symcc-36b4512793d6eb20,87b5b90b5aa258614984cf28,9c7072da364d047f127b10f9,sqlite-sqlite_fuzzer,hybrid,hybrid,16,1,10.0,18.42,5812,31552,4109
+symcc-36b4512793d6eb20,87b5b90b5aa258614984cf28,9c7072da364d047f127b10f9,sqlite-sqlite_fuzzer,hybrid,hybrid,16,1,20.0,18.76,5918,31552,4803
+symcc-36b4512793d6eb20,87b5b90b5aa258614984cf28,9c7072da364d047f127b10f9,sqlite-sqlite_fuzzer,hybrid,hybrid,16,1,30.0,18.75,5916,31552,4803
+symcc-36b4512793d6eb20,87b5b90b5aa258614984cf28,9c7072da364d047f127b10f9,sqlite-sqlite_fuzzer,hybrid,hybrid,16,1,40.0,18.76,5919,31552,4803
+symcc-36b4512793d6eb20,87b5b90b5aa258614984cf28,9c7072da364d047f127b10f9,sqlite-sqlite_fuzzer,hybrid,hybrid,16,1,45.0,18.76,5918,31552,4803

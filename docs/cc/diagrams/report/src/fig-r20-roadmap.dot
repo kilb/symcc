@@ -1,0 +1,49 @@
+
+digraph G {
+  graph [
+    bgcolor="white", pad="0.28", nodesep="0.38", ranksep="0.58",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=24,
+    labelloc="t", labeljust="l"
+  ];
+  node [
+    shape=box, style="rounded,filled", margin="0.18,0.12",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=12,
+    color="#CBD5E1", penwidth=1.3, fillcolor="#F8FAFC"
+  ];
+  edge [
+    fontname="WenQuanYi Zen Hei", fontcolor="#64748B", fontsize=10,
+    color="#64748B", penwidth=1.5, arrowsize=0.75
+  ];
+
+  label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3"><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="26"><B>图 R-20　已完成 / 进行中 / 待补：三类工作的边界</B></FONT><BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="14" COLOR="#64748B">每一类都标注证据等级；不能宣称的部分单独列出，不与已完成项混排</FONT><BR ALIGN="LEFT"/></TD></TR></TABLE>>;
+  rankdir=LR; ranksep=0.7;
+
+  subgraph cluster_done {
+    label="已完成并有证据"; fontsize=15;
+    color="#4ADE80"; style="rounded,filled"; fillcolor="#F0FDF4";
+    d1 [label="F00–F296 实现 + lit/单元测试", fillcolor="#DCFCE7", color="#15803D"];
+    d2 [label="双引擎端到端跑通\n（symcc / symsan × 6 目标）", fillcolor="#DCFCE7", color="#15803D"];
+    d3 [label="20 轮独立样本配置比较\n两目标均显著", fillcolor="#DCFCE7", color="#15803D"];
+    d4 [label="机制级实测：漏斗 / 策略占比 /\n嵌套深度 / 持久模式", fillcolor="#DCFCE7", color="#15803D"];
+  }
+
+  subgraph cluster_wip {
+    label="进行中"; fontsize=15;
+    color="#FBBF24"; style="rounded,filled"; fillcolor="#FFFBEB";
+    w1 [label="sealed 随机区组确认实验设计", fillcolor="#FEF3C7", color="#D97706"];
+    w2 [label="等 CPU-second 在线闭环实验", fillcolor="#FEF3C7", color="#D97706"];
+  }
+
+  subgraph cluster_todo {
+    label="尚未获得、不能宣称"; fontsize=15;
+    color="#F87171"; style="rounded,filled"; fillcolor="#FEF2F2";
+    t1 [label="297 项技术各自的独立增益", fillcolor="#FEE2E2", color="#B91C1C"];
+    t2 [label="24 h campaign 的漏洞数 /\n首次触发时间 / 生存曲线", fillcolor="#FEE2E2", color="#B91C1C"];
+    t3 [label="Magma / FuzzBench / UniBench\n跨项目泛化", fillcolor="#FEE2E2", color="#B91C1C"];
+    t4 [label="在线闭环相对离线并集的净收益", fillcolor="#FEE2E2", color="#B91C1C"];
+  }
+
+  d3 -> w1 [color="#CBD5E1"];
+  w1 -> t2 [label="  sealed confirmatory campaign", color="#94A3B8", style=dashed, fontsize=11];
+
+}

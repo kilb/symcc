@@ -1,0 +1,2 @@
+(foo|b\c{3}-\p{ad)*
+(foo|bad)*

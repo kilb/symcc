@@ -1,0 +1,108 @@
+SymCC MPI Parallel Concolic Execution
+  Processes:     7
+  Mode:          multi-master (2 masters, auto-scaled at 3 workers/master)
+    Master 0: 3 workers
+    Master 1: 2 workers
+  Shared dir:    /tmp/symcc-f329-mpi-4xofc58c/out
+  Input dir:     /tmp/symcc-f329-mpi-4xofc58c/in
+  Target:        /bin/true
+  Timeout:       1s per execution
+  Work epoch:    15cb38dd23ed228bf65257c28e7c4329df62c84c56608292a6aa63318caa37ae (new)
+  Wall timeout:  4s total
+
+[Master] Imported 1 initial inputs from /tmp/symcc-f329-mpi-4xofc58c/in
+[Master] Using 2 master(s), 3 workers in this group
+[Master] Durable work ownership: rendezvous + 64 fenced shards, lease=120s
+[Master] Shared filesystem capabilities: {'schema': 'symcc-shared-filesystem-capabilities-v1', 'root': '/tmp/symcc-f329-mpi-4xofc58c/out/.standalone-work-15cb38dd23ed228bf65257c28e7c4329df62c84c56608292a6aa63318caa37ae', 'publication_root': '/tmp/symcc-f329-mpi-4xofc58c/out', 'device': 92, 'filesystem_id': 18395215968828387670, 'publication_device': 92, 'publication_filesystem_id': 18395215968828387670, 'filesystem_type': 'overlay', 'mount_point': '/', 'mount_source': 'overlay', 'distributed_filesystem': False, 'cluster_lock_verified': False, 'probe_scope': 'same-host-subprocess-v1', 'cluster_lock_members': [{'rank': 0, 'processor': 'cuda-ke'}, {'rank': 1, 'processor': 'cuda-ke'}], 'cluster_lock_representatives': [0], 'cluster_lock_rounds': 0, 'cluster_lock_contention_checks': 0, 'cluster_lock_release_checks': 0, 'file_fsync': True, 'directory_fsync': True, 'same_directory_replace': True, 'cross_directory_replace': True, 'publication_replace': True, 'hard_link': True, 'durable_unlink': True, 'advisory_lock_exclusion': True, 'advisory_lock_release': True}
+[Master] 0 generated, 0 interesting, 0 analyzed, 0 busy (0 tc/s)
+[Master] Wall-clock timeout (4s) reached. Shutting down.
+[Master 0] Worker shutdown: acked=3/3 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+[Master 1] Worker shutdown: acked=2/2 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+
+[Master] === Final Statistics ===
+[Master] Total analysis observations:       0
+[Master] Total test cases generated:  0
+[Master] New interesting test cases:  0
+[Master] Throughput:                  0.0 tc/s
+[Master] Masters used:               2
+[Master] Workers used:               5
+[Master] Analysis by master:         0=0, 1=0
+{
+  "all_checks_passed": true,
+  "capability": {
+    "advisory_lock_exclusion": true,
+    "advisory_lock_release": true,
+    "cluster_lock_contention_checks": 0,
+    "cluster_lock_members": [
+      {
+        "processor": "cuda-ke",
+        "rank": 0
+      },
+      {
+        "processor": "cuda-ke",
+        "rank": 1
+      }
+    ],
+    "cluster_lock_release_checks": 0,
+    "cluster_lock_representatives": [
+      0
+    ],
+    "cluster_lock_rounds": 0,
+    "cluster_lock_verified": false,
+    "cross_directory_replace": true,
+    "device": 92,
+    "directory_fsync": true,
+    "distributed_filesystem": false,
+    "durable_unlink": true,
+    "file_fsync": true,
+    "filesystem_id": 18395215968828387670,
+    "filesystem_type": "overlay",
+    "hard_link": true,
+    "mount_point": "/",
+    "mount_source": "overlay",
+    "probe_scope": "same-host-subprocess-v1",
+    "publication_device": 92,
+    "publication_filesystem_id": 18395215968828387670,
+    "publication_replace": true,
+    "publication_root": "/tmp/symcc-f329-mpi-4xofc58c/out",
+    "root": "/tmp/symcc-f329-mpi-4xofc58c/out/.standalone-work-15cb38dd23ed228bf65257c28e7c4329df62c84c56608292a6aa63318caa37ae",
+    "same_directory_replace": true,
+    "schema": "symcc-shared-filesystem-capabilities-v1"
+  },
+  "checks": {
+    "all_workers_acknowledged": true,
+    "cluster_not_claimed": true,
+    "epoch_state_cleaned": true,
+    "exit_zero": true,
+    "membership_observed": true,
+    "same_host_scope": true,
+    "seed_published": true,
+    "two_masters": true,
+    "zero_cross_host_rounds": true
+  },
+  "command": [
+    "mpirun",
+    "--oversubscribe",
+    "-np",
+    "7",
+    "python3",
+    "/home/ubuntu/code/symcc/util/mpi_concolic_execution.py",
+    "-i",
+    "/tmp/symcc-f329-mpi-4xofc58c/in",
+    "-o",
+    "/tmp/symcc-f329-mpi-4xofc58c/out",
+    "-t",
+    "1",
+    "--max-idle",
+    "1",
+    "--wall-timeout",
+    "4",
+    "--workers-per-master",
+    "3",
+    "--simulate",
+    "--",
+    "/bin/true"
+  ],
+  "returncode": 0,
+  "schema": "symcc-f329-same-host-mpi-v1"
+}

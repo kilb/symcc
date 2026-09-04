@@ -1,0 +1,25 @@
+F413 evidence environment
+date_utc=2026-08-16
+workspace=/home/ubuntu/code/symcc
+kernel=Linux 7.0.0-28-generic x86_64
+llvm18=18.1.3
+llvm17=17.0.6
+python=3.12.3
+pytest=9.1.1
+llvm18_build=build
+llvm17_build=build-llvm17
+python_gate_manifest=test/pytest-nodeids.json
+python_gate_manifest_sha256=5b51e98e49435739615fb1e3ffc8985e1b8834cd380e76c48331a3ff94b0e06a
+maximum_object_bytes=64
+maximum_aliases=256
+maximum_lane_witnesses=2048
+maximum_induction_step=64
+maximum_writer_bytes=8
+loop_blocks=5
+latches=1
+writer_arms=1
+skip_arms=1
+writer_guard=single integer icmp in decision block
+writer_guard_consumer_checks=scalar provenance, exact width equality, in-range constants, dominance, predicate, and edge polarity
+runtime_authority=path-local byte initialization bitmap
+claim_boundary=mechanism evidence only; no public coverage, solver throughput, bug yield, or end-to-end speedup claim

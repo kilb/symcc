@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="980" viewBox="0 0 1600 980" role="img" aria-labelledby="title desc">
+  <title id="title">F436 native clause activity telemetry</title>
+  <desc id="desc">Checked proof delivery is tracked on the native CaDiCaL trail. First unit or conflict activation is sealed, independently replayed, and aggregated separately from delivery.</desc>
+  <defs>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="145%"><feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#17212b" flood-opacity="0.14"/></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#34495e"/></marker>
+    <marker id="greenArrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#17765b"/></marker>
+    <style>
+      .topTitle{font:700 34px 'DejaVu Sans',sans-serif;fill:#fff}.topSub{font:400 17px 'DejaVu Sans',sans-serif;fill:#cbd5df}.lane{font:700 15px 'DejaVu Sans',sans-serif;fill:#fff}.head{font:700 21px 'DejaVu Sans',sans-serif;fill:#17212b}.body{font:400 15px 'DejaVu Sans',sans-serif;fill:#34495e}.small{font:400 13px 'DejaVu Sans Mono',monospace;fill:#34495e}.tiny{font:400 11px 'DejaVu Sans Mono',monospace;fill:#34495e}.label{font:700 14px 'DejaVu Sans',sans-serif;fill:#52616f}.metric{font:700 18px 'DejaVu Sans',sans-serif;fill:#fff}.footnote{font:400 13px 'DejaVu Sans Mono',monospace;fill:#cbd5df}.box{fill:#fff;stroke:#c8d1da;stroke-width:2;rx:8;filter:url(#shadow)}.arrow{fill:none;stroke:#34495e;stroke-width:3;marker-end:url(#arrow)}.green{fill:none;stroke:#17765b;stroke-width:3;marker-end:url(#greenArrow)}
+    </style>
+  </defs>
+  <rect width="1600" height="980" fill="#f4f6f8"/>
+  <rect width="1600" height="112" fill="#17212b"/>
+  <rect x="0" y="112" width="16" height="868" fill="#e85d3f"/>
+  <text x="62" y="54" class="topTitle">F436 Native Clause Activity Telemetry</text>
+  <text x="62" y="86" class="topSub">Separate checked delivery from semantic unit/conflict activation on the real CDCL trail</text>
+
+  <rect x="42" y="147" width="150" height="50" rx="4" fill="#445a6f"/><text x="117" y="178" text-anchor="middle" class="lane">TRUSTED INPUT</text>
+  <rect x="42" y="384" width="150" height="50" rx="4" fill="#b74931"/><text x="117" y="415" text-anchor="middle" class="lane">NATIVE TRAIL</text>
+  <rect x="42" y="681" width="150" height="50" rx="4" fill="#17765b"/><text x="117" y="712" text-anchor="middle" class="lane">EVIDENCE</text>
+
+  <rect class="box" x="230" y="140" width="335" height="155"/>
+  <text x="260" y="180" class="head">Checked proof delivery</text>
+  <text x="260" y="214" class="body">LRUP/RUP replay authorizes clause</text>
+  <text x="260" y="241" class="small">record + formula + CNF + source</text>
+  <rect x="260" y="257" width="245" height="25" rx="4" fill="#e5edf3"/><text x="382" y="275" text-anchor="middle" class="small">native ACK: token / gen / ordinal</text>
+
+  <rect class="box" x="685" y="140" width="390" height="155"/>
+  <text x="715" y="180" class="head">Bounded clause tracker</text>
+  <text x="715" y="214" class="small">unassigned(C, trail)</text>
+  <text x="715" y="241" class="small">satisfied(C, trail)</text>
+  <text x="715" y="270" class="body">variable to import-occurrence index</text>
+
+  <rect class="box" x="1195" y="140" width="315" height="155"/>
+  <text x="1225" y="180" class="head">Lifecycle fence</text>
+  <text x="1225" y="214" class="body">solve start/end is atomic</text>
+  <text x="1225" y="241" class="body">pre/post-solve API serialized</text>
+  <text x="1225" y="270" class="small">enqueue/dequeue stays concurrent</text>
+  <path class="arrow" d="M565 218 H673"/>
+  <path class="arrow" d="M1075 218 H1183"/>
+
+  <rect class="box" x="230" y="365" width="335" height="205"/>
+  <text x="260" y="405" class="head">CaDiCaL callbacks</text>
+  <rect x="260" y="430" width="245" height="32" rx="4" fill="#e5edf3"/><text x="382" y="451" text-anchor="middle" class="small">assignment batch</text>
+  <rect x="260" y="471" width="245" height="32" rx="4" fill="#fff0eb"/><text x="382" y="492" text-anchor="middle" class="small">new decision level</text>
+  <rect x="260" y="512" width="245" height="32" rx="4" fill="#dcefe7"/><text x="382" y="533" text-anchor="middle" class="small">backtrack and undo</text>
+
+  <rect class="box" x="685" y="345" width="510" height="245"/>
+  <text x="715" y="385" class="head">First semantic activation</text>
+  <line x1="715" y1="410" x2="1165" y2="410" stroke="#d5dde4" stroke-width="2"/>
+  <rect x="715" y="430" width="140" height="62" rx="5" fill="#e5edf3"/>
+  <text x="785" y="452" text-anchor="middle" class="label">DORMANT</text>
+  <text x="785" y="471" text-anchor="middle" class="tiny">sat &gt; 0 or</text>
+  <text x="785" y="485" text-anchor="middle" class="tiny">open &gt; 1</text>
+  <rect x="870" y="430" width="140" height="62" rx="5" fill="#dcefe7"/>
+  <text x="940" y="452" text-anchor="middle" class="label" fill="#126848">UNIT</text>
+  <text x="940" y="478" text-anchor="middle" class="tiny">sat = 0, open = 1</text>
+  <rect x="1025" y="430" width="140" height="62" rx="5" fill="#f9d9d4"/>
+  <text x="1095" y="452" text-anchor="middle" class="label" fill="#9e3323">CONFLICT</text>
+  <text x="1095" y="478" text-anchor="middle" class="tiny">sat = 0, open = 0</text>
+  <text x="715" y="530" class="body">Only the first activation is emitted.</text>
+  <text x="715" y="558" class="body">Backtrack updates dormant clauses.</text>
+  <path class="arrow" d="M565 468 H673"/>
+  <path class="green" d="M880 295 V333"/>
+
+  <rect class="box" x="230" y="665" width="385" height="185"/>
+  <text x="260" y="705" class="head">Sealed activity receipt</text>
+  <text x="260" y="738" class="small">ACK SHA + token + generation</text>
+  <text x="260" y="765" class="small">kind + level + unit literal</text>
+  <text x="260" y="792" class="small">exact falsifying witness</text>
+  <text x="260" y="823" class="body">One record, at most one receipt</text>
+
+  <rect class="box" x="715" y="665" width="390" height="185"/>
+  <text x="745" y="705" class="head">Independent QueryStore replay</text>
+  <text x="745" y="738" class="body">Rebuild bit-blast plan and proof</text>
+  <text x="745" y="765" class="body">Resolve durable event and ACK</text>
+  <text x="745" y="792" class="body">Recompute unit/conflict witness</text>
+  <text x="745" y="823" class="small">full native trail is not claimed</text>
+
+  <rect class="box" x="1205" y="665" width="305" height="185"/>
+  <text x="1235" y="705" class="head">MPI utility aggregate</text>
+  <text x="1235" y="738" class="small">delivery rate</text>
+  <text x="1235" y="765" class="small">activation rate</text>
+  <text x="1235" y="792" class="small">checker CPU / source pair</text>
+  <text x="1235" y="823" class="body">Input to F437 pairing</text>
+  <path class="green" d="M1052 590 V630 H422 V653"/>
+  <path class="arrow" d="M615 758 H703"/>
+  <path class="arrow" d="M1105 758 H1193"/>
+
+  <rect x="230" y="895" width="1280" height="58" rx="5" fill="#17212b"/>
+  <text x="260" y="930" class="metric">Two active MPI trials: delivery 8/8, semantic activation 4/8 (50%)</text>
+  <text x="1475" y="930" text-anchor="end" class="footnote">mechanism evidence, not causal speedup</text>
+</svg>

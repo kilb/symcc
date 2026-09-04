@@ -1,0 +1,7 @@
+static checks: PASS
+ruff check: PASS
+ruff format check (new/small files): PASS
+py_compile: PASS
+git diff check root/docs: PASS
+diagram SVG/PNG parse, dimensions, nonblank and visual inspection: PASS
+clang-format: not applicable (F398 has no C/C++ source change)

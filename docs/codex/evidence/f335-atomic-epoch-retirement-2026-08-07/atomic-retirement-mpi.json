@@ -1,0 +1,74 @@
+{
+  "actual_mpi_transport": true,
+  "actual_multi_host": false,
+  "all_checks_passed": true,
+  "checks": {
+    "all_workers_acknowledge_before_retirement_failure": true,
+    "both_runs_are_bounded": true,
+    "content_addressed_seed_remains_intact": true,
+    "matching_restart_reclaims_old_root_and_retires_new_epoch": true,
+    "post_rename_uncertainty_aborts_with_72": true,
+    "real_multi_master_frontend_exercised": true,
+    "uncertain_retirement_has_no_active_name_and_one_retired_root": true
+  },
+  "command": [
+    "mpirun",
+    "--oversubscribe",
+    "-np",
+    "7",
+    "python3",
+    "/tmp/symcc-f335-retire-mpi-3cks5n5j/atomic_retirement_wrapper.py",
+    "-i",
+    "/tmp/symcc-f335-retire-mpi-3cks5n5j/input",
+    "-o",
+    "/tmp/symcc-f335-retire-mpi-3cks5n5j/output",
+    "-t",
+    "1",
+    "--max-idle",
+    "1",
+    "--wall-timeout",
+    "3",
+    "--workers-per-master",
+    "3",
+    "--simulate",
+    "--",
+    "/bin/true"
+  ],
+  "configuration": {
+    "masters": 2,
+    "ranks": 7,
+    "retired_gc_limit": 1,
+    "work_epoch": "f335f335f335f335f335f335f335f335f335f335f335f335f335f335f335f335",
+    "workers": 5
+  },
+  "deployment_evidence": false,
+  "injected": {
+    "elapsed": 3.6238950230181217,
+    "returncode": 72
+  },
+  "post_rename_fsync_failure_injected": true,
+  "proof_boundary": "One physical host and a test-only rank-0 post-rename/pre-fsync fault prove production Abort(72), ACK-before-retirement order, reserved-root retention, startup GC, and same-epoch convergence. This does not prove remote-filesystem crash persistence, cross-job lock semantics, rank repair, DSE throughput, coverage, solver, or LAVA-M uplift.",
+  "recovered": {
+    "elapsed": 3.7320157941430807,
+    "returncode": 0
+  },
+  "schema": "symcc-f335-atomic-epoch-retirement-mpi-v1",
+  "state_observations": {
+    "active_exists_after_failed_retirement": false,
+    "active_exists_after_matching_recovery": false,
+    "corpus_seed_digest": "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd",
+    "corpus_seed_intact": true,
+    "retired_files_after_failed_retirement": [
+      "016/559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd.json",
+      "016/559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd.json.lock",
+      "state.json"
+    ],
+    "retired_roots_after_failed_retirement": [
+      ".retired-standalone-work-f335f335f335f335f335f335f335f335f335f335f335f335f335f335f335f335-b80b83ee07ceaebc336c333ef608ef2c"
+    ],
+    "retired_roots_after_matching_recovery": [
+      ".retired-standalone-work-f335f335f335f335f335f335f335f335f335f335f335f335f335f335f335f335-e3054b6a99a38565d9b9ba1e61b0b075"
+    ]
+  },
+  "synthetic_topology": false
+}

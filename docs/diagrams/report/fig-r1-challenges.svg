@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="892"
+     viewBox="0 0 1600 892" role="img" aria-labelledby="title desc">
+  <title id="title">图 R-1　三个层次的技术挑战与对应设计</title>
+  <desc id="desc">每一行左侧为问题本身的难点，右侧为当前实现采取的具体机制</desc>
+  <rect width="1600" height="892" fill="white"/>
+  <text x="48" y="54" font-family="WenQuanYi Zen Hei" font-size="28" font-weight="700" fill="#17212B" text-anchor="start">图 R-1　三个层次的技术挑战与对应设计</text>
+  <text x="48" y="86" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="400" fill="#64748B" text-anchor="start">每一行左侧为问题本身的难点，右侧为当前实现采取的具体机制</text>
+  <rect x="48" y="132" width="1504" height="226" rx="12" fill="#FFFFFF" stroke="#B91C1C" stroke-width="2"/>
+  <rect x="48" y="132" width="300" height="226" rx="12" fill="#FEE2E2" stroke="#B91C1C" stroke-width="2"/>
+  <text x="74" y="192" font-family="WenQuanYi Zen Hei" font-size="17" font-weight="700" fill="#B91C1C" text-anchor="start">挑战一</text>
+  <text x="74" y="228" font-family="WenQuanYi Zen Hei" font-size="25" font-weight="700" fill="#17212B" text-anchor="start">语义保真</text>
+  <text x="384" y="174" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="700" fill="#64748B" text-anchor="start">难在哪</text>
+  <text x="384" y="212" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">优化器把 memcmp 内联成宽整数比较、把常量 strcmp 折叠掉，</text>
+  <text x="384" y="246" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">同一份源码在不同 -O 级别下 concolic 看到的约束形态完全不同；</text>
+  <text x="384" y="280" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">位宽、线程局部状态、站点身份任何一处出错都会静默丢约束。</text>
+  <line x1="956" y1="156" x2="956" y2="334" stroke="#E2E8F0" stroke-width="1.5"/>
+  <text x="986" y="174" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="700" fill="#B91C1C" text-anchor="start">本项目的应对</text>
+  <circle cx="992" cy="207" r="3.5" fill="#B91C1C"/>
+  <text x="1006" y="212" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">编译期稳定 site_id（不依赖地址与编译顺序）</text>
+  <circle cx="992" cy="241" r="3.5" fill="#B91C1C"/>
+  <text x="1006" y="246" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">libc 包装器白名单 + bcmp 规范化处理</text>
+  <circle cx="992" cy="275" r="3.5" fill="#B91C1C"/>
+  <text x="1006" y="280" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">证明门控的 CFG 变换：proof gate + 未变换基线 replay + denylist</text>
+  <rect x="48" y="382" width="1504" height="226" rx="12" fill="#FFFFFF" stroke="#C2410C" stroke-width="2"/>
+  <rect x="48" y="382" width="300" height="226" rx="12" fill="#FFEDD5" stroke="#C2410C" stroke-width="2"/>
+  <text x="74" y="442" font-family="WenQuanYi Zen Hei" font-size="17" font-weight="700" fill="#C2410C" text-anchor="start">挑战二</text>
+  <text x="74" y="478" font-family="WenQuanYi Zen Hei" font-size="25" font-weight="700" fill="#17212B" text-anchor="start">求解可扩展</text>
+  <text x="384" y="424" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="700" fill="#64748B" text-anchor="start">难在哪</text>
+  <text x="384" y="462" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">完整路径约束随深度线性增长，深路径上 Z3 极易超时；</text>
+  <text x="384" y="496" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">丢前缀能救回可满足性，但候选可能根本走不到目标分支；</text>
+  <text x="384" y="530" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">多层嵌套下取头 FIFO 会让前沿枯竭，深度上不去。</text>
+  <line x1="956" y1="406" x2="956" y2="584" stroke="#E2E8F0" stroke-width="1.5"/>
+  <text x="986" y="424" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="700" fill="#C2410C" text-anchor="start">本项目的应对</text>
+  <circle cx="992" cy="457" r="3.5" fill="#C2410C"/>
+  <text x="1006" y="462" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">七层求解代价阶梯：先查缓存、再免 SMT 构造、最后才上 Z3</text>
+  <circle cx="992" cy="491" r="3.5" fill="#C2410C"/>
+  <text x="1006" y="496" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">fastSolveConcat：宽整数比较直接反演，连 Z3 都不用</text>
+  <circle cx="992" cy="525" r="3.5" fill="#C2410C"/>
+  <text x="1006" y="530" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">乐观求解只作为 UNSAT 回退，且必须重放验证</text>
+  <rect x="48" y="632" width="1504" height="226" rx="12" fill="#FFFFFF" stroke="#0F766E" stroke-width="2"/>
+  <rect x="48" y="632" width="300" height="226" rx="12" fill="#CCFBF1" stroke="#0F766E" stroke-width="2"/>
+  <text x="74" y="692" font-family="WenQuanYi Zen Hei" font-size="17" font-weight="700" fill="#0F766E" text-anchor="start">挑战三</text>
+  <text x="74" y="728" font-family="WenQuanYi Zen Hei" font-size="25" font-weight="700" fill="#17212B" text-anchor="start">并行有效性</text>
+  <text x="384" y="674" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="700" fill="#64748B" text-anchor="start">难在哪</text>
+  <text x="384" y="712" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">worker 之间会大量重复求解同一条边；</text>
+  <text x="384" y="746" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">concolic 产出 90% 以上是冗余，盲目回灌只会拖慢 AFL；</text>
+  <text x="384" y="780" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">短预算下 AFL 根本不会重扫自己的队列，闭环并不成立。</text>
+  <line x1="956" y1="656" x2="956" y2="834" stroke="#E2E8F0" stroke-width="1.5"/>
+  <text x="986" y="674" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="700" fill="#0F766E" text-anchor="start">本项目的应对</text>
+  <circle cx="992" cy="707" r="3.5" fill="#0F766E"/>
+  <text x="1006" y="712" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">四层过滤漏斗：内容摘要 → showmap → B2 预过滤 → B1 全局仲裁</text>
+  <circle cx="992" cy="741" r="3.5" fill="#0F766E"/>
+  <text x="1006" y="746" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">位图 / 哈希空间严格分离，B3 与 B1/B2 不可互相索引</text>
+  <circle cx="992" cy="775" r="3.5" fill="#0F766E"/>
+  <text x="1006" y="780" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">组合配置比较：4 AFL + 3 SymCC + basic profiles 提高离线候选并集覆盖</text>
+</svg>

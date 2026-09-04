@@ -1,0 +1,171 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1450" viewBox="0 0 1900 1450">
+  <defs>
+    <style>
+      text { font-family: "WenQuanYi Zen Hei", sans-serif; fill: #172b43; }
+      .title { font-size: 46px; font-weight: 700; fill: #ffffff; }
+      .subtitle { font-size: 21px; fill: #bdc9d8; }
+      .section { font-size: 27px; font-weight: 700; }
+      .head { font-size: 22px; font-weight: 700; }
+      .body { font-size: 17px; }
+      .small { font-size: 14px; fill: #60758e; }
+      .mono { font-family: "DejaVu Sans Mono", "WenQuanYi Zen Hei", monospace; font-size: 16px; }
+      .center { text-anchor: middle; }
+      .right { text-anchor: end; }
+      .white { fill: #ffffff; }
+      .light { fill: #d9e5f2; }
+      .muted-light { fill: #bdc9d8; }
+      .teal { fill: #16897f; }
+      .teal-light { fill: #78d4cb; }
+      .danger { fill: #a63e36; }
+    </style>
+    <marker id="arrow-blue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#3478bd"/>
+    </marker>
+    <marker id="arrow-teal" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#25a397"/>
+    </marker>
+  </defs>
+
+  <rect width="1900" height="1450" fill="#f3f6f9"/>
+  <rect width="1900" height="112" fill="#172b43"/>
+  <rect y="106" width="1900" height="6" fill="#25a397"/>
+  <text x="68" y="66" class="title">F331 确定性有界续期抖动</text>
+  <text x="68" y="96" class="subtitle">固定周期惊群 -&gt; epoch / generation 域分离 -&gt; root-only 有界计划 -&gt; 可审计检测窗口</text>
+
+  <text x="68" y="154" class="section">01 固定节拍反例与群体分散</text>
+  <rect x="65" y="176" width="555" height="375" rx="8" fill="#ffffff" stroke="#c5d2df" stroke-width="2"/>
+  <text x="92" y="215" class="head">固定 60 s：周期峰值反复重合</text>
+  <text x="92" y="241" class="small">同时启动的独立 MPI jobs 没有共享调度器</text>
+  <line x1="150" y1="282" x2="575" y2="282" stroke="#9fb0c1" stroke-width="2"/>
+  <line x1="150" y1="348" x2="575" y2="348" stroke="#9fb0c1" stroke-width="2"/>
+  <line x1="150" y1="414" x2="575" y2="414" stroke="#9fb0c1" stroke-width="2"/>
+  <text x="92" y="288" class="body">Job A</text>
+  <text x="92" y="354" class="body">Job B</text>
+  <text x="92" y="420" class="body">Job C</text>
+  <g fill="#dd5a4f">
+    <circle cx="250" cy="282" r="10"/><circle cx="400" cy="282" r="10"/><circle cx="550" cy="282" r="10"/>
+    <circle cx="250" cy="348" r="10"/><circle cx="400" cy="348" r="10"/><circle cx="550" cy="348" r="10"/>
+    <circle cx="250" cy="414" r="10"/><circle cx="400" cy="414" r="10"/><circle cx="550" cy="414" r="10"/>
+  </g>
+  <line x1="250" y1="264" x2="250" y2="435" stroke="#dd5a4f" stroke-width="3" stroke-dasharray="5 5"/>
+  <line x1="400" y1="264" x2="400" y2="435" stroke="#dd5a4f" stroke-width="3" stroke-dasharray="5 5"/>
+  <line x1="550" y1="264" x2="550" y2="435" stroke="#dd5a4f" stroke-width="3" stroke-dasharray="5 5"/>
+  <rect x="92" y="462" width="500" height="58" rx="5" fill="#fae2df"/>
+  <text x="342" y="487" class="head center danger">1024 jobs / 100 ms 桶：峰值 1024</text>
+  <text x="342" y="509" class="small center">每代重新聚集；多周期还会形成 Moiré pattern</text>
+
+  <rect x="646" y="176" width="1189" height="375" rx="8" fill="#ffffff" stroke="#c5d2df" stroke-width="2"/>
+  <text x="675" y="215" class="head">F331：不同 epoch 与 generation 得到不同的仅延后偏移</text>
+  <text x="675" y="241" class="small">事件数不变；每个作业仍只由 rank 0 发起，peer 不使用本地 timer</text>
+  <g stroke="#9fb0c1" stroke-width="2">
+    <line x1="710" y1="278" x2="1230" y2="278"/><line x1="710" y1="326" x2="1230" y2="326"/>
+    <line x1="710" y1="374" x2="1230" y2="374"/><line x1="710" y1="422" x2="1230" y2="422"/>
+  </g>
+  <g fill="#25a397">
+    <circle cx="826" cy="278" r="8"/><circle cx="1001" cy="278" r="8"/><circle cx="1193" cy="278" r="8"/>
+    <circle cx="858" cy="326" r="8"/><circle cx="1039" cy="326" r="8"/><circle cx="1214" cy="326" r="8"/>
+    <circle cx="881" cy="374" r="8"/><circle cx="1066" cy="374" r="8"/><circle cx="1226" cy="374" r="8"/>
+    <circle cx="846" cy="422" r="8"/><circle cx="1025" cy="422" r="8"/><circle cx="1205" cy="422" r="8"/>
+  </g>
+  <text x="675" y="284" class="small">A</text><text x="675" y="332" class="small">B</text>
+  <text x="675" y="380" class="small">C</text><text x="675" y="428" class="small">D</text>
+  <rect x="675" y="462" width="555" height="58" rx="5" fill="#dff3f0"/>
+  <text x="952" y="487" class="head center">同一 12288 事件：峰值 26</text>
+  <text x="952" y="509" class="small center">非空桶 12 -&gt; 2232；计划峰值 -97.4609375%</text>
+
+  <rect x="1260" y="262" width="545" height="258" rx="7" fill="#172b43"/>
+  <text x="1290" y="300" class="head white">确定性有界公式</text>
+  <text x="1290" y="327" class="mono light">m_g = BE64(SHA256(domain || E || g)) &gt;&gt; 11</text>
+  <text x="1290" y="356" class="mono light">u_g = m_g / 2^53</text>
+  <text x="1290" y="385" class="mono light">U = fl(I(1+j)); C = fl(I(1+j*u_g))</text>
+  <text x="1290" y="414" class="mono light">D = I if U=I else min(C, nextafter(U,I))</text>
+  <line x1="1290" y1="430" x2="1775" y2="430" stroke="#60758e"/>
+  <text x="1290" y="456" class="body white">I &lt;= D_g &lt; I * (1 + j),  0 &lt;= j &lt;= 0.5</text>
+  <text x="1290" y="483" class="body teal-light">高 53 位 + nextafter 保持右开边界</text>
+  <text x="1290" y="506" class="small muted-light">默认 j=0.1；j=0 精确恢复 F330 固定节拍</text>
+
+  <text x="68" y="602" class="section">02 root-only 调度、缓存与失败关闭保持</text>
+  <rect x="65" y="625" width="1770" height="363" rx="8" fill="#ffffff" stroke="#c5d2df" stroke-width="2"/>
+  <g>
+    <rect x="95" y="680" width="240" height="82" rx="7" fill="#dceafb" stroke="#76a9dc"/>
+    <text x="215" y="712" class="head center">QUALIFIED(g)</text>
+    <text x="215" y="741" class="small center">completed_at + cached D_(g+1)</text>
+
+    <rect x="420" y="680" width="260" height="82" rx="7" fill="#172b43"/>
+    <text x="550" y="712" class="head center white">hash once</text>
+    <text x="550" y="741" class="small center muted-light">epoch + next generation</text>
+
+    <rect x="765" y="680" width="255" height="82" rx="7" fill="#dff3f0" stroke="#68c4ba"/>
+    <text x="892" y="712" class="head center">due() 只读缓存</text>
+    <text x="892" y="741" class="small center">等待期不重复 SHA-256</text>
+
+    <rect x="1105" y="680" width="275" height="82" rx="7" fill="#fff0d8" stroke="#efb858"/>
+    <text x="1242" y="712" class="head center">rank 0 request</text>
+    <text x="1242" y="741" class="small center">{epoch, g+1, token}</text>
+
+    <rect x="1465" y="680" width="300" height="82" rx="7" fill="#dff3f0" stroke="#68c4ba"/>
+    <text x="1615" y="712" class="head center">all masters qualify</text>
+    <text x="1615" y="741" class="small center">heartbeat -&gt; F330 full litmus</text>
+  </g>
+  <g fill="none" stroke="#3478bd" stroke-width="4" marker-end="url(#arrow-blue)">
+    <line x1="335" y1="721" x2="408" y2="721"/><line x1="680" y1="721" x2="753" y2="721"/>
+    <line x1="1020" y1="721" x2="1093" y2="721"/><line x1="1380" y1="721" x2="1453" y2="721"/>
+  </g>
+  <text x="215" y="652" class="small center">root timer authority</text>
+  <text x="1615" y="652" class="small center">peer 只跟随认证请求</text>
+
+  <rect x="95" y="814" width="520" height="132" rx="6" fill="#eef4fa"/>
+  <text x="120" y="847" class="head">安全预算</text>
+  <text x="120" y="880" class="mono">T_eff = min(T_probe, lease_ttl / 3)</text>
+  <text x="120" y="913" class="mono">W_stale &lt;= I(1+j) + T_eff + delta</text>
+  <text x="120" y="936" class="small">不在 quiescence prepared / wall-time 关闭窗口启动</text>
+
+  <rect x="650" y="814" width="520" height="132" rx="6" fill="#e3f4f1"/>
+  <text x="675" y="847" class="head">metrics-v2 可审计字段</text>
+  <text x="675" y="880" class="body">jitter_fraction / maximum_interval</text>
+  <text x="675" y="910" class="body">last_scheduled / next_scheduled</text>
+  <text x="675" y="936" class="small">同代两侧计划值应完全一致</text>
+
+  <rect x="1205" y="814" width="560" height="132" rx="6" fill="#fae2df" stroke="#df8d84"/>
+  <text x="1230" y="847" class="head">失败语义不变</text>
+  <text x="1230" y="880" class="body">无重试 / 不回退旧 true snapshot / global control error</text>
+  <text x="1230" y="910" class="body">bounded worker STOP + exact ACK -&gt; MPI_Abort(70)</text>
+  <text x="1230" y="936" class="small">jitter 只改变正常下一代的计划时刻</text>
+
+  <text x="68" y="1040" class="section">03 实验结果与严格证明边界</text>
+  <rect x="65" y="1064" width="555" height="310" rx="8" fill="#ffffff" stroke="#c5d2df" stroke-width="2"/>
+  <text x="95" y="1104" class="head">群体计划反事实</text>
+  <text x="95" y="1140" class="body">1024 jobs x 12 generations = 12288 events</text>
+  <text x="95" y="1174" class="body">100 ms 峰值：1024 -&gt; 26</text>
+  <text x="95" y="1208" class="body">非空桶：12 -&gt; 2232</text>
+  <text x="95" y="1242" class="body">间隔：60.000908 .. 65.999095 s</text>
+  <line x1="95" y1="1265" x2="590" y2="1265" stroke="#d7e0e9"/>
+  <text x="95" y="1300" class="body teal">调度成本：1.103 -&gt; 1.767 us / generation</text>
+  <text x="95" y="1332" class="small">生产每代计算一次并缓存；不是存储吞吐</text>
+
+  <rect x="650" y="1064" width="555" height="310" rx="8" fill="#ffffff" stroke="#c5d2df" stroke-width="2"/>
+  <text x="680" y="1104" class="head">真实 MPI 接线</text>
+  <text x="680" y="1140" class="body">Open MPI：2 master + 5 worker</text>
+  <text x="680" y="1174" class="body">合成 processor 拓扑：双方 5/5 代成功</text>
+  <text x="680" y="1208" class="body">last = 0.145894947 s（本次 epoch，双方一致）</text>
+  <text x="680" y="1242" class="body">next = 0.126152756 s（本次 epoch，双方一致）</text>
+  <line x1="680" y1="1265" x2="1175" y2="1265" stroke="#d7e0e9"/>
+  <text x="680" y="1300" class="body">真实同机：cluster=false / rounds=0</text>
+  <text x="680" y="1332" class="small">高频 + 50% jitter 仍不启用 runtime monitor</text>
+
+  <rect x="1235" y="1064" width="600" height="310" rx="8" fill="#fff8ea" stroke="#efb858" stroke-width="2"/>
+  <text x="1265" y="1104" class="head">严格边界</text>
+  <circle cx="1275" cy="1143" r="7" fill="#25a397"/>
+  <text x="1295" y="1149" class="body">可证明：有界、不提前、同代一致、缓存、资格门</text>
+  <circle cx="1275" cy="1183" r="7" fill="#25a397"/>
+  <text x="1295" y="1189" class="body">可证明：计划事件守恒与合成峰值分散</text>
+  <circle cx="1275" cy="1223" r="7" fill="#dd5a4f"/>
+  <text x="1295" y="1229" class="body">不证明：真实 NFS / Lustre / CephFS 吞吐</text>
+  <circle cx="1275" cy="1263" r="7" fill="#dd5a4f"/>
+  <text x="1295" y="1269" class="body">不证明：server failover / rank repair / partition</text>
+  <circle cx="1275" cy="1303" r="7" fill="#dd5a4f"/>
+  <text x="1295" y="1309" class="body">不证明：solver / coverage / LAVA-M 提升</text>
+  <text x="1265" y="1343" class="small">synthetic_schedule=true / deployment_evidence=false</text>
+
+  <text x="68" y="1414" class="small">F331 · 2026-08-07 · deterministic bounded scheduling · evidence-first / fail-closed</text>
+</svg>

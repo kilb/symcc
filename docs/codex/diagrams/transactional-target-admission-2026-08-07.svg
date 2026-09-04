@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="760" viewBox="0 0 1320 760" role="img" aria-labelledby="title desc">
+  <title id="title">F310 transactional target admission</title>
+  <desc id="desc">A schematic comparing premature scheduling state updates with proposal, atomic lease admission, accepted-state commit, and conflict backfill.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#34506b"/>
+    </marker>
+    <marker id="redArrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#b42318"/>
+    </marker>
+    <style>
+      .title{font:700 27px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#142b3d}
+      .subtitle{font:400 14px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#52677a}
+      .h{font:700 17px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#142b3d}
+      .t{font:500 14px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#23394c}
+      .s{font:400 12px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#52677a}
+      .mono{font:600 12px ui-monospace,SFMono-Regular,Consolas,monospace;fill:#23394c}
+      .box{fill:#ffffff;stroke:#9eb1c1;stroke-width:1.5;rx:7}
+      .blue{fill:#edf6ff;stroke:#4f8fc8;stroke-width:1.5;rx:7}
+      .green{fill:#edf9f1;stroke:#3c9a63;stroke-width:1.5;rx:7}
+      .amber{fill:#fff7e8;stroke:#d18a23;stroke-width:1.5;rx:7}
+      .red{fill:#fff1f0;stroke:#d05a51;stroke-width:1.5;rx:7}
+      .line{fill:none;stroke:#34506b;stroke-width:2;marker-end:url(#arrow)}
+      .dash{fill:none;stroke:#b42318;stroke-width:2;stroke-dasharray:7 5;marker-end:url(#redArrow)}
+    </style>
+  </defs>
+  <rect width="1320" height="760" fill="#f7fafc"/>
+  <text x="42" y="43" class="title">F310 事务式目标准入：提案后租约，接纳后提交</text>
+  <text x="42" y="68" class="subtitle">让调度统计、target group 租约与实际 worker 队列保持同一个任务集合</text>
+
+  <rect x="42" y="92" width="1236" height="112" class="red"/>
+  <text x="62" y="119" class="h" fill="#8f1d18">旧路径：拒绝发生在状态修改之后</text>
+  <rect x="62" y="136" width="210" height="46" class="box"/>
+  <text x="167" y="156" text-anchor="middle" class="t">lane.select()</text>
+  <text x="167" y="173" text-anchor="middle" class="s">先写 attempts / cooldown</text>
+  <path d="M278 159 H358" class="dash"/>
+  <rect x="368" y="136" width="210" height="46" class="box"/>
+  <text x="473" y="156" text-anchor="middle" class="t">统一 lease 检查</text>
+  <text x="473" y="173" text-anchor="middle" class="s">发现 primary / action 冲突</text>
+  <path d="M584 159 H664" class="dash"/>
+  <rect x="674" y="136" width="210" height="46" class="red"/>
+  <text x="779" y="156" text-anchor="middle" class="t">proposal 被拒绝</text>
+  <text x="779" y="173" text-anchor="middle" class="s">没有进入 worker 队列</text>
+  <path d="M890 159 H970" class="dash"/>
+  <rect x="980" y="136" width="270" height="46" class="red"/>
+  <text x="1115" y="156" text-anchor="middle" class="t">虚假 attempt + 错误 cooldown</text>
+  <text x="1115" y="173" text-anchor="middle" class="s">批次还可能从 2 个任务缩减为 1 个</text>
+
+  <text x="42" y="245" class="h">新路径：Proposal → Admission → Commit</text>
+  <rect x="42" y="264" width="264" height="350" class="blue"/>
+  <text x="174" y="295" text-anchor="middle" class="h">1. 无副作用提案</text>
+  <text x="174" y="317" text-anchor="middle" class="s">完整评分，但 commit=False</text>
+  <rect x="66" y="340" width="216" height="48" class="box"/>
+  <text x="174" y="369" text-anchor="middle" class="t">Prefix DAG + S2F actions</text>
+  <rect x="66" y="402" width="216" height="48" class="box"/>
+  <text x="174" y="431" text-anchor="middle" class="t">CSTG transitions</text>
+  <rect x="66" y="464" width="216" height="48" class="box"/>
+  <text x="174" y="493" text-anchor="middle" class="t">Concurrency frontier</text>
+  <rect x="66" y="526" width="216" height="58" class="box"/>
+  <text x="174" y="551" text-anchor="middle" class="mono">ReplayJob(path,target,actions)</text>
+  <text x="174" y="571" text-anchor="middle" class="s">不改 attempt / cursor / timestamp</text>
+
+  <path d="M306 438 H370" class="line"/>
+  <rect x="380" y="264" width="276" height="350" class="amber"/>
+  <text x="518" y="295" text-anchor="middle" class="h">2. 原子 group 准入</text>
+  <text x="518" y="317" text-anchor="middle" class="s">统一 target lease registry</text>
+  <rect x="406" y="344" width="224" height="66" class="box"/>
+  <text x="518" y="369" text-anchor="middle" class="t">primary + 非 skip actions</text>
+  <text x="518" y="391" text-anchor="middle" class="s">先检查全部成员，再整体保留</text>
+  <path d="M518 412 V458" class="line"/>
+  <rect x="406" y="468" width="224" height="52" class="green"/>
+  <text x="518" y="499" text-anchor="middle" class="t">无冲突：ACCEPT</text>
+  <path d="M518 522 V558" class="dash"/>
+  <rect x="406" y="562" width="224" height="36" class="red"/>
+  <text x="518" y="585" text-anchor="middle" class="t">冲突：REJECT，无状态变化</text>
+
+  <path d="M656 494 H720" class="line"/>
+  <rect x="730" y="264" width="274" height="350" class="green"/>
+  <text x="867" y="295" text-anchor="middle" class="h">3. 接纳后提交</text>
+  <text x="867" y="317" text-anchor="middle" class="s">commit_jobs(accepted, now)</text>
+  <rect x="754" y="344" width="226" height="58" class="box"/>
+  <text x="867" y="369" text-anchor="middle" class="t">Prefix</text>
+  <text x="867" y="390" text-anchor="middle" class="s">attempts + queue_epoch</text>
+  <rect x="754" y="416" width="226" height="58" class="box"/>
+  <text x="867" y="441" text-anchor="middle" class="t">CSTG</text>
+  <text x="867" y="462" text-anchor="middle" class="s">scheduled + transition time</text>
+  <rect x="754" y="488" width="226" height="58" class="box"/>
+  <text x="867" y="513" text-anchor="middle" class="t">Concurrency / Edge</text>
+  <text x="867" y="534" text-anchor="middle" class="s">cursor + row timestamp/count</text>
+  <text x="867" y="579" text-anchor="middle" class="mono">state == leased == dispatched</text>
+
+  <path d="M1004 438 H1068" class="line"/>
+  <rect x="1078" y="264" width="200" height="350" class="blue"/>
+  <text x="1178" y="295" text-anchor="middle" class="h">Worker 队列</text>
+  <rect x="1102" y="342" width="152" height="54" class="green"/>
+  <text x="1178" y="374" text-anchor="middle" class="t">target 77</text>
+  <rect x="1102" y="414" width="152" height="54" class="green"/>
+  <text x="1178" y="446" text-anchor="middle" class="t">target 88</text>
+  <path d="M1078 564 H1038 V640 H518 V604" class="dash"/>
+  <text x="825" y="657" text-anchor="middle" class="s">冲突后继续扫描后备 proposal：达到配额或候选真正耗尽</text>
+
+  <rect x="42" y="686" width="1236" height="48" class="box"/>
+  <text x="66" y="716" class="t">核心不变量</text>
+  <text x="190" y="716" class="mono">rejected ⇒ Δstate = 0</text>
+  <text x="430" y="716" class="mono">accepted ⇒ one commit</text>
+  <text x="690" y="716" class="mono">group lease = all-or-none</text>
+  <text x="1000" y="716" class="mono">fill ≤ worker quota</text>
+</svg>

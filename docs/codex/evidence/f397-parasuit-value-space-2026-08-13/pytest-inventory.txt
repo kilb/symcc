@@ -1,0 +1,1 @@
+python-test-inventory: PASS (collected=969, sha256=627ce753c828c0e7de8b6405e31016c5e112a86a678fb104acf60e760e484e5d)

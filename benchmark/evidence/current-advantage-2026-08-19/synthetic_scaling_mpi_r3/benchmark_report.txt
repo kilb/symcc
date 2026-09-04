@@ -1,0 +1,52 @@
+================================================================================
+  SymCC MPI Parallelization Benchmark Report
+  Generated: 2026-08-19 13:18:26
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+  Target: synthetic-parallel_scaling
+────────────────────────────────────────────────────────────────────────────────
+
+  Mode         NP       Time   SymCCGen    AFLExec   Unique  ShowmapCov          Edges      AFL/s
+  ────────── ──── ────────── ────────── ────────── ──────── ─────────── ────────────── ──────────
+  mpi           2      27.3s        974          0      455      16.67%        128/768          0
+  mpi           4      27.4s       1561          0      623      17.58%        135/768          0
+  mpi           8      27.6s       2284          0      905      19.88%        152/768          0
+  mpi          16      27.9s       2688          0     1045      21.18%        162/768          0
+  seed          0       0.0s          0          0        1       0.26%          2/768          0
+
+  Edge Coverage Chart (afl-showmap):
+          mpi np=2 |███████████████████████████████░░░░░░░░░| 16.67%
+          mpi np=4 |█████████████████████████████████░░░░░░░| 17.58%
+          mpi np=8 |█████████████████████████████████████░░░| 19.88%
+         mpi np=16 |████████████████████████████████████████| 21.18%
+              seed |░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░| 0.26%
+
+  Coverage Gain over Seed Baseline:
+    Seed baseline: 0.26% (2 edges)
+            mpi np=2: 16.67% (+16.41pp, +6311.5% relative)
+            mpi np=4: 17.58% (+17.32pp, +6661.5% relative)
+            mpi np=8: 19.88% (+19.62pp, +7544.9% relative)
+           mpi np=16: 21.18% (+20.92pp, +8046.2% relative)
+
+  Like-for-like Throughput Speedup vs Serial:
+    mpi np=  2 |                  N/A                   | different unit: symcc-candidates-per-second
+    mpi np=  4 |                  N/A                   | different unit: symcc-candidates-per-second
+    mpi np=  8 |                  N/A                   | different unit: symcc-candidates-per-second
+    mpi np= 16 |                  N/A                   | different unit: symcc-candidates-per-second
+    seed np=  0 |                  N/A                   | different unit: not-applicable
+
+
+================================================================================
+  OVERALL SUMMARY
+================================================================================
+
+  synthetic-parallel_scaling: best = mpi np=16 (27.9s, 1045 retained unique, 2688 SymCC candidates, 0 AFL executions, edge_cov=21.18%)
+
+  Report files:
+    Text:  /home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/synthetic_scaling_mpi_r3/benchmark_report.txt
+    CSV:   /home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/synthetic_scaling_mpi_r3/benchmark_data.csv
+    JSON:  /home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/synthetic_scaling_mpi_r3/benchmark_data.json
+
+================================================================================

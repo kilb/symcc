@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1100" viewBox="0 0 1600 1100">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#102a43" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#334e68"/>
+    </marker>
+    <marker id="greenArrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#147d64"/>
+    </marker>
+    <style>
+      .title { font: 700 42px 'WenQuanYi Zen Hei', sans-serif; fill: #102a43; }
+      .subtitle { font: 400 20px 'WenQuanYi Zen Hei', sans-serif; fill: #486581; }
+      .section { font: 700 24px 'WenQuanYi Zen Hei', sans-serif; fill: #102a43; }
+      .label { font: 600 18px 'WenQuanYi Zen Hei', sans-serif; fill: #243b53; }
+      .small { font: 400 16px 'WenQuanYi Zen Hei', sans-serif; fill: #486581; }
+      .tiny { font: 400 14px 'WenQuanYi Zen Hei', sans-serif; fill: #627d98; }
+      .mono { font: 600 15px 'DejaVu Sans Mono', 'WenQuanYi Zen Hei Mono', monospace; fill: #243b53; }
+      .box { fill: #ffffff; stroke: #bcccdc; stroke-width: 2; rx: 8; filter: url(#shadow); }
+      .flow { fill: none; stroke: #334e68; stroke-width: 4; marker-end: url(#arrow); }
+      .greenflow { fill: none; stroke: #147d64; stroke-width: 4; marker-end: url(#greenArrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1100" fill="#f7fafc"/>
+  <rect x="0" y="0" width="1600" height="112" fill="#ffffff"/>
+  <rect x="0" y="108" width="1600" height="4" fill="#147d64"/>
+  <text x="70" y="60" class="title">F393  Recoverable UCSan Object Context</text>
+  <text x="70" y="91" class="subtitle">Strict admission · JIT initialization · canonical snapshot · durable publication · process replay</text>
+
+  <rect x="55" y="155" width="330" height="635" class="box"/>
+  <rect x="55" y="155" width="330" height="58" fill="#d9e2ec" rx="8"/>
+  <rect x="55" y="205" width="330" height="8" fill="#d9e2ec"/>
+  <text x="82" y="193" class="section">1. Strict seed admission</text>
+
+  <rect x="85" y="246" width="270" height="122" fill="#eef2f7" stroke="#829ab1" stroke-width="2" rx="6"/>
+  <text x="110" y="278" class="label">Super roots</text>
+  <text x="110" y="308" class="mono">root 0 = pseudo 0x1</text>
+  <text x="110" y="337" class="small">Arguments / external returns</text>
+
+  <rect x="85" y="397" width="270" height="172" fill="#e8f5f0" stroke="#3aa982" stroke-width="2" rx="6"/>
+  <text x="110" y="430" class="label">Point-by object graph</text>
+  <text x="110" y="462" class="mono">0 / pointee → Obj 7</text>
+  <text x="110" y="493" class="mono">0 / pointee / 8 → Obj 7</text>
+  <path d="M112 518 C165 555, 270 555, 322 518" fill="none" stroke="#147d64" stroke-width="3" marker-end="url(#greenArrow)"/>
+  <text x="146" y="550" class="small">shared / cyclic alias</text>
+
+  <rect x="85" y="599" width="270" height="151" fill="#fff4e5" stroke="#e38b2c" stroke-width="2" rx="6"/>
+  <text x="110" y="632" class="label">Transactional strict parse</text>
+  <text x="110" y="663" class="small">regular + stable descriptor</text>
+  <text x="110" y="691" class="small">kind / path / bound / payload</text>
+  <text x="110" y="719" class="small">commit only after graph closure</text>
+
+  <path d="M385 473 L447 473" class="flow"/>
+
+  <rect x="445" y="155" width="690" height="635" class="box"/>
+  <rect x="445" y="155" width="690" height="58" fill="#d9f2e8" rx="8"/>
+  <rect x="445" y="205" width="690" height="8" fill="#d9f2e8"/>
+  <text x="472" y="193" class="section">2. Native JITI execution state</text>
+
+  <rect x="485" y="246" width="260" height="116" fill="#eef2f7" stroke="#829ab1" stroke-width="2" rx="6"/>
+  <text x="510" y="279" class="label">PUT data flow</text>
+  <text x="510" y="311" class="mono">pseudo ptr + shadow</text>
+  <text x="510" y="339" class="small">real pointer never escapes</text>
+
+  <rect x="815" y="246" width="275" height="116" fill="#e8f5f0" stroke="#3aa982" stroke-width="2" rx="6"/>
+  <text x="840" y="279" class="label">check_ptr</text>
+  <text x="840" y="311" class="small">validate → allocate</text>
+  <text x="840" y="339" class="small">initialize → translate</text>
+  <path d="M745 304 L815 304" class="greenflow"/>
+
+  <rect x="485" y="410" width="605" height="252" fill="#ffffff" stroke="#829ab1" stroke-width="2" rx="6"/>
+  <text x="510" y="445" class="label">Backing object table</text>
+  <rect x="522" y="476" width="525" height="98" fill="#f0f4f8" stroke="#9fb3c8" rx="4"/>
+  <rect x="595" y="490" width="330" height="70" fill="#ffe8cc" stroke="#e38b2c" stroke-width="2" rx="4"/>
+  <rect x="684" y="498" width="160" height="54" fill="#ccefe2" stroke="#147d64" stroke-width="2" rx="3"/>
+  <text x="538" y="537" class="tiny">lower</text>
+  <text x="720" y="531" class="mono">43 · next=0x1</text>
+  <text x="946" y="537" class="tiny">upper</text>
+  <path d="M595 590 L925 590" stroke="#e38b2c" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="650" y="621" class="small">container_of / wider access triggers bounded growth</text>
+
+  <rect x="485" y="696" width="605" height="55" fill="#fff1f0" stroke="#c94c4c" stroke-width="2" rx="6"/>
+  <text x="510" y="730" class="small">Budgets: object size · object count · shadow count · total bytes · path depth</text>
+
+  <path d="M1135 473 L1197 473" class="flow"/>
+
+  <rect x="1195" y="155" width="350" height="635" class="box"/>
+  <rect x="1195" y="155" width="350" height="58" fill="#ffead5" rx="8"/>
+  <rect x="1195" y="205" width="350" height="8" fill="#ffead5"/>
+  <text x="1222" y="193" class="section">3. Snapshot and replay</text>
+
+  <rect x="1230" y="246" width="280" height="144" fill="#fff4e5" stroke="#e38b2c" stroke-width="2" rx="6"/>
+  <text x="1255" y="279" class="label">Canonical projection</text>
+  <text x="1255" y="311" class="small">lexicographic path order</text>
+  <text x="1255" y="339" class="small">IDs follow first path</text>
+  <text x="1255" y="367" class="small">one payload per object</text>
+
+  <path d="M1370 390 L1370 433" class="flow"/>
+  <rect x="1230" y="433" width="280" height="151" fill="#eef2f7" stroke="#829ab1" stroke-width="2" rx="6"/>
+  <text x="1255" y="466" class="label">Durable publication</text>
+  <text x="1255" y="498" class="mono">write(temp) + fsync</text>
+  <text x="1255" y="528" class="mono">renameat(target)</text>
+  <text x="1255" y="558" class="mono">fsync(directory)</text>
+
+  <path d="M1370 584 L1370 627" class="flow"/>
+  <rect x="1230" y="627" width="280" height="124" fill="#e8f5f0" stroke="#3aa982" stroke-width="2" rx="6"/>
+  <text x="1255" y="660" class="label">Fresh-process replay</text>
+  <text x="1255" y="692" class="small">strict parse + JITI restore</text>
+  <text x="1255" y="720" class="small">second snapshot byte-identical</text>
+
+  <rect x="55" y="835" width="1490" height="205" fill="#ffffff" stroke="#bcccdc" stroke-width="2" rx="8" filter="url(#shadow)"/>
+  <text x="85" y="877" class="section">Correctness closure and research boundary</text>
+  <circle cx="102" cy="919" r="8" fill="#147d64"/>
+  <text x="124" y="926" class="small">Closure: native object mutation → explicit snapshot → fresh-process replay → byte-identical second snapshot</text>
+  <circle cx="102" cy="959" r="8" fill="#e38b2c"/>
+  <text x="124" y="966" class="small">Fail closed: trailing bytes, duplicate paths/payloads, bound overflow, and budget exhaustion publish no partial state</text>
+  <circle cx="102" cy="999" r="8" fill="#c94c4c"/>
+  <text x="124" y="1006" class="small">No extrapolation to arbitrary native continuations, full C++ ABI, explicit-object UBI/OOB/UAF, coverage, or bug yield</text>
+</svg>

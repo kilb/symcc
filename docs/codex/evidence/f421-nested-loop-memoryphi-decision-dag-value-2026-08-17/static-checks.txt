@@ -1,0 +1,19 @@
+F421 static and structural checks
+
+build LLVM 18 SymCC: PASS
+build LLVM 17 SymCC: PASS
+py_compile changed Python modules: PASS
+ruff check changed Python modules: PASS
+git diff --check relevant sources and docs: PASS
+diagram render and visual inspection: PASS
+diagram PNG dimensions: 2400x1350
+focused fixture files: 2
+focused RUN commands: 20 (13 main, 7 fallback)
+v11 schema references in producer/strict consumer/checker: 34
+F421 LLVM17 focused: 2/2 PASS
+F421 LLVM18 focused: 2/2 PASS
+F416--F421 LLVM17 related: 14/14 PASS
+F416--F421 LLVM18 related: 14/14 PASS
+F421 Python targeted: 5/5 PASS
+F416--F421 Python related: 32/32 PASS
+

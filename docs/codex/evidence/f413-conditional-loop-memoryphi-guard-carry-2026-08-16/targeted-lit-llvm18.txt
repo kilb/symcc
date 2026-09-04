@@ -1,0 +1,8 @@
+-- Testing: 1 of 277 tests, 1 workers --
+PASS: compiler :: live_conditional_loop_memoryphi_byte_lane_induction.ll (1 of 1)
+
+Testing Time: 5.97s
+
+Total Discovered Tests: 277
+  Excluded: 276 (99.64%)
+  Passed  :   1 (0.36%)

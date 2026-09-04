@@ -1,0 +1,29 @@
+F413 primary sources and scope
+
+LLVM MemorySSA
+https://llvm.org/docs/MemorySSA.html
+- MemoryPhi merges may-reach memory definitions at CFG join points.
+- F413 therefore treats the writer definition as potential provenance only.
+
+LLVM Language Reference Manual
+https://llvm.org/docs/LangRef.html
+- Conditional br uses an i1 condition and two explicit successors.
+- PHI incoming values are associated with predecessor edges.
+- F413 binds writer polarity and both scalar/memory PHI edge identities.
+
+LLVM MemorySSA API source
+https://llvm.org/docs/doxygen/MemorySSA_8h_source.html
+- Incoming access/block pairs expose the nested header/latch MemoryPhi shape.
+- The producer uses actual MemorySSA nodes and the consumer replays the sealed shape.
+
+Array-Carrying Symbolic Execution for Function Contract Generation (2026)
+https://arxiv.org/abs/2602.23216
+- Recent array-oriented symbolic execution carries invariant and assigns data.
+- F413 is a narrower finite-alias conditional-effect certificate, not a full
+  reproduction of ACSE, general loop invariant inference, or SMT arrays.
+
+Claim discipline
+- Primary sources motivate the representation and semantic boundary.
+- Local implementation claims are established only by source, fixtures,
+  independent finite-domain oracles, and sealed evidence in this directory.
+

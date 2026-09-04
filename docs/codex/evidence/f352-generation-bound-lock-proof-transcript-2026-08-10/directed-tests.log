@@ -1,0 +1,8 @@
+Command:
+
+PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q -W error test/test_mpi_filesystem_qualification.py -k 'transcript_disagreement_fails_closed_on_every_master or proof_transcript_binds_generation_topology_and_all_counts or runtime_renewal_rejects_previous_generation_result_replay or runtime_renewal_rejects_spliced_proof_fields'
+
+Result:
+
+....                                                        [100%]
+4 passed, 27 deselected, 13 subtests passed in 0.60s

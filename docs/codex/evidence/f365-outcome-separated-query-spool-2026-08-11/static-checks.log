@@ -1,0 +1,9 @@
+ruff: PASS
+py_compile: PASS
+git diff --check: PASS
+diagram render: PASS
+HTML twins: PASS
+historical F363/F364 replay: PASS
+nested SHA-256: PASS
+top-level SHA-256: PASS
+delivery verifier: PASS

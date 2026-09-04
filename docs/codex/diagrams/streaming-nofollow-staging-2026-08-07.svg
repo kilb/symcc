@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1400" viewBox="0 0 1900 1400" role="img" aria-labelledby="title desc">
+  <title id="title">F339 流式 expected-first no-follow staged corpus 验证</title>
+  <desc id="desc">展示 worker 私有暂存对象从 manifest 名称准入、no-follow 类型检查、descriptor-bound regular inode 摘要，到 live exact-set commit、crash replay 与 fenced promotion 的完整流程，并给出旧新内存和异常读取成本。</desc>
+  <style>
+    text { font-family: "WenQuanYi Zen Hei", Arial, sans-serif; letter-spacing: 0; fill: #172033; }
+    .title { font-size: 46px; font-weight: 700; }
+    .subtitle { font-size: 23px; fill: #4b5565; }
+    .section { font-size: 27px; font-weight: 700; }
+    .label { font-size: 22px; font-weight: 700; }
+    .body { font-size: 19px; }
+    .small { font-size: 16px; fill: #4b5565; }
+    .mono { font-family: "DejaVu Sans Mono", monospace; font-size: 17px; }
+    .panel { fill: #ffffff; stroke: #c8d0dc; stroke-width: 2; rx: 8; }
+    .blue { fill: #eaf3ff; stroke: #3983c6; stroke-width: 2.5; rx: 8; }
+    .green { fill: #e9f7ef; stroke: #2f8f5b; stroke-width: 2.5; rx: 8; }
+    .amber { fill: #fff4dc; stroke: #c58417; stroke-width: 2.5; rx: 8; }
+    .red { fill: #fff0ef; stroke: #c64b43; stroke-width: 2.5; rx: 8; }
+    .dark { fill: #263247; stroke: #263247; stroke-width: 2; rx: 8; }
+    .darktext { fill: #ffffff; }
+    .arrow { stroke: #59677c; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+    .greenarrow { stroke: #2f8f5b; stroke-width: 4; fill: none; marker-end: url(#greenarrow); }
+    .redarrow { stroke: #c64b43; stroke-width: 3; fill: none; marker-end: url(#redarrow); }
+    .thin { stroke: #8793a5; stroke-width: 2; fill: none; }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#59677c"/></marker>
+    <marker id="greenarrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#2f8f5b"/></marker>
+    <marker id="redarrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#c64b43"/></marker>
+  </defs>
+
+  <rect x="0" y="0" width="1900" height="1400" fill="#f5f7fa"/>
+  <rect x="0" y="0" width="1900" height="12" fill="#3983c6"/>
+  <text x="70" y="78" class="title">F339  流式、Expected-First、No-Follow 的 Staged Corpus 验证</text>
+  <text x="72" y="118" class="subtitle">manifest 先决定读取权；摘要绑定已打开的真实 regular inode；live commit 与 crash replay 共享同一失败关闭原语</text>
+
+  <text x="70" y="177" class="section">生产提交与恢复流程</text>
+
+  <rect x="70" y="205" width="280" height="300" class="blue"/>
+  <text x="95" y="245" class="label">Worker 私有 staging</text>
+  <text x="95" y="278" class="small">父任务 fence 尚未提交</text>
+  <text x="95" y="301" class="small">public corpus 尚不可见</text>
+  <rect x="100" y="310" width="220" height="44" fill="#ffffff" stroke="#3983c6" rx="4"/>
+  <text x="115" y="338" class="mono">sha256(child-A)</text>
+  <rect x="100" y="366" width="220" height="44" fill="#ffffff" stroke="#3983c6" rx="4"/>
+  <text x="115" y="394" class="mono">sha256(child-B)</text>
+  <rect x="100" y="422" width="220" height="44" fill="#ffe0dd" stroke="#c64b43" rx="4"/>
+  <text x="115" y="450" class="mono">extra-64hex</text>
+
+  <path d="M350 355 L415 355" class="arrow"/>
+
+  <rect x="415" y="205" width="330" height="300" class="green"/>
+  <text x="440" y="245" class="label">单遍 manifest 名称门</text>
+  <text x="440" y="286" class="body">1. with os.scandir(stage)</text>
+  <text x="440" y="322" class="body">2. 规范化为 64 位小写 hex</text>
+  <text x="440" y="358" class="body">3. work_hash in expected</text>
+  <text x="440" y="394" class="body">4. 再做 no-follow 类型检查</text>
+  <text x="440" y="435" class="small">未知名称在 stat/hash/content read 前拒绝</text>
+  <path d="M520 464 L520 540 L255 540" class="redarrow"/>
+  <text x="270" y="566" class="small">非法名 / 非 manifest 名：立即失败并关闭 iterator</text>
+
+  <path d="M745 355 L810 355" class="arrow"/>
+
+  <rect x="810" y="205" width="400" height="300" class="amber"/>
+  <text x="835" y="245" class="label">Descriptor-Bound SHA-256</text>
+  <text x="835" y="286" class="mono">os.open(O_RDONLY | O_NOFOLLOW</text>
+  <text x="835" y="316" class="mono">        | O_NONBLOCK | O_CLOEXEC)</text>
+  <text x="835" y="358" class="body">fstat(fd) 必须是 S_ISREG</text>
+  <text x="835" y="394" class="body">os.read(fd) 逐块更新 SHA-256</text>
+  <text x="835" y="435" class="small">symlink / directory / FIFO / 打开不确定性</text>
+  <text x="835" y="461" class="small">→ 空摘要；哈希绑定 opened inode</text>
+  <text x="835" y="484" class="small">不在检查后重新信任路径类型</text>
+
+  <path d="M1210 355 L1275 355" class="arrow"/>
+
+  <rect x="1275" y="205" width="270" height="300" class="green"/>
+  <text x="1300" y="245" class="label">结果集合语义</text>
+  <text x="1300" y="294" class="body">Live result</text>
+  <text x="1300" y="326" class="mono">staged == expected</text>
+  <path d="M1300 349 L1518 349" class="thin"/>
+  <text x="1300" y="389" class="body">Crash replay</text>
+  <text x="1300" y="421" class="mono">staged U public</text>
+  <text x="1300" y="451" class="mono">covers expected</text>
+  <text x="1300" y="477" class="small">public 缺项也使用同一</text>
+  <text x="1300" y="498" class="small">no-follow regular-inode 摘要</text>
+
+  <path d="M1545 355 L1610 355" class="greenarrow"/>
+
+  <rect x="1610" y="205" width="220" height="300" class="dark"/>
+  <text x="1635" y="245" class="label darktext">Fenced Promotion</text>
+  <text x="1635" y="292" class="body darktext">begin_commit</text>
+  <text x="1635" y="329" class="body darktext">durable_replace</text>
+  <text x="1635" y="366" class="body darktext">post-publish digest</text>
+  <text x="1635" y="403" class="body darktext">finish_commit</text>
+  <text x="1635" y="450" class="small darktext">existing public symlink</text>
+  <text x="1635" y="477" class="small darktext">不能冒充已发布对象</text>
+
+  <rect x="70" y="590" width="1760" height="105" class="panel"/>
+  <text x="95" y="630" class="label">关键顺序不变量</text>
+  <text x="320" y="630" class="mono">normalize → expected membership → no-follow type → open inode → fstat regular → digest → exact set → fence → publish</text>
+  <text x="95" y="669" class="small">任何失败都发生在 corpus 接纳或 commit 完成之前；缺少 O_NOFOLLOW 时失败关闭，不静默退化为 path-following open。</text>
+
+  <text x="70" y="757" class="section">旧路径与 F339 的资源、异常行为对照</text>
+  <rect x="70" y="785" width="550" height="335" class="red"/>
+  <text x="100" y="827" class="label">F321-F338：物化后验证</text>
+  <text x="100" y="868" class="mono">tuple(scandir(stage))</text>
+  <text x="100" y="904" class="body">保留全部 DirEntry，再逐项检查</text>
+  <text x="100" y="940" class="body">未知但合法 64-hex 名仍先计算摘要</text>
+  <text x="100" y="976" class="body">open(path) 会跟随 final symlink</text>
+  <rect x="100" y="1015" width="470" height="44" fill="#d95c52" rx="4"/>
+  <text x="115" y="1044" class="small darktext">16 MiB 额外对象 × 30：30 hashes / 480 MiB requested</text>
+  <text x="100" y="1092" class="small">最终集合比较能拒绝 extra，但拒绝发生得过晚</text>
+
+  <rect x="660" y="785" width="550" height="335" class="green"/>
+  <text x="690" y="827" class="label">F339：流式、expected-first</text>
+  <text x="690" y="868" class="mono">with scandir → one DirEntry at a time</text>
+  <text x="690" y="904" class="body">expected set 仍为协议必要状态 O(M)</text>
+  <text x="690" y="940" class="body">不再额外保留目录大小 O(N) 的快照</text>
+  <text x="690" y="976" class="body">unknown name 在内容读取前立即拒绝</text>
+  <rect x="690" y="1015" width="86" height="44" fill="#3ca66b" rx="4"/>
+  <text x="709" y="1044" class="small darktext">0 hash</text>
+  <text x="795" y="1044" class="small">0 content bytes requested</text>
+  <text x="690" y="1092" class="small">不是 O(1)：observed/expected 集合仍随 manifest 大小增长</text>
+
+  <rect x="1250" y="785" width="580" height="335" class="blue"/>
+  <text x="1280" y="827" class="label">本机 overlayfs，合法集合（哈希 stub）</text>
+  <text x="1280" y="870" class="body">对象数</text><text x="1420" y="870" class="body">旧 peak</text><text x="1570" y="870" class="body">新 peak</text><text x="1710" y="870" class="body">旧/新</text>
+  <text x="1280" y="910" class="mono">128</text><text x="1420" y="910" class="mono">53,216 B</text><text x="1570" y="910" class="mono">22,775 B</text><text x="1710" y="910" class="mono">2.34x</text>
+  <text x="1280" y="950" class="mono">1,024</text><text x="1420" y="950" class="mono">383,328 B</text><text x="1570" y="950" class="mono">141,433 B</text><text x="1710" y="950" class="mono">2.71x</text>
+  <text x="1280" y="990" class="mono">4,096</text><text x="1420" y="990" class="mono">1,532,256 B</text><text x="1570" y="990" class="mono">562,297 B</text><text x="1710" y="990" class="mono">2.72x</text>
+  <path d="M1280 1018 L1800 1018" class="thin"/>
+  <text x="1280" y="1055" class="body">4096 时间：6,479.687 → 6,684.945 us</text>
+  <text x="1280" y="1090" class="small">新路径慢 3.17%；内存下降，不宣称常规 speedup</text>
+
+  <text x="70" y="1182" class="section">证据层级与边界</text>
+  <rect x="70" y="1210" width="520" height="150" class="panel"/>
+  <text x="100" y="1250" class="label">自动化回归</text>
+  <text x="100" y="1286" class="body">209 + 43 subtests（定向）</text>
+  <text x="100" y="1318" class="body">326 + 51（关联）；722 + 71（完整）</text>
+
+  <rect x="630" y="1210" width="520" height="150" class="panel"/>
+  <text x="660" y="1250" class="label">真实 Open MPI，同机</text>
+  <text x="660" y="1286" class="body">4 ranks / 1 master / 3 workers / 3-of-3 ACK</text>
+  <text x="660" y="1318" class="body">1 child promoted；2/2 public digests 正确；1.773 s</text>
+
+  <rect x="1190" y="1210" width="640" height="150" class="amber"/>
+  <text x="1220" y="1250" class="label">不外推</text>
+  <text x="1220" y="1282" class="body">非 Byzantine worker；无多机/NFS failover、掉电</text>
+  <text x="1220" y="1313" class="body">无 DSE、coverage、solver 或 LAVA-M 收益结论</text>
+  <text x="1220" y="1344" class="small">tracemalloc 不等于 RSS、内核或服务端内存</text>
+
+  <text x="70" y="1385" class="small">F339 evidence: implementation + fail-closed tests + local cost study + same-host real MPI; integrity and mechanism claims only.</text>
+</svg>

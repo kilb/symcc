@@ -1,0 +1,12 @@
+Both oracle runs used Z3 5.0.0, helper SHA-256
+59dae3a1f02e22cfcb165b5f111afac3158fecf91a371da75f5a52ba8e7808ca,
+seed 430, 128 targets, timeout 2000 ms, and prefix
+0x20 <= symcc_input_0 <= 0xe0.
+
+Stable semantics agree exactly: both passed; both report zero status mismatch,
+zero invalid SAT model, 128 unique child PIDs, zero major faults, and successful
+timeout recovery at generation 1/query 2 with byte 0 = 67. Timing, RSS, and
+minor-fault observations are intentionally not required to be identical.
+
+Run 1 cold/native total ratio: 2.251539554713406
+Run 2 cold/native total ratio: 2.249210196044489

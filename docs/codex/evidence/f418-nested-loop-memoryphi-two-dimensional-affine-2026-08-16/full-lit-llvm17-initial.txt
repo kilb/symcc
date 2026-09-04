@@ -1,0 +1,49 @@
+-- Testing: 290 tests, 192 workers --
+Testing:  0.. 10.. 
+FAIL: compiler :: test_qf_bv_campaign.py (263 of 290)
+******************** TEST 'compiler :: test_qf_bv_campaign.py' FAILED ********************
+Exit Code: 5
+
+Command Output (stdout):
+--
+# RUN: at line 2
+python3 /home/ubuntu/code/symcc/test/test_qf_bv_campaign.py
+# executed command: python3 /home/ubuntu/code/symcc/test/test_qf_bv_campaign.py
+# .---command stderr------------
+# | E
+# | ======================================================================
+# | ERROR: setUpClass (__main__.QfBvCampaignTest)
+# | ----------------------------------------------------------------------
+# | Traceback (most recent call last):
+# |   File "/home/ubuntu/code/symcc/test/test_qf_bv_campaign.py", line 52, in setUpClass
+# |     cls.real_campaign = run_campaign(
+# |                         ^^^^^^^^^^^^^
+# |   File "/home/ubuntu/code/symcc/util/qf_bv_campaign.py", line 688, in run_campaign
+# |     selected = _selected_specs(conformance, backend_names)
+# |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# |   File "/home/ubuntu/code/symcc/util/qf_bv_campaign.py", line 396, in _selected_specs
+# |     raise ValueError("QF_BV conformance artifact is invalid")
+# | ValueError: QF_BV conformance artifact is invalid
+# | 
+# | ----------------------------------------------------------------------
+# | Ran 0 tests in 10.444s
+# | 
+# | FAILED (errors=1)
+# `-----------------------------
+# error: command failed with exit status: 5
+
+--
+
+********************
+Testing:  0.. 10.. 20.. 30.. 40.. 50.. 60.. 70.. 80.. 90.. 
+********************
+Failed Tests (1):
+  compiler :: test_qf_bv_campaign.py
+
+
+Testing Time: 275.74s
+
+Total Discovered Tests: 290
+  Unsupported:   2 (0.69%)
+  Passed     : 287 (98.97%)
+  Failed     :   1 (0.34%)

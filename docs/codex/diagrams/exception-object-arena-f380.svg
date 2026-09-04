@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1100" viewBox="0 0 1800 1100">
+  <defs>
+    <style>
+      .title { font: 700 34px sans-serif; fill: #132238; }
+      .subtitle { font: 400 18px sans-serif; fill: #526174; }
+      .section { font: 700 22px sans-serif; fill: #132238; }
+      .label { font: 700 17px sans-serif; fill: #132238; }
+      .body { font: 400 15px sans-serif; fill: #334155; }
+      .mono { font: 600 14px monospace; fill: #203047; }
+      .small { font: 400 13px sans-serif; fill: #526174; }
+      .white { fill: #ffffff; }
+      .line { fill: none; stroke: #41546d; stroke-width: 3; marker-end: url(#arrow); }
+      .dash { fill: none; stroke: #8090a5; stroke-width: 2; stroke-dasharray: 8 7; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#41546d"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#172033" flood-opacity="0.13"/>
+    </filter>
+  </defs>
+
+  <rect width="1800" height="1100" fill="#f6f8fb"/>
+  <rect x="0" y="0" width="1800" height="105" fill="#ffffff"/>
+  <rect x="0" y="103" width="1800" height="2" fill="#d9e0e9"/>
+  <text x="72" y="51" class="title">F380 受限异常对象 Arena：同一对象身份贯穿分配、抛出、捕获与销毁</text>
+  <text x="72" y="82" class="subtitle">固定大小 · 空析构器 · exact type · generation/owner/lifetime 证书 · CAS checkpoint 可恢复</text>
+
+  <rect x="62" y="142" width="430" height="342" rx="8" fill="#ffffff" stroke="#d6dee8" filter="url(#shadow)"/>
+  <rect x="62" y="142" width="430" height="58" rx="8" fill="#1f4b6e"/>
+  <text x="88" y="179" class="section white">1  LLVM / Itanium 风格入口</text>
+  <rect x="91" y="227" width="372" height="62" rx="6" fill="#eaf2f7" stroke="#8db0c8"/>
+  <text x="112" y="253" class="mono">__cxa_allocate_exception(8)</text>
+  <text x="112" y="276" class="small">固定非零 size；C ABI；nounwind</text>
+  <rect x="91" y="309" width="372" height="62" rx="6" fill="#edf7f1" stroke="#82b697"/>
+  <text x="112" y="335" class="mono">store i64 payload, ptr %object</text>
+  <text x="112" y="358" class="small">普通符号内存写入 + byte 初始化证明</text>
+  <rect x="91" y="391" width="372" height="66" rx="6" fill="#fff4e6" stroke="#d9a054"/>
+  <text x="112" y="418" class="mono">__cxa_throw(object, typeinfo, null)</text>
+  <text x="112" y="441" class="small">noreturn；对象 base；空析构器；稳定 type ID</text>
+
+  <rect x="554" y="142" width="540" height="342" rx="8" fill="#ffffff" stroke="#d6dee8" filter="url(#shadow)"/>
+  <rect x="554" y="142" width="540" height="58" rx="8" fill="#237a57"/>
+  <text x="580" y="179" class="section white">2  Bounded exception arena</text>
+  <text x="584" y="230" class="body">每个 allocation site 预布局有界槽位；地址稳定，生命周期动态。</text>
+  <rect x="584" y="252" width="220" height="186" rx="6" fill="#edf7f1" stroke="#71ac8a"/>
+  <text x="605" y="281" class="label">slot 0 · address 64</text>
+  <text x="605" y="313" class="mono">generation = 2</text>
+  <text x="605" y="340" class="mono">owner = frame 1</text>
+  <text x="605" y="367" class="mono">live = 1 · size = 8</text>
+  <text x="605" y="394" class="mono">init[0..7] = 1</text>
+  <text x="605" y="421" class="small">throw 时 owner 转移给 active exception</text>
+  <rect x="824" y="252" width="240" height="186" rx="6" fill="#f7f9fb" stroke="#bac5d1"/>
+  <text x="845" y="281" class="label">slot 1..N · available</text>
+  <text x="845" y="313" class="mono">generation = retained</text>
+  <text x="845" y="340" class="mono">owner = absent</text>
+  <text x="845" y="367" class="mono">live = absent</text>
+  <text x="845" y="394" class="mono">size/init = cleared</text>
+  <text x="845" y="421" class="small">代次不清零，阻止槽位 ABA 混淆</text>
+
+  <rect x="1156" y="142" width="582" height="342" rx="8" fill="#ffffff" stroke="#d6dee8" filter="url(#shadow)"/>
+  <rect x="1156" y="142" width="582" height="58" rx="8" fill="#a54f3e"/>
+  <text x="1182" y="179" class="section white">3  抛出事务与跨 frame unwind</text>
+  <text x="1186" y="230" class="body">只有 base、owner、generation、live、size 与 arena site 同时匹配才提交。</text>
+  <rect x="1186" y="252" width="522" height="124" rx="6" fill="#fff1ee" stroke="#d5998e"/>
+  <text x="1208" y="281" class="mono">@exception:active = 1 · phase = unwinding</text>
+  <text x="1208" y="308" class="mono">object-address / generation / size</text>
+  <text x="1208" y="335" class="mono">type-id / token / handler-depth</text>
+  <text x="1208" y="360" class="small">owner marker 原子移除；对象不随 throwing frame 局部状态清理</text>
+  <path d="M 1206 416 C 1320 382, 1482 450, 1678 405" class="line"/>
+  <text x="1208" y="444" class="body">call-form：逐 frame 找最近 invoke unwind target</text>
+  <text x="1208" y="467" class="small">invoke-form：直接进入同 frame landingpad；无 handler 则保留可审计 unhandled checkpoint</text>
+
+  <path d="M 493 314 L 548 314" class="line"/>
+  <path d="M 1095 314 L 1150 314" class="line"/>
+
+  <rect x="62" y="532" width="1676" height="280" rx="8" fill="#ffffff" stroke="#d6dee8" filter="url(#shadow)"/>
+  <rect x="62" y="532" width="1676" height="58" rx="8" fill="#3f536d"/>
+  <text x="88" y="569" class="section white">4  Catch 生命周期：读取真实对象内存，而非 F379 的 payload 值投影</text>
+
+  <g>
+    <rect x="93" y="625" width="250" height="118" rx="6" fill="#eef3f8" stroke="#91a6bd"/>
+    <text x="116" y="655" class="label">exception_match</text>
+    <text x="116" y="682" class="body">exact type / catch-all</text>
+    <text x="116" y="708" class="small">建立 matched-catch 证明</text>
+    <text x="116" y="729" class="mono">phase 1</text>
+
+    <rect x="407" y="625" width="250" height="118" rx="6" fill="#eef3f8" stroke="#91a6bd"/>
+    <text x="430" y="655" class="label">token + begin_catch</text>
+    <text x="430" y="682" class="body">验证 handler depth</text>
+    <text x="430" y="708" class="small">建立 catch-depth</text>
+    <text x="430" y="729" class="mono">phase 1 → 2</text>
+
+    <rect x="721" y="625" width="330" height="118" rx="6" fill="#edf7f1" stroke="#71ac8a"/>
+    <text x="744" y="655" class="label">exception_object_load</text>
+    <text x="744" y="682" class="body">generation + bounds + init bytes</text>
+    <text x="744" y="708" class="small">从 CAS memory root 组合 QF_BV 值</text>
+    <text x="744" y="729" class="mono">object[0..7] → i64 42</text>
+
+    <rect x="1115" y="625" width="250" height="118" rx="6" fill="#fff4e6" stroke="#d9a054"/>
+    <text x="1138" y="655" class="label">end_catch</text>
+    <text x="1138" y="682" class="body">normal：释放 live/size/init</text>
+    <text x="1138" y="708" class="small">generation 保留</text>
+    <text x="1138" y="729" class="mono">phase 2 → clear</text>
+
+    <rect x="1429" y="625" width="250" height="118" rx="6" fill="#fff1ee" stroke="#d5998e"/>
+    <text x="1452" y="655" class="label">rethrow</text>
+    <text x="1452" y="682" class="body">保留对象与 type identity</text>
+    <text x="1452" y="708" class="small">cleanup end 后继续 unwind</text>
+    <text x="1452" y="729" class="mono">phase 2 → 3 → 1</text>
+  </g>
+  <path d="M 344 684 L 401 684" class="line"/>
+  <path d="M 658 684 L 715 684" class="line"/>
+  <path d="M 1052 684 L 1109 684" class="line"/>
+  <path d="M 1366 684 L 1423 684" class="line"/>
+
+  <rect x="62" y="855" width="1042" height="187" rx="8" fill="#edf7f1" stroke="#71ac8a"/>
+  <text x="88" y="891" class="section">已证明的闭包</text>
+  <text x="88" y="925" class="body">• 同一 arena address + generation 贯穿 allocate → store → throw → catch load → end</text>
+  <text x="88" y="954" class="body">• throwing frame 清理不会释放已转移对象；未抛出的 owner 在 return/unwind 时自动释放</text>
+  <text x="88" y="983" class="body">• fresh executor 恢复会重验 object/live/size/generation/owner 组合证书</text>
+  <text x="88" y="1012" class="body">• 普通 heap alloc/free/realloc 无法冒充或释放异常对象；未初始化、越界、stale generation 失败关闭</text>
+
+  <rect x="1144" y="855" width="594" height="187" rx="8" fill="#fff1ee" stroke="#d5998e"/>
+  <text x="1170" y="891" class="section">仍不声称支持</text>
+  <text x="1170" y="925" class="body">非平凡析构、runtime exception header、handler count</text>
+  <text x="1170" y="954" class="body">嵌套 active exception / caught stack / exception_ptr</text>
+  <text x="1170" y="983" class="body">RTTI 继承与 adjusted pointer、struct/GEP/float/array</text>
+  <text x="1170" y="1012" class="body">Windows funclet、foreign exception、完整 native ABI 对拍</text>
+</svg>

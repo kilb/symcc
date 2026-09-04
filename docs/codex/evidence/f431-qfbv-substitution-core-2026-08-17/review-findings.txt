@@ -1,0 +1,33 @@
+F431 multi-round review findings
+
+Round 1 - semantic authorization
+- Removed the source-clause-count <= target-clause-count filter because a
+  non-injective substitution can collapse distinct source roots.
+- Preserved operator, width, child order, constants, and every non-index
+  attribute in structural fingerprints.
+- Kept Bloom and footprint checks outside the authorization predicate.
+- Added source-variable domain intersection and an exhaustive independent
+  function-enumeration oracle.
+- Required QueryStore to reconstruct the target formula and exact mapping.
+
+Round 2 - concurrency and resources
+- Repaired an unreachable SIGKILL/reap path introduced during selector work.
+- Preserved TimeoutError classification instead of wrapping it as OSError.
+- Extended one absolute deadline across normalization, fingerprinting,
+  substitution, proof replay, and natural join.
+- Separated candidate scan from accepted candidate count to prevent SQL LIMIT
+  before Bloom filtering from starving later real matches.
+- Added duplicate-key JSON, stable regular-file, expected-shard, symlink,
+  lock-identity, quota, cancellation, and dual-pipe output-bound tests.
+
+Round 3 - proof cache and claims
+- Split verified-core LRU keys by worker and query-store verification domains.
+- Seeded only the worker domain after publication; fresh processes and the
+  first QueryStore use still rerun Ethos.
+- Kept exact target substitution on every warm lookup.
+- Reported cold negative and warm positive timing together.
+- Limited all performance language to the supported QF_BV mechanism.
+
+No unresolved correctness finding remains inside the documented support
+domain. General SMT sorts, assumption-scoped real-time clause exchange, and
+public multi-node campaigns remain explicit future work.

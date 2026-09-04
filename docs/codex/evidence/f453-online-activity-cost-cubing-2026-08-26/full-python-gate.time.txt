@@ -1,0 +1,2 @@
+pytest_wall_seconds=281.29
+source=pytest_terminal_summary

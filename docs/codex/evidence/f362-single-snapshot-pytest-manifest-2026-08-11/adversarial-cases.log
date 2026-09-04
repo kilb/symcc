@@ -1,0 +1,2 @@
+$ PYTHONDONTWRITEBYTECODE=1 python3 run_adversarial_manifest_checks.py --output adversarial-cases.json
+f362-adversarial-manifest-check: PASS (bounded-read, duplicate-key, forced-plugin-isolation)

@@ -1,0 +1,13 @@
+experiment_id,run_id,pair_id,target,configuration,mode,np,round,timestamp_sec,edge_cov_pct,edges_found,edges_total,total_cases
+symcc-dc92f4b699378bf7,9f33c9b3b11006f899b815de,8a431bfac1a2f2a5eb59fdee,pcre2-pcre2_fuzzer,afl-only,afl-only,16,1,0.0,7.22,702,9728,8
+symcc-dc92f4b699378bf7,9f33c9b3b11006f899b815de,8a431bfac1a2f2a5eb59fdee,pcre2-pcre2_fuzzer,afl-only,afl-only,16,1,15.0,46.04,4479,9728,69931
+symcc-dc92f4b699378bf7,9f33c9b3b11006f899b815de,8a431bfac1a2f2a5eb59fdee,pcre2-pcre2_fuzzer,afl-only,afl-only,16,1,30.0,48.92,4759,9728,97455
+symcc-dc92f4b699378bf7,9f33c9b3b11006f899b815de,8a431bfac1a2f2a5eb59fdee,pcre2-pcre2_fuzzer,afl-only,afl-only,16,1,45.0,50.4,4903,9728,116685
+symcc-dc92f4b699378bf7,706fa22ad60bd3a04298d7ad,3ef05a5980f9687e72f70213,pcre2-pcre2_fuzzer,afl-only,afl-only,16,2,0.0,7.22,702,9728,8
+symcc-dc92f4b699378bf7,706fa22ad60bd3a04298d7ad,3ef05a5980f9687e72f70213,pcre2-pcre2_fuzzer,afl-only,afl-only,16,2,15.0,46.48,4522,9728,71799
+symcc-dc92f4b699378bf7,706fa22ad60bd3a04298d7ad,3ef05a5980f9687e72f70213,pcre2-pcre2_fuzzer,afl-only,afl-only,16,2,30.0,49.06,4773,9728,98990
+symcc-dc92f4b699378bf7,706fa22ad60bd3a04298d7ad,3ef05a5980f9687e72f70213,pcre2-pcre2_fuzzer,afl-only,afl-only,16,2,45.0,50.56,4918,9728,118763
+symcc-dc92f4b699378bf7,0e11f3a1b3ca3737134910af,e3f34e9d3e786d89f5667e75,pcre2-pcre2_fuzzer,afl-only,afl-only,16,3,0.0,7.22,702,9728,8
+symcc-dc92f4b699378bf7,0e11f3a1b3ca3737134910af,e3f34e9d3e786d89f5667e75,pcre2-pcre2_fuzzer,afl-only,afl-only,16,3,15.0,45.58,4434,9728,70479
+symcc-dc92f4b699378bf7,0e11f3a1b3ca3737134910af,e3f34e9d3e786d89f5667e75,pcre2-pcre2_fuzzer,afl-only,afl-only,16,3,30.0,48.83,4750,9728,98919
+symcc-dc92f4b699378bf7,0e11f3a1b3ca3737134910af,e3f34e9d3e786d89f5667e75,pcre2-pcre2_fuzzer,afl-only,afl-only,16,3,45.0,50.56,4918,9728,117743

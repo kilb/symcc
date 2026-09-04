@@ -1,0 +1,23 @@
+{
+  "all_checks_passed": true,
+  "bounded_history_rotates_generation": true,
+  "compatibility": {
+    "distinct_ids_reuse_generation": true,
+    "preflight_does_not_admit_or_rotate": true
+  },
+  "counterfactual_without_f371": {
+    "first_assignment": 11,
+    "same_generation": true,
+    "second_assignment": 22,
+    "stale_duplicate_accepted": true,
+    "startup_count": 1
+  },
+  "production_f371": {
+    "first_assignment": 11,
+    "fresh_response_admitted": true,
+    "generation_rotated": true,
+    "second_assignment": 11,
+    "startup_count": 2
+  },
+  "schema": "symcc-f371-generation-unique-request-admission-evidence-v1"
+}

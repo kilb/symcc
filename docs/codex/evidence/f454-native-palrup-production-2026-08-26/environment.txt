@@ -1,0 +1,11 @@
+Captured: 2026-08-26 UTC
+Host kernel: Linux 7.0.0-28-generic x86_64
+Distribution toolchain: Ubuntu 24.04.1
+Python: 3.12.3
+Ruff: 0.15.20
+G++: 13.3.0
+CaDiCaL PalRUP fork commit: be7a0f84190b3216c589696b2010e8cbf8a8252e
+PalRUP checker commit: d9382fb4b0acf094034ee91e2ed0a22b1b479c1d
+Formula: deterministic pigeonhole(9,8), 72 variables, 549 clauses
+Main oracle: 1/2/4 ranks, 3 rounds each, queue capacity 65536 clauses,
+  maximum shared clause length 32

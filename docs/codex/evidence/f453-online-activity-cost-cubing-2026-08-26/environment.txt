@@ -1,0 +1,14 @@
+captured_utc=2026-08-26
+repository=/home/ubuntu/code/symcc
+python=Python 3.12.3
+kernel=Linux 7.0.0-28-generic x86_64 GNU/Linux
+cc=Ubuntu GCC 13.3.0
+z3=4.8.12
+cvc5=1.1.2
+bitwuzla=0.9.1
+mpiexec=OpenRTE 4.1.6
+pytest_plugin_autoload=disabled
+
+oracle_command=python3 benchmark/check_qfbv_online_cubing_oracles.py --rounds 5 --cube-candidates 2,4,8,16 --output docs/codex/evidence/f453-online-activity-cost-cubing-2026-08-26/oracle.json
+focused_command=PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider -W error test/test_qfbv_online_cubing.py test/test_qfbv_partition_execution.py
+coupled_command=PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider -W error test/test_qfbv_online_cubing.py test/test_qfbv_partition_execution.py test/test_qfbv_proof_prefix_partition.py test/test_qfbv_realtime_stream.py test/test_qfbv_clause_activity.py test/test_qfbv_utility_pairing.py test/test_query_store.py test/test_qf_bv_backend.py

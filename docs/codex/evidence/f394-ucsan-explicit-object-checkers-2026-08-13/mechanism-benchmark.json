@@ -1,0 +1,227 @@
+{
+  "all_outcomes_matched": true,
+  "claim_boundary": "whole-process native checker mechanism outcomes and latency; not a coverage, vulnerability-yield, solver, or cross-system speedup",
+  "environment": {
+    "platform": "Linux-7.0.0-28-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3"
+  },
+  "matched_outcomes": 154,
+  "modes": 14,
+  "rows": [
+    {
+      "elapsed_ms": {
+        "maximum": 6.829857,
+        "median": 6.027772,
+        "minimum": 4.23736,
+        "p95": 6.7381245
+      },
+      "expected": "valid",
+      "matched": 11,
+      "mode": 0,
+      "returncodes": [
+        0
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 71.718048,
+        "median": 66.065991,
+        "minimum": 63.333974,
+        "p95": 71.5004055
+      },
+      "expected": "out-of-bounds access",
+      "matched": 11,
+      "mode": 1,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 66.987426,
+        "median": 64.477944,
+        "minimum": 60.695136,
+        "p95": 66.518501
+      },
+      "expected": "out-of-bounds access",
+      "matched": 11,
+      "mode": 2,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 71.917948,
+        "median": 66.905573,
+        "minimum": 62.143554,
+        "p95": 70.40540949999999
+      },
+      "expected": "use-after-free",
+      "matched": 11,
+      "mode": 3,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 72.691982,
+        "median": 63.599182,
+        "minimum": 62.082702,
+        "p95": 71.0778105
+      },
+      "expected": "use-after-free",
+      "matched": 11,
+      "mode": 4,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 70.145543,
+        "median": 64.198153,
+        "minimum": 61.931846,
+        "p95": 69.9373405
+      },
+      "expected": "double free",
+      "matched": 11,
+      "mode": 5,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 66.511811,
+        "median": 63.449498,
+        "minimum": 60.738582,
+        "p95": 65.93218999999999
+      },
+      "expected": "deallocation of a stack object",
+      "matched": 11,
+      "mode": 6,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 70.968851,
+        "median": 67.246256,
+        "minimum": 60.520884,
+        "p95": 70.4611685
+      },
+      "expected": "out-of-bounds access",
+      "matched": 11,
+      "mode": 7,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 67.846968,
+        "median": 62.751288,
+        "minimum": 59.775985,
+        "p95": 67.66682750000001
+      },
+      "expected": "out-of-bounds access",
+      "matched": 11,
+      "mode": 8,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 68.971189,
+        "median": 67.092834,
+        "minimum": 62.38002,
+        "p95": 68.837763
+      },
+      "expected": "out-of-bounds access",
+      "matched": 11,
+      "mode": 9,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 6.567002,
+        "median": 5.708102,
+        "minimum": 4.644072,
+        "p95": 6.463036
+      },
+      "expected": "valid",
+      "matched": 11,
+      "mode": 10,
+      "returncodes": [
+        0
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 6.41869,
+        "median": 5.073157,
+        "minimum": 4.439665,
+        "p95": 6.1290145
+      },
+      "expected": "valid",
+      "matched": 11,
+      "mode": 11,
+      "returncodes": [
+        0
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 5.827691,
+        "median": 5.424906,
+        "minimum": 4.101746,
+        "p95": 5.8068495
+      },
+      "expected": "valid",
+      "matched": 11,
+      "mode": 12,
+      "returncodes": [
+        0
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 6.232429,
+        "median": 5.431766,
+        "minimum": 4.34994,
+        "p95": 6.007331
+      },
+      "expected": "valid",
+      "matched": 11,
+      "mode": 13,
+      "returncodes": [
+        0
+      ],
+      "samples": 11
+    }
+  ],
+  "samples_per_mode": 11,
+  "schema": "symcc-f394-explicit-object-checker-benchmark-v1",
+  "total_outcomes": 154,
+  "valid_modes": 5,
+  "violation_modes": 9
+}

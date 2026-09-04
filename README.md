@@ -1,8 +1,8 @@
-# SymCC-Parallel — Distributed Concolic Execution & Hybrid Fuzzing
+# SymCC-Parallel — Distributed Concolic Execution & Coverage-Guided Fuzzing
 
 This repository is a fork of [**SymCC**](https://github.com/eurecom-s3/symcc)
-(compiler-based *concolic* execution) extended into a **parallel, multi-core
-vulnerability-finding toolkit**:
+(compiler-based *concolic* execution) extended into a **parallel symbolic
+execution framework for increasing fuzzing coverage**:
 
 - 🧩 **Concolic execution** — a compiler pass injects symbolic tracking into your
   program at build time; at run time it solves branch conditions to generate new
@@ -353,6 +353,7 @@ Built-in synthetic targets: **`maze`**, **`parser`**, **`deep_branches`**,
 | `--rounds N` | repeat each config N times (averages out noise) |
 | `--timeout SEC` | per-run time budget |
 | `--hybrid` `--hybrid-adaptive` | run the AFL++⨉SymCC hybrid with adaptive core split |
+| `--directed-targets SPEC` / `--directed-distance MAP` | generate or consume directed concolic distance maps |
 | `--afl-only` | AFL++ baseline only (for comparison) |
 | `--no-serial` / `--no-mpi` / `--no-public` | skip a category of runs |
 | `--skip-build` | reuse already-built targets |
@@ -397,13 +398,82 @@ directly.
 | Variable | Meaning |
 |----------|---------|
 | `SYMCC_FAST_SOLVE` | enable the Fuzzy-Sat fast path for simple byte comparisons |
+| `SYMCC_OPTIMISTIC_FIRST` | try SYMCTS-style optimistic-first solving for the current execution |
+| `SYMCC_BACKSOLVER` | enable bounded Backsolver-style implicit-flow recovery over `select`, canonical PHI ITEs, and nested acyclic Veritesting-style easy regions (default on) |
+| `SYMCC_IFSS_SWITCH_STATE` | opt in to bounded 2--8-edge switch case/default lowering, including proof-carrying shared destinations, into the shared IFSS partition (default off) |
+| `SYMCC_IFSS_SWITCH_MODE` / `SYMCC_IFSS_SWITCH_PROFILE` / `SYMCC_IFSS_SWITCH_MANIFEST_OUT` | choose source-order `linear`, unsigned range-`balanced`, or external/LLVM-profile-weighted optimal alphabetic lowering and optionally emit a replay-verifiable tree manifest |
+| `SYMCC_IFSS_EXIT_STATE` | opt in to bounded 2--8-arm normal-return exit-state lowering before symbolization (default off) |
+| `SYMCC_IFSS_CONTINUATION_STATE` | opt in to bounded multi-continuation `exit_id` plus scalar live-out tuple lowering with certified capture/dispatch/resume edges (default off) |
+| `SYMCC_IFSS_CONTINUATION_MEMORY` | with continuation state enabled, opt in to at most four scalar memory live-outs proven by dispatch MemorySSA, MustAlias stores or path-local LiveOnEntry snapshots, bounded NoMod chains, and bounded acyclic nested-MemoryPhi provenance trees (default off) |
+| `SYMCC_IFSS_CONTINUATION_MANIFEST_OUT` | append replay-verified continuation CFG/scalar/memory tuple JSONL; validate it, seal IR/compiler/LLVM identities, and independently replay MemorySSA/AA with the tools in `util/` |
+| `SYMCC_IFSS_LOOP_SUMMARY` / loop manifest outputs | opt in to proof-carrying independent or upper-triangular affine natural-loop closed forms, including one or 2--3 priority-ordered post-update break exits, and optionally emit recurrence/exit manifests |
+| `SYMCC_HYDRA` / `SYMCC_HYDRA_PROFILE` / `SYMCC_HYDRA_DENYLIST` | compile one profiled bounded diamond with independently sized linear arms or proof-carrying internal branch trees (up to 7 blocks/3 conditions/4 leaves per arm); every mode uses original-authoritative coverage replay and aggressive memory mode also requires failure replay |
 | `SYMCC_MULTI_SOLVE` | solve consecutive/related branch groups together |
 | `SYMCC_EXPR_CACHE_SIZE` | expression hash-cons cache size (default 65536) |
 | `SYMCC_KSCHED` | enable K-Scheduler rarity-weighted frontier scheduling |
+| `SYMCC_SELF_CONFIG` / `SYMCC_SELF_CONFIG_PROVIDER_COMMANDS` / `SYMCC_SELF_CONFIG_SCHEMA` / `SYMCC_SELF_CONFIG_SPACE` / `SYMCC_SELF_CONFIG_PRIOR` / `SYMCC_SELF_CONFIG_VALUE_POLICY` | enable ParaSuit-style executable parameter discovery, provider-atomic contract validation, task/service/campaign lifecycle routing, conditional/contextual learning, isolated transfer priors, and program-bound MeanShift/silhouette value adaptation |
 | `SYMCC_TIMEOUT` | per-execution solver/exec timeout (seconds) |
 | `SYMCC_BRANCH_SHARE` | share timed-out branches across workers (BSFuzz) |
 | `SYMCC_FOCUS_BYTES` | restrict symbolization to specific input byte offsets |
 | `SYMCC_DENSITY_OUT` / `SYMCC_DENSITY_BALANCE` | branch-density profiling & balancing |
+| `SYMCC_POLY_CACHE` | enable prefix-keyed Pangolin-style Z3/model/linear-context reuse |
+| `SYMCC_POLY_CROSS_PREFIX` / `SYMCC_POLY_CROSS_PREFIX_PROBES` / `SYMCC_POLY_PROJECTED_REUSE` / `SYMCC_POLY_EXACT_PROJECTION` / `SYMCC_POLY_FIELD_RENAMING` | enable bounded relation-ranked, exact-integer/shared-variable-projected, and structure-preserving field-renamed SAT polytope reuse; every candidate is revalidated |
+| `SYMCC_POLY_EXACT_PROJECTION_VARS` / `SYMCC_POLY_EXACT_PROJECTION_ROWS` / `SYMCC_POLY_EXACT_PROJECTION_TIMEOUT` / `SYMCC_POLY_EXACT_PROJECTION_PROBES` | bound exact Presburger projection classification cost |
+| `SYMCC_POLY_RENAME_VARS` / `SYMCC_POLY_RENAME_ATTEMPTS` / `SYMCC_POLY_RENAME_EXACT_PROBES` | bound field-renaming dimension, mapping search, and exact-proof widening/narrowing cost |
+| `SYMCC_GENERATOR_REPLAY_SAMPLES` | bound verifier-gated offline replay of persisted Query IR converter/range recipes (default 8, maximum 64) |
+| `SYMCC_SELECTIVE_QUERY` / `SYMCC_SELECTIVE_QUERY_GRAPH_PARTITION` / `SYMCC_SELECTIVE_QUERY_GRAPH_MIN_COSTLY` / fixed-symbolic-timeout limits | enable bounded relation-graph `PC_c/PC_r` partitioning, partial-model/random completion, and mandatory full-formula SAT validation; all partial failures fall back to full Z3 |
+| `SYMCC_SELECTIVE_MDP_ITERATIONS` / `SYMCC_SELECTIVE_MDP_TOLERANCE` | bound Laplace-transition Prefix-DAG value iteration and expose a convergence residual for cyclic scheduling state |
+| `SYMCC_GRAMMAR_RULES` / `SYMCC_GRAMMAR_MAX_SPAN` | bound online taint-span grammar acquisition, variable-length completion, and rule-feedback state |
+| `SYMCC_GRAMMAR_PARETO` | rank grammar/ECT arms over nine objectives, including accepted-forest PCFG posterior likelihood and packed-DAG inside/outside information |
+| `SYMCC_PREFIX_CONTEXT_CACHE` | cache reusable translated Z3 prefix contexts |
+| `SYMCC_POLY_RANGE_BYTES` / `SYMCC_POLY_LINEAR_BYTES` / `SYMCC_POLY_TEMPLATE_BYTES` / `SYMCC_POLY_TEMPLATE_PAIRS` / `SYMCC_POLY_SAMPLES` / `SYMCC_POLY_WALK` | tune polyhedral byte-box extraction, template bounds, linearized path constraints, and dense John/Dikin sampling |
+| `SYMCC_POLY_DENSE_DIM` / `SYMCC_POLY_JOHN_STEPS` / `SYMCC_POLY_WALK_STEPS` | bound the full-matrix polytope sampler and John/Lewis weighting |
+| `SYMCC_UNSAT_CORE_CACHE` | enable exact-subset UNSAT fingerprint reuse and linear contradiction pruning |
+| `SYMCC_UNSAT_CORE_MINIMIZE_MAX` / `SYMCC_UNSAT_CORE_MINIMIZE_TIMEOUT` | bound Z3 UNSAT-core reduction before cache insertion |
+| `SYMCC_DATA_COVERAGE` | emit constant-comparison data coverage telemetry for adaptive scheduling |
+| `SYMCC_DATA_CMP_BYTES` | bound libc constant-data comparison telemetry |
+| `SYMCC_CMP_TAINT` | emit Cottontail-style comparison dependency locality telemetry |
+| `SYMCC_ECT` / `SYMCC_ECT_OUT` / `SYMCC_ECT_NODES` | build, persist, and optionally export an engine-neutral Cottontail-style expressive coverage tree |
+| `SYMCC_FOCUS_SET` / `SYMCC_COMPACT_FOCUS_SET` | use sparse Gordian-style compact input linearization for ordinary adaptive work |
+| `SYMCC_STRING_HINT_DIR` / `SYMCC_STRING_HINT_MIN` / `SYMCC_STRING_HINT_MAX` | emit concrete string tokens for AFL extras/mutators |
+| `SYMCC_STRING_CONSTRAINT_OUT` / `SYMCC_STRING_CONSTRAINT_MAX_BYTES` / `SYMCC_STRING_CONSTRAINT_MAX_RECORDS` | emit SymCC-str-inspired string-constraint JSONL with exact input-offset patches |
+| `SYMCC_STRING_SOLVER_ENABLE` / `SYMCC_STRING_SOLVER` / `SYMCC_STRING_SOLVER_QUERY_LIMIT` / `SYMCC_STRING_SOLVER_CANDIDATES` / `SYMCC_STRING_SOLVER_TIMEOUT_MS` | materialize SymCC-str-style backend-neutral string queries through the Z3 generic solver path and feed verified candidates into MPI triage |
+| `SYMCC_S2F_DUAL_EXECUTOR` / `SYMCC_S2F_SAMPLING_BUDGET` / `SYMCC_S2F_HIGH_QUEUE_FRACTION` / `SYMCC_S2F_ACTIONS_PER_SEED` | enable exact-first actionseed state and high/low queue S2F-style scheduling |
+| `SYMCC_EDGE_DEPENDENCE` | enable SYMCTS-style edge-dependence coverage and under-explored row replay |
+| `SYMCC_DIRECTED_SITES` / `SYMCC_DIRECTED_DISTANCE` | prioritize target branch site ids or site-distance maps in adaptive hybrid mode |
+| `SYMCC_DYNAMIC_COLORATION` / `SYMCC_COLORGO_GAMMA` | enable ColorGo-style dynamic feasibility and cost-aware MDP scheduling |
+| `SYMCC_TACO` / `SYMCC_TACO_EXTENDED_CONDITIONS` | enable TACO-Fuzz-style target-centric seed selection and extended path conditions |
+| `SYMCC_MULTIGO` / `SYMCC_MULTIGO_POISSON_SCALE` / `SYMCC_MULTIGO_EXPLORE_FRACTION` | enable MultiGo-style path difficulty and explore/exploit target-path scheduling |
+| `SYMCC_DIRECTED_PRUNE` / `SYMCC_DIRECTED_MAX_DISTANCE` | optionally skip QSYM Z3 attempts outside the directed distance frontier |
+| `SYMCC_COLOR_TARGETS` / `SYMCC_COLORATION_OUT` | compile-time ColorGo-style target specs and emitted mergeable site-distance sidecar |
+| `SYMCC_CONCURRENCY_OUT` / `SYMCC_CONCURRENCY_GUIDANCE` | emit and consume Schfuzz-style concurrency-site distance guidance |
+| `SYMCC_COLOR_INDIRECT` / `SYMCC_COLOR_INDIRECT_LIMIT` | bounded indirect-call over-approximation for ColorGo-style maps |
+| `SYMCC_TASK_GRAPH_OUT` / `SYMCC_TASK_GRAPH` | emit and consume a DynamiQ-style interprocedural structural-task graph |
+| `SYMCC_STRUCTURAL_TASKS` / `SYMCC_TASK_REBALANCE_INTERVAL` | enable feedback-driven region ownership and periodic worker reallocation |
+| `SYMCC_SIMIFUZZ` / `SYMCC_SIMIFUZZ_SLICE` / `SYMCC_SIMIFUZZ_CANDIDATES` | learn seed-worker assignments from worker-local exploration, in-flight redundancy, and time-sliced global/cross-learning reward |
+| `SYMCC_PATH_COVER` / `SYMCC_MPC_COVERS` | enable Empc-style multiple minimum-path-cover guidance and bound cover diversity |
+| `SYMCC_AGENTIC_OUT` / `SYMCC_AGENTIC_HINTS` / `SYMCC_AGENTIC_CMD` / `SYMCC_AGENTIC_BACKENDS` / `SYMCC_AGENTIC_BUILTIN` / `SYMCC_AGENTIC_ROUTE` | export solver tasks and consume validated Cottontail/ConcoLLMic/Gordian-style offline, asynchronous provider, or built-in scheduling hints |
+| `SYMCC_SEMANTIC_FALLBACK` / `SYMCC_SEMANTIC_ACTIONS` / `SYMCC_SEMANTIC_EXACT_BYTES` / `SYMCC_SEMANTIC_FOCUS_SPAN` | learn semantic branch classes from telemetry and route exact/tailored/sampling/skip fallback hints |
+| `SYMCC_SMT_ALGORITHM_SCHEDULER` / `SYMCC_SMT_ALGORITHM_SPACE` / `SYMCC_SMT_ALGORITHM_PRIOR` | enable contextual scheduling, optionally provide a custom sequence space, and load a verified X-means/BIC single-action or bagged/boosted budgeted-sequence prior |
+| `SYMCC_OFFLINE_POLICY` / `SYMCC_OFFLINE_TRAJECTORY` | record interference-aware scheduling trajectories and gate learned solver-sequence preferences with conservative offline evaluation |
+| `SYMCC_SEMANTIC_PROPOSALS` / `SYMCC_SEMANTIC_TOKEN_DIR` | enable built-in Gordian/NeuroSCA/Lase/Hydra-style semantic proposals from comparison cores, IFSS-like targeted transforms, token grammar completion, data-coverage exemplars, and UCSan object graph hints |
+| `SYMCC_QUERY_SPOOL` / `SYMCC_QUERY_DEFER` / `SYMCC_QUERY_STORE` / `SYMCC_QUERY_PREFIX_CACHE` | export Query IR, solve it asynchronously with persistent prefix contexts, and materialize content-addressed candidates |
+| `SYMCC_QUERY_SOLVER_PORTFOLIO` / `SYMCC_QUERY_SOLVER_PORTFOLIO_PARALLELISM` / `SYMCC_QUERY_SOLVER_PORTFOLIO_CANCEL_GRACE_MS` | run asynchronous Query IR solving through a bounded parallel portfolio; `smtlib-qfbv` entries support proof-carrying lowering, independently checked models, conservative disagreement handling, optional prefix-keyed persistent push/pop contexts, and opt-in SAT-gated helper cancellation |
+| `SYMCC_GENERATOR_SAMPLES` / `SYMCC_GENERATOR_MAX_VARS` / `SYMCC_GENERATOR_CHECK_TIMEOUT` / `SYMCC_GENERATOR_OPTIMISTIC` / `SYMCC_GENERATOR_TACTIC_CONVERTER` / `SYMCC_GENERATOR_CONVERTER_SAMPLES` | emit reusable GenSlv-style generators with exact/optimistic ranges, native Z3 model conversion, certificates, and full-solver-verified models |
+| `SYMCC_PARTIAL_SOLUTION_CACHE` / `SYMCC_PARTIAL_SOLUTION_LIMIT` / `SYMCC_PARTIAL_SOLUTION_SCAN` | reuse SAT byte assignments as PSCache-inspired partial solutions only after Query IR validation |
+| `SYMCC_SOLVER_PSCACHE` / `SYMCC_SOLVER_PSCACHE_SIZE` / `SYMCC_SOLVER_PSCACHE_PROBES` / `SYMCC_SOLVER_PSCACHE_TIMEOUT` / `SYMCC_SOLVER_PSCACHE_CONFLICTS` / `SYMCC_SOLVER_PSCACHE_CONFLICT_*` | probe recent assignments and collect Z3 assumption-UNSAT-core-verified conflict assignments inside persistent solver helpers |
+| `SYMCC_LIVE_INCREMENTAL_SOLVER` / `SYMCC_LIVE_INCREMENTAL_CONTEXTS` / `SYMCC_LIVE_INCREMENTAL_ARTIFACTS` | reuse CAS-rooted QF_BV contexts across live-state branch probes, child states, checkpoints, and MPI leases with bounded caches and one-shot fallback |
+| `symcc_live_state.py resume-persistent` / `frontier-inspect` | execute a bounded CAS continuation frontier with deterministic search snapshots, generation-CAS claims, heartbeat/TTL recovery, token-fenced late-result rejection, and atomic durable publication |
+| `SYMCC_BITMAP_SHARDS` / `SYMCC_STATE_SHARDS` / `SYMCC_STATE_TASK_SHARDS` | shard bitmap deltas, analyzed-input state, and GenSym-style continuation tasks |
+| `SYMCC_RESUME` / `SYMCC_WORK_LEASES` / `SYMCC_WORK_LEASE_TTL` | recover scheduler state and unfinished MPI work leases after restart |
+| `SYMCC_MULTI_MASTER_LEASES` / `SYMCC_MULTI_MASTER_LEASE_DIR` | enable shared fenced leases so multiple MPI masters can steal expired continuation work without duplicate active dispatch |
+| `SYMCC_COVERAGE_GOSSIP` / `SYMCC_COVERAGE_OWNER_DIR` / `SYMCC_COVERAGE_OWNER_SHARDS` | atomically deduplicate AFL bitmap novelty across multiple coordinators and gossip authoritative coverage shards |
+| `SYMCC_DPOR` / `SYMCC_SCHEDULE_PRELOAD` / `SYMCC_DPOR_MEMORY` / `SYMCC_SCHEDULE_MEMORY` / `SYMCC_SCHEDULE_MEMORY_FILTER` / `SYMCC_SCHEDULE_MEMORY_PROVENANCE` / `SYMCC_SCHEDULE_CONSTRAINT_OUT` / `SYMCC_SCHEDULE_SMT_OUT` / `SYMCC_SCHEDULE_SMT_SYNC_STATE` / `SYMCC_SCHEDULE_SMT_ORDER_ENCODING` / `SYMCC_SCHEDULE_MEMORY_MODEL` / `SYMCC_SCHEDULE_SMT_MAX_MEMORY_EVENTS` / `SYMCC_SCHEDULE_QUERY_VALIDATION_OUT` / `SYMCC_DPOR_MAX_DEPTH` / `SYMCC_DPOR_WINDOW` | enable bounded Source-DPOR pthread exploration with checked dependency/equivalence/source certificates and persistent sleep sets, optional memory tracing, SC/TSO/RA bounded read-from/coherence constraints, single-context Query-IR × schedule × RF solving, lifecycle certificates, and logical-thread-id replay |
+| `SYMCC_VERIFIED_PROPOSALS` / `SYMCC_PROPOSAL_MAX_BYTES` / `SYMCC_PROPOSAL_PATCH_BYTES` | ingest bounded semantic candidate transformations, concretely validate their requested target, then admit only globally novel candidates |
+| `SYMCC_PROPOSAL_PARSER` / `SYMCC_PROPOSAL_PARSER_TIMEOUT` / `SYMCC_PROPOSAL_PARSER_CACHE` / `SYMCC_PARSER_RESEARCH_ARTIFACT` | independent parser validity/structural-trace oracle, persistent native Tree-sitter reuse, cost-faithful cold control and sealed parser telemetry |
+| `SYMCC_UCSAN_CONFIG` / `SYMCC_UCSAN_ENTRY` / `SYMCC_UCSAN_SCOPE` | compile a UCSan-style under-constrained harness with recoverable JITI objects plus explicit stack/heap OOB, UAF, and byte-initialization/UBI checks |
+| `SYMCC_UCSAN_EXTERNAL` / `SYMCC_UCSAN_INPUT` / `SYMCC_UCSAN_DUMP` | control external-call stubs and structured under-constrained seeds |
+| `SYMCC_UCSAN_SYMBOLIZE` / `SYMCC_UCSAN_MAX_OBJECT` / `SYMCC_UCSAN_MAX_EXPLICIT_SHADOW_BYTES` | symbolize structured seed bytes, bound JIT object growth, and cap byte-level metadata for live explicit objects |
 
 ### AFL++ (hybrid mode)
 
@@ -411,6 +481,14 @@ directly.
 |----------|---------|
 | `AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1` | **often required on desktop Linux** — see Troubleshooting |
 | `AFL_SKIP_CPUFREQ=1` | skip the CPU-frequency governor check |
+| `SYMCC_AFL_DATA_COVERAGE` | inject AFL_PRELOAD data coverage in adaptive hybrid runs |
+| `AFL_DATA_COVERAGE` | disable the preload runtime when set to `0`/`false`/`off`/`no` |
+| `SYMCC_AFL_DATA_MAP_SIZE` | optionally narrow comparison-data hashing within the reserved 64 KiB AFL namespace |
+| `SYMCC_AFL_HINT_MUTATOR` | enable the AFL++ Python mutator that consumes SymCC hints and poly-cache entries |
+| `SYMCC_HINT_DIR` / `SYMCC_POLY_CACHE_MUTATOR` | override the hint directory and poly-cache file watched by the mutator |
+| `SYMCC_STRING_CONSTRAINTS` / `SYMCC_HINT_MUTATOR_STRING_LINES` | feed exact string-constraint offset patches into the AFL++ hint mutator |
+| `SYMCC_HINT_MUTATOR_POLY_ATTEMPTS` | bound full-matrix polytope feasible-point recovery inside the AFL++ hint mutator |
+| `SYMCC_AFL_PROFILES` / `--aflpp-profiles` | orchestrate AFL++ LAF/CTX/Ngram/CmpLog/MOpt profiles in hybrid mode |
 
 ---
 
@@ -619,10 +697,14 @@ bundled Z3 by absolute path would).
 
 ## 11. Further documentation
 
+- [`docs/README.md`](docs/README.md) — documentation index and maintenance rules.
+- [`docs/New_Implementation_Archive.md`](docs/New_Implementation_Archive.md) — research-oriented record of every new implementation, including design, code paths, tests, results, and known limits.
+- [`docs/Development_History_Traceability.md`](docs/Development_History_Traceability.md) — traceability from all 139 project commits and the current working tree to F00-F274, code, tests, and benchmark evidence.
 - [`docs/Configuration.txt`](docs/Configuration.txt) — every SymCC configuration option (compile-time & run-time).
 - [`docs/Fuzzing.txt`](docs/Fuzzing.txt) — combining SymCC with a fuzzer (background).
 - [`docs/MPI_Parallelization.txt`](docs/MPI_Parallelization.txt) — the MPI architecture.
 - [`docs/Parallel_Architecture_Report.md`](docs/Parallel_Architecture_Report.md) — parallel design deep-dive.
+- [`docs/sota_hybrid_execution_2026.md`](docs/sota_hybrid_execution_2026.md) — current research review, adaptive scheduler design, and staged optimization roadmap.
 - [`docs/SymCC_Upstream_README.md`](docs/SymCC_Upstream_README.md) — the original upstream SymCC README (build details, FAQ, C++/32-bit support, Docker).
 
 ---

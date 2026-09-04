@@ -1,0 +1,61 @@
+digraph AgolicPlanning {
+  graph [
+    rankdir=TB,
+    bgcolor="white",
+    pad="0.35",
+    nodesep="0.35",
+    ranksep="0.60",
+    fontname="DejaVu Sans",
+    label="F374  Run-level planning and replay-verified feedback",
+    labelloc="t",
+    fontsize=20
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    fontname="DejaVu Sans",
+    fontsize=11,
+    color="#334155",
+    penwidth=1.2,
+    margin="0.16,0.10"
+  ];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#64748b", penwidth=1.2];
+
+  continuous [label="Continuous SymCC\nindependent baseline", fillcolor="#dbeafe"];
+  corpus [label="Finite replay corpus C\ncontent-addressed artefacts", fillcolor="#f1f5f9"];
+  replay_round [label="Round-start native replay\ncoverage map mu_r", fillcolor="#dcfce7"];
+  context [label="Planning context\nsource frontier + mu_r + history", fillcolor="#fef3c7"];
+  planner [label="Built-in / external planner\ntarget, mode, profile, budgets", fillcolor="#fde68a"];
+  admission [label="Deterministic admission\nshape, bounds, witness, dedup", fillcolor="#fed7aa"];
+  workers [label="Isolated bounded runs\nparallel execution only", fillcolor="#e9d5ff"];
+  sequencer [label="Completion sequencer\none result at a time", fillcolor="#ddd6fe"];
+  replay_run [label="Native replay of C + A_i\nDelta_i = mu(C + A_i) - mu(C)", fillcolor="#bbf7d0"];
+  evidence [label="Durable evidence\ncoverage + four target classes + H", fillcolor="#a7f3d0"];
+  final [label="Final native replay\nauthoritative reported coverage", fillcolor="#bfdbfe"];
+  retry [label="Planning failure\nrecord and retry", fillcolor="#fecaca"];
+  stop [label="No admitted target\nor deadline", fillcolor="#e2e8f0"];
+
+  { rank=same; continuous; corpus; replay_round; }
+  { rank=same; context; planner; admission; }
+  { rank=same; retry; workers; stop; }
+  { rank=same; sequencer; replay_run; evidence; }
+
+  continuous -> corpus [label="generated tests"];
+  corpus -> replay_round;
+  replay_round -> context;
+  evidence -> context [label="next round", constraint=false];
+  context -> planner;
+  planner -> admission [label="proposals Q_r"];
+  planner -> retry [label="session error", color="#dc2626"];
+  retry -> replay_round [label="time remains", color="#dc2626", constraint=false];
+  admission -> workers [label="admitted T_r"];
+  admission -> stop [label="empty set"];
+  workers -> sequencer [label="A_i + telemetry"];
+  sequencer -> replay_run;
+  corpus -> replay_run;
+  replay_run -> corpus [label="commit A_i", color="#059669"];
+  replay_run -> evidence [label="replay verified"];
+  stop -> final;
+  continuous -> final [label="finalize", constraint=false];
+  corpus -> final;
+}

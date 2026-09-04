@@ -1,0 +1,112 @@
+{
+  "accepted_failure_inputs": [
+    "df7e70e5021544f4834bbee64a9e3789febc4be81470df629cad6ddb03320a5c"
+  ],
+  "campaign_sha256": "650c350c6abc32fe07301741eaafe39586ddb3c04f16c0e12b8d5d1c9757206f",
+  "counts": {
+    "real-failure": 1,
+    "spurious-transformed-failure": 1
+  },
+  "failure_preservation_holds": true,
+  "inputs": [
+    {
+      "base64": "QQ==",
+      "sha256": "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd",
+      "size": 1
+    },
+    {
+      "base64": "Qg==",
+      "sha256": "df7e70e5021544f4834bbee64a9e3789febc4be81470df629cad6ddb03320a5c",
+      "size": 1
+    }
+  ],
+  "manifest": {
+    "path": "/home/ubuntu/code/symcc/build/hydra_replay_smoke_manifest.jsonl",
+    "record": {
+      "aligned_pairs": 0,
+      "entry_block": "entry",
+      "extra_alu": 0,
+      "function": "main",
+      "linearized_loads": 3,
+      "mode": "aggressive-memory",
+      "module": "benchmark/hydra_replay_smoke.ll",
+      "output_phis": 1,
+      "profile_interesting": 0,
+      "profile_observations": 0,
+      "profile_score": 1,
+      "profile_solver_time_us": 0,
+      "readback_stores": 0,
+      "requires_original_replay": true,
+      "schema": "symcc-hydra-transform-v1",
+      "selects": 1,
+      "single_site_build": true,
+      "site": 424248,
+      "source_file": "benchmark/hydra_replay_smoke.ll"
+    },
+    "sha256": "d1826f5aca96f75793f5cc403b37085e6eb6c4e5405c3bdc72742f70c16ca813"
+  },
+  "original": {
+    "argv": [
+      "/home/ubuntu/code/symcc/build/hydra_replay_smoke_original"
+    ],
+    "executable_sha256": "44ea775df8e082d73e64dd6f2904eac45d7729f738a48a93e8a9108476d8954c",
+    "input_mode": "stdin"
+  },
+  "original_is_authority": true,
+  "rows": [
+    {
+      "classification": "spurious-transformed-failure",
+      "input_sha256": "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd",
+      "original": {
+        "elapsed_us": 735,
+        "return_code": 0,
+        "signal": 0,
+        "status": "ok",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "transformed": {
+        "elapsed_us": 60658,
+        "return_code": -11,
+        "signal": 11,
+        "status": "signal",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "classification": "real-failure",
+      "input_sha256": "df7e70e5021544f4834bbee64a9e3789febc4be81470df629cad6ddb03320a5c",
+      "original": {
+        "elapsed_us": 58661,
+        "return_code": -11,
+        "signal": 11,
+        "status": "signal",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "transformed": {
+        "elapsed_us": 64565,
+        "return_code": -11,
+        "signal": 11,
+        "status": "signal",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "schema": "symcc-hydra-replay-v1",
+  "selected_site": 424248,
+  "semantic_sha256": "b9ed9cd1c835a8bdf5a4dc450e272359fbbed1e6b340a3a64486f2b9e18326b7",
+  "spurious_sites": [
+    424248
+  ],
+  "timeout_ms": 1000,
+  "transformed": {
+    "argv": [
+      "/home/ubuntu/code/symcc/build/hydra_replay_smoke_transformed"
+    ],
+    "executable_sha256": "fce5d143679faa67393680bffe2ed75fe0b103cf29f71ee23956449adda4fd40",
+    "input_mode": "stdin"
+  }
+}

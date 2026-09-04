@@ -1,0 +1,52 @@
+F451 MULTI-ROUND REVIEW RECORD
+
+R1 - Composition and trust boundary
+Finding: sharing only the F449 SQLite lease would accept work from a revoked
+communicator; copying either state machine would create two competing truth
+sources.  Fix: bind the canonical F449 cube lease to the exact F447
+generation/shard/work lease and require both fences to be current at heartbeat
+and completion.  Result: one composed protocol, no duplicated SAT/UNSAT trust
+root.
+
+R2 - Persistence and policy identity
+Finding: concurrent binding-store initialization, caller-selected lease timing,
+or a long-lived in-memory coordinator could make restart behavior ambiguous.
+Fix: add a stable no-follow initialization lock, SQLite FULL synchronization,
+exact timeout-policy checks, unique inner/outer lease constraints, and a
+stateless CLI that reconstructs all ledgers on every command.  Result: restart
+and policy behavior is explicit and durable.
+
+R3 - Cross-ledger crash atomicity
+Finding: the F449 result may commit before outer work finish, or outer dispatch
+may commit before the binding row is inserted.  A single SQLite transaction
+cannot span the three stores.  Fix: impose a recognizable operation order and
+add reconciliation for both crash windows.  Result: repeated reconciliation is
+idempotent and cannot invent a SAT/UNSAT result.
+
+R4 - Recovery reentrancy
+Finding: a crash after generation receipt commit could accidentally advance a
+second generation, and an orphan dispatch could be invisible to the binding
+ledger.  Fix: add resume_recovery_queue without generation advancement and
+reconstruct orphan bindings from the durable ULFM snapshot.  Result: recovery
+can resume from either committed boundary.
+
+R5 - Concurrency and semantic validation
+Finding: stale masters can race on one snapshot, and a remote worker could claim
+that a SAT backend model was already verified.  Fix: keep QueryStore state
+ordinals as the single multi-master fork detector; roll back the losing inner
+claim; require the stateless CLI to apply the assignment and invoke
+QueryStore.validate_candidate.  Result: one outer winner and independent parent
+Query IR validation.
+
+R6 - Physical transport and protocol splice resistance
+Finding: a permissive JSON adapter could accept duplicate members, non-finite
+numbers, extra fields, a tampered lease, or a response replayed for another
+request.  Fix: use a bounded strict decoder, exact schemas and digests, pinned
+remote-worker SHA-256, request-digest-bound responses, and a real remote exit 86
+in every physical trial.  Result: three two-host trials recovered all in-flight
+cubes and accepted only the surviving current SAT response.
+
+Final boundary: F451 proves the distributed application protocol and composes
+with F447's physical ULFM substrate.  It does not claim exactly-once computation,
+production SSH transport, solver speedup, coverage improvement, or defect yield.
+

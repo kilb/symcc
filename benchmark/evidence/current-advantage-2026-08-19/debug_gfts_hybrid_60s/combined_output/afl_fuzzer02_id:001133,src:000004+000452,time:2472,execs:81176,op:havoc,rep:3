@@ -1,0 +1,1 @@
+<?xmt a="v"><l version="1.0"?><!DOCTYPE note [<!ELEMENT note (to,fromAbody)><!ELEMENT to (#PCDATA)><!ELEMENT from (#PCDATA)><!ELEMENT body (#PCDATA)>]><note><rom>B</from><body>C</body></note>

@@ -1,0 +1,17 @@
+Both sealed runs independently report:
+- schema symcc-cross-worker-qfbv-context-oracle-v1
+- all_passed=true
+- 32 finite differential cases, false_identity=0, maximum_depth=4
+- real cvc5 statuses [sat, sat, sat] and assignments [66, 67, 68]
+- parent_reuse=true
+- cross_worker_exact_hit=true and cross_worker_local_hit=false
+- context_objects=2
+- QueryStore counts: results=3, exact_hits=1, parent_reuses=1,
+  quota_timeouts=0
+
+The mechanism-cost samples are intentionally not byte-identical. Run 1 reports
+median 7,777,480 ns, min 4,447,646 ns, max 89,302,289 ns. Run 2 reports median
+4,123,153 ns, min 3,269,052 ns, max 47,202,801 ns. This variation is evidence
+that the local filesystem/SQLite micro-measurement is not an end-to-end speedup
+claim. Semantic fields, not timing bytes, are the reproducibility criterion.
+

@@ -1,0 +1,37 @@
+
+digraph G {
+  graph [
+    bgcolor="white", pad="0.28", nodesep="0.38", ranksep="0.58",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=24,
+    labelloc="t", labeljust="l"
+  ];
+  node [
+    shape=box, style="rounded,filled", margin="0.18,0.12",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=12,
+    color="#CBD5E1", penwidth=1.3, fillcolor="#F8FAFC"
+  ];
+  edge [
+    fontname="WenQuanYi Zen Hei", fontcolor="#64748B", fontsize=10,
+    color="#64748B", penwidth=1.5, arrowsize=0.75
+  ];
+
+  label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3"><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="26"><B>图 R-11　求解代价层次</B></FONT><BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="14" COLOR="#64748B">概念顺序；实际按 executor profile、查询形状与缓存命中跳层、交换或并发</FONT><BR ALIGN="LEFT"/></TD></TR></TABLE>>;
+  rankdir=TB; ranksep=0.30; nodesep=0.18;
+  node [width=5.6, height=0.62, fontsize=13];
+
+  s0 [label="0　要不要解\nbranch-interest / 依赖 / prefix 策略", fillcolor="#F1F5F9", color="#94A3B8"];
+  s1 [label="1　查已有答案\nexact cache / prefix context / PSCache", fillcolor="#DCFCE7", color="#15803D"];
+  s2 [label="2　不用 SMT 直接构造\nfastSolve / 乐观 generator / Backsolver", fillcolor="#CCFBF1", color="#0F766E"];
+  s3 [label="3　专用后端\nselective partition / string / grammar", fillcolor="#DBEAFE", color="#2563EB"];
+  s4 [label="4　单 solver 精确求解\n完整前缀 + 目标取反 → Z3", fillcolor="#FFEDD5", color="#C2410C"];
+  s5 [label="5　有界并行 portfolio\ncvc5 / Bitwuzla / Z3 竞速", fillcolor="#FEE2E2", color="#B91C1C"];
+  s6 [label="6　超时 / unknown\n保留证据、回退或延后", fillcolor="#EDE9FE", color="#6D28D9"];
+  hit [label="得到候选 → 进入 triage 与全局 edge 仲裁", fillcolor="#DCFCE7", color="#15803D", penwidth=2.2];
+
+  s0 -> s1 -> s2 -> s3 -> s4 -> s5 -> s6 [color="#CBD5E1", arrowsize=0.7];
+  s1 -> hit [label="  缓存命中，成本≈0", style=dashed, color="#15803D", constraint=false, fontsize=11];
+  s2 -> hit [label="  直接反演，不进 SMT", style=dashed, color="#0F766E", constraint=false, fontsize=11];
+  s4 -> hit [label="  SAT", style=dashed, color="#C2410C", constraint=false, fontsize=11];
+  s6 -> hit [style=invis];
+
+}

@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      .title { font: 700 42px 'WenQuanYi Zen Hei', sans-serif; fill: #17202a; }
+      .subtitle { font: 400 21px 'WenQuanYi Zen Hei', sans-serif; fill: #52606d; }
+      .head { font: 700 25px 'WenQuanYi Zen Hei', sans-serif; fill: #17202a; }
+      .body { font: 400 20px 'WenQuanYi Zen Hei', sans-serif; fill: #263238; }
+      .small { font: 400 17px 'WenQuanYi Zen Hei', sans-serif; fill: #44515c; }
+      .mono { font: 600 17px 'DejaVu Sans Mono', monospace; fill: #263238; }
+      .label { font: 700 16px 'WenQuanYi Zen Hei', sans-serif; fill: #ffffff; }
+      .foot { font: 400 17px 'WenQuanYi Zen Hei', sans-serif; fill: #eef2f3; }
+      .foot2 { font: 400 17px 'WenQuanYi Zen Hei', sans-serif; fill: #cfd8dc; }
+      .arrow { stroke: #59636e; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .dash { stroke: #8c98a4; stroke-width: 2.5; stroke-dasharray: 9 8; fill: none; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#59636e"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#27313a" flood-opacity="0.13"/>
+    </filter>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#f7f8f6"/>
+  <rect x="0" y="0" width="1920" height="10" fill="#d65f4c"/>
+  <text x="72" y="76" class="title">F409  调用点实例化的跨过程 Heap Effect Summary</text>
+  <text x="72" y="112" class="subtitle">caller MemorySSA 定位终端 call，callee effect 按 actual/formal 绑定，并由 continuation consumer 严格重放</text>
+
+  <g filter="url(#shadow)">
+    <rect x="70" y="160" width="505" height="720" rx="8" fill="#ffffff" stroke="#d2d8dc" stroke-width="2"/>
+    <rect x="707" y="160" width="505" height="720" rx="8" fill="#ffffff" stroke="#d2d8dc" stroke-width="2"/>
+    <rect x="1344" y="160" width="505" height="720" rx="8" fill="#ffffff" stroke="#d2d8dc" stroke-width="2"/>
+  </g>
+
+  <rect x="70" y="160" width="505" height="62" rx="8" fill="#2b6f77"/>
+  <rect x="707" y="160" width="505" height="62" rx="8" fill="#d9912b"/>
+  <rect x="1344" y="160" width="505" height="62" rx="8" fill="#6a5d91"/>
+  <text x="100" y="201" class="label">1  CALLER：真实 MemorySSA 链</text>
+  <text x="737" y="201" class="label">2  CALLEE：有界 effect 恢复</text>
+  <text x="1374" y="201" class="label">3  ARTIFACT：证书与重放</text>
+
+  <rect x="105" y="258" width="435" height="98" rx="8" fill="#e7f3f3" stroke="#78aeb2" stroke-width="2"/>
+  <text x="130" y="293" class="head">Load MemoryUse</text>
+  <text x="130" y="328" class="mono">L = [address, address + bytes)</text>
+
+  <path d="M322 356 L322 397" class="arrow"/>
+  <rect x="105" y="398" width="435" height="138" rx="8" fill="#f3f6f6" stroke="#93a4a8" stroke-width="2"/>
+  <text x="130" y="435" class="head">逆向 MemoryDef chain</text>
+  <text x="130" y="471" class="body">无关 store：object/interval 或 NoAlias</text>
+  <text x="130" y="506" class="body">无关 call：仅 NoModRef 可跳过</text>
+
+  <path d="M322 536 L322 577" class="arrow"/>
+  <rect x="105" y="578" width="435" height="124" rx="8" fill="#fff0ec" stroke="#d98572" stroke-width="2"/>
+  <text x="130" y="616" class="head">Terminal direct CallInst</text>
+  <text x="130" y="652" class="body">call block / ordinal / callee</text>
+  <text x="130" y="682" class="small">必须支配 load；MemoryPhi/递归均拒绝</text>
+
+  <rect x="105" y="742" width="435" height="98" rx="8" fill="#f8eded" stroke="#d7a1a1" stroke-width="2"/>
+  <text x="130" y="779" class="head">反例保持 fail closed</text>
+  <text x="130" y="815" class="small">同区间覆盖写 · 动态地址 · 未知 memory effect</text>
+
+  <path d="M575 635 C630 635 650 310 707 310" class="arrow"/>
+
+  <rect x="742" y="258" width="435" height="150" rx="8" fill="#fff4df" stroke="#e0ad5b" stroke-width="2"/>
+  <text x="767" y="296" class="head">A. returned-allocation</text>
+  <text x="767" y="332" class="body">唯一 malloc/calloc → store → return</text>
+  <text x="767" y="366" class="small">allocation/store/return identity 全绑定</text>
+  <text x="767" y="394" class="small">calloc 零初始化显式编码 store = null</text>
+
+  <rect x="742" y="446" width="435" height="190" rx="8" fill="#eef5e8" stroke="#8eb277" stroke-width="2"/>
+  <text x="767" y="484" class="head">B. argument-initializer</text>
+  <text x="767" y="522" class="mono">store = formal[k] + Δ</text>
+  <text x="767" y="558" class="mono">store[c] = actual[c,k] + Δ</text>
+  <text x="767" y="594" class="small">常量 Δ；单块；唯一 writer；void return</text>
+  <text x="767" y="622" class="small">每个 callsite 只匹配一个 heap identity</text>
+
+  <path d="M960 636 L960 681" class="arrow"/>
+  <rect x="742" y="682" width="435" height="158" rx="8" fill="#f6f2e9" stroke="#b6a77f" stroke-width="2"/>
+  <text x="767" y="720" class="head">精确 interval cover</text>
+  <text x="767" y="758" class="mono">s ≤ l ∧ l+wₗ ≤ s+wₛ</text>
+  <text x="767" y="794" class="body">64 callsite：4096 → 64</text>
+  <text x="767" y="824" class="small">关系检查基数，不是 wall-clock 加速倍数</text>
+
+  <path d="M1212 541 C1272 541 1285 310 1344 310" class="arrow"/>
+
+  <rect x="1379" y="258" width="435" height="168" rx="8" fill="#f0edf7" stroke="#9f91bd" stroke-width="2"/>
+  <text x="1404" y="296" class="head">版本化 transcript</text>
+  <text x="1404" y="334" class="mono">kind · callee · base · load interval</text>
+  <text x="1404" y="368" class="mono">call · parameter/allocation · store</text>
+  <text x="1404" y="402" class="mono">return · skipped_defs</text>
+
+  <path d="M1596 426 L1596 471" class="arrow"/>
+  <rect x="1379" y="472" width="435" height="196" rx="8" fill="#edf4f8" stroke="#81a6ba" stroke-width="2"/>
+  <text x="1404" y="510" class="head">Consumer 独立重放</text>
+  <text x="1404" y="548" class="body">CFG dominance 与 operation 顺序</text>
+  <text x="1404" y="582" class="body">actual/formal guard 与 heap owner</text>
+  <text x="1404" y="616" class="body">唯一 writer、宽度、半开区间、skip identity</text>
+  <text x="1404" y="650" class="small">额外字段/额外 store/ordinal 替换全部拒绝</text>
+
+  <path d="M1596 668 L1596 713" class="arrow"/>
+  <rect x="1379" y="714" width="435" height="126" rx="8" fill="#eaf5ec" stroke="#7fad85" stroke-width="2"/>
+  <text x="1404" y="752" class="head">Runtime 最终权威</text>
+  <text x="1404" y="789" class="body">live slot · logical size · byte-init bitmap</text>
+  <text x="1404" y="820" class="small">证书不绕过实际 continuation 执行</text>
+
+  <rect x="70" y="920" width="1779" height="105" rx="8" fill="#25313a"/>
+  <text x="98" y="960" class="label">信任边界</text>
+  <text x="245" y="960" class="foot">LLVM producer 负责 AA/ModRef 与 formal-relative effect；consumer 负责 artifact identity/CFG/interval 重放；runtime 负责实际内存状态。</text>
+  <text x="98" y="997" class="foot2">明确不包含：recursive SCC · indirect call · conditional/multi-writer · dynamic interval · EH · 完整 SMART/POSE · 公共目标性能结论</text>
+</svg>

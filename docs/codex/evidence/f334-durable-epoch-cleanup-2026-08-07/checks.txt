@@ -1,0 +1,58 @@
+F334 durable completed-epoch cleanup checks
+Date: 2026-08-07 UTC
+Host: cuda-ke
+Kernel: Linux 7.0.0-28-generic x86_64
+Python: 3.12.3
+MPI: Open MPI 4.1.6 / mpi4py 4.1.1 / MPI 3.1
+
+Static and syntax checks
+- ruff touched production/test/evidence Python: pass
+- Python bytecode compilation for touched Python: pass
+- git diff --check including untracked delivery files: pass
+- evidence-directory __pycache__ residue: none
+
+Tests
+- distributed/lifecycle/filesystem directed tests: 191 passed, 24 subtests in 16.40 s
+- related MPI/distributed/hybrid tests: 308 passed, 32 subtests in 16.57 s
+- full warnings-as-errors Python regression: 704 passed, 52 subtests in 94.73 s
+- cleanup identity negatives: ordinary direct child, 63-hex epoch, and uppercase epoch all rejected before deletion
+
+Real MPI cleanup failure and recovery
+- ranks and masters/workers: 7 and 2/5
+- sealed work epoch: f334 repeated 16 times
+- actual MPI transport: true
+- synthetic topology: false
+- injected failure point: rank-0 work-state durable_rmtree before deletion
+- injected worker ACKs before cleanup failure: 3/3 + 2/2
+- injected return code and elapsed: 72 and 3.613172 s
+- state.json and fenced record retained after failure: true
+- matching recovery worker ACKs: 3/3 + 2/2
+- matching recovery return code and elapsed: 0 and 3.670549 s
+- state absent after matching recovery: true
+- all JSON checks: pass
+
+Mechanism cost
+- warm-ups/repetitions: 10/100 interleaved and alternating
+- legacy unacknowledged rmtree median/p95: 70.0455/89.755 us
+- durable rmtree median/p95: 2756.892/3079.947 us
+- median added cost and ratio: 2686.8465 us and 39.358588346146426x
+- raw sample counts: 100/100
+- all samples complete: true
+
+Strict evidence boundaries
+- actual_multi_host=false
+- synthetic_topology=false
+- deployment_evidence=false
+- remote_power_loss_tested=false
+- mpi_rank_repair_tested=false
+- network_partition_tested=false
+- ulfm_repair_tested=false
+- mpi_barrier_scale_benchmarked=false
+- dse_throughput_benchmarked=false
+- solver_or_coverage_uplift_measured=false
+- lava_m_campaign_run=false
+
+Repository inventory after F334
+- documented feature IDs: F00-F334 (335 total)
+- documented SYMCC configuration names: 410
+- top-level test files: 246

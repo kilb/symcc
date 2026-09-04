@@ -1,0 +1,40 @@
+================================================================================
+  SymCC MPI Parallelization Benchmark Report
+  Generated: 2026-08-19 13:09:58
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+  Target: pcre2-pcre2_fuzzer
+────────────────────────────────────────────────────────────────────────────────
+
+  Mode         NP       Time   SymCCGen    AFLExec   Unique  ShowmapCov          Edges  FstatsCov         FEdges      AFL/s
+  ────────── ──── ────────── ────────── ────────── ──────── ─────────── ────────────── ────────── ────────────── ──────────
+  afl-only     16      49.0s          0   47037750   119100      50.56%      4918/9728     48.90%      4743/9706    1002997
+  seed          0       0.0s          0          0        8       7.22%       702/9728        N/A            N/A          0
+
+  Edge Coverage Chart (afl-showmap):
+    afl-only np=16 |████████████████████████████████████████| 50.56%
+              seed |█████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░| 7.22%
+
+  Coverage Gain over Seed Baseline:
+    Seed baseline: 7.22% (702 edges)
+      afl-only np=16: 50.56% (+43.34pp, +600.3% relative)
+
+  Like-for-like Throughput Speedup vs Serial:
+    afl-only np= 16 |                  N/A                   | different unit: afl-executions-per-second
+    seed np=  0 |                  N/A                   | different unit: not-applicable
+
+
+================================================================================
+  OVERALL SUMMARY
+================================================================================
+
+  pcre2-pcre2_fuzzer: best = afl-only np=16 (49.0s, 119100 retained unique, 0 SymCC candidates, 47037750 AFL executions, edge_cov=50.56%)
+
+  Report files:
+    Text:  /home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/pcre2_afl_only_full_r3/benchmark_report.txt
+    CSV:   /home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/pcre2_afl_only_full_r3/benchmark_data.csv
+    JSON:  /home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/pcre2_afl_only_full_r3/benchmark_data.json
+
+================================================================================

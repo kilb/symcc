@@ -1,0 +1,12 @@
+schema=symcc-f428-static-checks-v1
+date=2026-08-17
+ruff_command=python3 -m ruff check util/qfbv_lemma_exchange.py util/qf_bv_backend.py util/query_store.py util/symcc_query_service.py util/cross_worker_context.py test/test_qfbv_lemma_exchange.py test/test_cross_worker_context.py benchmark/check_qfbv_lemma_exchange_oracles.py docs/generate_current_technology_index.py docs/codex/verify_delivery.py
+ruff_result=passed
+py_compile_command=python3 -m py_compile util/qfbv_lemma_exchange.py util/qf_bv_backend.py util/query_store.py util/symcc_query_service.py util/cross_worker_context.py test/test_qfbv_lemma_exchange.py test/test_cross_worker_context.py benchmark/check_qfbv_lemma_exchange_oracles.py docs/generate_current_technology_index.py docs/codex/verify_delivery.py
+py_compile_result=passed
+index_command=python3 docs/generate_current_technology_index.py --check
+index_result=passed
+diff_check_command=git diff --check -- F428 implementation,test,oracle,report,index,diagram,configuration paths
+diff_check_result=passed
+focused_regression_command=PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -W error -p no:cacheprovider test/test_qfbv_lemma_exchange.py test/test_cross_worker_context.py
+focused_regression_result=15 passed, 13 subtests passed in 3.08s

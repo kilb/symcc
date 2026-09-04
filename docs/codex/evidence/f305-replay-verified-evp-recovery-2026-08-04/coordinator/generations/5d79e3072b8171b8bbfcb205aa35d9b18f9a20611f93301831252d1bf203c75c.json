@@ -1,0 +1,40 @@
+{
+  "contexts": [
+    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  ],
+  "input_records": 1,
+  "limited_domain_count": 1,
+  "max_distinct_values": 4,
+  "min_observations": 1,
+  "online_admission": {
+    "min_solver_queries": 8,
+    "min_solver_time_us": 1000,
+    "min_validated_ratio_ppm": 125000,
+    "schema": "symcc-empirical-domain-admission-v2",
+    "suppressed": []
+  },
+  "policy": "empirical-sat-accept-unsat-full-formula-fallback-v1",
+  "profile_count": 1,
+  "profile_sha256": "5d79e3072b8171b8bbfcb205aa35d9b18f9a20611f93301831252d1bf203c75c",
+  "profiles": [
+    {
+      "bits": 8,
+      "context_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "distinct_values": 1,
+      "entropy_bits": 0.0,
+      "limited_domain": true,
+      "observations": 1,
+      "runs": 1,
+      "saturated": false,
+      "site": 11,
+      "values": [
+        {
+          "count": 1,
+          "value": 1
+        }
+      ]
+    }
+  ],
+  "runtime_domain_count": 1,
+  "schema": "symcc-empirical-value-profile-v3"
+}

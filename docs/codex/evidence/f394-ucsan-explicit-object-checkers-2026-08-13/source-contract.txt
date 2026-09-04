@@ -1,0 +1,27 @@
+compiler/UCSan.cpp:95:    check = M.getOrInsertFunction("_sym_ucsan_check", bytePtrType, bytePtrType,
+compiler/UCSan.cpp:98:        M.getOrInsertFunction("_sym_ucsan_push_frame", int64Type);
+compiler/UCSan.cpp:99:    popFrame = M.getOrInsertFunction("_sym_ucsan_pop_frame", voidType,
+compiler/UCSan.cpp:102:        "_sym_ucsan_register_explicit", intPtrType, bytePtrType, intPtrType,
+compiler/UCSan.cpp:105:        "_sym_ucsan_release_explicit", voidType, bytePtrType, intPtrType);
+compiler/UCSan.cpp:107:        "_sym_ucsan_validate_reallocate", voidType, bytePtrType, intPtrType);
+compiler/UCSan.cpp:109:        "_sym_ucsan_reallocate_explicit", intPtrType, bytePtrType, intPtrType,
+runtime/include/UCSanRuntime.h:20:void *_sym_ucsan_check(const void *pseudo_pointer, uintptr_t shadow,
+runtime/include/UCSanRuntime.h:22:uint64_t _sym_ucsan_push_frame(void);
+runtime/include/UCSanRuntime.h:23:void _sym_ucsan_pop_frame(uint64_t frame);
+runtime/include/UCSanRuntime.h:24:uintptr_t _sym_ucsan_register_explicit(void *base, size_t count,
+runtime/include/UCSanRuntime.h:27:void _sym_ucsan_release_explicit(void *pointer, uintptr_t shadow);
+runtime/include/UCSanRuntime.h:28:void _sym_ucsan_validate_reallocate(void *pointer, uintptr_t shadow);
+runtime/include/UCSanRuntime.h:29:uintptr_t _sym_ucsan_reallocate_explicit(void *old_pointer,
+runtime/src/UCSanRuntime.cpp:944:uint64_t _sym_ucsan_push_frame(void) {
+runtime/src/UCSanRuntime.cpp:954:void _sym_ucsan_pop_frame(uint64_t frame) {
+runtime/src/UCSanRuntime.cpp:965:uintptr_t _sym_ucsan_register_explicit(void *base, size_t count,
+runtime/src/UCSanRuntime.cpp:976:void _sym_ucsan_release_explicit(void *pointer, uintptr_t shadowValue) {
+runtime/src/UCSanRuntime.cpp:987:void _sym_ucsan_validate_reallocate(void *pointer, uintptr_t shadowValue) {
+runtime/src/UCSanRuntime.cpp:995:uintptr_t _sym_ucsan_reallocate_explicit(void *oldPointer,
+runtime/src/UCSanRuntime.cpp:1038:void *_sym_ucsan_check(const void *pseudoPointer, uintptr_t shadowValue,
+test/ucsan_explicit_cpp.cpp:1:// RUN: env SYMCC_UCSAN_CONFIG=%S/ucsan_explicit_cpp.yaml SYMCC_UCSAN_SYMBOLIZE=0 SYMCC_REGULAR_LIBCXX=1 %symxx -O0 %s -o %t
+test/ucsan_explicit_cpp.cpp:8:// RUN: env SYMCC_UCSAN_CONFIG=%S/ucsan_explicit_cpp.yaml SYMCC_REGULAR_LIBCXX=1 %symxx -O0 -S -emit-llvm %s -o - | FileCheck %s --check-prefix=IR
+test/ucsan_explicit_objects.c:1:// RUN: env SYMCC_UCSAN_CONFIG=%S/ucsan_explicit_objects.yaml SYMCC_UCSAN_SYMBOLIZE=0 %symcc -O0 %s -o %t
+test/ucsan_explicit_objects.c:30:// RUN: env SYMCC_UCSAN_CONFIG=%S/ucsan_explicit_objects.yaml %symcc -O0 -S -emit-llvm %s -o - | FileCheck %s --check-prefix=IR
+test/ucsan_explicit_unwind.cpp:1:// RUN: env SYMCC_UCSAN_CONFIG=%S/ucsan_explicit_unwind.yaml SYMCC_UCSAN_SYMBOLIZE=0 SYMCC_REGULAR_LIBCXX=1 %symxx -O0 %s -o %t
+test/ucsan_explicit_unwind.cpp:6:// RUN: env SYMCC_UCSAN_CONFIG=%S/ucsan_explicit_unwind.yaml SYMCC_REGULAR_LIBCXX=1 %symxx -O0 -S -emit-llvm %s -o - | FileCheck %s --check-prefix=IR

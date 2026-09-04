@@ -1,0 +1,2 @@
+$ PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q -W error test/test_distributed_state.py test/test_mpi_filesystem_qualification.py test/test_mpi_lifecycle.py test/test_hybrid_feedback.py test/test_afl_profile_orchestration.py test/test_adaptive_components.py
+380 passed, 105 subtests passed in 17.14s

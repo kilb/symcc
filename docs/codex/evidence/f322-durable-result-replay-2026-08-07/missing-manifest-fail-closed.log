@@ -1,0 +1,25 @@
+SymCC MPI Parallel Concolic Execution
+  Processes:     3
+  Mode:          single-master (2 workers)
+  Shared dir:    /tmp/symcc-f322-snapshot-missing-manifest.K5RVPj/out
+  Input dir:     /tmp/symcc-f322-snapshot-missing-manifest.K5RVPj/in
+  Target:        /bin/true
+  Timeout:       1s per execution
+  Work epoch:    6666666666666666666666666666666666666666666666666666666666666666 (configured recovery)
+  Wall timeout:  30s total
+
+[Master 0] Global work control failure: commit manifest scan failed: committing record lacks durable manifest: d1d619fd3366add3c1121c85313782ec548ab2581d2d246e2fcc0c4f8802c587
+[Master] Imported 0 initial inputs from /tmp/symcc-f322-snapshot-missing-manifest.K5RVPj/in
+[Master] Using 1 master(s), 2 workers in this group
+[Master] Durable work ownership: rendezvous + 64 fenced shards, lease=120s
+[Master 0] Control failure during worker shutdown: commit manifest scan failed: committing record lacks durable manifest: d1d619fd3366add3c1121c85313782ec548ab2581d2d246e2fcc0c4f8802c587
+[Master 0] Incomplete MPI lifecycle; aborting job.
+[Master 0] Worker shutdown: acked=2/2 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+--------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 0 in communicator MPI_COMM_WORLD
+with errorcode 70.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------

@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="950" viewBox="0 0 1600 950" role="img" aria-labelledby="title desc">
+  <title id="title">F424 selective concolic relation graph and probabilistic MDP</title>
+  <desc id="desc">Two coordinated feedback lanes: Prefix DAG Laplace and Bellman branch selection, plus weighted relation graph PCc and PCr solving with complete formula validation.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#334155"/>
+    </marker>
+    <style>
+      .title{font:700 30px Inter,Arial,sans-serif;fill:#fff;letter-spacing:0}
+      .sub{font:400 17px Inter,Arial,sans-serif;fill:#dbeafe;letter-spacing:0}
+      .lane{font:700 19px Inter,Arial,sans-serif;fill:#0f172a;letter-spacing:0}
+      .head{font:700 17px Inter,Arial,sans-serif;fill:#0f172a;letter-spacing:0}
+      .body{font:400 14px Inter,Arial,sans-serif;fill:#334155;letter-spacing:0}
+      .small{font:400 13px Inter,Arial,sans-serif;fill:#475569;letter-spacing:0}
+      .box{stroke:#94a3b8;stroke-width:1.5;rx:7}
+      .arrow{stroke:#334155;stroke-width:2.2;fill:none;marker-end:url(#arrow)}
+      .dash{stroke:#64748b;stroke-width:1.8;stroke-dasharray:7 6;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1600" height="950" fill="#f8fafc"/>
+  <rect x="0" y="0" width="1600" height="128" fill="#123047"/>
+  <text class="title" x="72" y="58">F424 · Selective Concolic Relation Graph + Probabilistic MDP</text>
+  <text class="sub" x="72" y="91">Coverage-directed branch choice and cost-directed constraint partition, closed by exact validation</text>
+
+  <rect x="52" y="158" width="1496" height="274" fill="#eef6f5" stroke="#9ac5bd" rx="8"/>
+  <text class="lane" x="78" y="194">Lane A · Persistent Prefix DAG / coverage state</text>
+  <rect class="box" x="82" y="226" width="250" height="150" fill="#fff"/>
+  <text class="head" x="106" y="258">Observed executions</text>
+  <text class="body" x="106" y="286">branch outcome visits</text>
+  <text class="body" x="106" y="309">coverage novelty</text>
+  <text class="body" x="106" y="332">solver time / timeout</text>
+  <text class="body" x="106" y="355">data + target reward</text>
+
+  <rect class="box" x="402" y="226" width="280" height="150" fill="#dff3ee"/>
+  <text class="head" x="426" y="258">Laplace transition model</text>
+  <text class="body" x="426" y="288">P(outcome) = (visits + 0.5 attempts + 1)</text>
+  <text class="body" x="426" y="312">/ (sibling mass + sibling count)</text>
+  <text class="body" x="426" y="340">Normalized per branch site</text>
+
+  <rect class="box" x="752" y="226" width="302" height="150" fill="#fff4d6"/>
+  <text class="head" x="776" y="258">Bounded value iteration</text>
+  <text class="body" x="776" y="286">novelty + coverage reward</text>
+  <text class="body" x="776" y="309">+ γ · expected child value</text>
+  <text class="body" x="776" y="332">− solver / timeout cost</text>
+  <text class="small" x="776" y="357">cycles: ≤32 rounds, residual ≤1e−6</text>
+
+  <rect class="box" x="1124" y="226" width="348" height="150" fill="#e7efff"/>
+  <text class="head" x="1148" y="258">Off-path branch dispatch</text>
+  <text class="body" x="1148" y="286">MDP value + exploration pressure</text>
+  <text class="body" x="1148" y="309">target distance + data progress</text>
+  <text class="body" x="1148" y="332">persistent S2F action seed</text>
+  <text class="small" x="1148" y="357">next concrete execution closes the loop</text>
+
+  <path class="arrow" d="M332 301 H392"/><path class="arrow" d="M682 301 H742"/>
+  <path class="arrow" d="M1054 301 H1114"/>
+  <path class="dash" d="M1450 376 C1510 392 1510 410 1430 410 H210 V386"/>
+
+  <rect x="52" y="462" width="1496" height="386" fill="#fff" stroke="#b7c2d0" rx="8"/>
+  <text class="lane" x="78" y="499">Lane B · Persistent QF_BV query helper / selective solving</text>
+  <rect class="box" x="82" y="530" width="222" height="174" fill="#eef2ff"/>
+  <text class="head" x="106" y="562">Full path condition</text>
+  <text class="body" x="106" y="592">prefix assertions</text>
+  <text class="body" x="106" y="615">+ negated target</text>
+  <text class="body" x="106" y="638">+ concrete witness</text>
+  <text class="small" x="106" y="675">authoritative formula retained</text>
+
+  <rect class="box" x="358" y="530" width="266" height="174" fill="#dff3ee"/>
+  <text class="head" x="382" y="562">Weighted relation graph</text>
+  <circle cx="409" cy="616" r="15" fill="#0f766e"/><circle cx="482" cy="590" r="15" fill="#0f766e"/>
+  <circle cx="550" cy="627" r="15" fill="#d97706"/><circle cx="476" cy="660" r="15" fill="#d97706"/>
+  <line x1="424" y1="610" x2="467" y2="596" stroke="#334155" stroke-width="4"/>
+  <line x1="496" y1="598" x2="536" y2="620" stroke="#334155" stroke-width="2"/>
+  <line x1="492" y1="650" x2="536" y2="634" stroke="#334155" stroke-width="3"/>
+  <text class="small" x="382" y="688">edge weight = atomic co-occurrence</text>
+
+  <rect class="box" x="680" y="520" width="246" height="194" fill="#fff4d6"/>
+  <text class="head" x="704" y="552">Fail-soft partition</text>
+  <text class="body" x="704" y="582">PC<tspan baseline-shift="sub" font-size="11">c</tspan>: low-cost atoms → Z3</text>
+  <text class="body" x="704" y="609">PC<tspan baseline-shift="sub" font-size="11">r</tspan>: costly atoms → completion</text>
+  <text class="body" x="704" y="636">shared boundary model</text>
+  <text class="body" x="704" y="663">random-only variables</text>
+  <text class="small" x="704" y="691">tight / oversized cuts → full Z3</text>
+
+  <rect class="box" x="982" y="520" width="226" height="194" fill="#e8f5e9"/>
+  <text class="head" x="1006" y="552">Two-stage candidate</text>
+  <text class="body" x="1006" y="582">1. solve PC<tspan baseline-shift="sub" font-size="11">c</tspan></text>
+  <text class="body" x="1006" y="609">2. bind shared model</text>
+  <text class="body" x="1006" y="636">3. witness / 00 / ff</text>
+  <text class="body" x="1006" y="663">4. deterministic samples</text>
+  <text class="small" x="1006" y="691">bounded total probe time</text>
+
+  <rect class="box" x="1264" y="520" width="238" height="194" fill="#dbeafe"/>
+  <text class="head" x="1288" y="552">Exact authority</text>
+  <text class="body" x="1288" y="582">complete formula SAT</text>
+  <text class="body" x="1288" y="609">Query IR evaluator</text>
+  <text class="body" x="1288" y="636">native concrete replay</text>
+  <text class="body" x="1288" y="671" fill="#166534">then publish candidate</text>
+  <text class="small" x="1288" y="696">no selective UNSAT pruning</text>
+
+  <path class="arrow" d="M304 617 H348"/><path class="arrow" d="M624 617 H670"/>
+  <path class="arrow" d="M926 617 H972"/><path class="arrow" d="M1208 617 H1254"/>
+  <path class="dash" d="M1384 714 V778 H804 V726"/>
+  <text class="small" x="949" y="800">miss / unknown / exception → authoritative full Z3 fallback</text>
+
+  <rect x="52" y="872" width="1496" height="46" fill="#123047" rx="6"/>
+  <text x="78" y="902" font-family="Inter,Arial,sans-serif" font-size="15" fill="#fff" letter-spacing="0">Claim boundary: bounded QF_BV mechanism; not KLEE/JFS/METIS/SVM or BVFP public-benchmark reproduction</text>
+</svg>

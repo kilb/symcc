@@ -1,0 +1,10 @@
+F438 static and generated-artifact checks
+
+python3 -m py_compile: passed
+python3 -m ruff check: passed
+technology index --check: passed
+SVG XML parse and PNG 2700x1650 dimensions: passed
+git diff --check: passed
+
+The checked Python set includes the controller, evaluator, QueryStore,
+production query service, MPI runner, oracle CLI, and F438 tests.

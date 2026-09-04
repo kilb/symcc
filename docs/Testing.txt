@@ -3,6 +3,284 @@
                                     Testing
 
 
+Python project tests
+--------------------
+
+Run the Python tests from the repository root with::
+
+  python3 -m pytest
+
+Install the Python test runner separately from runtime dependencies::
+
+  python3 -m pip install -r requirements.txt -r requirements-test.txt
+
+The root ``pytest.ini`` deliberately limits default discovery to ``test/``.
+This directory contains the SymCC-Parallel Python unit and integration tests.
+The repository also vendors the upstream QSYM project below
+``runtime/src/backends/qsym/qsym``; its Python tests require QSYM's separately
+built PIN runtime and are therefore not part of an unqualified root invocation.
+
+The discovery boundary does not ignore or disable QSYM tests. After satisfying
+the prerequisites in the vendored QSYM README, run that suite explicitly::
+
+  cd runtime/src/backends/qsym/qsym/tests
+  python build.py
+  python3 -m pytest -n auto
+
+The GitHub Actions Python job uses ``util/python_test_gate.py`` rather than a
+bare pytest command. The gate records required command/module/library
+capabilities, enforces a historical collection floor, and fails on any test or
+subtest skip, xfail, xpass, deselection, collection error, or ordinary test
+failure. Its JSON artifact preserves skip reasons and makes environment-driven
+coverage loss visible instead of accepting a green but reduced suite.
+
+The job also requires the canonical node-id inventory in
+``test/pytest-nodeids.json``. Unlike the numerical collection floor, this
+detects removal or replacement of an existing test even when the total count is
+unchanged. After an intentional test addition, removal, or rename, review the
+collection diff and regenerate the inventory with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONDONTWRITEBYTECODE=1 \
+    python3 util/python_test_inventory.py \
+    --output test/pytest-nodeids.json \
+    --root test \
+    --min-collected 1597
+
+The generator always uses pytest collect-only mode, rejects deselection and
+collection errors, sorts and deduplicates node IDs, and binds the resulting
+list to a SHA-256 digest. Do not regenerate the file inside CI: its versioned
+diff is the review boundary for intentional changes to test ownership. The CI
+job and both test tools disable automatic third-party pytest plugin loading;
+required plugins must be explicitly declared and enabled with ``-p``.
+
+Manifest admission reads at most the configured limit plus one byte from a
+single open descriptor before decoding or parsing. This binds the size check,
+UTF-8 text, JSON object, and digest validation to one bounded snapshot rather
+than a ``stat`` followed by a second path open. Duplicate JSON object members
+are rejected even when their values are identical. Both tools force
+``PYTEST_DISABLE_PLUGIN_AUTOLOAD=1``; an inherited empty or conflicting value
+cannot silently change collection.
+
+
+Live CGS tests
+--------------
+
+The Concrete Constraint Guided Scheduling slice has an independent exhaustive
+predicate oracle, production continuation tests, persistent-restart tests, and
+a synthetic mechanism benchmark::
+
+  pytest -q test/test_live_cgs.py
+  python3 benchmark/check_live_cgs_oracles.py
+  python3 benchmark/benchmark_live_cgs.py \
+    --distractor-instructions 500 --repeats 11
+
+The oracle is the correctness gate. The benchmark measures target-order and
+instruction-budget behavior only; it must not be cited as a public-target
+coverage, bug-finding, completeness, or solver-speedup result.
+
+
+TopSeed campaign-selector tests
+-------------------------------
+
+The TopSeed slice separates cross-run input selection from pending live-state
+search. Run its unit/integration tests, independent finite oracle, and bounded
+mechanism benchmark with::
+
+  PYTHONPATH=util pytest -q test/test_topseed_selector.py
+  python3 benchmark/check_topseed_oracles.py
+  python3 benchmark/benchmark_topseed_selector.py \
+    --candidates 10000 --groups 2500 --repeats 11
+
+The unit suite includes the actual MPI triage callback from sparse AFL coverage
+to a fenced learning observation. The independent oracle is the semantic gate;
+the benchmark reports selector and persistence costs plus a deliberately fixed
+synthetic ordering example. None of these commands substitutes for an equal-CPU
+public-target coverage or bug-yield campaign.
+
+
+Certified finite heap-lifetime union tests
+------------------------------------------
+
+F405 checks the compiler-produced points-to certificate, conditional heap
+lifetime semantics, pause/resume equality, certificate tampering, and bounded
+mechanism cost with::
+
+  python3 -m pytest -q \
+    test/test_distributed_state.py::LiveContinuationExecutorTests::test_heap_lifetime_survives_pause_and_clears_on_free
+  python3 benchmark/check_heap_lifetime_union_oracles.py
+  python3 benchmark/benchmark_heap_lifetime_union.py \
+    --domain 16 --repeats 11
+  python3 -m lit -sv build/test/live_continuation_lowering.ll
+
+Run the final lit command against both LLVM 18 ``build`` and LLVM 17
+``build-llvm17`` trees. The independent oracle evaluates every byte value for
+domains 1 through 16 and interprets the persisted expression DAG itself. The
+benchmark's fork-per-object count is an analytic state-cardinality reference;
+it is not a measured baseline wall time. These commands do not establish a
+complete POSE reproduction, public-target coverage gain, solver throughput,
+bug yield, or end-to-end speedup.
+
+
+Collective heap-union initialization tests
+-------------------------------------------
+
+F406 closes the post-symbolic-free survivor-load initialization proof and keeps
+partial or non-dominating covers rejected::
+
+  python3 /usr/lib/llvm-18/build/utils/lit/lit.py -sv build/test \
+    --filter live_collective_heap_union_initialization
+  python3 /usr/lib/llvm-17/build/utils/lit/lit.py -sv build-llvm17/test \
+    --filter live_collective_heap_union_initialization
+  python3 benchmark/check_collective_heap_union_initialization_oracles.py
+  python3 benchmark/benchmark_collective_heap_union_initialization.py \
+    --domain 32 --repeats 11 --iterations 10000
+  python3 -m pytest -q test/test_distributed_state.py -k 'heap or pointer'
+
+The LLVM fixture validates one successful inverse survivor selection, one
+incomplete cover, one branch-local non-dominating cover, and four artifact
+mutations. The independent oracle covers domains 2 through 32 and widths 1
+through 8. The benchmark measures a Python reference proof, not production C++
+lowering latency. Its 992-to-1 value is analytic state cardinality, not measured
+end-to-end speedup.
+
+F407 guard-correlated heap-union initialization
+------------------------------------------------
+
+F407 extends the F406 dominance-only proof with a bounded acyclic guard-tree
+certificate. Run the producer, consumer, source-negative, 64-path boundary,
+and independent finite-domain checks with:
+
+    ninja -C build SymCC
+    python3 /usr/lib/llvm-18/build/utils/lit/lit.py -sv build/test \
+      --filter 'live_(guarded|collective)_heap_union_initialization'
+
+    ninja -C build-llvm17 SymCC
+    python3 /usr/lib/llvm-17/build/utils/lit/lit.py -sv build-llvm17/test \
+      --filter 'live_(guarded|collective)_heap_union_initialization'
+
+    python3 benchmark/check_guarded_heap_union_initialization_oracles.py
+    python3 benchmark/benchmark_guarded_heap_union_initialization.py \
+      --depth 6 --repeats 11 --iterations 10000
+
+The LLVM fixture covers select, pointer PHI, a four-leaf nested tree, a generated
+64-leaf producer boundary, guard/store mismatch, a missing path store, and
+partial width. A repeated-condition case is conservatively rejected by F407 but
+is now accepted by F408 after every real MemoryPhi edge is proven initialized.
+The checker mutates capability,
+path, guard, heap identity, and store-witness fields. The oracle is independent
+of the C++ proof helper. Its timing is a Python reference formula and its
+64-to-1 value is analytic state cardinality, not end-to-end speedup. F407 does
+not claim a general LLVM MemorySSA/AA clobber transcript.
+
+F408 LLVM MemorySSA/AA heap initialization
+-------------------------------------------
+
+F408 uses real new-pass-manager AA and MemorySSA results, serializes a bounded
+defining graph, and replays its artifact-visible identities. Run the
+cross-version producer, consumer, NoAlias/NoModRef, source-negative, and 64-way
+boundary checks with:
+
+    ninja -C build SymCC
+    ninja -C build-llvm17 SymCC
+    python3 /usr/lib/llvm-18/build/utils/lit/lit.py -sv build/test \
+      --filter 'live_(memoryssa_aa_heap_initialization|(guarded|collective)_heap_union_initialization)'
+    python3 /usr/lib/llvm-17/build/utils/lit/lit.py -sv build-llvm17/test \
+      --filter 'live_(memoryssa_aa_heap_initialization|(guarded|collective)_heap_union_initialization)'
+    python3 benchmark/check_memoryssa_aa_heap_initialization_oracles.py
+    python3 benchmark/benchmark_memoryssa_aa_heap_initialization.py \
+      --paths 64 --repeats 11 --iterations 10000
+
+The LLVM fixture covers a three-way pointer/MemoryPhi switch with unrelated
+stores, one object with multiple reaching stores, a nested MemoryPhi, a direct
+internal call that is NoModRef for the load, missing and partial initialization,
+and a generated 64-way boundary. The consumer mutates graph edges, topology,
+store/base/skip identities, and NoModRef call ordinal/kind. The independent
+oracle executes its own graph validator over fan-in 2 through 64 and widths 1
+through 8. Timing is a Python reference cost and 64-to-1 is analytic state
+cardinality, not end-to-end speedup.
+
+F409 interprocedural heap effect summary
+----------------------------------------
+
+F409 instantiates bounded allocator-wrapper and argument-initializer effects at
+the exact caller callsite. Run the dual-LLVM producer/consumer checks, source
+negatives, finite-domain oracle, and reference-validator benchmark with:
+
+    ninja -C build SymCC
+    ninja -C build-llvm17 SymCC
+    python3 /usr/lib/llvm-18/build/utils/lit/lit.py -sv \
+      build/test/live_interprocedural_heap_effect_summary.ll
+    python3 /usr/lib/llvm-17/build/utils/lit/lit.py -sv \
+      build-llvm17/test/live_interprocedural_heap_effect_summary.ll
+    python3 benchmark/check_interprocedural_heap_effect_oracles.py
+    python3 benchmark/benchmark_interprocedural_heap_effect_summary.py \
+      --callsites 64 --repeats 11 --iterations 1000
+    pytest -q test/test_interprocedural_heap_effect_summary.py \
+      -p no:cacheprovider
+
+The LLVM fixture covers initialized malloc/calloc return, a two-slot returned
+heap pool with per-object certificates, argument initialization,
+formal-relative subobjects, same-object disjoint MemoryDefs, two and 64
+callsites, conditional/partial/overlapping negatives, and transcript tampering.
+The oracle independently enumerates object sizes 1 through 8 and callsites 2
+through 64. The benchmark is a Python reference validator and the 4096-to-64
+value is analytic relation-check cardinality, not LLVM construction latency,
+coverage, solver throughput, bug yield, or end-to-end speedup.
+
+F410 symbolic-length byte-lane cover
+-------------------------------------
+
+F410 lowers bounded symbolic-length ``memset/memcpy/memmove`` into conditional
+byte effects and proves that every lane of a finite dynamic-index load domain
+maps into the region. Run the production and independent checks with:
+
+    ninja -C build SymCC
+    ninja -C build-llvm17 SymCC
+    lit -v --filter='live_symbolic_length_byte_lane_cover' build/test
+    lit -v --filter='live_symbolic_length_byte_lane_cover' build-llvm17/test
+    python3 benchmark/check_symbolic_length_byte_lane_oracles.py
+    python3 benchmark/benchmark_symbolic_length_byte_lane_cover.py
+    pytest -q -p no:cacheprovider \
+      test/test_symbolic_length_byte_lane_cover.py
+
+The 22-command LLVM fixture covers external and intrinsic region effects,
+stack and single-slot guarded heap loads, disjoint scalar-store skipping,
+64-byte/64-alias and 456-lane generated boundaries, source negatives, and
+artifact tampering. The independent oracle evaluates 48,294 cases, 364,317
+lane checks, and 102,004 runtime-guard equivalences and rejects ten mutation
+classes. The reference timing and 65-length/64-write/zero-fork cardinality are
+mechanism evidence only, not LLVM construction latency, public-target coverage,
+solver throughput, bug yield, or end-to-end speedup.
+
+F411 loop MemoryPhi byte-lane induction
+----------------------------------------
+
+F411 proves a conservative canonical loop-carried MemoryPhi slice and keeps
+actual initialization in the runtime byte bitmap. Reproduce it with:
+
+    ninja -C build SymCC
+    ninja -C build-llvm17 SymCC
+    python3 /usr/lib/llvm-18/build/utils/lit/lit.py -sv \
+      build/test/live_loop_memoryphi_byte_lane_induction.ll
+    python3 /usr/lib/llvm-17/build/utils/lit/lit.py -sv \
+      build-llvm17/test/live_loop_memoryphi_byte_lane_induction.ll
+    python3 benchmark/check_loop_memoryphi_byte_lane_oracles.py
+    python3 benchmark/benchmark_loop_memoryphi_byte_lane.py
+    pytest -q -p no:cacheprovider \
+      test/test_loop_memoryphi_byte_lane_induction.py
+
+The 15-command LLVM fixture covers a dynamic ``i16`` load, exact PHI edge-copy
+replay, five source negatives, six artifact mutations, concrete-address alias
+domain enforcement, and a generated 64-byte/456-witness producer boundary.
+The oracle checks 8,019 cases, 91,773 lanes, 22,154 bitmap equivalences, and 12
+mutation classes. Reference timing is not LLVM, solver, coverage, bug-yield, or
+end-to-end performance evidence.
+
+
+Compiler tests
+--------------
+
+
 The short version:
 
 $ ninja check
@@ -67,3 +345,1117 @@ the result through "opt -S -instnamer", and add a comment at the top to tell lit
 how to compile it. The instruction naming is necessary because different LLVM
 versions treat numbered (i.e., unnamed) instructions differently and may
 complain if the numbering sequence doesn't match expectations.
+F427 independently checked QF_BV UNSAT receipt tests
+-----------------------------------------------------
+
+Install the pinned proof toolchain and run the focused protocol suite with::
+
+  benchmark/install_cvc5_cpc_ethos_1_3_4.sh
+  python3 -m pytest -q test/test_qfbv_proof_receipt.py -ra
+  python3 benchmark/check_qfbv_proof_receipt_oracles.py --repetitions 5
+
+The focused suite must execute, rather than skip, both real cvc5/Ethos tests.
+It covers one-shot and persistent backends, first publication, cross-worker
+reuse without a runnable primary solver, QueryStore rechecking, receipt and CAS
+tamper, policy drift, top-level proof-command injection, incomplete/trust/hole
+proofs, non-false conclusions, exact checker stdout/stderr, signature symlinks,
+one shared deadline, portfolio cancellation, thread publication, cross-process
+quota serialization, and the proof-disabled compatibility path.
+
+Run the QF_BV/store/context regression set with::
+
+  python3 -m pytest -q \
+    test/test_qf_bv_backend.py test/test_query_store.py \
+    test/test_cross_worker_context.py test/test_qfbv_proof_receipt.py -ra
+
+Regenerate the canonical pytest identity manifest whenever focused test
+functions are added or renamed::
+
+  PYTHONDONTWRITEBYTECODE=1 \
+  python3 util/python_test_inventory.py \
+    --output test/pytest-nodeids.json --root test --min-collected 1 -- \
+    -p no:terminal -p no:cacheprovider
+
+The capability-closed gate then requires exact node-ID equality and zero skip,
+xfail, xpass, deselection, or collection error. F427's sealed gate collected
+1,167 tests and reported 1,167 passed plus 260 passed subtests.
+
+The Python test file is also a lit test. Run it, then the complete dual-version
+suite, with::
+
+  lit -sv --path=/usr/lib/llvm-17/bin \
+    --filter 'test_qfbv_proof_receipt\.py' build-llvm17/test
+  lit -sv --path=/usr/lib/llvm-18/bin \
+    --filter 'test_qfbv_proof_receipt\.py' build/test
+  lit -sv --path=/usr/lib/llvm-17/bin build-llvm17/test
+  lit -sv --path=/usr/lib/llvm-18/bin build/test
+
+The sealed F427 results were 1/1 focused on both versions, 309 passed plus two
+expected unsupported out of 311 on LLVM 17, and 310 passed plus one expected
+unsupported out of 311 on LLVM 18. The independent oracle's timing includes
+fresh store/process setup, content hashing, backend checking, and QueryStore
+checking; do not report it as solver speedup. Raw evidence is under
+``codex/evidence/f427-qfbv-proof-receipts-2026-08-17``.
+
+F428 verified QF_BV learned lemma tests
+----------------------------------------
+
+Install the same pinned cvc5/Ethos/CPC bundle, then run::
+
+  python3 -m pytest -q test/test_qfbv_lemma_exchange.py -ra
+  python3 benchmark/check_qfbv_lemma_exchange_oracles.py --repetitions 5
+
+The focused suite covers exact solver-response parsing, bounded lemma syntax,
+real ``source AND NOT lemma`` CPC generation, descendant acceptance, sibling
+rejection, record and proof tamper, fresh-worker injection, QueryStore replay
+of active and newly published records, thread publication convergence, quota,
+lock timeout, symlink rejection, extractor timeout/process reaping, portfolio
+prerequisites, and service summary reporting.
+
+Run the complete related set with::
+
+  python3 -m pytest -q \
+    test/test_qf_bv_backend.py test/test_query_store.py \
+    test/test_cross_worker_context.py test/test_qfbv_proof_receipt.py \
+    test/test_qfbv_lemma_exchange.py -ra
+
+F428 sealed results are 7 passed plus 13 subtests focused and 70 passed plus 45
+subtests related. The capability-closed gate collected exactly 1,174 canonical
+node IDs and reported 1,174 passed plus 273 passed subtests, with zero skip,
+xfail, xpass, deselection, collection error, missing ID, or unexpected ID.
+
+The focused Python file is also a lit test. Both LLVM versions discover 312
+tests::
+
+  lit -sv --path=/usr/lib/llvm-17/bin \
+    --filter 'test_qfbv_lemma_exchange\.py' build-llvm17/test
+  lit -sv --path=/usr/lib/llvm-18/bin \
+    --filter 'test_qfbv_lemma_exchange\.py' build/test
+  lit -sv --path=/usr/lib/llvm-17/bin build-llvm17/test
+  lit -sv --path=/usr/lib/llvm-18/bin build/test
+
+The sealed results are 1/1 focused on each version, 310 passed plus two
+expected unsupported on LLVM 17, and 311 passed plus one expected unsupported
+on LLVM 18. The independent oracle exhaustively evaluates 65,536 source
+valuations and performs five fresh-worker injections per run. Its total time
+includes full-formula candidate extraction, proof generation/publication and
+two commit-time checks, so it is mechanism cost rather than solver speedup.
+Raw evidence is under
+``codex/evidence/f428-qfbv-verified-lemma-exchange-2026-08-17``.
+
+F429 cross-job QF_BV artifact lifecycle tests
+-----------------------------------------------
+
+Run the focused lifecycle suite and independent graph/live-store oracle with::
+
+  python3 -m pytest -q -W error test/test_qfbv_artifact_lifecycle.py
+  python3 benchmark/check_qfbv_artifact_lifecycle_oracles.py \
+    --graphs 64 --output /tmp/f429-qfbv-artifact-lifecycle.json
+
+Run the full context/proof/lemma/lifecycle integration set with::
+
+  python3 -m pytest -q -W error \
+    test/test_qfbv_artifact_lifecycle.py \
+    test/test_qfbv_lemma_exchange.py \
+    test/test_qfbv_proof_receipt.py \
+    test/test_cross_worker_context.py
+
+The focused suite covers transitive active/grace roots, expired leases,
+generation and owner fencing, bounded job identity metadata, object/byte/lock/
+selection budgets, dependency cycles and missing graph endpoints, reader/GC
+exclusion, background heartbeat, eight-worker initialization, legacy index
+synchronization, publish-before-index and index-before-unlink crash recovery,
+managed-store drift, proof result-mapping closure, GC-only service output, and
+the executable cvc5/Ethos oracle.
+
+F429 sealed results are 22 focused tests and 52 passed plus 20 passed subtests
+in the related set. The capability-closed gate collected 1,197 canonical node
+IDs and reported 1,197 passed plus 273 passed subtests, with zero skip, xfail,
+xpass, deselection, collection error, missing ID, or unexpected ID. The node-ID
+digest is ``14f8b6acc3cdec6ae57ed9ce81a3cd7bde090c5a1815e934a684bbd3269a9464``.
+
+The Python file is also a lit test; both LLVM versions discover 313 tests::
+
+  lit -sv --path=/usr/lib/llvm-17/bin \
+    --filter 'qfbv_artifact_lifecycle' build-llvm17/test
+  lit -sv --path=/usr/lib/llvm-18/bin \
+    --filter 'qfbv_artifact_lifecycle' build/test
+  lit -sv --path=/usr/lib/llvm-17/bin build-llvm17/test
+  lit -sv --path=/usr/lib/llvm-18/bin build/test
+
+The sealed results are 1/1 focused on each version, 311 passed plus two
+expected unsupported on LLVM 17, and 312 passed plus one expected unsupported
+on LLVM 18. The oracle's elapsed time includes proof/lemma construction,
+filesystem synchronization, mark, and deletion; it is mechanism cost rather
+than solver or coverage speedup. Raw evidence is under
+``codex/evidence/f429-qfbv-artifact-lifecycle-2026-08-17``.
+
+F430 native QF_BV solver-state fork tests
+-------------------------------------------
+
+Configure both build trees against the same Z3 release, build the helper, and
+run the focused and related suites with::
+
+  cmake -S . -B build -DSYMCC_QFBV_Z3_ROOT=/opt/z3-5.0.0
+  cmake -S . -B build-llvm17 -DSYMCC_QFBV_Z3_ROOT=/opt/z3-5.0.0
+  cmake --build build --target symcc_qfbv_z3_forkserver
+  cmake --build build-llvm17 --target symcc_qfbv_z3_forkserver
+  SYMCC_QFBV_FORKSERVER=$PWD/build/symcc-qfbv-z3-forkserver \
+    python3 -m pytest -q -W error test/test_qfbv_native_state_fork.py
+  SYMCC_QFBV_FORKSERVER=$PWD/build/symcc-qfbv-z3-forkserver \
+    python3 -m pytest -q -W error \
+      test/test_qfbv_native_state_fork.py test/test_qf_bv_backend.py \
+      test/test_qfbv_lemma_exchange.py test/test_qfbv_proof_receipt.py
+
+The focused suite covers strict native metadata parsing, configuration
+incompatibilities, generation/query sequencing, prefix extension, unique child
+PIDs and reaping, target-timeout recovery, the full supported QF_BV operator
+matrix, constant targets without model requests, missing metadata, and sequence
+regression. The sealed results are 8 passed plus 5 passed subtests focused and
+43 passed plus 25 passed subtests related.
+
+Run the native lit test and complete compiler suites with::
+
+  lit -v --filter 'test_qfbv_native_state_fork\\.py' build-llvm17/test
+  lit -v --filter 'test_qfbv_native_state_fork\\.py' build/test
+  lit -v --time-tests build-llvm17/test
+  lit -v --time-tests build/test
+
+Both focused lit runs pass 1/1. The complete LLVM 17 result is 312 passed plus
+two expected unsupported out of 314; LLVM 18 is 313 passed plus one expected
+unsupported out of 314. The capability-closed Python gate collected exactly
+1,205 canonical node IDs and reported 1,205 passed plus 278 passed subtests,
+with zero skip, xfail, xpass, deselection, collection error, missing ID, or
+unexpected ID. Its node-ID digest is
+``6ab2c6c27b58878608b232156464a7a7f36356c1602567351d779fbf15746cb1``.
+
+Run the independent same-version cold/native oracle with::
+
+  python3 benchmark/check_qfbv_native_state_fork_oracles.py \
+    --helper build/symcc-qfbv-z3-forkserver \
+    --z3 /opt/z3-5.0.0/bin/z3 --cases 128 --seed 430 \
+    --output /tmp/f430-qfbv-native-state-fork.json
+
+The oracle is a mechanism experiment. It does not establish end-to-end
+coverage, throughput, or bug-finding uplift. Raw evidence is under
+``codex/evidence/f430-qfbv-native-state-fork-2026-08-17``.
+
+F431 verified variable-substitution UNSAT-core tests
+-----------------------------------------------------
+
+Install the pinned F427 cvc5 1.3.4/Ethos/CPC bundle, then run the focused and
+related suites with plugin auto-loading disabled::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider \
+    -W error test/test_qfbv_substitution_core.py \
+    test/test_qfbv_artifact_lifecycle.py
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider \
+    -W error test/test_qfbv_substitution_core.py \
+    test/test_qfbv_artifact_lifecycle.py test/test_qf_bv_backend.py \
+    test/test_qfbv_proof_receipt.py test/test_qfbv_lemma_exchange.py \
+    test/test_query_store.py
+
+The focused set covers alpha-renaming, constant and child-order preservation,
+repeated reads, non-injective substitutions and clause collapse, cross-clause
+mapping conflict, Bloom false positives, total mappings, tamper, join and total
+deadlines, the 4096-root bound, real cvc5 producer/fresh consumers, worker and
+QueryStore proof-cache separation, persistent pre-solver hits, forged mapping
+rejection, concurrent CAS publication, lock/quota/symlink/GC behavior, bounded
+dual-pipe extraction, cancellation, and process-group reaping. The sealed
+results are 38/38 focused and 101 passed plus 45 passed subtests related.
+
+Run the independent exhaustive-mapping oracle and mechanism benchmarks with::
+
+  python3 test/qfbv_substitution_core_oracle.py --cases 512
+  python3 test/qfbv_substitution_core_benchmark.py --rounds 64 --padding 0
+  python3 test/qfbv_substitution_core_benchmark.py --rounds 64 --padding 128
+
+Both 512-case oracle runs report 294 positive, 218 negative, 97 positive cases
+with at least one non-injective mapping, and zero mismatch. The complete Python
+gate collected exactly 1221 canonical node IDs and reported 1221 passed plus
+278 passed subtests, with zero skip, xfail, xpass, deselection, collection
+error, missing ID, or unexpected ID. Its manifest digest is
+``3c35fd124728e66674013afa9976f44f06ce82035ccf38e6e79bcf1dcf72f294``.
+
+The Python test, oracle, and benchmark are lit tests. Complete suites discover
+317 tests::
+
+  lit -q -o /tmp/f431-llvm17.json build-llvm17/test
+  lit -q -o /tmp/f431-llvm18.json build/test
+
+The sealed LLVM 17 result is 315 passed plus two expected unsupported; LLVM 18
+is 316 passed plus one expected unsupported. The 64-round warm-cache mechanism
+ratios were 13.861x for two clauses and 5.973x for 130 clauses. Fresh-consumer
+proof replay was slower than the corresponding baseline median in both cases;
+the warm ratios are amortization evidence, not coverage or end-to-end speedup.
+Raw evidence is under
+``codex/evidence/f431-qfbv-substitution-core-2026-08-17``.
+
+F432 verified incremental QF_BV SAT tests
+------------------------------------------
+
+Install the pinned CaDiCaL 3.0.1 CLI/shared library, then run the focused and
+related suites with third-party pytest plugin loading disabled::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider \
+    -W error test/test_qfbv_incremental_sat.py \
+    test/test_qfbv_artifact_lifecycle.py
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider \
+    -W error test/test_qfbv_incremental_sat.py \
+    test/test_qfbv_artifact_lifecycle.py test/test_qf_bv_backend.py \
+    test/test_qfbv_proof_receipt.py test/test_qfbv_lemma_exchange.py \
+    test/test_qfbv_substitution_core.py test/test_query_store.py
+
+The focused result is 38 passed plus 13 passed subtests. It covers deterministic
+bit-blasting identities, arithmetic and division edge semantics, shifts and
+non-power-of-two rotations, malformed graphs, LRUP/LRAT replay, recursive and
+descendant imports, receipt/scope/variable-domain tamper, proof DAG lifecycle,
+descriptor-anchored CAS faults, QueryStore authorization, exit-code disagreement,
+native context reuse, signature checks, and portfolio contracts.
+
+The related F426--F432 regression set reports 116 passed plus 58 passed
+subtests. The complete LLVM 17 and LLVM 18 lit runs each discover 320 tests and
+finish with no failure or unresolved result.
+
+Run the real-solver cross-oracle and mechanism benchmark with::
+
+  python3 test/qfbv_incremental_sat_oracle.py \
+    --cadical /path/to/cadical --cvc5 /usr/bin/cvc5 \
+    --cases 512 --seed 62514 --output /tmp/f432-oracle.json
+  python3 test/qfbv_incremental_sat_benchmark.py \
+    --cadical /path/to/cadical --library /path/to/libcadical.so \
+    --rounds 64 --output /tmp/f432-benchmark.json
+
+Two sealed 512-case runs report zero mismatch, identical CaDiCaL/cvc5 models
+for the 38-operator matrix, and a 24-step/22-propagation real LRAT proof. Two
+64-round runs report cold/native total mechanism ratios of 1.755x and 1.765x.
+The complete Python gate contains 1,236 canonical node IDs and reports 1,236
+passed plus 291 passed subtests with no outcome or identity degradation.
+
+The lit import contract for the two external-tool experiments uses ``--help``;
+full LLVM suites do not silently classify them as unresolved. Raw evidence is
+under ``codex/evidence/f432-qfbv-incremental-sat-2026-08-17``. The benchmark is
+same-process mechanism evidence, not coverage, defect-yield, or multi-node
+scalability evidence.
+
+F433 realtime checked QF_BV proof-stream tests
+----------------------------------------------
+
+Build the pinned realtime shim with
+``benchmark/install_cadical_3_0_1.sh``. Run the hermetic protocol and related
+regressions with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider \
+    -W error test/test_qfbv_realtime_stream.py \
+    test/test_qfbv_incremental_sat.py test/test_query_store.py
+
+The current focused combination reports 49 passed plus 38 passed subtests.
+The six F433 tests cover concurrent idempotent event publication, migration of
+an F432 store, sequence/high-water lookup, bounded native backpressure, learned
+RUP publication, native ACK and digest tamper, delayed publication during an
+active solve, independent QueryStore replay, strict portfolio configuration,
+and deadline termination.
+
+Run the real CaDiCaL oracle and mechanism-cost benchmark with::
+
+  python3 test/qfbv_realtime_stream_oracle.py \
+    --library /path/to/libsymcc_qfbv_cadical_realtime.so \
+    --cases 512 --seed 62515 --output /tmp/f433-oracle.json
+  python3 test/qfbv_realtime_stream_benchmark.py \
+    --library /path/to/libsymcc_qfbv_cadical_realtime.so \
+    --rounds 64 --output /tmp/f433-benchmark.json
+
+Two 512-case oracle runs each report zero mismatch, 512 delivered native
+imports, 512 independently replayed ACKs, mutated-ACK rejection, pre-solve
+cancel result 0, and post-reset result 10. Two 64-round benchmark runs deliver
+64/64 imports. Their checked-import cold total costs are 1.499x and 1.488x the
+equivalent native cold path; idle stream medians are 2367 us and 2339 us. The
+complete capability gate reports 1242 passed plus 291 passed subtests with
+exact node-ID equality. LLVM 17 and LLVM 18 each discover 323 lit tests with no
+failure or unresolved result.
+
+The oracle proves mechanism equivalence and delivery evidence. The benchmark
+measures local cost. Neither establishes fuzzing coverage, defect yield,
+network behavior, or multi-node scalability. Raw data and identity manifests
+are under
+``codex/evidence/f433-realtime-proof-stream-2026-08-18``.
+
+F434 qualified multi-rank realtime proof evaluation tests
+----------------------------------------------------------
+
+Run the hermetic protocol, store and native lifetime tests with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider \
+    -W error test/test_qfbv_realtime_multirank.py \
+    test/test_qfbv_realtime_stream.py test/test_qfbv_proof_receipt.py
+
+This combination covers role/config rejection, deterministic per-round random
+3-SAT identities, exact record-to-event lookup, SQLite rollback-journal mode,
+nearest-rank percentiles, exact rank/ACK set aggregation, unqualified shared
+state, sealed artifact tamper, native solving lifetime, F433 ACK and proof
+regressions. The current focused result is 33 passed plus 7 passed subtests.
+
+Run repeated real-CaDiCaL MPI jobs with::
+
+  python3 benchmark/check_qfbv_realtime_multirank_oracles.py \
+    --library /path/to/libsymcc_qfbv_cadical_realtime.so \
+    --output-dir /tmp/f434-oracles \
+    --processes 5 --publishers 2 --rounds 2 --active-repetitions 2
+
+The sealed local-host oracle executes one preloaded and two active jobs. Across
+three jobs it records 24 expected imports, 24 native deliveries and 24
+independently replayed ACKs; both active jobs report active delivery rate 1.0.
+An 8-variable/8-clause negative job exits nonzero because solve ends before the
+active readiness collective. The local MPI result is not a multi-node scaling,
+coverage, defect-yield or speedup result. Raw evidence is under
+``codex/evidence/f434-multirank-proof-evaluation-2026-08-18``.
+
+F435 adaptive checked-proof admission tests
+---------------------------------------------
+
+Run the deterministic controller, realtime integration and multi-rank
+regressions with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider \
+    -W error test/test_qfbv_adaptive_exchange.py \
+    test/test_qfbv_realtime_stream.py test/test_qfbv_realtime_multirank.py
+
+The focused result is 31 passed. It covers 256 deterministic randomized
+decision replays, policy and resource bounds, exactly-once delivery/
+backpressure/expiry, decision-budget exhaustion, snapshot suffix closure,
+inactive-to-active retry, abort quiescence before controller reuse, production
+portfolio wiring, independent QueryStore proof/event replay, and resealed
+tamper rejection.
+
+The complete capability gate reports 1,267 passed plus 291 passed subtests
+with exact 1267/1267 node-ID equality and no skip, xfail, deselection or
+collection error. LLVM 17 and LLVM 18 each discover 325 tests with no failure
+or unresolved result; their expected unsupported counts are two and one.
+
+Run the real CaDiCaL synchronized-burst comparison with::
+
+  python3 benchmark/check_qfbv_adaptive_exchange_oracle.py \
+    --library /path/to/libsymcc_qfbv_cadical_realtime.so \
+    --output-dir /tmp/f435-adaptive
+
+With 8 distinct checked records and native queue capacity 2, each of six
+independent runs records static delivery 2/8 with 6 backpressure drops and
+adaptive delivery 8/8 with zero backpressure. This is a deliberately
+synchronized local mechanism stress test. The +6 deliveries, 25% to 100%
+delivery-rate change, and 4.0x count ratio are not solver speedup, coverage,
+defect-yield, network, or multi-node scaling results. Raw outputs and complete
+gate logs are under
+``codex/evidence/f435-adaptive-proof-admission-2026-08-18``.
+
+F436 native checked-clause activity tests
+------------------------------------------
+
+Run the receipt, realtime-session and multi-rank accounting regressions with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider \
+    -W error test/test_qfbv_clause_activity.py \
+    test/test_qfbv_realtime_stream.py test/test_qfbv_realtime_multirank.py
+
+The F436-focused selection reports 27 passed. It covers native unit,
+conflict and unactivated states; decision-level accounting; exact ACK,
+proof-record, formula, native-generation and witness binding; continuous
+activity ordinals; QueryStore reconstruction; partial-ABI rejection;
+non-boolean configuration rejection; quiescence checks; multi-rank
+conservation; and independently replayed activity receipts. The additional
+portfolio regression selection reports 14 passed and includes cancellation in
+the future-to-backend registration hand-off window.
+
+Run the real CaDiCaL oracle with::
+
+  python3 benchmark/check_qfbv_clause_activity_oracles.py \
+    --library /path/to/libsymcc_qfbv_cadical_realtime.so \
+    --cases 128 --seed 62518 --output /tmp/f436-activity.json
+
+Two independent 128-case runs each report 128 checked deliveries, 128 unit
+receipts, 128 independent replays and 128 re-sealed witness mutations rejected.
+A separate 32-case ASan/UBSan run has no sanitizer diagnostic. The native
+state matrix covers assumption-unit, root-unit, root-conflict and
+satisfied-unactivated behavior; the lifecycle test rejects enable, reset and
+observe mutations while solve is active.
+
+The complete capability gate reports 1,274 passed plus 291 passed subtests,
+with exact 1274/1274 node-ID equality and no skip, xfail, deselection,
+collection error or identity drift. LLVM 17 discovers 326 tests and reports
+324 passed plus two expected unsupported; LLVM 18 reports 325 passed plus one
+expected unsupported. Both have zero failures and unresolved results.
+
+Two local five-rank active jobs each deliver 4/4 checked imports but record
+only two unit activations and two unactivated imports. Thus the sealed local
+mechanism evidence separates 100% delivery from 50% semantic activation. It
+does not prove unique causal use, solver speedup, coverage, defect yield,
+network behavior or multi-node scaling. Raw outputs are under
+``codex/evidence/f436-native-clause-activity-2026-08-18``.
+
+F437 utility-aware proof-worker pairing tests
+-----------------------------------------------
+
+Run the controller, realtime integration, persistence and multi-rank contract
+tests with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider \
+    -W error test/test_qfbv_utility_pairing.py \
+    test/test_qfbv_realtime_stream.py \
+    test/test_qfbv_realtime_multirank.py test/test_query_store.py
+
+The focused gate reports 68 passed plus 25 passed subtests. It covers strict
+policy/candidate identities, exploration and refresh, historical checker/lag
+cost, exactly-once outcomes, invalid-outcome exception safety, bounded event
+and pair state, 256-event randomized replay, native ACK/activity settlement,
+QueryStore reconstruction, monotonic checkpoint and restart recovery, three-
+round multi-rank conservation, exact-formula paired comparison and tamper
+rejection.
+
+The complete capability-closed Python gate reports 1,290 passed plus 291
+passed subtests, exact 1290/1290 node-ID equality, and zero skip, xfail, xpass,
+deselection or collection error. The canonical node-ID SHA-256 is
+``6a9f273eae9ca720fa9eb321775495523d5cef9803f97f7d8220c095b68117ba``.
+
+Run the paired local mechanism oracle with::
+
+  python3 benchmark/check_qfbv_utility_pairing_oracles.py \
+    --library /path/to/libsymcc_qfbv_cadical_realtime.so \
+    --output-dir /tmp/f437-pairing --processes 5 --publishers 2 \
+    --rounds 3 --variables 200 --clauses 860 --repetitions 2
+
+The sealed seeds 62519 and 128056 use identical baseline/treatment formula,
+CNF and library identities. Across 24 opportunities, pairing suppresses four
+native imports, retains all 12 observed activations, and reduces unactivated
+deliveries from 12 to eight. Aggregate solve time changes by about -0.41% and
+the two seed directions disagree, so this is not speedup, coverage, defect-
+yield, causal-clause or multi-node evidence. Raw artifacts are under
+``codex/evidence/f437-utility-pairing-2026-08-18``.
+
+F438 generation-fenced malleable worker tests
+-----------------------------------------------
+
+Run the controller, persistence, production adapter and trace tests with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider \
+    -W error test/test_qfbv_malleable_workers.py
+
+The focused gate reports 17 passed. It covers strict policy and signals,
+deterministic integer allocation, grow/drain/migrate/shrink, busy-worker
+retention, exact lease and proof sets, stale assignment fences, abort,
+checkpoint replay, QueryStore monotonicity/fork rejection, production
+grow/claim/shrink, coordinator-lock exclusion, restart recovery, an online
+expired QueryStore lease whose solver call is still live, 80 randomized state
+machine rounds, complete operation replay, and physical-rank attestation
+tamper rejection.
+
+Run the physical MPI ownership oracle twice with distinct seeds::
+
+  mpiexec -n 5 python3 benchmark/run_qfbv_malleable_multirank.py \
+    --epochs 8 --jobs 3 --backlog-per-slot 2 --seed 62520 \
+    --output /tmp/f438-mpi-62520.json
+  mpiexec -n 5 python3 benchmark/run_qfbv_malleable_multirank.py \
+    --epochs 8 --jobs 3 --backlog-per-slot 2 --seed 128057 \
+    --output /tmp/f438-mpi-128057.json
+
+Each rank independently replays the whole logical trace. Worker ranks attest
+only operation digests owned by their exact ``slot-(rank-1)``; rank 0 rejects
+missing, duplicate or foreign ownership. Across both runs there are 38 lease
+attachments, 38 retirements, 38 durable proofs, 31 stale-fence rejections and
+145 worker-operation attestations. This is a mechanism and membership oracle,
+not dynamic MPI spawn, throughput, coverage, defect-yield or multi-node
+evidence.
+
+Run LLVM 17 and LLVM 18 complete lit gates serially. They share runtime
+resources, so launching both full gates concurrently is not a valid acceptance
+procedure; the isolated failures observed under a concurrent run passed at
+``-j1`` and both serial full gates are sealed in the F438 evidence directory.
+
+F439 LIDRUP and PalRUP proof-wire interoperability tests
+---------------------------------------------------------
+
+Run the canonical wire, backend and commit-time replay tests with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider \
+    -W error test/test_qfbv_proof_wire.py \
+    test/test_qfbv_incremental_sat.py test/test_query_store.py
+
+The focused proof-wire file reports 13 passed plus 12 passed subtests. The
+associated gate reports 56 passed plus 50 passed subtests. It covers recursive
+proof-DAG flattening and ID renaming, canonical ICNF/LIDRUP round trips,
+input/hint/core/trailing-data mutation, checker digest/version/status/stderr/
+output/deadline faults, executable replacement, immutable sidecar quotas and
+tamper detection, atomic publication failures, concurrent deduplication,
+backend authorization and QueryStore's independent commit-time replay.
+
+Install both fixed upstream tools and run the no-silent-skip oracle with::
+
+  bash benchmark/install_lidrup_check_0_0_7.sh
+  bash benchmark/install_palrup_check_sat2026.sh
+  python3 benchmark/check_qfbv_proof_wire_oracles.py \
+    --lidrup-check "$HOME/.local/opt/lidrup-check-0.0.7/bin/lidrup-check" \
+    --palrup-converter \
+      "$HOME/.local/opt/palrup-check-sat2026/bin/proof_fragment_to_txt" \
+    --output /tmp/f439-proof-wire-oracle.json
+
+The sealed fixture has one recursive import, two flattened learned clauses,
+a 64-byte ICNF file, a 110-byte LIDRUP proof, and a 16-byte PalRUP fragment
+containing three directives. The external LIDRUP strict check and reverse
+import both pass, and the official PalRUP converter agrees byte-for-byte with
+the independent local decoder.
+
+These checks establish wire compatibility and authorization behavior. They do
+not establish a global PalRUP multi-worker confirmation, solver speedup,
+coverage, defect yield, network scaling or multi-node performance. Raw command
+outputs and identities are under
+``codex/evidence/f439-proof-wire-2026-08-18``.
+
+F440 PalRUP global confirmation pipeline tests
+------------------------------------------------
+
+Run the focused fake-checker protocol and failure-injection matrix with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider \
+    -W error test/test_qfbv_palrup_pipeline.py
+
+The focused gate reports 6 passed plus 7 passed subtests. It covers the
+complete three-worker/four-cell sequence, default independent receipt recheck,
+source-proof immutability, strict nested receipt fields and byte conservation,
+missing and extra confirmation markers, missing UNSAT witness, noncanonical
+witness order, an invalid 15-byte fragment hash, an empty or symlinked formula,
+aggregate proof bounds, checker
+replacement, nonzero exit, unexpected stderr, timeout and output flood.
+
+Build the fixed official artifact and run the no-silent-skip mechanism oracle::
+
+  bash benchmark/install_palrup_check_sat2026.sh
+  python3 benchmark/check_qfbv_palrup_global_oracles.py \
+    --source-root /path/to/PalRUP-Check-at-pinned-commit \
+    --output /tmp/f440-palrup-global-oracle.json
+
+The oracle requires source commit
+``d9382fb4b0acf094034ee91e2ed0a22b1b479c1d`` and exact installed tool
+identities. The sealed ``r3unsat_200`` fixture has 12 fragments totalling
+8,452,282 bytes. It executes 12 local, 16 square-matrix redistribution and 12
+confirmation tasks, obtains all 12 markers and witness rank 3, records 40
+stage artifacts totalling 8,644 bytes, then reruns the entire pipeline while
+validating the receipt.
+
+This oracle verifies the official checker mechanism on one host and a shared
+filesystem. It does not test native SymCC PalRUP generation, cross-node fault
+recovery, solver speedup, coverage, defect yield or scaling. Complete Python,
+LLVM 17/18 and evidence-verifier gate results are sealed separately under
+``codex/evidence/f440-palrup-global-2026-08-18``.
+
+F441 generation-fenced MPI / ULFM recovery tests
+--------------------------------------------------
+
+Run the focused protocol, snapshot, tamper and fake-live-adapter tests with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider \
+    -W error test/test_mpi_ulfm_recovery.py
+
+The focused gate contains 11 tests. It covers policy and inventory bounds,
+checkpoint monotonicity, completion chains, stale leases, concurrent extra
+failure, exact survivor attestation, pending/committed snapshot replay,
+recovery-queue priority, receipt/post-state joins, failure-rank mapping,
+fake MPI Revoke/Shrink/Iallgather/Agree and deterministic oracle tampering.
+
+Build the qualified MPI and run all protocol/live gates with::
+
+  bash benchmark/install_openmpi_ulfm_5_0_10.sh
+  F441_OUTPUT_DIR=/tmp/f441 benchmark/run_f441_ulfm_tests.sh
+
+Expected artifacts are ``deterministic.json``, ``capability.json``,
+``live-failure.json``, ``live-failure.log``,
+``live-failure-launcher-exit.txt`` and ``SHA256SUMS.txt``. The capability gate
+requires four successful, identical Open MPI 5.0.10 receipts. The failure gate
+physically exits rank 3, requires world size 4 -> 3, one or more bounded repair
+attempts and identical survivor receipt hashes. Launcher status 86 is expected;
+it is not accepted unless the independently verified live JSON exists.
+
+The live qualification is local TCP-transport evidence only. It does not test
+the main concolic executor, a durable store, spare-process growth, multiple
+nodes, throughput, coverage or defect yield. Raw artifacts and complete gate
+logs are under ``codex/evidence/f441-ulfm-recovery-2026-08-19``.
+
+F443-F447 production, elastic and cross-node ULFM gates
+--------------------------------------------------------
+
+Run the production hot-path worker/master failure matrix and the same-host
+multi-master/warm-spare matrix with::
+
+  F443_OUTPUT_DIR=/tmp/f443 benchmark/run_f443_ulfm_hot_path_tests.sh
+  F446_OUTPUT_DIR=/tmp/f446 benchmark/run_f446_elastic_ulfm_tests.sh
+
+F443 connects generation-fenced recovery to the real standalone scheduler and
+shared WAL. F446 adds global multi-master recovery, generation role manifests,
+pre-launched warm spares, two consecutive failures and cross-generation WAL
+statistics. Both launchers intentionally observe status 86 from the rank killed
+by ``os._exit``; the gate succeeds only when the independent oracle validates
+receipts, layouts, work manifests, corpus hashes and final statistics.
+
+The controlled two-host F447 gate additionally requires a qualified portable
+Open MPI 5.0.10 runtime on every host and a shared output path::
+
+  F447_HOST_SPEC='node-a:9,node-b:1' \
+  F447_MINIMUM_HOSTS=2 F447_OUTPUT_DIR=/shared/f447 \
+    benchmark/run_f447_multinode_ulfm_test.sh
+
+Its default ten-rank topology contains eight active endpoints and two warm
+spares. Generation zero kills stable rank 2 and generation one kills stable
+rank 3. The oracle requires exactly two receipts, promotions of ranks 8 and 9,
+generation 2, eight final active endpoints, at least two surviving hosts, and
+agreement among WAL, public corpus and the final log. The runner also writes a
+complete ``SHA256SUMS.txt``.
+
+For focused regressions, run::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider \
+    test/test_mpi_ulfm_recovery.py test/test_distributed_state.py \
+    test/test_research_protocol.py
+
+These tests cover shrink-first common failure discovery, per-master/per-
+generation store roots, exact-mode atomic snapshots and corpus publication,
+single-record WAL replay transactions, and live provenance drift rejection.
+NAT shims, SSH tunnels, SMB exports or the test flock broker must be recorded as
+test topology. The gate is multi-host recovery evidence, not native production
+network/storage qualification or a performance result.
+
+The F447 8/32/128-worker scale protocol was stopped early after 35 outer cells.
+Only nine complete blocks whose three inner MPI rows all succeeded are admitted
+to conditional performance analysis; two ``exit-70`` rows at 128 workers are
+reported separately as 2/11 balanced-trial failures. The evidence is under
+``.symcc-research-evidence/f447-scale-confirmatory-20260825-r1``. Check
+``selection.json`` before using the aggregate: this is engineering evidence,
+not the planned 20-repeat confirmatory result. ``run_benchmark.py`` now exits 2
+when explicit target selection matches no target and exits 3 after preserving a
+report containing any failed measured row.
+
+F448 proof-prefix certified partitioning tests
+------------------------------------------------
+
+Run the focused certificate, CAS, lifecycle, CLI and service regressions with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider \
+    test/test_qfbv_proof_prefix_partition.py \
+    test/test_qfbv_artifact_lifecycle.py
+
+The current focused gate has 51 passing items. It covers strict policies,
+arbitrary non-power-of-two cube counts, exhaustive/disjoint enumeration,
+checked proof activity and static fallback, proof/ACK/certificate mutations,
+exact bit-blast-plan binding, 32-way CAS convergence, symlink and canonical
+JSON rejection, non-string digest and non-finite JSON rejection, protocol-temp
+inventory handling, managed-store fencing, dependent-first proof lifecycle,
+atomic dependency-closed inventory reconstruction, query-service GC routing,
+the QueryStore CLI and an executable mechanism oracle.
+
+The post-review capability-closed full gate passes 1396 tests plus 310
+subtests in 234.83 seconds. All 16 required command/module/library
+capabilities are present; skips, xfails, xpasses, deselections, collection
+errors, missing node IDs and unexpected node IDs are all zero. The sealed JSON
+is ``codex/evidence/f448-proof-prefix-certified-partition-2026-08-25/full-python-gate.json``.
+
+Run the 10-round formal mechanism evidence command with::
+
+  python3 benchmark/check_qfbv_proof_prefix_partition_oracles.py \
+    --rounds 10 --cube-counts 1,3,5,8,32,128,512 \
+    --output /tmp/f448-proof-prefix-partition.json
+
+The oracle enumerates all assignments over the selected split prefix for every
+cube count, compares checked-activity ordering with static ordering, replays
+every certificate, exercises 32 concurrent publishers, checks malleable slot
+conservation, and releases the lifecycle root before dependent-first GC. It
+reports certificate build/replay cost only. It does not run a full SAT or
+hybrid-fuzzing campaign and must not be cited as coverage, defect-yield or
+end-to-end speedup evidence. The sealed 2026-08-25 artifacts are under
+``codex/evidence/f448-proof-prefix-certified-partition-2026-08-25``.
+
+F449 proof-aware certified partition execution tests
+------------------------------------------------------
+
+Run the focused scheduler, proof aggregation, lifecycle and service tests with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider \
+    -W error test/test_qfbv_partition_execution.py \
+    test/test_qfbv_incremental_sat.py test/test_qfbv_proof_wire.py \
+    test/test_qfbv_proof_prefix_partition.py \
+    test/test_qfbv_artifact_lifecycle.py test/test_query_store.py
+
+The F449 file covers exact assumption/certificate identity, signed negative
+cubes, SAT polarity and Query IR replay, K-leaf UNSAT resolution, concurrent
+unique claims, token fencing, heartbeat, crash reclaim, attempt exhaustion,
+cooperative SAT peer cancellation, concurrent aggregate-CAS convergence,
+strict canonical ledger replay, metadata/result/proof tamper, lifecycle GC,
+one-shot external CNF SAT/UNSAT service paths, persistent native context reuse,
+configuration failure and the executable oracle.
+
+Run the formal mechanism oracle with::
+
+  python3 benchmark/check_qfbv_partition_execution_oracles.py \
+    --rounds 5 --cube-counts 2,4,8,16,32,64 \
+    --output /tmp/f449-partition-execution.json
+
+For UNSAT it checks every leaf receipt, the exact ``K-1`` reverse split-tree
+resolution chain and final base-query receipt. The SAT case requires one valid
+winner and cancellation of the other 63 tasks in a 64-cube execution. Formal
+evidence lives under
+``codex/evidence/f449-proof-aware-partition-execution-2026-08-25``.
+
+The oracle wall times include synthetic proof construction, SQLite durability
+and Python replay. They are mechanism-cost measurements, not application
+speedup, coverage or defect-yield results. Use the capability-closed Python gate
+and canonical node-ID inventory for the final repository-wide acceptance count.
+
+F450 closure-bound proof replay cache tests
+---------------------------------------------
+
+Run the focused cache, tamper, concurrency, service and executable-oracle
+tests with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider \
+    -W error test/test_qfbv_proof_replay_cache.py
+
+The nine focused tests cover strict dual-budget configuration, independent
+cache policy identity, same-plan-only admission, equivalent-plan isolation,
+root-record tamper, entry/byte LRU eviction, disabled and oversized modes,
+mutable-plan bypass, complete import-closure attestation, same-length CAS
+tamper, failure eviction, query-service fail-closed configuration and a
+16-thread race.
+
+Run the formal 10-round mechanism oracle with::
+
+  python3 benchmark/check_qfbv_proof_replay_cache_oracles.py \
+    --rounds 10 --depths 8,32,64 \
+    --output /tmp/f450-proof-replay-cache.json
+
+For each proof-DAG depth the oracle alternates an uncached recursive replay and
+a hot cached replay, requires identical record/clause/propagation results, and
+checks exact misses, hits, closure object counts and zero attestation failures.
+The sealed medians are 35.655/9.140 ms at depth 8, 148.042/10.410 ms at depth
+32 and 279.206/10.997 ms at depth 64, or 3.900985x, 14.221134x and 25.389288x
+mechanism replay ratios. Hot replay still hashes all transitive dependencies.
+
+These ratios do not measure SAT search, fuzzing coverage or defect yield.
+Formal artifacts are under
+``codex/evidence/f450-closure-bound-proof-replay-cache-2026-08-25`` and the
+design/claim boundary is in
+``codex/research-progress/Closure_Bound_Proof_Replay_Cache_F450_2026-08-25.md``.
+
+F451 generation-fenced distributed cube tests
+-----------------------------------------------
+
+Run the 15 focused protocol, persistence, recovery, and strict-wire tests with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider \
+    -W error test/test_qfbv_distributed_partition_execution.py
+
+Run the coupled F448/F449, incremental SAT, ULFM and QueryStore regression with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider \
+    -W error test/test_qfbv_distributed_partition_execution.py \
+    test/test_qfbv_partition_execution.py test/test_mpi_ulfm_recovery.py \
+    test/test_qfbv_proof_prefix_partition.py \
+    test/test_qfbv_incremental_sat.py test/test_query_store.py
+
+The focused suite covers exact inner/outer lease identity, parallel endpoint
+claims, generation recovery without retry-budget inflation, recovered UNSAT
+aggregation, SAT global cancellation, both cross-ledger crash windows,
+committed-queue resume, stale multi-master fork rejection, persistence/reopen,
+invalid attestation, binding tamper, stateless CLI E2E, logical topology, and
+strict remote request parsing.
+
+Run the deterministic logical-topology oracle with::
+
+  python3 benchmark/check_qfbv_distributed_partition_oracles.py \
+    --rounds 5 --cube-count 8 --output /tmp/f451-logical.json
+
+Run the two-physical-host application-transport oracle with::
+
+  python3 benchmark/check_qfbv_distributed_crosshost_oracles.py \
+    --rounds 3 --remote root@down.kew.ac \
+    --output /tmp/f451-crosshost.json
+
+The sealed results are 15 focused passes; 127 coupled passes plus 38 subtests;
+and an identity-exact full gate of 1443 passes plus 310 subtests. The logical
+oracle recovers 40/40 in-flight cubes across 10 recovery cases with no loss.
+The physical adapter oracle completes 3/3 expected remote exits, generation
+changes, full requeues, survivor SAT results, and peer cancellation.
+
+The SSH oracle proves only the transport-independent application protocol over
+two physical hosts. It is not a replacement ULFM benchmark and does not measure
+solver speedup, coverage, or defect yield. Evidence is sealed under
+``codex/evidence/f451-generation-fenced-distributed-cubes-2026-08-26``.
+
+F452 native checker clause compression tests
+----------------------------------------------
+
+Run the 23 focused format, ABI, corruption, property, concurrency, and
+configuration tests with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q \
+    -p no:cacheprovider -W error test/test_qfbv_clause_compression.py
+
+Run the 37-test compression/realtime coupled regression with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q \
+    -p no:cacheprovider -W error \
+    test/test_qfbv_clause_compression.py test/test_qfbv_realtime_stream.py
+
+Run the mechanism oracle against a pinned, shared CaDiCaL 3.0.1 tree with::
+
+  python3 benchmark/check_qfbv_clause_compression_oracles.py \
+    --cases 20000 --clauses 512 --repeats 9 \
+    --cadical-source /path/to/cadical-3.0.1 \
+    --output /tmp/f452-clause-compression.json
+
+The oracle covers nine clause lengths, mixed dense/sparse variable IDs,
+canonical corruption rejection, zero partial writes, and a two-clause real
+CaDiCaL callback case. The sealed full gate passes 1467 tests plus 310
+subtests with all 16 capabilities present and no skips or identity drift.
+
+Payload bytes exclude container and allocator overhead. ABI timings include
+Python/ctypes. These measurements are checker storage/codec mechanism evidence,
+not process RSS, SAT speedup, fuzzing coverage, or defect-yield evidence. Formal
+artifacts are under
+``codex/evidence/f452-native-clause-compression-2026-08-26``.
+
+F453 online activity/cost-guided cubing tests
+----------------------------------------------
+
+Run the focused policy, persistence, concurrency, corruption and production
+integration tests with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q \
+    -p no:cacheprovider -W error \
+    test/test_qfbv_online_cubing.py test/test_qfbv_partition_execution.py
+
+Run the coupled activity/proof/partition/QueryStore regression with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q \
+    -p no:cacheprovider -W error \
+    test/test_qfbv_online_cubing.py test/test_qfbv_partition_execution.py \
+    test/test_qfbv_proof_prefix_partition.py test/test_qfbv_realtime_stream.py \
+    test/test_qfbv_clause_activity.py test/test_qfbv_utility_pairing.py \
+    test/test_query_store.py test/test_qf_bv_backend.py
+
+Run the equal-budget mechanism oracle with::
+
+  python3 benchmark/check_qfbv_online_cubing_oracles.py \
+    --rounds 5 --cube-candidates 2,4,8,16 \
+    --output /tmp/f453-online-cubing.json
+
+The 15-trial oracle requires exactly five static, activity and cost outcomes,
+checked activity replay, a single formula-family identity, persisted outcomes
+and the same configured CPU-ms ceiling. Guided prerun is deducted; per-cube
+timeout is normalized by selected cube count and retry count. On the sealed
+synthetic contradictory fixture the median totals are 348.016 ms static,
+1813.961 ms activity and 1742.517 ms cost. This deliberately records a case
+where guidance overhead loses; it is mechanism evidence, not a solver speedup,
+coverage or defect-yield claim. Formal artifacts are under
+``codex/evidence/f453-online-activity-cost-cubing-2026-08-26``.
+
+The sealed focused gate passes 37 tests; the coupled gate passes 136 tests plus
+25 subtests. The complete capability gate passes 1482 tests plus 310 subtests,
+with 16/16 capabilities, 1482/1482 node IDs and no skip, xfail, xpass,
+deselection or collection error.
+
+F454 solver-native PalRUP production tests
+-------------------------------------------
+
+Run the focused producer, crash, tamper, backpressure and installed-tool tests
+with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q \
+    -p no:cacheprovider -W error \
+    test/test_qfbv_palrup_native_producer.py
+
+Run the F439/F440/F454 wire and official-checker coupled tests with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q \
+    -p no:cacheprovider -W error \
+    test/test_qfbv_proof_wire.py test/test_qfbv_palrup_pipeline.py \
+    test/test_qfbv_palrup_native_producer.py
+
+Run the installed 1/2/4-rank three-round mechanism oracle with::
+
+  python3 benchmark/check_qfbv_native_palrup_oracles.py \
+    --rounds 3 --solver-counts 1 2 4 \
+    --output /tmp/f454-native-palrup.json
+
+The focused result is 13 tests plus 7 subtests; the coupled result is 34 tests
+plus 26 subtests. The sealed oracle requires official checking before publish,
+official recheck after publish, exact rank namespaces, fan-out conservation,
+active 2/4-rank imports, explicit shutdown-residue telemetry, and a SAT negative
+that leaves no proof root. The capacity-one unit test separately exercises queue
+drops.
+
+The deterministic pigeonhole(9,8) formula is a production-mechanism fixture.
+Its 1/2/4-rank median end-to-end times are 3.218/6.974/9.760 seconds; growing
+proof and checker costs dominate. These data do not establish solver speedup,
+fuzzing coverage, defect yield, or multi-node scalability. Evidence is under
+``codex/evidence/f454-native-palrup-production-2026-08-26``.
+
+F455 structured agentic concolic loop tests
+---------------------------------------------
+
+Run the focused schema, budget, persistence, shadow, fallback, candidate-funnel
+and backend-identity tests with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q \
+    -p no:cacheprovider -W error \
+    test/test_structured_agentic_concolic.py \
+    test/test_structured_agentic_oracle.py \
+    test/test_agentic_concolic_hooks.py
+
+Run the authoritative AFL triage callback regression with::
+
+  PYTHONPATH=util PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q \
+    -p no:cacheprovider -W error test/test_afl_profile_orchestration.py \
+    -k 'agentic_coverage_delta'
+
+Run the task-paired online/shadow/fallback mechanism oracle with::
+
+  python3 benchmark/check_structured_agentic_oracles.py \
+    --workdir /tmp/f455-oracle --output /tmp/f455-oracle.json
+
+The oracle requires the same base policy and exact `(episode, iteration,
+task_sha256)` multiset in all three arms. Each arm evaluates four inputs under
+the production-default reactive gate: one productive input is suppressed and
+three solver-barrier inputs trigger. Online and shadow each make three
+schema-valid fixed-backend requests; fallback makes zero. Online admits three
+candidate actions, while shadow records the same three proposals but admits
+zero. Input/output accounting must remain nonzero even though the deterministic
+backend declares zero tokens. The oracle validates protocol mechanics,
+reactive gating and experimental separation only; it is not evidence of an LLM
+coverage gain.
+
+The production outcome path is checked separately because only `_batch_triage`
+knows the globally authoritative AFL novelty delta. Two candidates reporting
+the same edge must produce callback deltas `(1, 0)`, not two local successes.
+Candidate bytes still traverse `VerifiedProposalManager`, target/branch replay,
+the optional parser, Query IR gates where applicable, and global AFL retention.
+No model output is accepted as SAT/UNSAT, target reachability, parser validity,
+or coverage evidence. The focused result is 28 tests plus 6 subtests; the
+structured/MPI triage coupled result is 88 tests plus 43 subtests. Formal
+artifacts are under
+``codex/evidence/f455-structured-agentic-concolic-2026-08-26``.
+
+
+F456 POSE-C initial symbolic heap tests
+---------------------------------------
+
+Run the domain, property and oracle tests with::
+
+  PYTHONPATH=util PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q \
+    -p no:cacheprovider -W error \
+    test/test_pose_symbolic_heap.py \
+    test/test_pose_symbolic_heap_oracle.py
+
+Run the independent finite-domain/path-optimality oracle and the bounded
+mechanism benchmark with::
+
+  python3 benchmark/check_pose_symbolic_heap_oracles.py \
+    --output /tmp/f456-pose-oracle.json
+  python3 benchmark/benchmark_pose_symbolic_heap.py \
+    --repeats 11 --output /tmp/f456-pose-benchmark.json
+
+The focused suite covers all 256 handle assignments for four references,
+strict snapshot/model rejection, 64-bit reference fields, real Z3 acceptance
+and content-addressed continuation recovery. The oracle separately checks
+27/27 three-reference read and store assignments and the POSE motivating-case
+CFG counts: swap 2, sum 1 and bounded list ``max=10`` 12. The lazy trace values
+21, 23 and 78 are literature references, not local measurements.
+
+The benchmark reports single-process Python build/load/snapshot cost and an
+analytic alias/null partition count. It is not an end-to-end SymCC throughput,
+coverage, defect-yield or lazy-initialization wall-time comparison. Formal
+artifacts are under ``codex/evidence/f456-pose-initial-symbolic-heap-2026-08-26``.
+
+F461 control-plane scaling and runtime-boundary tests
+-----------------------------------------------------
+
+Run the coupled scale-model, persistent-frontier, distributed-coverage,
+hybrid-master and QueryStore tests with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q \
+    -p no:cacheprovider \
+    test/test_parallel_scale_model.py \
+    test/test_persistent_live_state_frontier.py \
+    test/test_distributed_state.py \
+    test/test_afl_profile_orchestration.py \
+    test/test_query_store.py
+
+The 2026-08-28 five-module result is 328 tests plus 116 subtests. Adding the
+QF_BV backend suite gives 342 tests plus the same 116 subtests. It covers paired
+seed-block evidence gates, unequal-exposure and confounded-allocation rejection,
+packed dense coverage claims, journal compaction and bounded recovery locks,
+non-blocking ordered result admission, multi-master queue compaction, and
+budgeted QueryStore startup reconciliation with a poisoned publication record.
+
+Run the native concurrency capability boundary with::
+
+  lit -sv build/test/runtime_multithread_guard.c \
+    build/test/concurrency_guidance.c
+
+The two-test result requires a regular path-solving binary to fail closed when
+a second target thread enters instrumented code, and requires native schedule
+replay to use a separately compiled ``SYMCC_DPOR_SCHEDULE_ONLY=1`` artifact.
+This is a capability test, not evidence that the QSYM/simple path solver is
+thread-safe or that schedule exploration improves coverage.
+
+The complete repository gate passes 1611 Python tests plus 607 subtests. With
+lit concurrency bounded to 16 workers, LLVM 18 passes 346 tests with one
+unsupported test, and LLVM 17 passes 345 tests with two unsupported tests; each
+toolchain discovers 347 tests and has no failure. Do not run both default
+auto-parallel lit suites concurrently on this host: each selected 192 workers
+and the resulting scheduling starvation caused a QF_BV cancellation fixture to
+reach its timeout before its competing future was scheduled. The independently
+discovered timeout-context process/pipe lifecycle issue is covered by the
+14-test ``test/test_qf_bv_backend.py`` suite.
+
+F464 semantic, transport, and scale closure tests
+--------------------------------------------------
+
+Run the GEP index-width, 64-bit structure-offset, allocation-size, and scalable-vector regression on
+each supported LLVM build with::
+
+  ninja -C build
+  lit -sv build/test/gep_index_semantics.ll
+  ninja -C build-llvm17
+  lit -sv build-llvm17/test/gep_index_semantics.ll
+
+The repository-provenance test hashes the whole Git worktree.  For a stable
+LLVM 17 full gate, isolate it from tests that create or remove untracked
+artifacts::
+
+  lit -sv -j 32 --filter-out 'test_research_protocol.py' build-llvm17/test
+  lit -sv build-llvm17/test/test_research_protocol.py
+
+Run the affected Python control-plane suites with::
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q \
+    -p no:cacheprovider test/test_mpi_lifecycle.py \
+    test/test_afl_profile_orchestration.py \
+    -k 'afl_coverage or hybrid_worker or hybrid_result or \
+        master_admits_worker_result'
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q \
+    -p no:cacheprovider test/test_parallel_scale_model.py \
+    test/test_current_evaluation_analysis.py
+
+The coverage-only result is 9 tests; the combined RESULT/worker-coverage result
+is 17 tests plus 26 subtests; the scale/current-evaluation result is 32 tests.
+Each LLVM version passes the focused GEP test, including a structure-member
+offset beyond 4 GiB. These suites cover durable/fair coverage
+retry, missing queue objects, full pending-capacity use, exact repeated-round
+fit error, auxiliary compute-slot accounting, bootstrap fit caching, and
+resource budgets that cannot host one worker, transactional worker bitmap/content
+dedup rollback, candidate-plus-proposal aggregate coverage limits, and startup
+configuration failures that must remain non-zero after a clean worker shutdown.
+The complete repository gate is 1668 passed plus 616 subtests. LLVM 18 reports
+348 passed plus one unsupported in 306.90 seconds. The isolated LLVM 17
+combination reports 347 passed plus two unsupported: 346 non-provenance tests
+passed in the 32-worker suite and the provenance test passed alone in 122.33
+seconds. Running the provenance test concurrently can produce a
+``git_status_sha256`` drift from another test's temporary worktree artifacts;
+the isolation is part of the test contract, not an ignored product failure.
+The source-delivery manifest covers 713 files and one gitlink. This is mechanism
+evidence, not public-target coverage or speedup data.

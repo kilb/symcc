@@ -1,0 +1,105 @@
+{
+  "contexts": [
+    "24f41b4c173183ded0d6d9905a274fcbabb9cbbb3656c88876b5a79f773b9cf5"
+  ],
+  "input_records": 3,
+  "limited_domain_count": 1,
+  "max_distinct_values": 2,
+  "min_observations": 1,
+  "policy": "empirical-sat-accept-unsat-full-formula-fallback-v1",
+  "profile_count": 2,
+  "profile_sha256": "a6e22ef814c1c1d41693c6487fbd54a5ca66a425d9652f5d8671b88c01da4afb",
+  "profiles": [
+    {
+      "bits": 32,
+      "context_sha256": "24f41b4c173183ded0d6d9905a274fcbabb9cbbb3656c88876b5a79f773b9cf5",
+      "distinct_values": 14,
+      "entropy_bits": null,
+      "limited_domain": false,
+      "observations": 27,
+      "runs": 3,
+      "saturated": true,
+      "site": 984935023607356203,
+      "values": [
+        {
+          "count": 2,
+          "value": 1
+        },
+        {
+          "count": 2,
+          "value": 2
+        },
+        {
+          "count": 2,
+          "value": 3
+        },
+        {
+          "count": 2,
+          "value": 4
+        },
+        {
+          "count": 2,
+          "value": 5
+        },
+        {
+          "count": 2,
+          "value": 6
+        },
+        {
+          "count": 3,
+          "value": 7
+        },
+        {
+          "count": 3,
+          "value": 8
+        },
+        {
+          "count": 1,
+          "value": 9
+        },
+        {
+          "count": 1,
+          "value": 10
+        },
+        {
+          "count": 1,
+          "value": 11
+        },
+        {
+          "count": 1,
+          "value": 12
+        },
+        {
+          "count": 1,
+          "value": 13
+        },
+        {
+          "count": 1,
+          "value": 14
+        }
+      ]
+    },
+    {
+      "bits": 32,
+      "context_sha256": "24f41b4c173183ded0d6d9905a274fcbabb9cbbb3656c88876b5a79f773b9cf5",
+      "distinct_values": 2,
+      "entropy_bits": 0.918295834,
+      "limited_domain": true,
+      "observations": 24,
+      "runs": 3,
+      "saturated": false,
+      "site": 2961891267538854883,
+      "values": [
+        {
+          "count": 16,
+          "value": 1
+        },
+        {
+          "count": 8,
+          "value": 7
+        }
+      ]
+    }
+  ],
+  "schema": "symcc-empirical-value-profile-v1"
+}

@@ -1,0 +1,9 @@
+The sealed claim is limited to the admitted finite two-level stack-memory
+Decision-DAG transformer. Memory bytes and initializedness are compared for
+all 176 concrete configurations. Load values are compared only where every
+loaded byte is initialized. Partial or uninitialized loads preserve their
+definedness condition and are not interpreted using concrete backing bytes.
+
+No claim is made for general LoopSCC, heap or multi-object summaries, scalar
+live-outs, external effects, solver time, coverage, defect yield, or campaign
+speedup.

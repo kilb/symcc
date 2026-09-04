@@ -1,0 +1,12 @@
+F433 static verification (2026-08-18)
+
+python3 -m py_compile: passed
+python3 -m ruff check: passed
+bash -n benchmark/install_cadical_3_0_1.sh: passed
+g++ -std=c++17 -fPIC -shared -fvisibility=hidden -Wall -Wextra -Werror: passed
+CaDiCaL headers/library: pinned 3.0.1 commit c60730422e758ef1cebe7aeddf2dda31c996bf04
+git diff --check: passed
+
+The compiled shim was used for both 512-case oracle runs and both 64-round
+mechanism benchmarks. Its SHA-256 is
+5afef95ef6744d9a5aed36a4cd4375b9268dcbe256439634f9999f6412a8cb06.

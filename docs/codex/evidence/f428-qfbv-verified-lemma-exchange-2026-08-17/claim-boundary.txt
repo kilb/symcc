@@ -1,0 +1,6 @@
+supported=For the tested canonical Query IR QF_BV domain and pinned cvc5 1.3.4 CPC/Ethos policy, a learned literal is injected only after exact source-to-target ancestor reconstruction and local proof checking of source_context AND NOT literal as UNSAT.
+supported=The sealed mechanism tests and live oracle reject the enumerated sibling-context, invalid-literal, record-tamper, proof-tamper, response-shape, quota, deadline, cancellation, and commit-telemetry counterexamples.
+supported=SAT remains authorized by exact original Query IR model replay, and UNSAT remains authorized by the F427 complete-result receipt; an F428 lemma cannot independently authorize either final result.
+not_supported=No claim is made for arbitrary clauses, arbitrary SMT theories, solver-internal preprocessing/search state, unqualified shared-root ancestors, or cross-solver and cross-version clause compatibility.
+not_supported=CAS publication can leave unreachable objects if a process exits before SQLite indexing; cross-job reference tracking, grace periods, and bounded mark-sweep collection are not implemented by F428.
+not_supported=The timing samples are mechanism costs on one synthetic query, not solver speedup, coverage improvement, time-to-bug, LAVA-M yield, or public multi-node R-level evidence.

@@ -1,0 +1,24 @@
+ParaSuit official ICSE 2026 page:
+https://conf.researchr.org/details/icse-2026/icse-2026-research-track/222/Enhancing-Symbolic-Execution-with-Self-Configuring-Parameters
+
+ParaSuit official artifact:
+https://github.com/skkusal/ParaSuit
+
+Audited artifact HEAD on 2026-08-13 UTC:
+e991924b827db80b117e1f5389fe07820bad13f0
+
+Audited algorithm:
+Paper Algorithm 2 and artifact parasuit/value_sample.py. The paper explores
+when silhouette <= threshold; the implementation exploits when silhouette >=
+threshold. F397 follows the official implementation at equality. F397 uses a
+deterministic dependency-free bounded MeanShift adaptation, normalized value
+axis, scheduler reward and worker-cost correction; it does not claim sklearn
+decision or random-sequence equivalence.
+
+Upstream results are not local results:
+The paper evaluates KLEE 2.1 on 12 GNU C programs for 24 hours with five
+repetitions. Its reported 25.8% branch-coverage advantage over Symtuner, 11
+unique bugs (four exclusive), and value-stage ablation gains belong only to
+that study. F397 performs no public-target campaign and does not reuse those
+numbers as SymCC results.
+

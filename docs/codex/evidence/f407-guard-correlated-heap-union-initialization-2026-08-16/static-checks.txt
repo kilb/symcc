@@ -1,0 +1,28 @@
+ruff check: PASS
+py_compile: PASS
+LLVM 18 SymCC build: PASS
+LLVM 17 SymCC build: PASS
+generated technology index check: PASS
+git diff --check: PASS
+F407 trailing whitespace scan: PASS
+Markdown local-link check: PASS
+SVG ElementTree parse: PASS
+PNG dimensions/mode 2880x1620 RGB: PASS
+diagram visual inspection: PASS
+producer complete guard-tree and same-path interval proof: PASS
+select and pointer-PHI guard correlation: PASS
+consumer CFG/guard/owner/store independent replay: PASS
+capability dependency and use-point closure: PASS
+runtime live/size/byte-init authority preserved: PASS
+nested guard delayed-exclusion regression: PASS
+conflicting repeated-condition failure closure: PASS
+mandatory load/store allocation identity: PASS
+64-path producer boundary: PASS
+independent guarded initialization oracle: PASS (48 trees; 1008 assignments)
+negative semantic oracles: PASS (3 x 1008)
+certificate mutation rejection: PASS (10/10)
+full Python exact-identity gate: PASS (1041 + 250 subtests)
+full LLVM 17 gate: PASS (264 passed + 2 existing unsupported)
+LLVM 17 focused F406/F407 fixtures: PASS (2/2)
+LLVM 18 focused F406/F407 fixtures: PASS (2/2)
+public coverage/solver/bug-yield/end-to-end speedup claim: intentionally absent

@@ -1,0 +1,54 @@
+F452 MULTI-ROUND REVIEW RECORD
+Captured: 2026-08-26 UTC
+
+R1 - Upstream contract and trust boundary
+Pinned ImpCheck incremental commit b5f37b21385ee802ce015103b23aff62f92b1734
+and reviewed src/trusted/clause.c. Preserved signed-to-unsigned ordering,
+sorting, delta coding, canonical 7-bit variable integers, total-size prefix,
+and the seven-byte inline threshold. Compression remains an internal
+representation after proof authorization, not a new proof rule.
+
+R2 - Integer, encoding, and storage safety
+Rejected zero, INT_MIN, duplicate literals, tautologies, noncanonical varints,
+truncation, size mismatch, uint32 accumulation overflow, and resource excess.
+Used explicit array/owned heap storage rather than pointer representation.
+Fixed the empty C ABI decode path so it never passes a null output iterator to
+the generic copy algorithm. Insufficient output capacity performs no write.
+
+R3 - Production hot path and ownership
+Replaced import-queue and activity-tracker integer vectors with move-only
+CompressedClause objects. CaDiCaL callbacks decode one literal at a time.
+Semantic queue capacity remains based on literal count; encoded-byte accounting
+is independent. A decode failure requests termination, rejects the import, and
+cannot produce an ACK.
+
+R4 - Configuration, ABI, and backward compatibility
+Added a versioned protocol and complete C ABI checks. Found that the new
+require_clause_compression boolean was mistakenly included in numeric option
+validation; separated strict boolean validation and added a regression. Old
+shims remain allowed by default, while explicit require fails closed.
+
+R5 - Telemetry and persistence
+Found native compression counters were visible only in the live context and
+would be discarded from stored results. Added monotonic session deltas and
+QueryStore validation for complete protocol-bound telemetry, inline/heap
+conservation, queued bytes, decoded literals, and zero compression failures.
+
+R6 - Tests, sanitizers, performance counterexamples, and claims
+Added exact bytes, extremes, corruption, capacity, property, concurrency,
+configuration, ABI, oracle-tamper, and store-tamper tests. A test insertion
+initially moved two cleanup lines into the next unittest; restored the original
+lifetime and reran coupled/full gates. ASan/UBSan completed 100000 random native
+round-trips. The report retains the 11.4% one-literal payload expansion and
+does not relabel payload reduction as RSS, solver, coverage, or defect-yield
+improvement.
+
+FINAL GATES
+- Focused: 23 passed.
+- Coupled compression/realtime regression: 37 passed.
+- Canonical inventory: 1467 node IDs; exactly 24 additions, zero removals.
+- Full capability gate: 1467 passed, 310 subtests passed; zero skip, xfail,
+  xpass, deselect, collection error, missing nodeid, or unexpected nodeid.
+- External capabilities: 16/16 present.
+- Static and sanitizer checks: recorded in static-checks.txt.
+

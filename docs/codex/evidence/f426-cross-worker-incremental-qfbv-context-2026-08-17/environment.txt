@@ -1,0 +1,15 @@
+captured_utc=2026-08-17T08:10:07Z
+host=cuda-ke
+kernel=Linux 7.0.0-28-generic x86_64
+cpu=AMD Ryzen Threadripper PRO 9995WX 96-Cores
+logical_cpus=192
+memory_total=250GiB
+python=3.12.3
+cvc5=1.1.2
+z3=4.8.12
+bitwuzla=0.9.1
+llvm17=17.0.6
+llvm18=18.1.3
+sqlite=Python stdlib sqlite3 module; sqlite3 CLI absent
+filesystem=local workspace filesystem; public cross-host qualification not claimed
+

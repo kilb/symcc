@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">F377 declarative pure external model pipeline</title>
+  <desc id="desc">A fail-closed pipeline from LLVM function attributes through compiler and runtime validation to QF_BV expressions, checkpoint persistence, solver exploration, and native replay.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0 0 L12 6 L0 12 Z" fill="#237f82"/>
+    </marker>
+    <marker id="reject-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0 0 L12 6 L0 12 Z" fill="#c2413a"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#16283b" flood-opacity="0.13"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="1000" fill="#f7f9fb"/>
+  <rect x="0" y="0" width="1600" height="124" fill="#18324a"/>
+  <text x="78" y="60" fill="#ffffff" font-family="Inter,Arial,sans-serif" font-size="31" font-weight="700">F377 Declarative Pure External Models</text>
+  <text x="78" y="96" fill="#cfe6e7" font-family="Inter,Arial,sans-serif" font-size="18">Capability-closed admission, independently validated semantics, and CAS-resumable QF_BV execution</text>
+
+  <text x="78" y="172" fill="#18324a" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700">ADMISSION AND LOWERING</text>
+  <line x1="78" y1="184" x2="1522" y2="184" stroke="#d7e0e8" stroke-width="2"/>
+
+  <g filter="url(#shadow)">
+    <rect x="78" y="218" width="330" height="260" rx="8" fill="#ffffff" stroke="#b8c8d5" stroke-width="2"/>
+    <rect x="78" y="218" width="330" height="54" rx="8" fill="#eaf2f7"/>
+    <path d="M78 264 H408 V272 H78 Z" fill="#eaf2f7"/>
+    <text x="104" y="253" fill="#18324a" font-family="Inter,Arial,sans-serif" font-size="20" font-weight="700">LLVM declaration contract</text>
+    <text x="104" y="308" fill="#263c4f" font-family="ui-monospace,monospace" font-size="15">symcc-continuation-model</text>
+    <text x="104" y="335" fill="#263c4f" font-family="ui-monospace,monospace" font-size="15">= pure-v1:binary:add:0:1</text>
+    <g font-family="Inter,Arial,sans-serif" font-size="14" font-weight="700" text-anchor="middle">
+      <rect x="104" y="367" width="84" height="34" rx="5" fill="#dceff0"/><text x="146" y="389" fill="#145d61">memory(none)</text>
+      <rect x="198" y="367" width="79" height="34" rx="5" fill="#e9edf6"/><text x="238" y="389" fill="#314f78">nounwind</text>
+      <rect x="287" y="367" width="92" height="34" rx="5" fill="#fff0d7"/><text x="333" y="389" fill="#8a5214">willreturn</text>
+      <rect x="104" y="412" width="95" height="34" rx="5" fill="#fff0d7"/><text x="151" y="434" fill="#8a5214">speculatable</text>
+      <rect x="209" y="412" width="71" height="34" rx="5" fill="#dceff0"/><text x="245" y="434" fill="#145d61">nofree</text>
+      <rect x="290" y="412" width="89" height="34" rx="5" fill="#e9edf6"/><text x="335" y="434" fill="#314f78">nosync</text>
+    </g>
+  </g>
+
+  <path d="M408 348 H474" stroke="#237f82" stroke-width="4" fill="none" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="490" y="218" width="310" height="260" rx="8" fill="#ffffff" stroke="#7bb3b4" stroke-width="2"/>
+    <rect x="490" y="218" width="310" height="54" rx="8" fill="#dceff0"/>
+    <path d="M490 264 H800 V272 H490 Z" fill="#dceff0"/>
+    <text x="516" y="253" fill="#145d61" font-family="Inter,Arial,sans-serif" font-size="20" font-weight="700">Compiler admission</text>
+    <g fill="#263c4f" font-family="Inter,Arial,sans-serif" font-size="16">
+      <text x="520" y="307">1. Direct external declaration</text>
+      <text x="520" y="340">2. Fixed 1..64 bit integer ABI</text>
+      <text x="520" y="373">3. Canonical total-operation DSL</text>
+      <text x="520" y="406">4. Defined operands, no bundles</text>
+      <text x="520" y="439">5. Unique stable call-site ID</text>
+    </g>
+  </g>
+
+  <path d="M800 348 H866" stroke="#237f82" stroke-width="4" fill="none" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="882" y="218" width="298" height="260" rx="8" fill="#ffffff" stroke="#b8c8d5" stroke-width="2"/>
+    <rect x="882" y="218" width="298" height="54" rx="8" fill="#eaf2f7"/>
+    <path d="M882 264 H1180 V272 H882 Z" fill="#eaf2f7"/>
+    <text x="908" y="253" fill="#18324a" font-family="Inter,Arial,sans-serif" font-size="20" font-weight="700">Auditable artifact</text>
+    <text x="908" y="306" fill="#263c4f" font-family="ui-monospace,monospace" font-size="17" font-weight="700">op: external_pure</text>
+    <g fill="#40576a" font-family="Inter,Arial,sans-serif" font-size="16">
+      <text x="908" y="344">function + canonical model</text>
+      <text x="908" y="377">arguments + exact widths</text>
+      <text x="908" y="410">destination + result width</text>
+      <text x="908" y="443">stable site + optional normal edge</text>
+    </g>
+  </g>
+
+  <path d="M1180 348 H1246" stroke="#237f82" stroke-width="4" fill="none" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="1262" y="218" width="260" height="260" rx="8" fill="#ffffff" stroke="#e0ad63" stroke-width="2"/>
+    <rect x="1262" y="218" width="260" height="54" rx="8" fill="#fff0d7"/>
+    <path d="M1262 264 H1522 V272 H1262 Z" fill="#fff0d7"/>
+    <text x="1288" y="253" fill="#7b4a15" font-family="Inter,Arial,sans-serif" font-size="20" font-weight="700">Runtime verifier</text>
+    <g fill="#263c4f" font-family="Inter,Arial,sans-serif" font-size="16">
+      <text x="1288" y="307">Independent DSL parser</text>
+      <text x="1288" y="340">Capability closure</text>
+      <text x="1288" y="373">Schema and ABI checks</text>
+      <text x="1288" y="406">Site uniqueness</text>
+      <text x="1288" y="439">Terminal invoke edge</text>
+    </g>
+  </g>
+
+  <text x="78" y="548" fill="#18324a" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="700">EXECUTION, PERSISTENCE, AND EVIDENCE</text>
+  <line x1="78" y1="560" x2="1522" y2="560" stroke="#d7e0e8" stroke-width="2"/>
+
+  <g filter="url(#shadow)">
+    <rect x="168" y="600" width="300" height="150" rx="8" fill="#ffffff" stroke="#7bb3b4" stroke-width="2"/>
+    <text x="198" y="640" fill="#145d61" font-family="Inter,Arial,sans-serif" font-size="20" font-weight="700">QF_BV expression DAG</text>
+    <text x="198" y="680" fill="#263c4f" font-family="Inter,Arial,sans-serif" font-size="16">No host function invocation</text>
+    <text x="198" y="711" fill="#263c4f" font-family="Inter,Arial,sans-serif" font-size="16">Modulo-width, typed operators</text>
+  </g>
+
+  <path d="M468 675 H548" stroke="#237f82" stroke-width="4" fill="none" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="564" y="600" width="300" height="150" rx="8" fill="#ffffff" stroke="#8fa6c2" stroke-width="2"/>
+    <text x="594" y="640" fill="#314f78" font-family="Inter,Arial,sans-serif" font-size="20" font-weight="700">Content-addressed state</text>
+    <text x="594" y="680" fill="#263c4f" font-family="Inter,Arial,sans-serif" font-size="16">Expression + symbolic store</text>
+    <text x="594" y="711" fill="#263c4f" font-family="Inter,Arial,sans-serif" font-size="16">Fresh-process checkpoint restore</text>
+  </g>
+
+  <path d="M864 675 H944" stroke="#237f82" stroke-width="4" fill="none" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="960" y="600" width="300" height="150" rx="8" fill="#ffffff" stroke="#7bb3b4" stroke-width="2"/>
+    <text x="990" y="640" fill="#145d61" font-family="Inter,Arial,sans-serif" font-size="20" font-weight="700">Symbolic exploration</text>
+    <text x="990" y="680" fill="#263c4f" font-family="Inter,Arial,sans-serif" font-size="16">Feasibility fork and solver query</text>
+    <text x="990" y="711" fill="#263c4f" font-family="Inter,Arial,sans-serif" font-size="16">Normal edge for nounwind invoke</text>
+  </g>
+
+  <path d="M1260 675 H1340" stroke="#237f82" stroke-width="4" fill="none" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="1356" y="600" width="166" height="150" rx="8" fill="#ffffff" stroke="#e0ad63" stroke-width="2"/>
+    <text x="1380" y="640" fill="#7b4a15" font-family="Inter,Arial,sans-serif" font-size="19" font-weight="700">Native replay</text>
+    <text x="1380" y="680" fill="#263c4f" font-family="Inter,Arial,sans-serif" font-size="15">Final behavioral</text>
+    <text x="1380" y="707" fill="#263c4f" font-family="Inter,Arial,sans-serif" font-size="15">evidence boundary</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="78" y="810" width="1444" height="116" rx="8" fill="#fff5f3" stroke="#d87770" stroke-width="2"/>
+    <rect x="78" y="810" width="252" height="116" rx="8" fill="#c2413a"/>
+    <path d="M322 810 H330 V926 H322 Z" fill="#c2413a"/>
+    <text x="108" y="858" fill="#ffffff" font-family="Inter,Arial,sans-serif" font-size="21" font-weight="700">FAIL-CLOSED LANE</text>
+    <text x="108" y="886" fill="#ffe4e1" font-family="Inter,Arial,sans-serif" font-size="14">No inferred external</text>
+    <text x="108" y="906" fill="#ffe4e1" font-family="Inter,Arial,sans-serif" font-size="14">semantics</text>
+    <g fill="#7a2925" font-family="Inter,Arial,sans-serif" font-size="17" font-weight="700">
+      <text x="370" y="854">Missing attribute</text>
+      <text x="650" y="854">Impure / may unwind</text>
+      <text x="930" y="854">Malformed DSL or ABI</text>
+      <text x="1210" y="854">Poison / duplicate site</text>
+    </g>
+    <g fill="#493b3a" font-family="Inter,Arial,sans-serif" font-size="15">
+      <text x="370" y="888">unknown call stays unsupported</text>
+      <text x="650" y="888">no memory or EH guessing</text>
+      <text x="930" y="888">compiler rejects lowering</text>
+      <text x="1210" y="888">runtime rejects artifact</text>
+    </g>
+  </g>
+
+  <path d="M645 478 V786" stroke="#c2413a" stroke-width="3" stroke-dasharray="8 8" fill="none" marker-end="url(#reject-arrow)"/>
+  <path d="M1392 478 V786" stroke="#c2413a" stroke-width="3" stroke-dasharray="8 8" fill="none" marker-end="url(#reject-arrow)"/>
+  <text x="78" y="970" fill="#637586" font-family="Inter,Arial,sans-serif" font-size="14">Trust boundary: LLVM attributes bound effects; the model formula remains an explicit trusted contract and must be confirmed by original-program replay.</text>
+</svg>

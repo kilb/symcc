@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <rect width="1600" height="1000" fill="#f7f9fc"/>
+  <style>
+    text { font-family: "WenQuanYi Zen Hei", Arial, sans-serif; fill: #172033; letter-spacing: 0; }
+    .title { font-size: 38px; font-weight: 700; }
+    .subtitle { font-size: 20px; fill: #526079; }
+    .panel { fill: #ffffff; stroke: #cad3e1; stroke-width: 2; }
+    .head { font-size: 25px; font-weight: 700; }
+    .body { font-size: 18px; }
+    .small { font-size: 16px; fill: #526079; }
+    .store { fill: #e9f5ef; stroke: #2f7d5a; stroke-width: 2; }
+    .edge { fill: #eef3ff; stroke: #4668b0; stroke-width: 2; }
+    .merge { fill: #fff3db; stroke: #b27619; stroke-width: 2; }
+    .reject { fill: #fff0f0; stroke: #b94646; stroke-width: 2; }
+    .ok { fill: #e9f7f0; stroke: #278459; stroke-width: 2; }
+    .arrow { stroke: #53627a; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    .proof { stroke: #2f7d5a; stroke-width: 4; fill: none; marker-end: url(#greenArrow); }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#53627a"/></marker>
+    <marker id="greenArrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#2f7d5a"/></marker>
+  </defs>
+
+  <text x="70" y="70" class="title">F386 · Proof-Carrying Byte-Lane PHI Writer Graph</text>
+  <text x="70" y="104" class="subtitle">逐 endpoint 重放地址与顺序，闭合 last-writer、initial lane 与 poison transfer</text>
+
+  <rect x="55" y="145" width="470" height="785" rx="7" class="panel"/>
+  <text x="85" y="190" class="head">1 旧合同的可信缺口</text>
+  <rect x="90" y="235" width="180" height="92" rx="6" class="store"/>
+  <text x="110" y="270" class="body">左分支 store L</text>
+  <text x="110" y="298" class="small">addr 64 · lane 0</text>
+  <rect x="310" y="235" width="180" height="92" rx="6" class="store"/>
+  <text x="330" y="270" class="body">右分支 store R</text>
+  <text x="330" y="298" class="small">addr 64 · lane 0</text>
+  <path d="M180 328 L255 420" class="arrow"/>
+  <path d="M400 328 L325 420" class="arrow"/>
+  <rect x="150" y="420" width="280" height="105" rx="6" class="merge"/>
+  <text x="183" y="460" class="body">PHI merge · load [64,66)</text>
+  <text x="183" y="490" class="small">artifact 只声明 writer ID</text>
+  <rect x="95" y="590" width="385" height="145" rx="6" class="reject"/>
+  <text x="120" y="630" class="head">可伪造</text>
+  <text x="120" y="670" class="body">左 endpoint 引用右分支 store R</text>
+  <text x="120" y="702" class="body">或引用已被窄写覆盖的旧 writer</text>
+  <text x="110" y="820" class="small">存在性 + 宽度 ≠ 路径上的最后写者</text>
+
+  <rect x="565" y="145" width="470" height="785" rx="7" class="panel"/>
+  <text x="595" y="190" class="head">2 Endpoint 逆向证明</text>
+  <rect x="610" y="235" width="375" height="82" rx="6" class="edge"/>
+  <text x="635" y="270" class="body">从 edge_left_merge 的 jump 前开始</text>
+  <text x="635" y="296" class="small">最多 64 blocks · 每步唯一 predecessor</text>
+  <path d="M797 318 L797 365" class="arrow"/>
+  <rect x="610" y="365" width="375" height="92" rx="6" class="store"/>
+  <text x="635" y="402" class="body">先遇窄 store [65,66)</text>
+  <text x="635" y="432" class="small">lane 1 → narrow · byte 0 · width 1</text>
+  <path d="M797 458 L797 505" class="arrow"/>
+  <rect x="610" y="505" width="375" height="92" rx="6" class="store"/>
+  <text x="635" y="542" class="body">再遇宽 store [64,66)</text>
+  <text x="635" y="572" class="small">lane 0 → wide · byte 0 · width 2</text>
+  <path d="M797 598 L797 645" class="proof"/>
+  <rect x="610" y="645" width="375" height="130" rx="6" class="ok"/>
+  <text x="635" y="683" class="head">Exact edge</text>
+  <text x="635" y="722" class="body">ID、offset、width 全部一致</text>
+  <text x="635" y="753" class="small">无前驱时只允许剩余 lane = initial</text>
+  <text x="630" y="842" class="small">另一 endpoint 独立重放，不能借用本路径 writer</text>
+
+  <rect x="1075" y="145" width="470" height="785" rx="7" class="panel"/>
+  <text x="1105" y="190" class="head">3 Admission Closure</text>
+  <rect x="1120" y="235" width="375" height="92" rx="6" class="edge"/>
+  <text x="1145" y="270" class="body">capability ↔ writer_graph marker</text>
+  <text x="1145" y="299" class="small">program-level 与 function-local 双向闭合</text>
+  <path d="M1307 328 L1307 375" class="arrow"/>
+  <rect x="1120" y="375" width="375" height="105" rx="6" class="store"/>
+  <text x="1145" y="412" class="body">defined := poison_source</text>
+  <text x="1145" y="442" class="small">仅约束本函数、被图引用的 store</text>
+  <path d="M1307 481 L1307 528" class="arrow"/>
+  <rect x="1120" y="528" width="375" height="210" rx="6" class="ok"/>
+  <text x="1145" y="568" class="head">机械拒绝</text>
+  <text x="1145" y="610" class="body">1. capability / marker 漂移</text>
+  <text x="1145" y="646" class="body">2. 跨 endpoint writer 替换</text>
+  <text x="1145" y="682" class="body">3. 地址、offset、width 漂移</text>
+  <text x="1145" y="718" class="body">4. poison transfer 漂移</text>
+  <rect x="1120" y="790" width="375" height="82" rx="6" class="reject"/>
+  <text x="1145" y="824" class="body">边界：非循环、唯一前驱 endpoint</text>
+  <text x="1145" y="852" class="small">不是通用 MemorySSA / arbitrary writer DAG</text>
+</svg>

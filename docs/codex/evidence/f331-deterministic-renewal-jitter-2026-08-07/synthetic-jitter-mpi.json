@@ -1,0 +1,117 @@
+{
+  "actual_mpi_transport": true,
+  "actual_multi_host": false,
+  "all_checks_passed": true,
+  "capability": {
+    "advisory_lock_exclusion": true,
+    "advisory_lock_release": true,
+    "cluster_lock_contention_checks": 2,
+    "cluster_lock_members": [
+      {
+        "processor": "synthetic-node-0",
+        "rank": 0
+      },
+      {
+        "processor": "synthetic-node-1",
+        "rank": 1
+      }
+    ],
+    "cluster_lock_release_checks": 2,
+    "cluster_lock_representatives": [
+      0,
+      1
+    ],
+    "cluster_lock_rounds": 2,
+    "cluster_lock_verified": true,
+    "cross_directory_replace": true,
+    "device": 92,
+    "directory_fsync": true,
+    "distributed_filesystem": false,
+    "durable_unlink": true,
+    "file_fsync": true,
+    "filesystem_id": 18395215968828387670,
+    "filesystem_type": "overlay",
+    "hard_link": true,
+    "mount_point": "/",
+    "mount_source": "overlay",
+    "probe_scope": "cross-host-mpi-lock-v1",
+    "publication_device": 92,
+    "publication_filesystem_id": 18395215968828387670,
+    "publication_replace": true,
+    "publication_root": "/tmp/symcc-f331-jitter-mpi-geiq1ody/output",
+    "root": "/tmp/symcc-f331-jitter-mpi-geiq1ody/output/.standalone-work-b9d9ec210ac50c16ce5f17cf2e77a065cabcfa11be55287d37eb02dbe2428001",
+    "same_directory_replace": true,
+    "schema": "symcc-shared-filesystem-capabilities-v1"
+  },
+  "checks": {
+    "all_workers_acknowledge_shutdown": true,
+    "both_masters_report_v2": true,
+    "configured_jitter_reaches_both_masters": true,
+    "deterministic_schedule_matches_across_masters": true,
+    "exit_zero": true,
+    "successful_generations_are_consistent": true,
+    "synthetic_cluster_scope_entered": true
+  },
+  "command": [
+    "mpirun",
+    "--oversubscribe",
+    "-np",
+    "7",
+    "python3",
+    "/tmp/symcc-f331-jitter-mpi-geiq1ody/jitter_mpi_wrapper.py",
+    "-i",
+    "/tmp/symcc-f331-jitter-mpi-geiq1ody/input",
+    "-o",
+    "/tmp/symcc-f331-jitter-mpi-geiq1ody/output",
+    "-t",
+    "1",
+    "--max-idle",
+    "10",
+    "--wall-timeout",
+    "4",
+    "--workers-per-master",
+    "3",
+    "--simulate",
+    "--",
+    "/bin/true"
+  ],
+  "deployment_evidence": false,
+  "proof_boundary": "One physical host with injected processor names proves production configuration and MPI lifecycle wiring, not remote lock semantics.",
+  "renewal_metrics": [
+    {
+      "attempts": 5,
+      "failures": 0,
+      "generation": 5,
+      "in_flight_generation": 0,
+      "interval": 0.12,
+      "jitter_fraction": 0.5,
+      "last_elapsed": 0.3638447830453515,
+      "last_scheduled_interval": 0.1458949468499151,
+      "maximum_interval": 0.18,
+      "next_scheduled_interval": 0.12615275600694,
+      "schema": "symcc-cluster-lock-renewal-metrics-v2",
+      "successes": 5,
+      "timeout": 0.4,
+      "total_elapsed": 1.7622719297651201
+    },
+    {
+      "attempts": 5,
+      "failures": 0,
+      "generation": 5,
+      "in_flight_generation": 0,
+      "interval": 0.12,
+      "jitter_fraction": 0.5,
+      "last_elapsed": 0.3440396988298744,
+      "last_scheduled_interval": 0.1458949468499151,
+      "maximum_interval": 0.18,
+      "next_scheduled_interval": 0.12615275600694,
+      "schema": "symcc-cluster-lock-renewal-metrics-v2",
+      "successes": 5,
+      "timeout": 0.4,
+      "total_elapsed": 1.6509618090931326
+    }
+  ],
+  "returncode": 0,
+  "schema": "symcc-f331-synthetic-jitter-mpi-v1",
+  "synthetic_topology": true
+}

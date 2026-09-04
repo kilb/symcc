@@ -1,0 +1,17 @@
+build LLVM 18 SymCC: PASS
+build LLVM 17 SymCC: PASS
+py_compile: PASS
+ruff check: PASS
+git diff --check: PASS
+technology index: PASS
+diagram render and visual inspection: PASS
+Codex delivery verifier: PASS
+15 RUN commands: PASS
+five-block writer/skip CFG and true/false polarity: PASS
+nested header/latch MemoryPhi identity: PASS
+integer comparison operand availability and dominance: PASS
+integer comparison scalar provenance, width equality, and constant range: PASS
+complete/store alias versus reachable-writer separation: PASS
+guarded witness Cartesian product and mutation rejection: PASS
+runtime byte-init authority and infeasible-path observation: PASS
+public coverage/solver/bug-yield/end-to-end speedup claim: intentionally absent

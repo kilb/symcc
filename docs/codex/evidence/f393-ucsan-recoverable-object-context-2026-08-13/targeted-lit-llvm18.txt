@@ -1,0 +1,12 @@
+-- Testing: 5 of 252 tests, 5 workers --
+PASS: compiler :: ucsan_partial_shadow.c (1 of 5)
+PASS: compiler :: ucsan_invalid_entry.c (2 of 5)
+PASS: compiler :: test_ucsan_seed.py (3 of 5)
+PASS: compiler :: ucsan_jit.c (4 of 5)
+PASS: compiler :: ucsan_snapshot.c (5 of 5)
+
+Testing Time: 0.36s
+
+Total Discovered Tests: 252
+  Excluded: 247 (98.02%)
+  Passed  :   5 (1.98%)

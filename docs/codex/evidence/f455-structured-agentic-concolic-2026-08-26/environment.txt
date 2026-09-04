@@ -1,0 +1,12 @@
+captured_utc=2026-08-26
+kernel=Linux 7.0.0-28-generic x86_64 GNU/Linux
+python=Python 3.12.3
+pytest=pytest 9.1.1
+ruff=ruff 0.15.20
+repository_head=146e01b2d6f8e02fd2526764d46ea0d80a4bb6f6
+worktree_note=F455 is an uncommitted reviewed workspace implementation
+pytest_inventory_count=1517
+pytest_inventory_sha256=c86a9557358110d674eec8a5b8fc989ac9ead8dc19c02f430b26a7f948e8955b
+agentic_output_limit_bytes=1048576
+default_trigger=reactive
+default_plateau_threshold=8

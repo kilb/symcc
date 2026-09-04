@@ -1,0 +1,2 @@
+command=python3 -m pytest -q test/test_python_test_gate.py test/test_pytest_discovery_contract.py -p no:cacheprovider
+11 passed in 1.69s

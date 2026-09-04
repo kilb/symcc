@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="980" viewBox="0 0 1600 980" role="img" aria-labelledby="title desc">
+  <title id="title">F455 structured agentic concolic closed loop</title>
+  <desc id="desc">The MPI master observes authoritative execution outcomes, invokes a bounded model only at solver barriers or coverage plateaus, validates structured proposals locally, and feeds verified executions back into an auditable history.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#37536d"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#19725b"/>
+    </marker>
+    <style>
+      .title { font: 700 32px Inter, Arial, sans-serif; fill: #13263a; letter-spacing: 0; }
+      .subtitle { font: 400 17px Inter, Arial, sans-serif; fill: #4d6072; letter-spacing: 0; }
+      .lane { font: 700 15px Inter, Arial, sans-serif; fill: #ffffff; letter-spacing: 0; }
+      .head { font: 700 18px Inter, Arial, sans-serif; fill: #172b3c; letter-spacing: 0; }
+      .body { font: 400 14px Inter, Arial, sans-serif; fill: #415466; letter-spacing: 0; }
+      .small { font: 600 13px Inter, Arial, sans-serif; fill: #385064; letter-spacing: 0; }
+      .step { font: 700 13px Inter, Arial, sans-serif; fill: #ffffff; letter-spacing: 0; }
+      .metric { font: 700 14px Inter, Arial, sans-serif; fill: #17664f; letter-spacing: 0; }
+      .box { stroke-width: 2; rx: 8; }
+      .arrow { fill: none; stroke: #37536d; stroke-width: 3; marker-end: url(#arrow); }
+      .feedback { fill: none; stroke: #19725b; stroke-width: 3; marker-end: url(#arrowGreen); }
+      .dash { fill: none; stroke: #7c8c9b; stroke-width: 2; stroke-dasharray: 8 7; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="980" fill="#f5f8fa"/>
+  <text x="70" y="62" class="title">F455: Structured Agentic Concolic Closed Loop</text>
+  <text x="70" y="91" class="subtitle">The model proposes bounded actions; deterministic execution and global AFL feedback remain authoritative.</text>
+
+  <rect x="70" y="125" width="1460" height="38" rx="6" fill="#29465f"/>
+  <text x="92" y="151" class="lane">OBSERVE AND TRIGGER</text>
+
+  <circle cx="106" cy="222" r="19" fill="#2c6684"/>
+  <text x="102" y="227" class="step">1</text>
+  <rect x="140" y="183" width="310" height="142" class="box" fill="#e9f2f7" stroke="#70a2ba"/>
+  <text x="164" y="216" class="head">Worker execution result</text>
+  <text x="164" y="246" class="body">Solver status and generated inputs</text>
+  <text x="164" y="270" class="body">Backsolver validation and Z3 fallback</text>
+  <text x="164" y="294" class="body">Target result and elapsed cost</text>
+
+  <circle cx="526" cy="222" r="19" fill="#2c6684"/>
+  <text x="522" y="227" class="step">2</text>
+  <rect x="560" y="183" width="350" height="142" class="box" fill="#e9f2f7" stroke="#70a2ba"/>
+  <text x="584" y="216" class="head">Master triage</text>
+  <text x="584" y="246" class="body">Merge into the global AFL edge bitmap</text>
+  <text x="584" y="270" class="body">Compute authoritative coverage delta</text>
+  <text x="584" y="294" class="body">Count retained interesting candidates</text>
+
+  <circle cx="986" cy="222" r="19" fill="#2c6684"/>
+  <text x="982" y="227" class="step">3</text>
+  <rect x="1020" y="183" width="440" height="142" class="box" fill="#fff3df" stroke="#d49a43"/>
+  <text x="1044" y="216" class="head">Reactive trigger gate</text>
+  <text x="1044" y="246" class="body">Trigger: UNKNOWN / timeout / failed validation</text>
+  <text x="1044" y="270" class="body">Trigger: symbolic branches but no candidate</text>
+  <text x="1044" y="294" class="body">Trigger: persistent global-coverage plateau</text>
+
+  <path d="M450 254 H560" class="arrow"/>
+  <path d="M910 254 H1020" class="arrow"/>
+  <rect x="1177" y="337" width="283" height="38" rx="6" fill="#e5eee9" stroke="#7aa792"/>
+  <text x="1193" y="362" class="metric">Productive run: suppress model call</text>
+  <path d="M1322 325 V337" class="feedback"/>
+
+  <rect x="70" y="405" width="1460" height="38" rx="6" fill="#5c456e"/>
+  <text x="92" y="431" class="lane">PROPOSE UNDER A FIXED, BOUNDED PROTOCOL</text>
+
+  <circle cx="106" cy="508" r="19" fill="#73558a"/>
+  <text x="102" y="513" class="step">4</text>
+  <rect x="140" y="469" width="340" height="156" class="box" fill="#f1ebf4" stroke="#9b7aaa"/>
+  <text x="164" y="502" class="head">Task envelope</text>
+  <text x="164" y="532" class="body">Exact request and task digest</text>
+  <text x="164" y="556" class="body">Bounded trace/taint/solver evidence</text>
+  <text x="164" y="580" class="body">Up to four verified prior outcomes</text>
+  <text x="164" y="604" class="body">Allowed actions: schedule or candidate</text>
+
+  <circle cx="556" cy="508" r="19" fill="#73558a"/>
+  <text x="552" y="513" class="step">5</text>
+  <rect x="590" y="469" width="350" height="156" class="box" fill="#f1ebf4" stroke="#9b7aaa"/>
+  <text x="614" y="502" class="head">Backend portfolio</text>
+  <text x="614" y="532" class="body">Fixed provider, model and prompt digest</text>
+  <text x="614" y="556" class="body">Whole-portfolio timeout and token budget</text>
+  <text x="614" y="580" class="body">Circuit breaker and deterministic fallback</text>
+  <text x="614" y="604" class="body">1 MiB streaming response ceiling</text>
+
+  <circle cx="1016" cy="508" r="19" fill="#73558a"/>
+  <text x="1012" y="513" class="step">6</text>
+  <rect x="1050" y="469" width="410" height="156" class="box" fill="#eef2f5" stroke="#8092a2"/>
+  <text x="1074" y="502" class="head">Local protocol validator</text>
+  <text x="1074" y="532" class="body">Exact schema, echo binding and canonical JSON</text>
+  <text x="1074" y="556" class="body">Action count, byte, token, time and cost limits</text>
+  <text x="1074" y="580" class="body">Unknown fields and malformed data fail closed</text>
+  <text x="1074" y="604" class="body">The model cannot assert SAT, reachability or novelty</text>
+
+  <path d="M480 548 H590" class="arrow"/>
+  <path d="M940 548 H1050" class="arrow"/>
+  <path d="M1150 325 V384 H1490 V449 H310 V469" class="arrow"/>
+
+  <rect x="70" y="660" width="1460" height="38" rx="6" fill="#17664f"/>
+  <text x="92" y="686" class="lane">VALIDATE BY REAL EXECUTION AND FEED BACK</text>
+
+  <rect x="105" y="730" width="325" height="132" class="box" fill="#e8f3ee" stroke="#66a68b"/>
+  <text x="129" y="764" class="head">Schedule action</text>
+  <text x="129" y="794" class="body">Strategy / target / focus / S2F actions</text>
+  <text x="129" y="818" class="body">Applied once to a matching input identity</text>
+  <text x="129" y="842" class="body">Then dispatched through the MPI worker path</text>
+
+  <rect x="505" y="730" width="365" height="132" class="box" fill="#e8f3ee" stroke="#66a68b"/>
+  <text x="529" y="764" class="head">Candidate action</text>
+  <text x="529" y="794" class="body">VerifiedProposal admission and byte identity</text>
+  <text x="529" y="818" class="body">Optional parser gate; Query IR stays independent</text>
+  <text x="529" y="842" class="body">Real target and requested-branch replay</text>
+
+  <rect x="945" y="730" width="315" height="132" class="box" fill="#e8f3ee" stroke="#66a68b"/>
+  <text x="969" y="764" class="head">Authoritative outcome</text>
+  <text x="969" y="794" class="body">Target reached or rejected</text>
+  <text x="969" y="818" class="body">Global edge novelty after merge</text>
+  <text x="969" y="842" class="body">Cost and generated-input evidence</text>
+
+  <rect x="1320" y="730" width="210" height="132" class="box" fill="#edf0f3" stroke="#7c8c9b"/>
+  <text x="1344" y="764" class="head">Decision ledger</text>
+  <text x="1344" y="794" class="body">SHA-256 chain</text>
+  <text x="1344" y="818" class="body">Restart recovery</text>
+  <text x="1344" y="842" class="body">Online/shadow/fallback</text>
+
+  <path d="M1200 625 C1200 684 267 678 267 730" class="arrow"/>
+  <path d="M1300 625 C1300 700 688 684 688 730" class="arrow"/>
+  <path d="M870 796 H945" class="arrow"/>
+  <path d="M1260 796 H1320" class="feedback"/>
+  <path d="M1460 548 H1500 V730" class="dash"/>
+  <path d="M1102 862 V914 H50 V365 H735 V325" class="feedback"/>
+  <text x="610" y="907" class="small">Verified history guides the next eligible episode iteration</text>
+
+  <rect x="70" y="934" width="1460" height="1" fill="#c9d3db"/>
+  <text x="70" y="961" class="small">Correctness root: schema checks + proposal admission + real target execution + global AFL novelty</text>
+  <text x="1042" y="961" class="small">Model role: bounded discovery and scheduling only</text>
+</svg>

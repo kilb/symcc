@@ -1,0 +1,1 @@
+<?xml version="1.0"?><!DOCTYPE note [<!ELEMENT note.(to,from,body)><!ELEMENT toß(#PCDATy)><!ELEMENT toß(#(#PCDATA)><!ELEMENT body (#PCDATA)>]><note><to>A</to><from>B</from><body>C</body></note>

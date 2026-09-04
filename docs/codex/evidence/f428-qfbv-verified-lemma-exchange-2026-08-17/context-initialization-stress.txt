@@ -1,0 +1,8 @@
+schema=symcc-f428-context-initialization-stress-v1
+python=3.12.3
+workers_per_run=4
+runs=200
+passed=200
+failed=0
+elapsed_seconds=21.418621
+claim=bounded concurrent initialization regression evidence; not throughput evidence

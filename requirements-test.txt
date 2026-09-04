@@ -1,0 +1,6 @@
+# Test-runner dependencies. Install together with the runtime requirements:
+#   python3 -m pip install -r requirements.txt -r requirements-test.txt
+
+# F359-F361 use pytest's testpaths and public hook protocol. Keep one major
+# range so collection, subtest, and node-id accounting do not drift in CI.
+pytest>=9.0,<10

@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="1380" viewBox="0 0 2000 1380">
+  <defs>
+    <style>
+      .title { font: 700 50px Arial, sans-serif; fill: #102a43; }
+      .subtitle { font: 400 23px Arial, sans-serif; fill: #486581; }
+      .h { font: 700 30px Arial, sans-serif; fill: #102a43; }
+      .bh { font: 700 23px Arial, sans-serif; fill: #17324d; }
+      .body { font: 400 19px Arial, sans-serif; fill: #486581; }
+      .mono { font: 700 18px Consolas, monospace; fill: #17324d; }
+      .small { font: 400 17px Arial, sans-serif; fill: #627d98; }
+      .panel { fill: #ffffff; stroke: #b8c8d8; stroke-width: 2.5; rx: 12; }
+      .blue { fill: #e8f1f8; stroke: #7b9dbb; stroke-width: 2.5; rx: 10; }
+      .green { fill: #e4f5ee; stroke: #249f75; stroke-width: 2.5; rx: 10; }
+      .orange { fill: #fff0dc; stroke: #ed8b23; stroke-width: 2.5; rx: 10; }
+      .red { fill: #fff0f0; stroke: #df4b4b; stroke-width: 2.5; rx: 10; }
+      .arrow { stroke: #334e68; stroke-width: 6; fill: none; marker-end: url(#head); }
+      .thin { stroke: #829ab1; stroke-width: 3; fill: none; marker-end: url(#smallhead); }
+    </style>
+    <marker id="head" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#334e68"/>
+    </marker>
+    <marker id="smallhead" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#829ab1"/>
+    </marker>
+  </defs>
+
+  <rect width="2000" height="1380" fill="#f4f7fa"/>
+  <rect width="2000" height="138" fill="#ffffff"/>
+  <line x1="0" y1="136" x2="2000" y2="136" stroke="#13866f" stroke-width="5"/>
+  <text x="82" y="70" class="title">F395 UCSan Byte Initialization and UBI Sink Closure</text>
+  <text x="84" y="108" class="subtitle">byte-precise object state · SSA propagation · call-boundary transfer · sink-only reporting · bounded metadata</text>
+
+  <rect x="66" y="185" width="520" height="760" class="panel"/>
+  <rect x="66" y="185" width="520" height="78" fill="#dceaf5" rx="12"/>
+  <text x="98" y="235" class="h">1. Initialization sources</text>
+
+  <rect x="104" y="305" width="444" height="160" class="orange"/>
+  <text x="134" y="346" class="bh">Explicit allocation</text>
+  <text x="134" y="386" class="mono">alloca / malloc / new  → UNINIT</text>
+  <text x="134" y="420" class="mono">calloc                  → INIT</text>
+  <text x="134" y="448" class="small">JITI objects remain under-constrained, not UNINIT</text>
+
+  <rect x="104" y="505" width="444" height="185" class="green"/>
+  <text x="134" y="546" class="bh">Writes update exact bytes</text>
+  <text x="134" y="586" class="mono">store(value-tag) → written range</text>
+  <text x="134" y="620" class="mono">memset          → value tag</text>
+  <text x="134" y="654" class="mono">memcpy/memmove  → copy byte tags</text>
+
+  <rect x="104" y="730" width="444" height="170" class="blue"/>
+  <text x="134" y="771" class="bh">Lifecycle and budget</text>
+  <text x="134" y="811" class="mono">free / pop_frame → discard tags</text>
+  <text x="134" y="845" class="body">1 byte metadata per explicit byte</text>
+  <text x="134" y="874" class="small">bounded by MAX_EXPLICIT_SHADOW_BYTES</text>
+
+  <rect x="640" y="185" width="720" height="760" class="panel"/>
+  <rect x="640" y="185" width="720" height="78" fill="#d9f0e8" rx="12"/>
+  <text x="674" y="235" class="h">2. Propagation plane</text>
+
+  <rect x="682" y="305" width="636" height="160" class="green"/>
+  <text x="716" y="346" class="bh">Byte-precise memory shadow</text>
+  <text x="716" y="388" class="mono">Object.initializedBytes[offset : offset+n]</text>
+  <text x="716" y="423" class="body">load returns OR(uninitialized bytes in the accessed range)</text>
+
+  <path d="M1000 465 L1000 520" class="thin"/>
+  <rect x="682" y="520" width="636" height="175" class="blue"/>
+  <text x="716" y="561" class="bh">Dynamic SSA value tag</text>
+  <text x="716" y="603" class="mono">arithmetic / cast / PHI / select → OR</text>
+  <text x="716" y="637" class="mono">cmpxchg → { old-tag, success-tag }</text>
+  <text x="716" y="670" class="small">ordinary uninitialized load is observed, not reported yet</text>
+
+  <path d="M1000 695 L1000 750" class="thin"/>
+  <rect x="682" y="750" width="636" height="150" class="orange"/>
+  <text x="716" y="791" class="bh">Interprocedural channel</text>
+  <text x="716" y="832" class="mono">arg-tag TLS → scoped callee → return-tag TLS</text>
+  <text x="716" y="866" class="small">external pointer boundary is a conservative pointer-use sink</text>
+
+  <path d="M586 565 L628 565" class="arrow"/>
+  <path d="M1360 565 L1402 565" class="arrow"/>
+
+  <rect x="1414" y="185" width="520" height="760" class="panel"/>
+  <rect x="1414" y="185" width="520" height="78" fill="#ffe3bd" rx="12"/>
+  <text x="1448" y="235" class="h">3. Sink-only decision</text>
+
+  <rect x="1454" y="305" width="440" height="155" class="red"/>
+  <text x="1486" y="346" class="bh">Pointer dereference</text>
+  <text x="1486" y="388" class="mono">pointer-tag = UNINIT ∧ size ≠ 0</text>
+  <text x="1486" y="423" class="body">reject before native load/store/atomic</text>
+
+  <rect x="1454" y="500" width="440" height="155" class="red"/>
+  <text x="1486" y="541" class="bh">Control-flow condition</text>
+  <text x="1486" y="583" class="mono">branch / switch condition = UNINIT</text>
+  <text x="1486" y="618" class="body">report only when data controls execution</text>
+
+  <rect x="1454" y="695" width="440" height="165" class="red"/>
+  <text x="1486" y="736" class="bh">Memory extent / indirect target</text>
+  <text x="1486" y="778" class="mono">size or function target = UNINIT</text>
+  <text x="1486" y="813" class="body">fail before allocation or memory operation</text>
+
+  <rect x="66" y="990" width="1868" height="315" class="panel"/>
+  <text x="102" y="1040" class="h">Transactional transfer and correctness boundary</text>
+
+  <rect x="104" y="1080" width="385" height="165" class="orange"/>
+  <text x="134" y="1121" class="bh">realloc</text>
+  <text x="134" y="1160" class="body">failure keeps old tags</text>
+  <text x="134" y="1192" class="body">retained prefix is copied</text>
+  <text x="134" y="1224" class="body">newly exposed bytes are UNINIT</text>
+
+  <path d="M489 1164 L555 1164" class="arrow"/>
+  <rect x="568" y="1080" width="385" height="165" class="blue"/>
+  <text x="598" y="1121" class="bh">atomic RMW / cmpxchg</text>
+  <text x="598" y="1160" class="body">old-value tag captured before update</text>
+  <text x="598" y="1192" class="body">success-only pointer-slot commit</text>
+  <text x="598" y="1224" class="body">old/success fields stay distinct</text>
+
+  <path d="M953 1164 L1019 1164" class="arrow"/>
+  <rect x="1032" y="1080" width="385" height="165" class="green"/>
+  <text x="1062" y="1121" class="bh">Closed in F395</text>
+  <text x="1062" y="1160" class="body">explicit byte initialization</text>
+  <text x="1062" y="1192" class="body">pointer + branch UBI sinks</text>
+  <text x="1062" y="1224" class="body">cross-call and atomic propagation</text>
+
+  <path d="M1417 1164 L1483 1164" class="arrow"/>
+  <rect x="1496" y="1080" width="398" height="165" class="red"/>
+  <text x="1526" y="1121" class="bh">Still open</text>
+  <text x="1526" y="1160" class="body">global Super Object / full DFSan</text>
+  <text x="1526" y="1192" class="body">general libc + custom effects</text>
+  <text x="1526" y="1224" class="body">concurrent shadow linearizability</text>
+
+  <text x="82" y="1348" class="small">Mechanism evidence only: no coverage, bug-yield, per-instruction overhead, or cross-system speedup claim.</text>
+</svg>

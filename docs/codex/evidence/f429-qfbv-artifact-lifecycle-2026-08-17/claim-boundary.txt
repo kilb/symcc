@@ -1,0 +1,14 @@
+schema=symcc-f429-claim-boundary-v1
+supported=content-identity and exact dependency-set registration
+supported=generation-and-owner-fenced job roots with heartbeat and grace roots
+supported=transitive mark closure and dependent-before-dependency bounded deletion
+supported=graph-endpoint completeness, legacy-index synchronization, and fail-closed collection
+supported=publish-before-index and index-before-unlink crash-prefix recovery
+supported=two deterministic 64-DAG/1024-node oracle runs with zero false or missed deletion
+supported=one real five-artifact cvc5/Ethos lifecycle chain per oracle run
+unsupported=solver preprocessing, search-state, heap, watch-list, or native snapshot reuse
+unsupported=arbitrary-clause assumption scope or mixed-theory lemma transport
+unsupported=cross-region CAS, network partition tolerance, or distributed-lock failover
+unsupported=coverage, throughput, solver, time-to-bug, LAVA-M, or public-benchmark speedup
+unsupported=hard end-to-end GC deadline after a deletion unit has been admitted
+level=I/T/E-mechanism; not R

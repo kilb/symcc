@@ -1,0 +1,13 @@
+{
+  "diagnostics": [
+    "bad_exception_object_dynamic_store:entry: exception allocation must be written and consumed by one or more direct __cxa_throw calls [call]",
+    "bad_exception_object_dynamic_store:entry: exception allocation must be written and consumed by one or more direct __cxa_throw calls [call]",
+    "bad_exception_object_dynamic_store:entry: exception allocation must be written and consumed by one or more direct __cxa_throw calls [call]",
+    "bad_exception_object_dynamic_store:entry: exception allocation must be written and consumed by one or more direct __cxa_throw calls [call]"
+  ],
+  "entry": "bad_exception_object_dynamic_store",
+  "llvm_version": "18.1.3",
+  "schema": "symcc-llvm-continuation-lowering-v1",
+  "source_module": "/home/ubuntu/code/symcc/test/live_continuation_lowering.ll",
+  "status": "rejected"
+}

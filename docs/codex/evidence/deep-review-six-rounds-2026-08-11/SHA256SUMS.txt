@@ -1,0 +1,8 @@
+c6754e85d1ac663563638ff862a2ec5f9844feae01a990dcf289c5c0b5328f11  checks.txt
+de195d43ac0f3d9be4369775469750610269d56b0a95fc816eff52a26ea15980  python-test-gate.json
+f6ca4cd84c76ce709afc249d96a2a441dbd38e0d7f64b755c1654e4367b8ebdb  ../../research-progress/Six_Round_Deep_Review_2026-08-11.md
+4ae93eb2cb63622b5d4bee53b4fc06fee42bff5b75109604a4a1271d2a938349  ../../diagrams/deep-review-r5-bounded-scheduler-2026-08-11.svg
+226107c44dac3e7a93f5ad19b74bc5059f176f234c054c2089a3cacb82d14377  ../../../../benchmark/evidence/deep_review_r5_scheduler_kernel_2026-08-11.json
+295744920ecdb59767cc32de104a272deb7b1b6641785bd2a15b538b5b5e915a  ../../../../test/pytest-nodeids.json
+f07ad6725f747385739d10a3c938ba80e9d6fc3fc5ca5c8b388189a588722639  ../../verify_delivery.py
+86fe6da022c3d0fe1c960919b719ecb4ca634368c70112dfd16afa8a1603cd54  ../../SHA256SUMS.txt

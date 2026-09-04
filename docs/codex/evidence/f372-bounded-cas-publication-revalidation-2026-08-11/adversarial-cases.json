@@ -1,0 +1,30 @@
+{
+  "all_checks_passed": true,
+  "counterfactual_one_shot": {
+    "admitted_exact_content": false,
+    "attempts": 1,
+    "failed_closed": true
+  },
+  "persistent_instability": {
+    "attempts": 32,
+    "configured_attempts": 32,
+    "failed_closed": true
+  },
+  "production_bounded_retry": {
+    "admitted_exact_content": true,
+    "attempts": 4,
+    "failed_closed": false
+  },
+  "real_convergence": {
+    "all_writers_returned_same_identity": true,
+    "final_content_exact": true,
+    "temporary_files": 0,
+    "writers": 8
+  },
+  "schema": "symcc-f372-bounded-cas-publication-revalidation-evidence-v1",
+  "stable_wrong_content": {
+    "attempts": 1,
+    "failed_closed": true,
+    "wrong_digest_rejected_immediately": true
+  }
+}

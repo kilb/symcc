@@ -1,0 +1,47 @@
+================================================================================
+  SymCC MPI Parallelization Benchmark Report
+  Generated: 2026-08-19 17:01:53
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+  Target: jhead-jhead
+────────────────────────────────────────────────────────────────────────────────
+
+  Mode         NP       Time   SymCCGen    AFLExec   Unique  ShowmapCov          Edges  FstatsCov         FEdges      AFL/s
+  ────────── ──── ────────── ────────── ────────── ──────── ─────────── ────────────── ────────── ────────────── ──────────
+  afl-only      8     1m0.2s          0    3137114     2677      33.93%       608/1792     33.86%       680/2008      52219
+  hybrid        8     1m1.2s          3     359829      667      32.87%       589/1792     33.32%       669/2008       5890
+  seed          0       0.0s          0          0       13      22.15%       397/1792        N/A            N/A          0
+
+  Online SymCC -> AFL Native Peer Sync:
+    hybrid np=8: published=1.0, scanned=0.0, imported=0.0, not-retained=0.0, complete-runs=0/1
+
+  Edge Coverage Chart (afl-showmap):
+     afl-only np=8 |████████████████████████████████████████| 33.93%
+       hybrid np=8 |██████████████████████████████████████░░| 32.87%
+              seed |██████████████████████████░░░░░░░░░░░░░░| 22.15%
+
+  Coverage Gain over Seed Baseline:
+    Seed baseline: 22.15% (397 edges)
+       afl-only np=8: 33.93% (+11.78pp, +53.2% relative)
+         hybrid np=8: 32.87% (+10.72pp, +48.4% relative)
+
+  Like-for-like Throughput Speedup vs Serial:
+    afl-only np=  8 |                  N/A                   | different unit: afl-executions-per-second
+    hybrid np=  8 |                  N/A                   | different unit: afl-executions-plus-symcc-candidates-per-second
+    seed np=  0 |                  N/A                   | different unit: not-applicable
+
+
+================================================================================
+  OVERALL SUMMARY
+================================================================================
+
+  jhead-jhead: best = afl-only np=8 (1m0.2s, 2677 retained unique, 0 SymCC candidates, 3137114 AFL executions, edge_cov=33.93%)
+
+  Report files:
+    Text:  /home/ubuntu/code/symcc/benchmark/evidence/hybrid-advantage-jhead-screen-2026-08-19/benchmark_report.txt
+    CSV:   /home/ubuntu/code/symcc/benchmark/evidence/hybrid-advantage-jhead-screen-2026-08-19/benchmark_data.csv
+    JSON:  /home/ubuntu/code/symcc/benchmark/evidence/hybrid-advantage-jhead-screen-2026-08-19/benchmark_data.json
+
+================================================================================

@@ -1,0 +1,72 @@
+{
+  "clock": "time.perf_counter_ns",
+  "scenarios": [
+    {
+      "active_shards": 1,
+      "batch_directory_syncs": 1,
+      "batch_median_ms": 174.842,
+      "batch_p95_ms": 176.27,
+      "batch_samples_ms": [
+        175.968,
+        174.842,
+        173.362,
+        173.292,
+        176.27,
+        176.206,
+        174.742
+      ],
+      "directory_sync_reduction_pct": 98.438,
+      "median_speedup": 1.943,
+      "records": 64,
+      "rounds": 7,
+      "scalar_directory_syncs": 64,
+      "scalar_median_ms": 339.717,
+      "scalar_p95_ms": 342.563,
+      "scalar_samples_ms": [
+        342.563,
+        340.511,
+        339.717,
+        338.049,
+        339.095,
+        339.856,
+        339.61
+      ]
+    },
+    {
+      "active_shards": 8,
+      "batch_directory_syncs": 8,
+      "batch_median_ms": 173.314,
+      "batch_p95_ms": 178.261,
+      "batch_samples_ms": [
+        173.719,
+        173.314,
+        172.621,
+        171.052,
+        178.261,
+        174.396,
+        168.313
+      ],
+      "directory_sync_reduction_pct": 87.5,
+      "median_speedup": 1.951,
+      "records": 64,
+      "rounds": 7,
+      "scalar_directory_syncs": 64,
+      "scalar_median_ms": 338.188,
+      "scalar_p95_ms": 338.735,
+      "scalar_samples_ms": [
+        337.093,
+        338.382,
+        338.188,
+        338.68,
+        338.157,
+        338.735,
+        336.898
+      ]
+    }
+  ],
+  "schema": "symcc-f324-heartbeat-group-commit-benchmark-v1",
+  "scope": "lease heartbeat persistence only; not DSE throughput"
+}
+wall_seconds=10.003
+user_seconds=0.238
+sys_seconds=0.221

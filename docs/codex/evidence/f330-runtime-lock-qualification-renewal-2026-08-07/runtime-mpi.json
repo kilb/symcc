@@ -1,0 +1,207 @@
+{
+  "actual_mpi_transport": true,
+  "actual_multi_host": false,
+  "all_checks_passed": true,
+  "checks": {
+    "both_masters_record_failed_generation": true,
+    "both_masters_report_successful_renewals": true,
+    "semantic_drift_exits_nonzero": true,
+    "semantic_drift_is_reported": true,
+    "startup_enters_synthetic_cluster_scope": true,
+    "success_exit_zero": true
+  },
+  "deployment_evidence": false,
+  "proof_boundary": "Processor names are injected on one physical host. This proves runtime control-path behavior, not remote filesystem semantics.",
+  "schema": "symcc-f330-synthetic-runtime-mpi-v1",
+  "semantic_drift": {
+    "capability": {
+      "advisory_lock_exclusion": true,
+      "advisory_lock_release": true,
+      "cluster_lock_contention_checks": 2,
+      "cluster_lock_members": [
+        {
+          "processor": "synthetic-node-0",
+          "rank": 0
+        },
+        {
+          "processor": "synthetic-node-1",
+          "rank": 1
+        }
+      ],
+      "cluster_lock_release_checks": 2,
+      "cluster_lock_representatives": [
+        0,
+        1
+      ],
+      "cluster_lock_rounds": 2,
+      "cluster_lock_verified": true,
+      "cross_directory_replace": true,
+      "device": 92,
+      "directory_fsync": true,
+      "distributed_filesystem": false,
+      "durable_unlink": true,
+      "file_fsync": true,
+      "filesystem_id": 18395215968828387670,
+      "filesystem_type": "overlay",
+      "hard_link": true,
+      "mount_point": "/",
+      "mount_source": "overlay",
+      "probe_scope": "cross-host-mpi-lock-v1",
+      "publication_device": 92,
+      "publication_filesystem_id": 18395215968828387670,
+      "publication_replace": true,
+      "publication_root": "/tmp/symcc-f330-runtime-mpi-kuyaa_f5/semantic-drift-output",
+      "root": "/tmp/symcc-f330-runtime-mpi-kuyaa_f5/semantic-drift-output/.standalone-work-dd71a50b3d752b537595211fb090661d1ae1fcf116652124af807dc5dab23534",
+      "same_directory_replace": true,
+      "schema": "symcc-shared-filesystem-capabilities-v1"
+    },
+    "command": [
+      "mpirun",
+      "--oversubscribe",
+      "-np",
+      "7",
+      "python3",
+      "/tmp/symcc-f330-runtime-mpi-kuyaa_f5/runtime_mpi_wrapper.py",
+      "-i",
+      "/tmp/symcc-f330-runtime-mpi-kuyaa_f5/semantic-drift-input",
+      "-o",
+      "/tmp/symcc-f330-runtime-mpi-kuyaa_f5/semantic-drift-output",
+      "-t",
+      "1",
+      "--max-idle",
+      "10",
+      "--wall-timeout",
+      "3",
+      "--workers-per-master",
+      "3",
+      "--simulate",
+      "--",
+      "/bin/true"
+    ],
+    "failure_generation": 2,
+    "name": "semantic-drift",
+    "renewal_metrics": [
+      {
+        "attempts": 2,
+        "failures": 1,
+        "generation": 2,
+        "in_flight_generation": 0,
+        "interval": 0.2,
+        "last_elapsed": 0.1793445439543575,
+        "schema": "symcc-cluster-lock-renewal-metrics-v1",
+        "successes": 1,
+        "timeout": 0.5,
+        "total_elapsed": 0.5223415140062571
+      },
+      {
+        "attempts": 2,
+        "failures": 1,
+        "generation": 2,
+        "in_flight_generation": 0,
+        "interval": 0.2,
+        "last_elapsed": 0.15712470700964332,
+        "schema": "symcc-cluster-lock-renewal-metrics-v1",
+        "successes": 1,
+        "timeout": 0.5,
+        "total_elapsed": 0.47180837695486844
+      }
+    ],
+    "returncode": 70
+  },
+  "success": {
+    "capability": {
+      "advisory_lock_exclusion": true,
+      "advisory_lock_release": true,
+      "cluster_lock_contention_checks": 2,
+      "cluster_lock_members": [
+        {
+          "processor": "synthetic-node-0",
+          "rank": 0
+        },
+        {
+          "processor": "synthetic-node-1",
+          "rank": 1
+        }
+      ],
+      "cluster_lock_release_checks": 2,
+      "cluster_lock_representatives": [
+        0,
+        1
+      ],
+      "cluster_lock_rounds": 2,
+      "cluster_lock_verified": true,
+      "cross_directory_replace": true,
+      "device": 92,
+      "directory_fsync": true,
+      "distributed_filesystem": false,
+      "durable_unlink": true,
+      "file_fsync": true,
+      "filesystem_id": 18395215968828387670,
+      "filesystem_type": "overlay",
+      "hard_link": true,
+      "mount_point": "/",
+      "mount_source": "overlay",
+      "probe_scope": "cross-host-mpi-lock-v1",
+      "publication_device": 92,
+      "publication_filesystem_id": 18395215968828387670,
+      "publication_replace": true,
+      "publication_root": "/tmp/symcc-f330-runtime-mpi-kuyaa_f5/success-output",
+      "root": "/tmp/symcc-f330-runtime-mpi-kuyaa_f5/success-output/.standalone-work-3e33a6d241fa62324ff34f32a9bd14a6436398494712a6b2be19d0389bd460bf",
+      "same_directory_replace": true,
+      "schema": "symcc-shared-filesystem-capabilities-v1"
+    },
+    "command": [
+      "mpirun",
+      "--oversubscribe",
+      "-np",
+      "7",
+      "python3",
+      "/tmp/symcc-f330-runtime-mpi-kuyaa_f5/runtime_mpi_wrapper.py",
+      "-i",
+      "/tmp/symcc-f330-runtime-mpi-kuyaa_f5/success-input",
+      "-o",
+      "/tmp/symcc-f330-runtime-mpi-kuyaa_f5/success-output",
+      "-t",
+      "1",
+      "--max-idle",
+      "10",
+      "--wall-timeout",
+      "3",
+      "--workers-per-master",
+      "3",
+      "--simulate",
+      "--",
+      "/bin/true"
+    ],
+    "failure_generation": 0,
+    "name": "success",
+    "renewal_metrics": [
+      {
+        "attempts": 3,
+        "failures": 0,
+        "generation": 3,
+        "in_flight_generation": 0,
+        "interval": 0.2,
+        "last_elapsed": 0.33125746017321944,
+        "schema": "symcc-cluster-lock-renewal-metrics-v1",
+        "successes": 3,
+        "timeout": 0.5,
+        "total_elapsed": 1.0295459912158549
+      },
+      {
+        "attempts": 3,
+        "failures": 0,
+        "generation": 3,
+        "in_flight_generation": 0,
+        "interval": 0.2,
+        "last_elapsed": 0.31496682297438383,
+        "schema": "symcc-cluster-lock-renewal-metrics-v1",
+        "successes": 3,
+        "timeout": 0.5,
+        "total_elapsed": 0.9649380927439779
+      }
+    ],
+    "returncode": 0
+  },
+  "synthetic_topology": true
+}

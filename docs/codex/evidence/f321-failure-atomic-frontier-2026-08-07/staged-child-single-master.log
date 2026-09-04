@@ -1,0 +1,22 @@
+SymCC MPI Parallel Concolic Execution
+  Processes:     3
+  Mode:          single-master (2 workers)
+  Shared dir:    /tmp/symcc-f321-single-stage.UE3wwN/out
+  Input dir:     /tmp/symcc-f321-single-stage.UE3wwN/in
+  Target:        /bin/sh -c mkdir -p "$SYMCC_OUTPUT_DIR"; printf "f321-single-staged-child\n" > "$SYMCC_OUTPUT_DIR/out"; cat >/dev/null
+  Timeout:       1s per execution
+
+[Master] Imported 2 initial inputs from /tmp/symcc-f321-single-stage.UE3wwN/in
+[Master] Using 1 master(s), 2 workers in this group
+[Master 0] Waiting for inputs... (3 generated, 1 interesting, 3 analyzed)
+[Master] No more inputs after 1.000s (limit 1s). Shutting down.
+[Master 0] Worker shutdown: acked=2/2 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+
+[Master] === Final Statistics ===
+[Master] Total analysis observations:       3
+[Master] Total test cases generated:  3
+[Master] New interesting test cases:  1
+[Master] Throughput:                  2.6 tc/s
+[Master] Masters used:               1
+[Master] Workers used:               2
+[Master] Analysis by master:         0=3

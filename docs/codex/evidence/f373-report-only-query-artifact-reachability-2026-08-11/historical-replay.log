@@ -1,0 +1,12 @@
+F373 historical executable replay (2026-08-11 UTC)
+f363-bounded-query-ir-admission-2026-08-11 byte-identical a032723954e1c27bf234b0a56ff19e7a7285b61fd9f9c31d0a96cd7b36331483
+f364-stable-query-spool-admission-2026-08-11 byte-identical 9ea576f4cd599ddc750e94ab1cd53c1a7299dac416b9ecb0b0004f353bb76c9d
+f365-outcome-separated-query-spool-2026-08-11 byte-identical 507b98846a19e5956737836e7f2d70833808e3eff3b29e4eb0718b2e6984e0c2
+f366-verified-query-artifact-cas-2026-08-11 byte-identical dc16cfb826e676d081bf6410f794afadceb22c12dadf3cfbe2d43fb19a2f84ae
+f367-sealed-query-artifact-fd-handoff-2026-08-11 byte-identical 2503443229ef63d7f709fdd750f14d185167ffb84d038d772b5a80252bcb0f4f
+f368-persistent-solver-generation-reset-2026-08-11 byte-identical 69232b35fc7e276f869b1c1aa8816c3009d75908a508218ba83cb0db499e5915
+f369-protocol-complete-request-preflight-2026-08-11 byte-identical e5f85570e9a7f6caa9dfe4c9b933b3338a9070db7769c3905ee5083e8bce99d4
+f370-deadline-bounded-request-commit-2026-08-11 byte-identical 616c65bd72f1b08c7fd9b49ddced0a7b7fdfd43aa92d1c7c701e7497c2bfd2fd
+f371-generation-unique-request-admission-2026-08-11 byte-identical 2bdd7cb0b3975b2e1bc51358255c9797bce3c156d826bb505d0d49ec934d4cb8
+f372-bounded-cas-publication-revalidation-2026-08-11 byte-identical c249b6ac505516c1634a07204dba0b182981e535d9b20ecefb349d340bc8859e
+historical_f363_f372_byte_equivalent=true

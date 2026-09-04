@@ -1,0 +1,16 @@
+Established: content-addressed QF_BV prefix-delta manifests; capability-bound
+full-chain verification; concurrent create-once publication; stable no-follow
+object reads; fenced, expiring, quota-bounded materialization; local exact hit,
+parent extension, and cold reconstruction; cancellation and crash recovery;
+backend and QueryStore SAT replay; production service configuration and stats.
+
+Not established: serialization or transport of solver heap/search/preprocessing
+state; sharing learned clauses or lemmas; prefix entailment checking for imported
+clauses; proof-producing or independently checkable SMT UNSAT; a complete W4
+implementation; public-target coverage, solver-time, throughput, or speedup;
+cross-host shared-filesystem qualification beyond the repository's separate
+filesystem contracts.
+
+An exact shared-context hit proves equality of a verified formula plan. It is
+not a solver-result cache hit and does not imply reuse of learned information.
+

@@ -1,0 +1,9 @@
+captured_utc=2026-08-25T15:07:14.766644Z
+kernel=Linux 7.0.0-28-generic x86_64
+python=3.12.3
+pytest=9.1.1
+repository=/home/ubuntu/code/symcc
+git_commit=146e01b2d6f8e02fd2526764d46ea0d80a4bb6f6
+filesystem=overlay /
+nodeid_count=1428
+nodeid_sha256=e33b375ba727b01987da2d11a4b146085e9b1e2a758616b7b86719c854f71491

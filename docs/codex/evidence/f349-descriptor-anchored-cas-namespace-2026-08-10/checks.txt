@@ -1,0 +1,46 @@
+F349 descriptor-anchored CAS namespace
+Date: 2026-08-10 UTC
+Repository base commit: 146e01b2d6f8e02fd2526764d46ea0d80a4bb6f6 (dirty research worktree)
+Host: Linux 7.0.0-28-generic x86_64 GNU/Linux
+Python: 3.12.3
+Evidence filesystem: overlayfs
+
+Implementation
+- open the configured CAS root with O_DIRECTORY | O_NOFOLLOW
+- create and open digest shards relative to the verified root descriptor
+- create, replace, stat, snapshot, and unlink object leaves relative to the shard descriptor
+- compare root and shard device/inode identities before admitting a result
+- retain descriptor-bound I/O if a public directory is detached, then reject the stale public namespace
+- clear positive object identity knowledge after every namespace or object failure
+- route live-state JSON snapshots through the same descriptor-anchored CAS primitive
+- preserve exact concurrent leaf-writer convergence and the verified-identity zero-hash fast path
+
+Directed regression
+- 5 passed, 152 deselected, warnings as errors, 0.16 s
+
+Related regression
+- 360 passed + 81 subtests, warnings as errors, 17.33 s
+
+Full Python regression
+- 753 passed + 101 subtests, warnings as errors, 95.93 s
+
+Local production-primitive integration
+- 11/11 exact checks true
+- normal publication/snapshot bytes and SHA-256 match
+- cached put performs zero stable payload hashes
+- configured-root symlink is rejected and external directory remains empty
+- digest-shard symlink is rejected and external directory remains empty
+- root replacement during publication is rejected after descriptor-bound completion
+- shard replacement during publication is rejected after descriptor-bound completion
+- detached root/shard objects contain the exact intended bytes
+- exact competing leaf writer converges with one fallback hash
+- live-state read rejects a replaced shard even when its alias contains exact bytes
+- failed operation identity caches and temporary residue are empty
+
+Claim boundary
+- deterministic local mechanism evidence on real overlayfs directories, files, and symlinks
+- no real MPI transport, target, afl-showmap, or symbolic solver invocation
+- no fuzzing campaign or multi-host/NFS/Lustre experiment
+- no throughput, coverage, bug-discovery, or LAVA-M uplift claim
+- ancestors above the configured CAS root remain a trusted deployment boundary
+- this is an openat/dir_fd design, not a full openat2 RESOLVE_BENEATH deployment

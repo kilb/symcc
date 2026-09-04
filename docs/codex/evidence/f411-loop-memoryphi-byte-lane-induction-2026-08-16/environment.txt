@@ -1,0 +1,23 @@
+F411 validation environment
+date: 2026-08-16
+repository: /home/ubuntu/code/symcc
+host architecture: x86_64
+python: 3.12.3
+pytest: 9.1.1
+LLVM production builds: 18 and 17
+solver capability gate: z3, cvc5, bitwuzla present
+
+production limits:
+  canonical loop blocks: header, body, latch
+  preheader/backedge/latch/exit: exactly one each; exit has only header predecessor
+  induction: seed 0, unsigned unit step, ult input-derived bound
+  extra loop PHI/call/alloca: rejected
+  writer: one simple non-atomic/non-volatile byte store
+  load aliases: at most 256
+  byte-lane witnesses: at most 2048
+  object identity: one stack or ordinary heap allocation
+
+claim boundary:
+  oracle numbers prove only the enumerated finite model and mutation closure
+  benchmark numbers measure only the Python reference validator
+  no public-target coverage, solver throughput, bug yield, or end-to-end speedup claim

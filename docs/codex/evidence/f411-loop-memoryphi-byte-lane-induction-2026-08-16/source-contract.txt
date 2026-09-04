@@ -1,0 +1,40 @@
+F411 production and validation inventory
+
+producer: compiler/ContinuationLowering.cpp
+  LoopMemoryPhiByteLaneWitness
+  LoopMemoryPhiByteLaneCertificate
+  loopMemoryPhiByteLaneInitialization
+  loopMemoryPhiByteLaneRecord
+  bounded-loop-memoryphi-byte-lane-induction
+  initialization_loop_memoryphi
+  unique exit predecessor and sole loop PHI closure
+  extra loop PHI/call/alloca rejection
+
+strict consumer/runtime: util/live_continuation.py
+  _loop_memoryphi_byte_lane_initialization
+  expected_witnesses
+  saw_loop_memoryphi_byte_lane_contract
+  strict bool exclusion and identity/zext width replay
+  concrete addresses outside their alias domain use _memory_alias_candidates
+  in-domain concrete addresses retain lifecycle/logical-size diagnostics
+
+artifact checker: util/check_live_continuation_lowering.py
+  --expect-loop-memoryphi-byte-lane-induction
+  --validate-only
+  missing capability, witness induction, latch edge, boolean step, forged bound cast, and transcript mutations
+
+LLVM fixture: test/live_loop_memoryphi_byte_lane_induction.ll
+  15 RUN commands
+  positive producer/consumer/runtime path
+  partial seed, nonunit step, narrow bound, second writer, and extra PHI negatives
+  generated 64-byte / 456-witness validation boundary
+
+independent models:
+  benchmark/check_loop_memoryphi_byte_lane_oracles.py
+  benchmark/generate_loop_memoryphi_byte_lane_fixture.py
+  benchmark/benchmark_loop_memoryphi_byte_lane.py
+  test/test_loop_memoryphi_byte_lane_induction.py
+
+schema: symcc-loop-memoryphi-byte-lane-induction-v1
+limits: 256 aliases, 2048 witnesses, 1-byte writer, 1--8-byte load
+runtime authority: concrete path byte-init bitmap, heap live/logical-size, stack frame owner

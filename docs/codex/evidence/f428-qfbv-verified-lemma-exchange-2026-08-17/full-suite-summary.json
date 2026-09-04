@@ -1,0 +1,50 @@
+{
+  "all_passed": true,
+  "concurrent_initialization_stress": {
+    "passed": 200,
+    "runs": 200,
+    "workers_per_run": 4
+  },
+  "llvm17": {
+    "discovered": 312,
+    "failed": 0,
+    "passed": 310,
+    "unresolved": 0,
+    "unsupported": 2
+  },
+  "llvm18": {
+    "discovered": 312,
+    "failed": 0,
+    "passed": 311,
+    "unresolved": 0,
+    "unsupported": 1
+  },
+  "oracles": {
+    "false_authorizations": 0,
+    "fresh_worker_injections_per_run": 5,
+    "negative_rejections_per_run": 4,
+    "runs": 2
+  },
+  "python": {
+    "deselected": 0,
+    "failed": 0,
+    "passed": 1174,
+    "skipped": 0,
+    "subtests_failed": 0,
+    "subtests_passed": 273,
+    "subtests_skipped": 0,
+    "xfailed": 0,
+    "xpassed": 0
+  },
+  "related_python": {
+    "passed": 70,
+    "subtests_passed": 45
+  },
+  "schema": "symcc-f428-full-suite-summary-v1",
+  "targeted": {
+    "lit_llvm17_passed": 1,
+    "lit_llvm18_passed": 1,
+    "python_passed": 7,
+    "python_subtests_passed": 13
+  }
+}

@@ -1,0 +1,179 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1100" viewBox="0 0 1800 1100">
+  <defs>
+    <style>
+      .title { font: 700 42px 'DejaVu Sans', sans-serif; fill: #17202a; }
+      .subtitle { font: 400 21px 'DejaVu Sans', sans-serif; fill: #46515c; }
+      .phase { font: 700 25px 'DejaVu Sans', sans-serif; fill: #17202a; }
+      .label { font: 700 19px 'DejaVu Sans', sans-serif; fill: #17202a; }
+      .body { font: 400 17px 'DejaVu Sans', sans-serif; fill: #26323d; }
+      .small { font: 400 15px 'DejaVu Sans', sans-serif; fill: #46515c; }
+      .mono { font: 500 15px 'DejaVu Sans Mono', monospace; fill: #17202a; }
+      .white { fill: #ffffff; }
+      .line { stroke: #52606d; stroke-width: 3; fill: none; }
+      .dash { stroke: #7b8794; stroke-width: 2; stroke-dasharray: 8 7; fill: none; }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#52606d"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#b42318"/>
+    </marker>
+  </defs>
+
+  <rect width="1800" height="1100" fill="#f7f9fb"/>
+  <rect x="0" y="0" width="1800" height="112" fill="#ffffff"/>
+  <rect x="0" y="108" width="1800" height="4" fill="#167d88"/>
+  <text x="72" y="60" class="title">F440  PalRUP Global Confirmation Pipeline</text>
+  <text x="74" y="91" class="subtitle">Immutable inputs  |  N local checks  |  ceil(sqrt(N))² redistribution  |  N confirmations  |  one global receipt</text>
+
+  <!-- phase headings -->
+  <g>
+    <circle cx="122" cy="176" r="25" fill="#167d88"/>
+    <text x="114" y="184" class="label white">1</text>
+    <text x="161" y="184" class="phase">Snapshot</text>
+
+    <circle cx="476" cy="176" r="25" fill="#2667a8"/>
+    <text x="468" y="184" class="label white">2</text>
+    <text x="515" y="184" class="phase">Local check</text>
+
+    <circle cx="862" cy="176" r="25" fill="#c27b17"/>
+    <text x="854" y="184" class="label white">3</text>
+    <text x="901" y="184" class="phase">Redistribute</text>
+
+    <circle cx="1244" cy="176" r="25" fill="#7257a6"/>
+    <text x="1236" y="184" class="label white">4</text>
+    <text x="1283" y="184" class="phase">Confirm</text>
+
+    <circle cx="1580" cy="176" r="25" fill="#2f7d4c"/>
+    <text x="1572" y="184" class="label white">5</text>
+    <text x="1619" y="184" class="phase">Authorize</text>
+  </g>
+
+  <!-- Snapshot -->
+  <g>
+    <rect x="62" y="225" width="300" height="390" rx="8" fill="#e8f5f5" stroke="#167d88" stroke-width="3"/>
+    <text x="88" y="265" class="label">Anchored input snapshot</text>
+    <rect x="91" y="294" width="242" height="70" rx="6" fill="#ffffff" stroke="#63aeb5" stroke-width="2"/>
+    <text x="112" y="323" class="body">DIMACS formula</text>
+    <text x="112" y="348" class="mono">sha256 + byte count</text>
+    <rect x="91" y="383" width="242" height="139" rx="6" fill="#ffffff" stroke="#63aeb5" stroke-width="2"/>
+    <text x="112" y="413" class="body">N proof fragments</text>
+    <text x="112" y="442" class="mono">0/0/out.palrup</text>
+    <text x="112" y="468" class="mono">... rank / width ...</text>
+    <text x="112" y="494" class="mono">N-1/out.palrup</text>
+    <text x="88" y="557" class="small">O_NOFOLLOW + one descriptor</text>
+    <text x="88" y="581" class="small">per-file and aggregate budgets</text>
+  </g>
+
+  <!-- Local -->
+  <g>
+    <rect x="414" y="225" width="325" height="390" rx="8" fill="#eaf2fb" stroke="#2667a8" stroke-width="3"/>
+    <text x="442" y="265" class="label">N independent processes</text>
+    <g fill="#ffffff" stroke="#6f9bc8" stroke-width="2">
+      <rect x="444" y="298" width="265" height="58" rx="6"/>
+      <rect x="444" y="370" width="265" height="58" rx="6"/>
+      <rect x="444" y="442" width="265" height="58" rx="6"/>
+    </g>
+    <text x="467" y="334" class="mono">local_check rank 0</text>
+    <text x="467" y="406" class="mono">local_check rank i</text>
+    <text x="467" y="478" class="mono">local_check rank N-1</text>
+    <text x="442" y="535" class="small">LRUP hints checked locally</text>
+    <text x="442" y="560" class="small">used imports → proxy streams</text>
+    <text x="442" y="585" class="small">fragment hash + UNSAT witness</text>
+  </g>
+
+  <!-- Matrix -->
+  <g>
+    <rect x="790" y="225" width="330" height="390" rx="8" fill="#fff5e5" stroke="#c27b17" stroke-width="3"/>
+    <text x="817" y="265" class="label">Square routing matrix</text>
+    <text x="817" y="292" class="mono">w = ceil(sqrt(N))</text>
+    <g stroke="#d79b4a" stroke-width="2">
+      <rect x="850" y="325" width="62" height="62" fill="#ffffff"/>
+      <rect x="914" y="325" width="62" height="62" fill="#ffffff"/>
+      <rect x="978" y="325" width="62" height="62" fill="#ffffff"/>
+      <rect x="850" y="389" width="62" height="62" fill="#ffffff"/>
+      <rect x="914" y="389" width="62" height="62" fill="#ffffff"/>
+      <rect x="978" y="389" width="62" height="62" fill="#ffffff"/>
+      <rect x="850" y="453" width="62" height="62" fill="#ffffff"/>
+      <rect x="914" y="453" width="62" height="62" fill="#ffffff"/>
+      <rect x="978" y="453" width="62" height="62" fill="#f3e3c7"/>
+    </g>
+    <g class="mono" text-anchor="middle">
+      <text x="881" y="363">0</text><text x="945" y="363">1</text><text x="1009" y="363">2</text>
+      <text x="881" y="427">3</text><text x="945" y="427">4</text><text x="1009" y="427">5</text>
+      <text x="881" y="491">6</text><text x="945" y="491">7</text><text x="1009" y="491">pad</text>
+    </g>
+    <text x="817" y="552" class="small">merge, deduplicate, route by ID</text>
+    <text x="817" y="577" class="small">w² signed import streams</text>
+  </g>
+
+  <!-- Confirm -->
+  <g>
+    <rect x="1170" y="225" width="315" height="390" rx="8" fill="#f1edf8" stroke="#7257a6" stroke-width="3"/>
+    <text x="1198" y="265" class="label">N confirmation processes</text>
+    <rect x="1200" y="301" width="255" height="83" rx="6" fill="#ffffff" stroke="#9a83bf" stroke-width="2"/>
+    <text x="1221" y="332" class="body">Re-read original fragment</text>
+    <text x="1221" y="359" class="small">match produced/imported clauses</text>
+    <rect x="1200" y="401" width="255" height="83" rx="6" fill="#ffffff" stroke="#9a83bf" stroke-width="2"/>
+    <text x="1221" y="432" class="body">Verify stream signatures</text>
+    <text x="1221" y="459" class="small">proof hash + every column input</text>
+    <rect x="1200" y="501" width="255" height="70" rx="6" fill="#ffffff" stroke="#9a83bf" stroke-width="2"/>
+    <text x="1221" y="530" class="mono">rank/.check_ok</text>
+    <text x="1221" y="555" class="small">created only after success</text>
+  </g>
+
+  <!-- Authorize -->
+  <g>
+    <rect x="1533" y="225" width="220" height="390" rx="8" fill="#eaf6ee" stroke="#2f7d4c" stroke-width="3"/>
+    <text x="1556" y="265" class="label">Exact global gate</text>
+    <circle cx="1571" cy="315" r="11" fill="#2f7d4c"/>
+    <text x="1593" y="321" class="body">all N exits = 0</text>
+    <circle cx="1571" cy="359" r="11" fill="#2f7d4c"/>
+    <text x="1593" y="365" class="body">stderr empty</text>
+    <circle cx="1571" cy="403" r="11" fill="#2f7d4c"/>
+    <text x="1593" y="409" class="body">N exact markers</text>
+    <circle cx="1571" cy="447" r="11" fill="#2f7d4c"/>
+    <text x="1593" y="453" class="body">witness nonempty</text>
+    <circle cx="1571" cy="491" r="11" fill="#2f7d4c"/>
+    <text x="1593" y="497" class="body">byte conservation</text>
+    <rect x="1557" y="530" width="172" height="57" rx="6" fill="#2f7d4c"/>
+    <text x="1643" y="553" class="label white" text-anchor="middle">GLOBAL UNSAT</text>
+    <text x="1643" y="576" class="small white" text-anchor="middle">receipt SHA-256</text>
+  </g>
+
+  <!-- flow arrows -->
+  <path d="M362 420 L414 420" class="line" marker-end="url(#arrow)"/>
+  <path d="M739 420 L790 420" class="line" marker-end="url(#arrow)"/>
+  <path d="M1120 420 L1170 420" class="line" marker-end="url(#arrow)"/>
+  <path d="M1485 420 L1533 420" class="line" marker-end="url(#arrow)"/>
+
+  <!-- receipt content -->
+  <rect x="62" y="675" width="1691" height="164" rx="8" fill="#ffffff" stroke="#66788a" stroke-width="2"/>
+  <text x="91" y="713" class="phase">Content-addressed receipt</text>
+  <line x1="91" y1="729" x2="1722" y2="729" class="dash"/>
+  <line x1="488" y1="746" x2="488" y2="820" stroke="#d7dde3" stroke-width="2"/>
+  <line x1="902" y1="746" x2="902" y2="820" stroke="#d7dde3" stroke-width="2"/>
+  <line x1="1316" y1="746" x2="1316" y2="820" stroke="#d7dde3" stroke-width="2"/>
+  <text x="95" y="766" class="mono">policy_sha256</text>
+  <text x="95" y="792" class="small">fixed commit + exact hashes</text>
+  <text x="95" y="815" class="small">of 3 tools + budgets + strategy</text>
+  <text x="509" y="766" class="mono">bundle_sha256</text>
+  <text x="509" y="792" class="small">formula + ordered fragments</text>
+  <text x="509" y="815" class="small">+ N + routing-matrix shape</text>
+  <text x="923" y="766" class="mono">workspace_sha256</text>
+  <text x="923" y="792" class="small">fragment/proxy/import hashes</text>
+  <text x="923" y="815" class="small">+ exact stage byte totals</text>
+  <text x="1337" y="766" class="mono">phase_result_sha256</text>
+  <text x="1337" y="792" class="small">rank-exact outcomes</text>
+  <text x="1337" y="815" class="small">+ bounded diagnostics/timing</text>
+
+  <!-- fail closed rail -->
+  <rect x="62" y="880" width="1691" height="145" rx="8" fill="#fff0ee" stroke="#b42318" stroke-width="2"/>
+  <text x="91" y="922" class="phase" fill="#8f1d13">Fail-closed authorization rail</text>
+  <text x="92" y="960" class="body">tool replacement  |  symlink or changing input  |  timeout/output flood  |  missing/extra marker  |  empty witness  |  rank/byte mismatch</text>
+  <path d="M1620 940 L1697 940" stroke="#b42318" stroke-width="3" fill="none" marker-end="url(#arrow-red)"/>
+  <rect x="1450" y="978" width="270" height="28" rx="4" fill="#b42318"/>
+  <text x="1585" y="998" class="small white" text-anchor="middle">NO GLOBAL RECEIPT</text>
+
+  <text x="62" y="1070" class="small">Scope: complete official checker mechanism on a shared filesystem. Multi-node scalability, solver speedup, coverage, and defect-yield require separate R-level experiments.</text>
+</svg>

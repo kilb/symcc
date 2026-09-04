@@ -1,0 +1,62 @@
+F419 sealed source contract
+
+Schema:
+  symcc-loop-memoryphi-byte-lane-induction-v9
+
+Capability:
+  bounded-nested-loop-memoryphi-affine-symbolic-value-summary
+
+Dependencies:
+  bounded-symbolic-alias
+  bounded-loop-memoryphi-byte-lane-induction
+  bounded-strided-loop-memoryphi-byte-lane-induction when required
+  bounded-nested-loop-memoryphi-summary-composition
+  bounded-nested-loop-memoryphi-last-write-value-summary
+  bounded-nested-loop-memoryphi-two-dimensional-affine-summary
+
+Address form:
+  the exact F418 two-dimensional affine address domain
+
+Value form:
+  V(o,i,x) = constant + outer_scale*o + inner_scale*i + input_scale*x
+             modulo 2^bits
+
+Sealed limits:
+  exact two-level F418 topology and finite instance domain
+  byte-complete integer store width 8..64 bits
+  same-width ConstantInt, outer IV, inner IV, or at most one entry argument
+  add or multiplication by a direct positive constant
+  expression depth <= 4 and definition in the inner body before the store
+  non-negative constant/coefficient values <= INT64_MAX
+  at least one nonzero symbolic coefficient
+  source nuw/nsw, sub, multiple inputs, cross-block and deep formulas rejected
+
+Input binding:
+  exact argument SSA variable
+  contiguous unique input bytes
+  little-endian identity/zext, shl, or assembly
+  recorded offset and byte count
+
+Last-write order:
+  descending outer induction
+  descending inner induction
+  descending writer ordinal
+
+Activation:
+  outer_bound >= outer_induction_value + 1 AND
+  inner_bound >= inner_induction_value + 1
+
+Value witness:
+  IV terms specialized modulo 2^bits for each writer instance
+  input term remains symbolic
+  byte low_bit derived from target endianness
+  constant writers use constant-byte overlays
+
+Fallback:
+  uninitialized when no case is active, never implicit zero
+  unsupported producer shapes do not receive a partial v9 certificate
+
+Runtime boundary:
+  no loop skipping, memory prefill, or store replacement
+  real loop execution and path-local byte-init bitmap remain authoritative
+

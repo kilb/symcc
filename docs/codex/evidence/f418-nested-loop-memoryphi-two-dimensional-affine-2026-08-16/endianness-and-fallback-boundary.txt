@@ -1,0 +1,19 @@
+Target endianness
+- default/little: i16 0x1234 -> [0x34, 0x12], then i8 0xAA overwrites
+  the first byte; load at the exact writer address returns 0x12AA (4778).
+- real big-endian DataLayout: i16 0x1234 -> [0x12, 0x34], then i8 0xAA
+  overwrites the first byte; load returns 0xAA34 (43572).
+
+Fail-closed producer boundaries
+- dynamic i16 writer value: no v8 value certificate; lowering rejects the
+  otherwise unproved load.
+- non-affine outer_iv * inner_iv index: no v8 affine certificate; lowering
+  rejects the otherwise unproved load.
+- missing or mutated v8 capability, affine coefficient, instance, pair round,
+  value threshold, actual expression, or actual pointer: strict consumer
+  rejects before execution.
+
+Runtime
+- the certificate does not pre-initialize memory.
+- zero/short bounds retain uninitialized or partial paths.
+- real stores and the checkpoint-local initializedness bitmap decide loads.

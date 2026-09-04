@@ -1,0 +1,148 @@
+{
+  "all_ranks_available": false,
+  "claim_boundary": "live no-failure MPI semantic probe on a duplicated communicator; exercises ERRORS_RETURN/Get_failed/Agree/Revoke/Ishrink but does not by itself prove recovery after physical process loss",
+  "distinct_capability_receipts": 1,
+  "identical_library": true,
+  "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+  "rank_capabilities": [
+    {
+      "available": false,
+      "capability_sha256": "d6f542210fed241bda9f32a7680e5da884c81ceae947f8148652c86dc56891d2",
+      "error": "NotImplementedError: ",
+      "error_constants": {
+        "ERR_PROC_FAILED": 75,
+        "ERR_PROC_FAILED_PENDING": 76,
+        "ERR_REVOKED": 77
+      },
+      "mpi_library": "Open MPI v4.1.6, package: Debian OpenMPI, ident: 4.1.6, repo rev: v4.1.6, Sep 30, 2023",
+      "mpi_standard": [
+        3,
+        1
+      ],
+      "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+      "required_methods": [
+        "Set_errhandler",
+        "Get_failed",
+        "Ack_failed",
+        "Agree",
+        "Revoke",
+        "Is_revoked",
+        "Ishrink"
+      ],
+      "schema": "symcc-ulfm-runtime-capability-v1",
+      "semantic_checks": {
+        "agree": true,
+        "errors_return": true,
+        "get_failed": true,
+        "ishrink": false,
+        "post_shrink_agree": false,
+        "revoke": false
+      }
+    },
+    {
+      "available": false,
+      "capability_sha256": "d6f542210fed241bda9f32a7680e5da884c81ceae947f8148652c86dc56891d2",
+      "error": "NotImplementedError: ",
+      "error_constants": {
+        "ERR_PROC_FAILED": 75,
+        "ERR_PROC_FAILED_PENDING": 76,
+        "ERR_REVOKED": 77
+      },
+      "mpi_library": "Open MPI v4.1.6, package: Debian OpenMPI, ident: 4.1.6, repo rev: v4.1.6, Sep 30, 2023",
+      "mpi_standard": [
+        3,
+        1
+      ],
+      "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+      "required_methods": [
+        "Set_errhandler",
+        "Get_failed",
+        "Ack_failed",
+        "Agree",
+        "Revoke",
+        "Is_revoked",
+        "Ishrink"
+      ],
+      "schema": "symcc-ulfm-runtime-capability-v1",
+      "semantic_checks": {
+        "agree": true,
+        "errors_return": true,
+        "get_failed": true,
+        "ishrink": false,
+        "post_shrink_agree": false,
+        "revoke": false
+      }
+    },
+    {
+      "available": false,
+      "capability_sha256": "d6f542210fed241bda9f32a7680e5da884c81ceae947f8148652c86dc56891d2",
+      "error": "NotImplementedError: ",
+      "error_constants": {
+        "ERR_PROC_FAILED": 75,
+        "ERR_PROC_FAILED_PENDING": 76,
+        "ERR_REVOKED": 77
+      },
+      "mpi_library": "Open MPI v4.1.6, package: Debian OpenMPI, ident: 4.1.6, repo rev: v4.1.6, Sep 30, 2023",
+      "mpi_standard": [
+        3,
+        1
+      ],
+      "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+      "required_methods": [
+        "Set_errhandler",
+        "Get_failed",
+        "Ack_failed",
+        "Agree",
+        "Revoke",
+        "Is_revoked",
+        "Ishrink"
+      ],
+      "schema": "symcc-ulfm-runtime-capability-v1",
+      "semantic_checks": {
+        "agree": true,
+        "errors_return": true,
+        "get_failed": true,
+        "ishrink": false,
+        "post_shrink_agree": false,
+        "revoke": false
+      }
+    },
+    {
+      "available": false,
+      "capability_sha256": "d6f542210fed241bda9f32a7680e5da884c81ceae947f8148652c86dc56891d2",
+      "error": "NotImplementedError: ",
+      "error_constants": {
+        "ERR_PROC_FAILED": 75,
+        "ERR_PROC_FAILED_PENDING": 76,
+        "ERR_REVOKED": 77
+      },
+      "mpi_library": "Open MPI v4.1.6, package: Debian OpenMPI, ident: 4.1.6, repo rev: v4.1.6, Sep 30, 2023",
+      "mpi_standard": [
+        3,
+        1
+      ],
+      "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+      "required_methods": [
+        "Set_errhandler",
+        "Get_failed",
+        "Ack_failed",
+        "Agree",
+        "Revoke",
+        "Is_revoked",
+        "Ishrink"
+      ],
+      "schema": "symcc-ulfm-runtime-capability-v1",
+      "semantic_checks": {
+        "agree": true,
+        "errors_return": true,
+        "get_failed": true,
+        "ishrink": false,
+        "post_shrink_agree": false,
+        "revoke": false
+      }
+    }
+  ],
+  "result_sha256": "93488fdc657069ad3901f72a64cab4a3faeff8efcd9fcf2171dfaf785585c3c8",
+  "schema": "symcc-f441-mpi-capability-oracle-v1",
+  "world_size": 4
+}

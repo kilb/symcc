@@ -1,0 +1,5 @@
+command=python3 /usr/lib/llvm-17/build/utils/lit/lit.py -sv build-llvm17/test --filter live_(guarded|collective)_heap_union_initialization
+Total Discovered Tests: 266
+Excluded: 264
+Passed: 2
+Failed: 0

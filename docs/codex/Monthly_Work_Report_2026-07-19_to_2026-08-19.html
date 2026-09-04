@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN" xml:lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>最近一个月工作总结：并行符号执行与混合模糊测试框架</title>
+  <style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+  <style type="text/css">:root {
+--ink: #17212b;
+--muted: #64748b;
+--line: #cbd5e1;
+--panel: #f8fafc;
+--accent: #2563eb;
+--code: #eef2f7;
+}
+html {
+background: #f3f5f7;
+}
+body {
+box-sizing: border-box;
+max-width: 1180px;
+margin: 28px auto;
+padding: 52px 64px 80px;
+color: var(--ink);
+background: white;
+border: 1px solid var(--line);
+font-family: -apple-system, BlinkMacSystemFont, "Noto Sans CJK SC",
+"Microsoft YaHei", sans-serif;
+font-size: 16px;
+line-height: 1.72;
+}
+header {
+margin-bottom: 2.5rem;
+}
+h1,
+h2,
+h3,
+h4 {
+color: var(--ink);
+letter-spacing: 0;
+}
+h1 {
+font-size: 2.15rem;
+}
+h2 {
+margin-top: 3.2rem;
+padding-bottom: 0.45rem;
+border-bottom: 2px solid var(--ink);
+}
+h3 {
+margin-top: 2.4rem;
+}
+a {
+color: var(--accent);
+}
+#TOC {
+margin: 1.5rem 0 3rem;
+padding: 1.3rem 1.6rem;
+border: 1px solid var(--line);
+background: var(--panel);
+}
+#TOC::before {
+display: block;
+margin-bottom: 0.65rem;
+font-size: 1.05rem;
+font-weight: 700;
+content: "目录";
+}
+#TOC ul {
+margin: 0.25rem 0;
+}
+img {
+display: block;
+width: auto;
+max-width: 100%;
+max-height: 920px;
+margin: 1.35rem auto 0.6rem;
+object-fit: contain;
+}
+blockquote {
+margin: 0.75rem 0 1.4rem;
+padding: 0.7rem 1rem;
+color: var(--muted);
+background: var(--panel);
+border-left: 4px solid var(--accent);
+}
+table {
+display: table;
+width: 100%;
+margin: 1.25rem 0 1.8rem;
+font-size: 0.92rem;
+}
+thead {
+background: var(--panel);
+}
+th,
+td {
+padding: 0.48rem 0.62rem;
+border: 1px solid var(--line);
+}
+tbody {
+border: 0;
+}
+code {
+padding: 0.12rem 0.3rem;
+background: var(--code);
+border-radius: 3px;
+}
+pre {
+padding: 1rem 1.15rem;
+background: #111827;
+color: #e5e7eb;
+border-radius: 5px;
+}
+pre code {
+background: transparent;
+}
+@media (max-width: 760px) {
+html {
+background: white;
+}
+body {
+margin: 0;
+padding: 24px 18px 48px;
+border: 0;
+font-size: 15px;
+}
+h1 {
+font-size: 1.8rem;
+}
+table {
+display: block;
+overflow-x: auto;
+}
+}
+@media print {
+html {
+background: white;
+}
+body {
+max-width: none;
+margin: 0;
+padding: 0;
+border: 0;
+font-size: 10.5pt;
+}
+#TOC {
+break-after: page;
+}
+img {
+max-height: 180mm;
+break-inside: avoid;
+}
+}
+</style>
+  <style type="text/css">:root {
+--display-bg: #edf2f7;
+--display-panel: #ffffff;
+--display-soft: #f7fafc;
+--display-ink: #111827;
+--display-muted: #475569;
+--display-line: #d7dee8;
+--display-accent: #0f766e;
+--display-accent-2: #1d4ed8;
+--display-accent-3: #b45309;
+}
+html {
+scroll-behavior: smooth;
+background:
+linear-gradient(180deg, #e6edf5 0%, #f7fafc 38%, #ffffff 100%);
+}
+body {
+max-width: 1260px;
+margin: 26px auto;
+padding: 48px 72px 88px;
+border-color: #d5dde8;
+border-radius: 8px;
+box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
+}
+header {
+margin: -8px 0 2.2rem;
+padding: 0 0 1.35rem;
+border-bottom: 1px solid var(--display-line);
+}
+header h1 {
+max-width: 980px;
+margin-bottom: 0.7rem;
+color: var(--display-ink);
+font-size: 2.35rem;
+line-height: 1.18;
+}
+p,
+li {
+color: var(--display-ink);
+}
+p:first-of-type {
+color: var(--display-muted);
+}
+#TOC {
+margin: 1.4rem 0 3rem;
+padding: 1.15rem 1.35rem;
+border: 1px solid var(--display-line);
+border-left: 5px solid var(--display-accent);
+border-radius: 8px;
+background:
+linear-gradient(135deg, rgba(15, 118, 110, 0.08), rgba(29, 78, 216, 0.06)),
+var(--display-soft);
+}
+#TOC::before {
+color: var(--display-ink);
+font-size: 1.05rem;
+}
+#TOC ul {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+gap: 0.08rem 1.1rem;
+padding-left: 0;
+list-style: none;
+}
+#TOC li {
+margin: 0;
+}
+#TOC a {
+display: block;
+padding: 0.14rem 0.28rem;
+border-radius: 4px;
+color: #174ea6;
+text-decoration: none;
+}
+#TOC a:hover {
+background: rgba(255, 255, 255, 0.75);
+text-decoration: underline;
+}
+h2 {
+display: flex;
+align-items: center;
+gap: 0.65rem;
+margin-top: 3.4rem;
+border-bottom-color: #1f2937;
+font-size: 1.55rem;
+}
+h2::before {
+display: inline-block;
+flex: 0 0 auto;
+width: 0.42rem;
+height: 1.65rem;
+border-radius: 2px;
+background: var(--display-accent);
+content: "";
+}
+h3 {
+margin-top: 2.2rem;
+padding-left: 0.72rem;
+border-left: 4px solid rgba(29, 78, 216, 0.75);
+}
+h4 {
+margin-top: 1.6rem;
+color: #243447;
+}
+img {
+margin-top: 1.2rem;
+padding: 0.75rem;
+border: 1px solid var(--display-line);
+border-radius: 8px;
+background: #ffffff;
+box-shadow: 0 12px 34px rgba(15, 23, 42, 0.08);
+}
+table {
+border-collapse: collapse;
+border-radius: 8px;
+overflow: hidden;
+box-shadow: 0 1px 0 var(--display-line);
+}
+thead {
+background: #eef6f5;
+}
+th {
+color: #102a43;
+font-weight: 700;
+}
+tbody tr:nth-child(even) {
+background: #fbfdff;
+}
+tbody tr:hover {
+background: #f2f8ff;
+}
+th,
+td {
+vertical-align: top;
+}
+blockquote {
+border-left-color: var(--display-accent-3);
+border-radius: 0 6px 6px 0;
+}
+code {
+color: #17324d;
+}
+pre {
+overflow-x: auto;
+}
+a {
+text-underline-offset: 0.16em;
+}
+@media (min-width: 1100px) {
+body {
+position: relative;
+}
+#TOC {
+position: sticky;
+top: 16px;
+z-index: 2;
+}
+}
+@media (max-width: 760px) {
+body {
+margin: 0;
+padding: 22px 18px 48px;
+border-radius: 0;
+box-shadow: none;
+}
+header h1 {
+font-size: 1.85rem;
+}
+#TOC ul {
+grid-template-columns: 1fr;
+}
+img {
+padding: 0.35rem;
+}
+}
+@media print {
+html,
+body {
+background: #ffffff;
+box-shadow: none;
+}
+body {
+margin: 0;
+padding: 0;
+border-radius: 0;
+}
+#TOC {
+position: static;
+border-left-width: 3px;
+}
+h2 {
+break-after: avoid;
+}
+table,
+img,
+blockquote {
+break-inside: avoid;
+box-shadow: none;
+}
+}
+</style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">最近一个月工作总结：并行符号执行与混合模糊测试框架</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#总体结论" id="toc-总体结论">1. 总体结论</a></li>
+<li><a href="#本月工作规模与证据基线" id="toc-本月工作规模与证据基线">2.
+本月工作规模与证据基线</a></li>
+<li><a href="#技术主线一并行符号执行控制面与调度协议" id="toc-技术主线一并行符号执行控制面与调度协议">3.
+技术主线一：并行符号执行控制面与调度协议</a>
+<ul>
+<li><a href="#从-rank-级控制走向-generation-fenced-dispatch" id="toc-从-rank-级控制走向-generation-fenced-dispatch">3.1 从 rank
+级控制走向 generation-fenced dispatch</a></li>
+<li><a href="#共享文件系统cas-与-querystore-基础设施" id="toc-共享文件系统cas-与-querystore-基础设施">3.2 共享文件系统、CAS 与
+QueryStore 基础设施</a></li>
+</ul></li>
+<li><a href="#技术主线二hybrid-aflsymcc-反馈与覆盖率归因" id="toc-技术主线二hybrid-aflsymcc-反馈与覆盖率归因">4.
+技术主线二：Hybrid AFL/SymCC 反馈与覆盖率归因</a>
+<ul>
+<li><a href="#afl-native-peer-与在线协同" id="toc-afl-native-peer-与在线协同">4.1 AFL++ native peer
+与在线协同</a></li>
+<li><a href="#覆盖率-oracle从测到覆盖到可信归因" id="toc-覆盖率-oracle从测到覆盖到可信归因">4.2 覆盖率
+oracle：从“测到覆盖”到“可信归因”</a></li>
+<li><a href="#directed-utility-replaytopseed-与自适应调度" id="toc-directed-utility-replaytopseed-与自适应调度">4.3 Directed
+utility replay、TopSeed 与自适应调度</a></li>
+</ul></li>
+<li><a href="#技术主线三约束求解复用qf_bv-证明与-solver-体系" id="toc-技术主线三约束求解复用qf_bv-证明与-solver-体系">5.
+技术主线三：约束求解复用、QF_BV 证明与 solver 体系</a>
+<ul>
+<li><a href="#经验值域与-profile-guided-solving" id="toc-经验值域与-profile-guided-solving">5.1 经验值域与 profile-guided
+solving</a></li>
+<li><a href="#qf_bv-cross-worker-context-与-proof-carrying-体系" id="toc-qf_bv-cross-worker-context-与-proof-carrying-体系">5.2 QF_BV
+cross-worker context 与 proof-carrying 体系</a></li>
+</ul></li>
+<li><a href="#技术主线四backsolververitestingcontinuation-与内存循环摘要" id="toc-技术主线四backsolververitestingcontinuation-与内存循环摘要">6.
+技术主线四：Backsolver、Veritesting、Continuation 与内存/循环摘要</a>
+<ul>
+<li><a href="#agolic-bse-与-selective-concolic" id="toc-agolic-bse-与-selective-concolic">6.1 Agolic BSE 与 selective
+concolic</a></li>
+<li><a href="#exceptionexternal-model-与-ucsanunder-constrained-支撑" id="toc-exceptionexternal-model-与-ucsanunder-constrained-支撑">6.2
+Exception、external model 与 UCSan/under-constrained 支撑</a></li>
+<li><a href="#memoryphiheap-union-与-loop-summary" id="toc-memoryphiheap-union-与-loop-summary">6.3 MemoryPhi、heap union
+与 loop summary</a></li>
+</ul></li>
+<li><a href="#技术主线五benchmark实验和-testcase-矩阵" id="toc-技术主线五benchmark实验和-testcase-矩阵">7.
+技术主线五：Benchmark、实验和 testcase 矩阵</a>
+<ul>
+<li><a href="#当前实现评估" id="toc-当前实现评估">7.1 2026-07-30
+当前实现评估</a></li>
+<li><a href="#并行与-hybrid-展示结果" id="toc-并行与-hybrid-展示结果">7.2 2026-08-19 并行与 hybrid
+展示结果</a></li>
+<li><a href="#新增-testcase-registry" id="toc-新增-testcase-registry">7.3 新增 testcase registry</a></li>
+</ul></li>
+<li><a href="#文档图表与交付材料" id="toc-文档图表与交付材料">8.
+文档、图表与交付材料</a></li>
+<li><a href="#主要成果归纳" id="toc-主要成果归纳">9. 主要成果归纳</a>
+<ul>
+<li><a href="#工程成果" id="toc-工程成果">9.1 工程成果</a></li>
+<li><a href="#科研成果" id="toc-科研成果">9.2 科研成果</a></li>
+<li><a href="#实验成果" id="toc-实验成果">9.3 实验成果</a></li>
+</ul></li>
+<li><a href="#风险边界与未完成工作" id="toc-风险边界与未完成工作">10.
+风险、边界与未完成工作</a></li>
+<li><a href="#下阶段建议" id="toc-下阶段建议">11. 下阶段建议</a>
+<ul>
+<li><a href="#p0巩固当前可汇报结果" id="toc-p0巩固当前可汇报结果">P0：巩固当前可汇报结果</a></li>
+<li><a href="#p1接入论文强候选" id="toc-p1接入论文强候选">P1：接入论文强候选</a></li>
+<li><a href="#p2建立论文级-benchmark" id="toc-p2建立论文级-benchmark">P2：建立论文级 benchmark</a></li>
+</ul></li>
+<li><a href="#证据索引" id="toc-证据索引">12. 证据索引</a></li>
+</ul>
+</nav>
+<p>时间范围：2026-07-19 至 2026-08-19<br />
+项目目录：<code>/home/ubuntu/code/symcc</code><br />
+撰写目的：汇总最近一个月围绕并行符号执行、hybrid
+fuzzing、约束求解复用、benchmark
+和科研交付开展的工作，明确工作内容、技术成果、实验结果、证据边界和下一步计划。</p>
+<figure>
+<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjQwIiBoZWlnaHQ9Ijc2MCIgdmlld0JveD0iMCAwIDEyNDAgNzYwIj4KICA8ZGVmcz4KICAgIDxzdHlsZT4KICAgICAgLmJnIHsgZmlsbDogI2Y1ZjdmYjsgfQogICAgICAuY2FyZCB7IGZpbGw6ICNmZmZmZmY7IHN0cm9rZTogI2Q3ZGVlYTsgc3Ryb2tlLXdpZHRoOiAxOyByeDogODsgfQogICAgICAudGl0bGUgeyBmb250OiA3MDAgMjVweCBBcmlhbCwgc2Fucy1zZXJpZjsgZmlsbDogIzE3MjAzMzsgfQogICAgICAuc3VidGl0bGUgeyBmb250OiAxNHB4IEFyaWFsLCBzYW5zLXNlcmlmOyBmaWxsOiAjNTM2MDc1OyB9CiAgICAgIC5oZWFkIHsgZm9udDogNzAwIDE3cHggQXJpYWwsIHNhbnMtc2VyaWY7IGZpbGw6ICMxNzIwMzM7IH0KICAgICAgLmxhYmVsIHsgZm9udDogMTNweCBBcmlhbCwgc2Fucy1zZXJpZjsgZmlsbDogIzJiMzQ0NTsgfQogICAgICAuc21hbGwgeyBmb250OiAxMnB4IEFyaWFsLCBzYW5zLXNlcmlmOyBmaWxsOiAjNTM2MDc1OyB9CiAgICAgIC5tZXRyaWMgeyBmb250OiA3MDAgMTVweCBBcmlhbCwgc2Fucy1zZXJpZjsgZmlsbDogIzE3MjAzMzsgfQogICAgICAubGluZSB7IHN0cm9rZTogI2Q3ZGVlYTsgc3Ryb2tlLXdpZHRoOiAxOyB9CiAgICA8L3N0eWxlPgogIDwvZGVmcz4KICA8cmVjdCBjbGFzcz0iYmciIHdpZHRoPSIxMjQwIiBoZWlnaHQ9Ijc2MCIvPgogIDx0ZXh0IHg9IjQyIiB5PSI0OCIgY2xhc3M9InRpdGxlIj5Nb250aGx5IFByb2dyZXNzOiBQYXJhbGxlbCBTeW1ib2xpYyBFeGVjdXRpb24gYW5kIEh5YnJpZCBGdXp6aW5nPC90ZXh0PgogIDx0ZXh0IHg9IjQyIiB5PSI3NCIgY2xhc3M9InN1YnRpdGxlIj4yMDI2LTA3LTE5IHRvIDIwMjYtMDgtMTkuIE1lY2hhbmlzbSBldmlkZW5jZSwgYmVuY2htYXJrIHJlc3VsdHMsIGFuZCBuZXh0IGludGVncmF0aW9uIHRhcmdldHMuPC90ZXh0PgoKICA8cmVjdCB4PSI0MiIgeT0iMTA1IiB3aWR0aD0iMjcwIiBoZWlnaHQ9IjEzNSIgY2xhc3M9ImNhcmQiLz4KICA8dGV4dCB4PSI2NiIgeT0iMTM3IiBjbGFzcz0iaGVhZCI+U2NhbGU8L3RleHQ+CiAgPHRleHQgeD0iNjYiIHk9IjE2NiIgY2xhc3M9Im1ldHJpYyI+RjI5Ny1GNDQxPC90ZXh0PgogIDx0ZXh0IHg9IjY2IiB5PSIxOTAiIGNsYXNzPSJsYWJlbCI+ZmVhdHVyZSBzdHJlYW0gYWR2YW5jZWQ8L3RleHQ+CiAgPHRleHQgeD0iNjYiIHk9IjIxNiIgY2xhc3M9InNtYWxsIj4xNDAgRi1udW1iZXIgcmVzZWFyY2gvYXVkaXQgZG9jcyBpbiByZXNlYXJjaC1wcm9ncmVzczwvdGV4dD4KCiAgPHJlY3QgeD0iMzM1IiB5PSIxMDUiIHdpZHRoPSIyNzAiIGhlaWdodD0iMTM1IiBjbGFzcz0iY2FyZCIvPgogIDx0ZXh0IHg9IjM1OSIgeT0iMTM3IiBjbGFzcz0iaGVhZCI+TGF0ZXN0IEdhdGU8L3RleHQ+CiAgPHRleHQgeD0iMzU5IiB5PSIxNjYiIGNsYXNzPSJtZXRyaWMiPjEzMzcgKyAzMTA8L3RleHQ+CiAgPHRleHQgeD0iMzU5IiB5PSIxOTAiIGNsYXNzPSJsYWJlbCI+UHl0aG9uIHRlc3RzIGFuZCBzdWJ0ZXN0czwvdGV4dD4KICA8dGV4dCB4PSIzNTkiIHk9IjIxNiIgY2xhc3M9InNtYWxsIj5MTFZNMTc6IDMyOSBwYXNzZWQ7IExMVk0xODogMzMwIHBhc3NlZDwvdGV4dD4KCiAgPHJlY3QgeD0iNjI4IiB5PSIxMDUiIHdpZHRoPSIyNzAiIGhlaWdodD0iMTM1IiBjbGFzcz0iY2FyZCIvPgogIDx0ZXh0IHg9IjY1MiIgeT0iMTM3IiBjbGFzcz0iaGVhZCI+UGFyYWxsZWwgU2NhbGluZzwvdGV4dD4KICA8dGV4dCB4PSI2NTIiIHk9IjE2NiIgY2xhc3M9Im1ldHJpYyI+KzI3LjElPC90ZXh0PgogIDx0ZXh0IHg9IjY1MiIgeT0iMTkwIiBjbGFzcz0ibGFiZWwiPnN5bnRoZXRpYyBucDE2IHZzIG5wMiBlZGdlIGNvdmVyYWdlPC90ZXh0PgogIDx0ZXh0IHg9IjY1MiIgeT0iMjE2IiBjbGFzcz0ic21hbGwiPmNhbmRpZGF0ZXM6IDI2ODggdnMgOTc0PC90ZXh0PgoKICA8cmVjdCB4PSI5MjEiIHk9IjEwNSIgd2lkdGg9IjI3NyIgaGVpZ2h0PSIxMzUiIGNsYXNzPSJjYXJkIi8+CiAgPHRleHQgeD0iOTQ1IiB5PSIxMzciIGNsYXNzPSJoZWFkIj5IeWJyaWQgUG9zaXRpdmU8L3RleHQ+CiAgPHRleHQgeD0iOTQ1IiB5PSIxNjYiIGNsYXNzPSJtZXRyaWMiPis1MC4zJTwvdGV4dD4KICA8dGV4dCB4PSI5NDUiIHk9IjE5MCIgY2xhc3M9ImxhYmVsIj5MQVZBIGJhc2U2NCBoeWJyaWQgdnMgQUZMLW9ubHk8L3RleHQ+CiAgPHRleHQgeD0iOTQ1IiB5PSIyMTYiIGNsYXNzPSJzbWFsbCI+MjMwIGVkZ2VzIHZzIDE1MyBlZGdlczwvdGV4dD4KCiAgPHJlY3QgeD0iNDIiIHk9IjI3NSIgd2lkdGg9IjExNTYiIGhlaWdodD0iMjEwIiBjbGFzcz0iY2FyZCIvPgogIDx0ZXh0IHg9IjY2IiB5PSIzMDkiIGNsYXNzPSJoZWFkIj5NYWluIHRlY2huaWNhbCB0cmFja3M8L3RleHQ+CiAgPGxpbmUgeDE9IjY2IiB5MT0iMzI4IiB4Mj0iMTE3NCIgeTI9IjMyOCIgY2xhc3M9ImxpbmUiLz4KICA8Y2lyY2xlIGN4PSI4MCIgY3k9IjM2MCIgcj0iNiIgZmlsbD0iIzJmNmZlZCIvPgogIDx0ZXh0IHg9Ijk4IiB5PSIzNjUiIGNsYXNzPSJsYWJlbCI+TVBJIGNvbnRyb2wgcGxhbmUgYW5kIHJlY292ZXJ5PC90ZXh0PgogIDx0ZXh0IHg9IjM3MCIgeT0iMzY1IiBjbGFzcz0ic21hbGwiPmxlYXNlcywgdGFyZ2V0IGZlbmNpbmcsIGdlbmVyYXRpb24gdG9rZW5zLCBib3VuZGVkIHNodXRkb3duLCBVTEZNIDQgdG8gMyByZWNvdmVyeTwvdGV4dD4KICA8Y2lyY2xlIGN4PSI4MCIgY3k9IjM5NSIgcj0iNiIgZmlsbD0iIzIzYTI2ZCIvPgogIDx0ZXh0IHg9Ijk4IiB5PSI0MDAiIGNsYXNzPSJsYWJlbCI+SHlicmlkIEFGTC9TeW1DQyBmZWVkYmFjazwvdGV4dD4KICA8dGV4dCB4PSIzNzAiIHk9IjQwMCIgY2xhc3M9InNtYWxsIj5uYXRpdmUgQUZMIHBlZXIsIGZhaWwtY2xvc2VkIGNvdmVyYWdlIG9yYWNsZSwgVG9wU2VlZCwgZGl2ZXJzaXR5L2RlbnNpdHkgYmFsYW5jaW5nPC90ZXh0PgogIDxjaXJjbGUgY3g9IjgwIiBjeT0iNDMwIiByPSI2IiBmaWxsPSIjZWY4YjM2Ii8+CiAgPHRleHQgeD0iOTgiIHk9IjQzNSIgY2xhc3M9ImxhYmVsIj5RRl9CViBwcm9vZiBhbmQgc29sdmVyIHJldXNlPC90ZXh0PgogIDx0ZXh0IHg9IjM3MCIgeT0iNDM1IiBjbGFzcz0ic21hbGwiPmNyb3NzLXdvcmtlciBjb250ZXh0cywgcHJvb2YgcmVjZWlwdHMsIGxlbW1hIGV4Y2hhbmdlLCByZWFsdGltZSBwcm9vZiBzdHJlYW0sIFBhbFJVUCB3aXJlPC90ZXh0PgogIDxjaXJjbGUgY3g9IjgwIiBjeT0iNDY1IiByPSI2IiBmaWxsPSIjN2M4ZGE2Ii8+CiAgPHRleHQgeD0iOTgiIHk9IjQ3MCIgY2xhc3M9ImxhYmVsIj5CYWNrc29sdmVyLCBjb250aW51YXRpb24sIE1lbW9yeVBoaTwvdGV4dD4KICA8dGV4dCB4PSIzNzAiIHk9IjQ3MCIgY2xhc3M9InNtYWxsIj5BZ29saWMgQlNFLCBzZWxlY3RpdmUgY29uY29saWMgTURQLCBoZWFwIHVuaW9uLCBuZXN0ZWQtbG9vcCBzdW1tYXJpZXMsIGV4ZWN1dGFibGUgdHJhbnNmZXI8L3RleHQ+CgogIDxyZWN0IHg9IjQyIiB5PSI1MjAiIHdpZHRoPSI1NjUiIGhlaWdodD0iMTcyIiBjbGFzcz0iY2FyZCIvPgogIDx0ZXh0IHg9IjY2IiB5PSI1NTIiIGNsYXNzPSJoZWFkIj5CZW5jaG1hcmsgcmVzdWx0czwvdGV4dD4KICA8bGluZSB4MT0iNjYiIHkxPSI1NzEiIHgyPSI1ODIiIHkyPSI1NzEiIGNsYXNzPSJsaW5lIi8+CiAgPHRleHQgeD0iNjYiIHk9IjYwMSIgY2xhc3M9ImxhYmVsIj5nZnRzLXhtbCBucDE2PC90ZXh0PgogIDx0ZXh0IHg9IjI1MCIgeT0iNjAxIiBjbGFzcz0ibWV0cmljIj4zNDQxIGVkZ2VzPC90ZXh0PgogIDx0ZXh0IHg9IjM2MCIgeT0iNjAxIiBjbGFzcz0ic21hbGwiPnNlZWQ6IDIzMTAgZWRnZXM8L3RleHQ+CiAgPHRleHQgeD0iNjYiIHk9IjYzMiIgY2xhc3M9ImxhYmVsIj5wY3JlMiB0dW5lZCB2cyBsZWdhY3k8L3RleHQ+CiAgPHRleHQgeD0iMjUwIiB5PSI2MzIiIGNsYXNzPSJtZXRyaWMiPjUwLjIwJSB2cyA0Ny4wMSU8L3RleHQ+CiAgPHRleHQgeD0iNjYiIHk9IjY2MyIgY2xhc3M9ImxhYmVsIj5saWJhcmNoaXZlIHR1bmVkPC90ZXh0PgogIDx0ZXh0IHg9IjI1MCIgeT0iNjYzIiBjbGFzcz0ibWV0cmljIj4yMC45NCU8L3RleHQ+CiAgPHRleHQgeD0iMzYwIiB5PSI2NjMiIGNsYXNzPSJzbWFsbCI+QUZMLW9ubHk6IDIwLjg3JTwvdGV4dD4KCiAgPHJlY3QgeD0iNjMzIiB5PSI1MjAiIHdpZHRoPSI1NjUiIGhlaWdodD0iMTcyIiBjbGFzcz0iY2FyZCIvPgogIDx0ZXh0IHg9IjY1NyIgeT0iNTUyIiBjbGFzcz0iaGVhZCI+RXZpZGVuY2UgYm91bmRhcnk8L3RleHQ+CiAgPGxpbmUgeDE9IjY1NyIgeTE9IjU3MSIgeDI9IjExNzQiIHkyPSI1NzEiIGNsYXNzPSJsaW5lIi8+CiAgPHRleHQgeD0iNjU3IiB5PSI2MDEiIGNsYXNzPSJsYWJlbCI+TWVjaGFuaXNtIGV2aWRlbmNlPC90ZXh0PgogIDx0ZXh0IHg9Ijg1MCIgeT0iNjAxIiBjbGFzcz0ic21hbGwiPm5vdCBnZW5lcmFsaXplZCBhcyBzcGVlZHVwIG9yIGJ1ZyB5aWVsZDwvdGV4dD4KICA8dGV4dCB4PSI2NTciIHk9IjYzMiIgY2xhc3M9ImxhYmVsIj5CZW5jaG1hcmsgcG9zaXRpdmVzPC90ZXh0PgogIDx0ZXh0IHg9Ijg1MCIgeT0iNjMyIiBjbGFzcz0ic21hbGwiPnJlcG9ydGVkIG9ubHkgZm9yIG1lYXN1cmVkIGxvY2FsIHRhcmdldHM8L3RleHQ+CiAgPHRleHQgeD0iNjU3IiB5PSI2NjMiIGNsYXNzPSJsYWJlbCI+TmV4dCB0YXJnZXRzPC90ZXh0PgogIDx0ZXh0IHg9Ijg1MCIgeT0iNjYzIiBjbGFzcz0ic21hbGwiPnRjcGR1bXAsIGJpbnV0aWxzLCBiZW50bywgTWFnbWEsIEZ1enpCZW5jaDwvdGV4dD4KCiAgPHRleHQgeD0iNDIiIHk9IjczMCIgY2xhc3M9InN1YnRpdGxlIj5BbGwgbWV0cmljcyBhcmUgbG9jYWwgZXZpZGVuY2UgZnJvbSB0aGUgd29ya3NwYWNlIGFuZCBiZW5jaG1hcmsvZXZpZGVuY2UgZGlyZWN0b3JpZXM7IGxpdGVyYXR1cmUtYmFja2VkIGNhbmRpZGF0ZXMgYXJlIHRyYWNrZWQgc2VwYXJhdGVseS48L3RleHQ+Cjwvc3ZnPgo=" alt="monthly work summary" />
+<figcaption aria-hidden="true">monthly work summary</figcaption>
+</figure>
+<h2 id="总体结论">1. 总体结论</h2>
+<p>最近一个月的工作把项目从“已有并行混合符号执行原型”推进到“有可审计调度协议、有稳定
+benchmark 证据、有求解复用与证明交换机制、有公开 testcase
+矩阵”的研究系统。核心成果可以概括为五点：</p>
+<ol type="1">
+<li><p><strong>并行框架进入高可信闭环阶段。</strong><br />
+围绕 MPI master/worker、target-group lease、work lease、READY/RESULT
+generation token、deferred journal、shutdown quiescence、cross-host lock
+qualification、ULFM recovery
+等机制，完成了从任务准入、派发、执行、结果提交、失败恢复到关闭的完整控制面加固。最新
+F441 证据显示，本地 Open MPI 5.0.10/ULFM 环境下可以完成 4 rank 到 3 rank
+的真实进程失效恢复。</p></li>
+<li><p><strong>hybrid fuzzing
+反馈链路从“能跑”推进到“能解释、能归因、能消融”。</strong><br />
+修复了 persistent target 下 SymCC 输出为 0、TopSeed/frontier showmap
+过慢、AFL queue 全量扫描拖慢短跑、AFL data coverage/hint mutator 在
+persistent 目标上拖垮 AFL 主吞吐等问题。pcre2 消融显示 tuned adaptive
+hybrid 相比 legacy hybrid 覆盖从 <code>47.01%</code> 提升到
+<code>50.20%</code>，AFL executions 从 <code>2,279,949</code> 提升到
+<code>21,575,645</code>。</p></li>
+<li><p><strong>约束求解从单机 cache 推进到跨 worker、可验证、可回收的
+QF_BV proof/data 体系。</strong><br />
+F426-F441 系列实现了 cross-worker incremental QF_BV
+context、proof-carrying UNSAT receipt、verified learned lemma
+exchange、artifact lifecycle、native solver-state fork、变量替换
+UNSAT-core 复用、incremental SAT proof DAG、realtime checked proof
+stream、adaptive proof admission、clause activity
+telemetry、utility-aware proof-worker pairing、malleable worker
+pool、PalRUP proof-wire 与 ULFM recovery。多数结论是 I/T/E-local 或
+I/T/E-mechanism 级别，明确不外推为公开目标 speedup 或 bug
+yield。</p></li>
+<li><p><strong>Backsolver/Veritesting/Continuation/MemoryPhi
+方向形成一条可执行的编译期到运行期路径摘要链。</strong><br />
+F374-F425 围绕 Agolic BSE、exception semantics、external
+models、byte-lane writer
+graph、ConDPOR、UCSan、ParaSuit/Cottontail、live-state path
+cover、TopSeed、heap union initialization、MemorySSA/AA、loop-carried
+MemoryPhi、nested loop affine/piecewise summaries、executable loop
+summary transfer
+等方向，补齐了大量“可证明才接纳”的受限语义机制。</p></li>
+<li><p><strong>benchmark 与汇报材料显著增强。</strong><br />
+当前已经形成
+<code>synthetic-parallel_scaling</code>、<code>gfts-xml_read_fuzzer</code>、<code>lava-base64</code>、<code>pcre2-pcre2_fuzzer</code>、<code>libarchive-archive_fuzzer</code>、<code>gfts-png_read_fuzzer</code>
+等多层 testcase。并补充了 QSYM、PANGOLIN、CoFuzz/S2F、FuzzBench、Magma
+的公开 case
+registry，区分本地实测正例、弱正例、负例和下一阶段接入候选。</p></li>
+</ol>
+<h2 id="本月工作规模与证据基线">2. 本月工作规模与证据基线</h2>
+<p>本报告的证据来自本地文档、研究进展归档、benchmark evidence
+和回归测试结果。最近一个月内，项目文档和证据的主要规模如下：</p>
+<table>
+<colgroup>
+<col style="width: 42%" />
+<col style="width: 57%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>类别</th>
+<th style="text-align: right;">结果</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>功能推进范围</td>
+<td style="text-align: right;">研发流水线推进到
+<code>F441</code>；F297-F319 在 2026-08-07 同步报告中归档，F309-F441
+有独立研究进展或审计记录</td>
+</tr>
+<tr class="even">
+<td><code>docs/codex/research-progress</code> 中 F
+编号研究/审计文档</td>
+<td style="text-align: right;">140 份</td>
+</tr>
+<tr class="odd">
+<td>研究进展日期覆盖</td>
+<td style="text-align: right;">2026-08-07 至 2026-08-19</td>
+</tr>
+<tr class="even">
+<td>最新完整 Python 门禁</td>
+<td style="text-align: right;"><code>1337 passed + 310 subtests</code>，node-id
+<code>1337/1337</code></td>
+</tr>
+<tr class="odd">
+<td>最新 LLVM17 lit</td>
+<td style="text-align: right;">331 discovered，329 passed，2 expected
+unsupported</td>
+</tr>
+<tr class="even">
+<td>最新 LLVM18 lit</td>
+<td style="text-align: right;">331 discovered，330 passed，1 expected
+unsupported</td>
+</tr>
+<tr class="odd">
+<td>最新真实 MPI/ULFM 机制证据</td>
+<td style="text-align: right;">Open MPI 5.0.10，4 rank capability
+全通过，真实 rank 退出后 world <code>4 -&gt; 3</code></td>
+</tr>
+<tr class="even">
+<td>当前主要 benchmark evidence</td>
+<td style="text-align: right;"><code>benchmark/evidence/current-advantage-2026-08-19/</code>、<code>hybrid-advantage-*</code>、<code>public-xml-parallel-r3-*</code>、<code>showcase-supplement-*</code></td>
+</tr>
+</tbody>
+</table>
+<p>需要强调：这些数字是工程和机制验证规模，不等同于“性能提升百分比”。凡是没有公开目标、等
+CPU、多轮统计或 bug oracle 的结果，本文均按机制证据处理。</p>
+<h2 id="技术主线一并行符号执行控制面与调度协议">3.
+技术主线一：并行符号执行控制面与调度协议</h2>
+<h3 id="从-rank-级控制走向-generation-fenced-dispatch">3.1 从 rank
+级控制走向 generation-fenced dispatch</h3>
+<p>早期 MPI 执行可以把 seed 分发给 worker
+并收集候选，但长期运行会遇到几个实际问题：worker 迟到结果、rank
+复用、target 重复求解、跨 master 竞争、shutdown
+阶段阻塞、租约泄漏、共享文件系统故障和 coordinator 重启。最近一个月的
+F309-F319 与后续 F320-F358 主要解决这些控制面问题。</p>
+<p>关键实现包括：</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>方向</th>
+<th>代表功能</th>
+<th>工作内容</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>在途目标可见性</td>
+<td>F309</td>
+<td>将未完成 target solve 纳入调度状态，避免多个 worker 对同一 target
+group 重复求解</td>
+</tr>
+<tr class="even">
+<td>事务式准入</td>
+<td>F310</td>
+<td>将 proposal、lease admission、attempt/cooldown commit
+分离，只有真正派发的任务才更新统计</td>
+</tr>
+<tr class="odd">
+<td>跨协调器 fencing</td>
+<td>F311</td>
+<td>target-only shared lease，防止多 master 对同一 target group
+并发求解</td>
+</tr>
+<tr class="even">
+<td>失败原子 heartbeat</td>
+<td>F312</td>
+<td>group heartbeat 任一成员失败时回滚已写成员，单条租约 I/O
+故障不终止整个 coordinator</td>
+</tr>
+<tr class="odd">
+<td>事务化 MPI 派发</td>
+<td>F313</td>
+<td>PREPARING/ACTIVE/COMMITTING/COMMITTED 状态机，集中管理派发中占用的
+work/state/target/solver 资源</td>
+</tr>
+<tr class="even">
+<td>重启安全本地租约</td>
+<td>F314</td>
+<td>work/state lease 单 owner，monotonic 时间迁移为 unix clock，旧 rank
+所有权不跨重启生效</td>
+</tr>
+<tr class="odd">
+<td>派发代次 token</td>
+<td>F315</td>
+<td>per-dispatch generation token，任何 RESULT 消费前先验证
+current/unowned/stale/malformed</td>
+</tr>
+<tr class="even">
+<td>READY/RESULT 恢复</td>
+<td>F316</td>
+<td>READY 回显代次，同代 invalid RESULT 与 READY
+汇合后才进行补偿和重排队</td>
+</tr>
+<tr class="odd">
+<td>dispatch watchdog</td>
+<td>F317</td>
+<td>generation-fenced watchdog 处理完全静默 ACTIVE 派发，区分任务迁移和
+endpoint 恢复</td>
+</tr>
+<tr class="even">
+<td>有界 shutdown</td>
+<td>F318/F319</td>
+<td>tokenized STOP、cleanup ACK、有界 Ibarrier、共享 MPI
+lifecycle，避免关闭阶段无界等待</td>
+</tr>
+</tbody>
+</table>
+<p>这些改动的直接价值是把“worker
+返回了一个结果”拆成多个可验证事实：是否属于当前派发、是否仍持有
+lease、是否通过输入/coverage/telemetry
+预验证、是否能够提交、失败时是否完整补偿。并行系统的正确性不再依赖 rank
+本身，而是依赖 generation、lease、content digest 和状态机。</p>
+<h3 id="共享文件系统cas-与-querystore-基础设施">3.2 共享文件系统、CAS 与
+QueryStore 基础设施</h3>
+<p>F320-F373 进一步加固了分布式文件系统和 QueryStore
+作为跨进程证据总线的可信边界。主要成果包括：</p>
+<ul>
+<li>全局任务所有权、frontier prepare、result manifest replay、directory
+durability barriers、heartbeat group commit；</li>
+<li>shared filesystem capability contract、path-specific filesystem
+requirement profiles、cross-host shared-lock qualification；</li>
+<li>content-addressed CAS publication closure、unified live-state
+CAS、descriptor-anchored namespace；</li>
+<li>bounded streaming result/input admission、public provenance
+intersection、stable hybrid input admission；</li>
+<li>Query IR 单快照准入、stable query spool、outcome-separated
+commit、verified query artifact CAS、sealed fd handoff；</li>
+<li>persistent solver generation reset、protocol-complete request
+preflight、deadline-bounded dual-channel request commit；</li>
+<li>report-only query artifact reachability audit 与六轮深度 review
+修复。</li>
+</ul>
+<p>六轮深度 review 覆盖 CAS 命名空间、QueryStore 事务、solver
+双通道协议、MPI 控制面、算法复杂度和证据一致性，修复了 artifact size
+漂移闭包误报、query binding 分裂、永久 lease、无界 solver
+stdout/stderr、宽松 JSON、SAT 未验证提交、journal
+身份不一致、非有限控制值、调度热路径复杂度等问题。</p>
+<h2 id="技术主线二hybrid-aflsymcc-反馈与覆盖率归因">4.
+技术主线二：Hybrid AFL/SymCC 反馈与覆盖率归因</h2>
+<h3 id="afl-native-peer-与在线协同">4.1 AFL++ native peer
+与在线协同</h3>
+<p>F298 将 <code>symcc01/queue</code> 作为 AFL++ campaign 的原生
+peer，不再只是离线导入 SymCC 输出。实现维护 queue/hang/crash 独立连续
+ID，记录发布、扫描、导入和未保留输入，并保留 source SHA-256。75
+秒真实运行曾产生 23 个发布、22 个扫描、4 个精确导入，4/4 SHA-256
+一致。</p>
+<p>这项工作解决的是 hybrid fuzzing 中常见的归因问题：SymCC
+生成了输入，不代表 AFL 已在线消费，也不代表覆盖变化能归因给它。native
+peer 机制让输入传播路径可观测，为后续在线闭环和消融实验打基础。</p>
+<h3 id="覆盖率-oracle从测到覆盖到可信归因">4.2 覆盖率
+oracle：从“测到覆盖”到“可信归因”</h3>
+<p>F306-F307 将覆盖率测量从普通 showmap 调用提升为 fail-closed
+oracle：</p>
+<ul>
+<li>流式 showmap 与 one-shot showmap 首个输入双跑，不一致则统一回退
+one-shot；</li>
+<li>保留 terminal status、raw status、stdout/stderr、完整 sparse
+edge；</li>
+<li>限制输入大小、edge 数、辅助输出和 telemetry；</li>
+<li>区分 stdin/file 输入 ABI；</li>
+<li>引入 normal-only 与 stratified terminal policy；</li>
+<li>crash/timeout/error 不进入普通 coverage union；</li>
+<li>MPI batch/streaming triage 只有 <code>ok</code> 且非空边集才更新
+bitmap。</li>
+</ul>
+<p>这部分不直接增加覆盖，但解决了实验中最容易出错的部分：不能把 showmap
+异常、输入入口不一致或 terminal 边当成正常新增覆盖。</p>
+<h3 id="directed-utility-replaytopseed-与自适应调度">4.3 Directed
+utility replay、TopSeed 与自适应调度</h3>
+<p>F308-F404 形成了一条从 seed-level 到 branch-target-level
+的调度优化链：</p>
+<ul>
+<li>F308 edge-dependence replay 从 seed 级升级到 branch-targeted
+directed utility replay；</li>
+<li>F398 ParaSuit branch-rarity parameter selection，把 AFL 全局新增位与
+QSYM branch-interest bitmap 区分；</li>
+<li>F399 Cottontail alpha-normalized constraint
+selection，用结构等价索引识别同构约束；</li>
+<li>F400 persistent multi-objective live-state feedback，记录
+coverage/data/constraint 等多目标 live-state；</li>
+<li>F401 persistent Empc live-state path cover，对可达路径 cover
+做有界预计算；</li>
+<li>F402 Compatible Branch Coverage pruning，对已覆盖兼容分支做
+live-state 剪枝；</li>
+<li>F403 Concrete Constraint Guided
+Scheduling，结合具体值和约束难度选择高价值目标；</li>
+<li>F404 TopSeed persistent campaign seed selection，将跨运行 seed
+画像、Explore/Exploit/Learn 和 k=2 聚类纳入调度。</li>
+</ul>
+<p>这些工作共同服务于一个目标：减少并行符号执行中的重复求解，把昂贵
+solver 预算集中在有覆盖收益、结构稀有或目标距离更近的路径上。</p>
+<h2 id="技术主线三约束求解复用qf_bv-证明与-solver-体系">5.
+技术主线三：约束求解复用、QF_BV 证明与 solver 体系</h2>
+<h3 id="经验值域与-profile-guided-solving">5.1 经验值域与 profile-guided
+solving</h3>
+<p>F300-F305 将 empirical value profile 从离线 hint
+发展为在线、版本化、可撤销、可恢复的 MPI solver feedback：</p>
+<ul>
+<li>sparse input expression map，避免稀疏大 offset 造成巨大向量；</li>
+<li>executable-bound value profile，绑定目标可执行文件 SHA-256；</li>
+<li>strict SAT-only profile consumption：经验域不能传播 UNSAT；</li>
+<li>MPI online profile generation，worker 只安装 SHA-256
+校验后的代际；</li>
+<li>低收益域自适应抑制，值集合变化不继承旧失败；</li>
+<li>cost-aware admission，用 Z3 check
+累计时间区分“失败但便宜”和“失败且昂贵”；</li>
+<li>replay-verified online profile recovery，从滚动记录重新导出 runtime
+语义，检测 state 漂移。</li>
+</ul>
+<h3 id="qf_bv-cross-worker-context-与-proof-carrying-体系">5.2 QF_BV
+cross-worker context 与 proof-carrying 体系</h3>
+<p>F426-F441
+是本月后期最密集的求解系统工作。它们并不是一个单一优化，而是围绕“跨
+worker 复用公式、证明和 solver
+状态，但不扩大信任边界”构建的一组机制。</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>功能</th>
+<th>核心成果</th>
+<th>证据边界</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>F426 Cross-worker incremental QF_BV context</td>
+<td>内容寻址 formula-plan，exact hit 复用，parent context 追加
+delta</td>
+<td>机制成本与正确性，不是公开 target speedup</td>
+</tr>
+<tr class="even">
+<td>F427 Proof-carrying UNSAT receipts</td>
+<td>cvc5 CPC proof query + Ethos reference + Query IR lowering
+certificate</td>
+<td>完整 UNSAT 结果可独立授权</td>
+</tr>
+<tr class="odd">
+<td>F428 Verified learned lemma exchange</td>
+<td>ancestor learned literal 经 cvc5/Ethos 检查后发布</td>
+<td>只覆盖 QF_BV ancestor learned literal</td>
+</tr>
+<tr class="even">
+<td>F429 Artifact lifecycle</td>
+<td>统一 context/proof/receipt/lemma 依赖图、lease fencing 和 GC</td>
+<td>不包含 solver-native heap transport</td>
+</tr>
+<tr class="odd">
+<td>F430 Native solver-state fork reuse</td>
+<td>本机 Linux forkserver 复用固定 prefix native state</td>
+<td>固定 prefix 机制成本，不是 coverage speedup</td>
+</tr>
+<tr class="even">
+<td>F431 Variable-substitution UNSAT-core reuse</td>
+<td>offset/变量重命名后的 UNSAT-core 可验证复用</td>
+<td>本地穷举机制，不复现论文级命中率</td>
+</tr>
+<tr class="odd">
+<td>F432 Incremental SAT proof DAG</td>
+<td>CaDiCaL LRAT proof DAG 与 solve-boundary checked import</td>
+<td>solve-boundary 同步，不是 mid-solve streaming</td>
+</tr>
+<tr class="even">
+<td>F433 Realtime checked proof stream</td>
+<td>solve 中轮询 verified proof records 并 ACK checked import</td>
+<td>机制实验，不是公开多节点收益</td>
+</tr>
+<tr class="odd">
+<td>F434 Multi-rank proof evaluation</td>
+<td>多 publisher event 归属、Query IR/CNF 身份与 shared-memory
+communicator 资格</td>
+<td>本机多 rank I/T/E-local</td>
+</tr>
+<tr class="even">
+<td>F435 Adaptive proof admission</td>
+<td>背压、retry、settled candidate 门禁，压力实验 +4.0x delivery
+count</td>
+<td>不写成 solver speedup</td>
+</tr>
+<tr class="odd">
+<td>F436 Native clause activity</td>
+<td>区分 delivered 与 semantic activation，8/8 delivery、4/8
+activation</td>
+<td>telemetry 机制，不是因果 speedup</td>
+</tr>
+<tr class="even">
+<td>F437 Utility-aware pairing</td>
+<td>按 publisher/consumer/formula-family 学习配对</td>
+<td>两 seed 聚合约 -0.41%，因此不声称提速</td>
+</tr>
+<tr class="odd">
+<td>F438 Malleable worker pool</td>
+<td>generation-fenced 逻辑 worker 重分配，38 attach/retire/proofs</td>
+<td>预启动物理槽上的逻辑 malleability</td>
+</tr>
+<tr class="even">
+<td>F439 LIDRUP/PalRUP wire</td>
+<td>proof-wire 互操作，递归 import 展平</td>
+<td>语法互操作，不是 solver 原生产 proof</td>
+</tr>
+<tr class="odd">
+<td>F440 PalRUP global confirmation</td>
+<td><code>local_check -&gt; redistribute -&gt; confirm</code>
+失败闭锁流水线</td>
+<td>本地固定 checker，未接入生产 solver fragments</td>
+</tr>
+<tr class="even">
+<td>F441 ULFM recovery</td>
+<td>endpoint 身份、generation/shard/lease 栅栏、4-&gt;3 rank
+真实恢复</td>
+<td>local TCP transport 物理失效证据</td>
+</tr>
+</tbody>
+</table>
+<p>最新 F441 完整门禁结果：</p>
+<table>
+<colgroup>
+<col style="width: 42%" />
+<col style="width: 57%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>项目</th>
+<th style="text-align: right;">结果</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Focused Python</td>
+<td style="text-align: right;">11 passed</td>
+</tr>
+<tr class="even">
+<td>Associated Python</td>
+<td style="text-align: right;">128 passed + 79 subtests</td>
+</tr>
+<tr class="odd">
+<td>Full Python</td>
+<td style="text-align: right;">1337 passed + 310 subtests</td>
+</tr>
+<tr class="even">
+<td>LLVM17</td>
+<td style="text-align: right;">331 discovered，329 passed，2
+unsupported</td>
+</tr>
+<tr class="odd">
+<td>LLVM18</td>
+<td style="text-align: right;">331 discovered，330 passed，1
+unsupported</td>
+</tr>
+<tr class="even">
+<td>Deterministic oracle</td>
+<td style="text-align: right;">12 endpoints / 96 shards，2 failures
+下重分配 16 shards</td>
+</tr>
+<tr class="odd">
+<td>Lease replay</td>
+<td style="text-align: right;">24/24 在途 lease 重放，24/24 old token
+拒绝</td>
+</tr>
+<tr class="even">
+<td>Live failure</td>
+<td style="text-align: right;">rank 3 退出，world
+<code>4 -&gt; 3</code>，一次 repair，survivor receipt 一致</td>
+</tr>
+</tbody>
+</table>
+<h2 id="技术主线四backsolververitestingcontinuation-与内存循环摘要">6.
+技术主线四：Backsolver、Veritesting、Continuation 与内存/循环摘要</h2>
+<p>本月中段的大量工作围绕“在不破坏语义边界的前提下减少重复路径执行和求解”展开。</p>
+<h3 id="agolic-bse-与-selective-concolic">6.1 Agolic BSE 与 selective
+concolic</h3>
+<p>F374 进行了 Agolic run-level planning，将路径规划、bounded execution
+和 witness schema 明确化。F423 把 witness-guided BSE 接入真实
+<code>LiveContinuationExecutor</code>，worker 只能把候选持久到
+plan-private staging，不能直接提交 coverage；coordinator 复核
+plan/result/program/release/resource 身份后才发布到 corpus。独立 oracle
+枚举 8 个两字节配置，4 个有效 route 全部 release 并产生 8 个
+replay-equivalent candidate，4 个无效 route 零候选。</p>
+<p>F424 实现 Selective Concolic Relation Graph 与概率 MDP。它维护
+<code>PC_r/PC_c</code> 共享边界、Laplace 平滑 transition
+value、coverage/data/constraint reward，并把 partial
+UNSAT/unknown/timeout 全部回退 full Z3，不写 UNSAT cache 或剪枝。独立
+oracle 穷举 65536 赋值和 16 个 witness
+配置，<code>false_sat=false_unsat=0</code>。</p>
+<h3 id="exceptionexternal-model-与-ucsanunder-constrained-支撑">6.2
+Exception、external model 与 UCSan/under-constrained 支撑</h3>
+<p>F375-F382 处理 exception unwind、typed catch、pure external
+model、scalar catch object、exception object arena 和 constant GEP
+exception fields。F393-F395 则围绕 UCSan 做 recoverable object
+context、explicit object checker、byte
+initialization/UBI。它们的价值是支撑 under-constrained execution
+和函数级/对象级测试，不把外部或堆对象状态任意 concretize。</p>
+<h3 id="memoryphiheap-union-与-loop-summary">6.3 MemoryPhi、heap union
+与 loop summary</h3>
+<p>F405-F422 是本月编译期/运行时语义摘要最密集的一组：</p>
+<ul>
+<li>F405-F409：finite heap lifetime union、collective heap
+union、guard-correlated heap union、MemorySSA/AA heap
+initialization、interprocedural heap effect summary；</li>
+<li>F410-F415：symbolic length byte-lane cover、loop-carried MemoryPhi
+byte-lane induction、strided residue cover、conditional guard
+carry、multi-latch fixed point、ordered multi-writer transfer；</li>
+<li>F416-F421：nested-loop MemoryPhi summary composition、last-write
+value summary、two-dimensional affine summary、affine symbolic
+value、piecewise affine value、affine Decision DAG value summary；</li>
+<li>F422：executable nested-loop memory summary transfer，把多个符号
+bound exit state 合并为 ITE state，但不产生 CBC/CGS/path-cover
+token，也不写 AFL bitmap。</li>
+</ul>
+<p>这些工作都采用“能证明才接纳，超出形状就失败关闭”的边界。多处独立
+oracle 穷举 byte lane、loop bound、load offset、guard shape 和
+unsupported case，证明机制正确性；但它们不被写成 LLVM 分析吞吐、solver
+speedup 或公开 campaign 覆盖提升。</p>
+<h2 id="技术主线五benchmark实验和-testcase-矩阵">7.
+技术主线五：Benchmark、实验和 testcase 矩阵</h2>
+<h3 id="当前实现评估">7.1 2026-07-30 当前实现评估</h3>
+<p>2026-07-30
+的评估回答了两个问题：当前技术组合是否真实执行，以及当前默认 hybrid
+编排相对 legacy 是否更好。</p>
+<p>LAVA-M <code>base64</code> 直接 DSE 消融：</p>
+<table>
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>profile</th>
+<th style="text-align: right;">候选均值</th>
+<th style="text-align: right;">unique 均值</th>
+<th style="text-align: right;">listed bug 均值</th>
+<th style="text-align: right;">listed 并集</th>
+<th style="text-align: right;">Z3 full solve 总数</th>
+<th style="text-align: right;">平均耗时</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>strict-first-z3</td>
+<td style="text-align: right;">159.31</td>
+<td style="text-align: right;">84.31</td>
+<td style="text-align: right;">21.62/44</td>
+<td style="text-align: right;">41/44</td>
+<td style="text-align: right;">2742</td>
+<td style="text-align: right;">0.34 s</td>
+</tr>
+<tr class="even">
+<td>fast-optimistic</td>
+<td style="text-align: right;">203.31</td>
+<td style="text-align: right;">86.85</td>
+<td style="text-align: right;">21.62/44</td>
+<td style="text-align: right;">41/44</td>
+<td style="text-align: right;">2552</td>
+<td style="text-align: right;">0.43 s</td>
+</tr>
+<tr class="odd">
+<td>runtime-full</td>
+<td style="text-align: right;">212.92</td>
+<td style="text-align: right;">104.15</td>
+<td style="text-align: right;">21.62/44</td>
+<td style="text-align: right;">41/44</td>
+<td style="text-align: right;">1189</td>
+<td style="text-align: right;">18.25 s</td>
+</tr>
+</tbody>
+</table>
+<p>结论边界：</p>
+<ul>
+<li><code>runtime-full</code> 相比 strict-first 候选均值
+<code>+33.7%</code>，unique <code>+23.5%</code>，Z3 full-context solve
+<code>-56.6%</code>；</li>
+<li>但 solver queries <code>+190.5%</code>，wall time
+<code>x53.3</code>，candidate/s 明显下降；</li>
+<li>listed bug 数没有提升，三类 profile 的 listed bug 并集均为
+<code>41/44</code>；</li>
+<li>poly cache/cross-prefix/prefix context 命中均为 0，不能把 Z3 full
+solve 下降归因于 Pangolin 式 context reuse。</li>
+</ul>
+<p>SQLite/libarchive 20 轮配置消融：</p>
+<table>
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 21%" />
+<col style="width: 21%" />
+<col style="width: 21%" />
+<col style="width: 21%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>目标</th>
+<th style="text-align: right;">legacy Hybrid 均值</th>
+<th style="text-align: right;">current Hybrid 均值</th>
+<th style="text-align: right;">独立样本均值差 95% CI</th>
+<th style="text-align: right;">Holm p</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>libarchive 3.3.2</td>
+<td style="text-align: right;">15.508%</td>
+<td style="text-align: right;">16.460%</td>
+<td style="text-align: right;">+0.953pp
+<code>[+0.582,+1.321]</code></td>
+<td style="text-align: right;">0.00168</td>
+</tr>
+<tr class="even">
+<td>SQLite 3.13.0</td>
+<td style="text-align: right;">18.443%</td>
+<td style="text-align: right;">20.392%</td>
+<td style="text-align: right;">+1.949pp
+<code>[+1.466,+2.441]</code></td>
+<td style="text-align: right;">0.00032</td>
+</tr>
+</tbody>
+</table>
+<p>该结果支持“当前资源配比与 profile 编排在这两个短时公开目标上优于
+legacy 编排”，但不隔离单个技术贡献。</p>
+<h3 id="并行与-hybrid-展示结果">7.2 2026-08-19 并行与 hybrid
+展示结果</h3>
+<p>本月后期重新筛选了更能体现当前工作的 case，并补充公开 testcase
+registry。当前建议汇报主线如下。</p>
+<h4 id="并行符号执行框架synthetic-parallel_scaling">并行符号执行框架：<code>synthetic-parallel_scaling</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>配置</th>
+<th style="text-align: right;">轮次</th>
+<th style="text-align: right;">平均 SymCC candidates</th>
+<th style="text-align: right;">平均 unique</th>
+<th style="text-align: right;">平均边覆盖</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>MPI <code>np=2</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">974</td>
+<td style="text-align: right;">455.3</td>
+<td style="text-align: right;">16.67% (<code>128/768</code>)</td>
+</tr>
+<tr class="even">
+<td>MPI <code>np=4</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1560.7</td>
+<td style="text-align: right;">623.3</td>
+<td style="text-align: right;">17.58% (<code>135/768</code>)</td>
+</tr>
+<tr class="odd">
+<td>MPI <code>np=8</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2284</td>
+<td style="text-align: right;">905.0</td>
+<td style="text-align: right;">19.88% (<code>152.7/768</code>)</td>
+</tr>
+<tr class="even">
+<td>MPI <code>np=16</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2688</td>
+<td style="text-align: right;">1044.7</td>
+<td style="text-align: right;">21.18% (<code>162.7/768</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><code>np=16</code> 相比 <code>np=2</code>，边覆盖相对提升约
+<code>27.1%</code>，候选生成量约
+<code>2.76x</code>。这是最干净的并行框架正例。</p>
+<h4 id="公开-parser-并行正例gfts-xml_read_fuzzer">公开 parser
+并行正例：<code>gfts-xml_read_fuzzer</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>配置</th>
+<th style="text-align: right;">轮次</th>
+<th style="text-align: right;">SymCC candidates</th>
+<th style="text-align: right;">Unique retained</th>
+<th style="text-align: right;">Edge coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>seed</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">4.54% (<code>2310/50880</code>)</td>
+</tr>
+<tr class="even">
+<td>MPI <code>np=2</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2664</td>
+<td style="text-align: right;">1889</td>
+<td style="text-align: right;">6.11% (<code>3110/50880</code>)</td>
+</tr>
+<tr class="odd">
+<td>MPI <code>np=4</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3101</td>
+<td style="text-align: right;">2201</td>
+<td style="text-align: right;">6.21% (<code>3161/50880</code>)</td>
+</tr>
+<tr class="even">
+<td>MPI <code>np=8</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3527</td>
+<td style="text-align: right;">2497</td>
+<td style="text-align: right;">6.31% (<code>3212/50880</code>)</td>
+</tr>
+<tr class="odd">
+<td>MPI <code>np=16</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">5669</td>
+<td style="text-align: right;">4041</td>
+<td style="text-align: right;">6.76% (<code>3441/50880</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><code>np=16</code> 相比 seed 多 <code>1131</code> edges，相比
+<code>np=2</code> 多 <code>331</code> edges。它比 synthetic 更接近真实
+parser，同时仍主要体现并行符号执行，而非 AFL persistent 吞吐。</p>
+<h4 id="hybrid-强正例lava-base64">Hybrid
+强正例：<code>lava-base64</code></h4>
+<table>
+<thead>
+<tr class="header">
+<th>Mode</th>
+<th style="text-align: right;">NP</th>
+<th style="text-align: right;">轮次</th>
+<th style="text-align: right;">SymCC candidates</th>
+<th style="text-align: right;">AFL execs</th>
+<th style="text-align: right;">Edge coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>seed</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">11.58% (<code>126/1088</code>)</td>
+</tr>
+<tr class="even">
+<td>AFL-only</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2,147,017</td>
+<td style="text-align: right;">14.06% (<code>153/1088</code>)</td>
+</tr>
+<tr class="odd">
+<td>Hybrid</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">267</td>
+<td style="text-align: right;">381,921</td>
+<td style="text-align: right;">21.14% (<code>230/1088</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>Hybrid 相比 AFL-only 多 <code>77</code> edges，覆盖率增加
+<code>7.08pp</code>，相对 AFL-only 约
+<code>+50.3%</code>。这是解释“符号执行突破精确值约束”的主例。</p>
+<h4 id="真实目标-sota-编排pcre2-pcre2_fuzzer">真实目标 SOTA
+编排：<code>pcre2-pcre2_fuzzer</code></h4>
+<table>
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>配置</th>
+<th style="text-align: right;">轮次</th>
+<th style="text-align: right;">平均边覆盖</th>
+<th style="text-align: right;">平均 SymCC candidates</th>
+<th style="text-align: right;">平均 online interesting</th>
+<th style="text-align: right;">平均 AFL execs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>old adaptive full</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">34.52% (<code>3358/9728</code>)</td>
+<td style="text-align: right;">2688.7</td>
+<td style="text-align: right;">296.7</td>
+<td style="text-align: right;">301</td>
+</tr>
+<tr class="even">
+<td>legacy hybrid</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">47.01% (<code>4573.7/9728</code>)</td>
+<td style="text-align: right;">5482</td>
+<td style="text-align: right;">375</td>
+<td style="text-align: right;">2,279,949</td>
+</tr>
+<tr class="odd">
+<td>tuned adaptive hybrid</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">50.20% (<code>4884/9728</code>)</td>
+<td style="text-align: right;">3065.7</td>
+<td style="text-align: right;">249</td>
+<td style="text-align: right;">21,575,645</td>
+</tr>
+<tr class="even">
+<td>AFL-only full</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">50.56% (<code>4918.7/9728</code>)</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">47,037,750</td>
+</tr>
+</tbody>
+</table>
+<p>这组结果说明 tuned adaptive hybrid 已经恢复 AFL 主吞吐并保留 SymCC
+反馈，不能写成 45s 内显著超过 AFL-only。它的正确汇报口径是“相对 legacy
+hybrid 明显提升，并接近同核 AFL-only 上限”。</p>
+<h4 id="真实-parser-弱正例与补充-case">真实 parser 弱正例与补充
+case</h4>
+<table>
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 28%" />
+<col style="width: 28%" />
+<col style="width: 21%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Target</th>
+<th style="text-align: right;">Hybrid</th>
+<th style="text-align: right;">AFL-only</th>
+<th>判断</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>libarchive-archive_fuzzer</code></td>
+<td style="text-align: right;">20.94% (<code>2868/13696</code>)</td>
+<td style="text-align: right;">20.87% (<code>2859/13696</code>)</td>
+<td>单轮 +9 edges，弱正例</td>
+</tr>
+<tr class="even">
+<td><code>gfts-png_read_fuzzer</code></td>
+<td style="text-align: right;">18.52% (<code>569/3072</code>)</td>
+<td style="text-align: right;">16.60% (<code>510/3072</code>)</td>
+<td>25s 单轮弱正例候选，需多轮确认</td>
+</tr>
+<tr class="odd">
+<td><code>sqlite-sqlite_fuzzer</code></td>
+<td style="text-align: right;">20.49% (<code>6465/31552</code>)</td>
+<td style="text-align: right;">21.20% (<code>6688/31552</code>)</td>
+<td>AFL-only 更高</td>
+</tr>
+<tr class="even">
+<td><code>freetype2-freetype2_fuzzer</code></td>
+<td style="text-align: right;">5.15% (<code>1114/21632</code>)</td>
+<td style="text-align: right;">5.17% (<code>1119/21632</code>)</td>
+<td>基本持平</td>
+</tr>
+<tr class="odd">
+<td><code>jhead-jhead</code></td>
+<td style="text-align: right;">32.81%-32.87%</td>
+<td style="text-align: right;">33.93%-34.49%</td>
+<td>本地短时未复现论文优势</td>
+</tr>
+</tbody>
+</table>
+<h3 id="新增-testcase-registry">7.3 新增 testcase registry</h3>
+<p>本月补充了 <code>benchmark/showcase_cases_2026_08_19.json</code> 和
+<code>docs/codex/Expanded_Hybrid_Showcase_Case_Registry_2026-08-19.md</code>，将
+case 分为：</p>
+<ul>
+<li><code>measured-positive</code>：<code>synthetic-parallel_scaling</code>、<code>gfts-xml_read_fuzzer</code>、<code>lava-base64</code>、<code>pcre2-pcre2_fuzzer</code>；</li>
+<li><code>measured-weak-positive</code>：<code>libarchive-archive_fuzzer</code>、<code>gfts-png_read_fuzzer</code>；</li>
+<li><code>available-candidate</code>：<code>jhead</code>、<code>sqlite</code>、<code>freetype2</code>、<code>lava-md5sum/uniq/who</code>；</li>
+<li><code>integration-candidate</code>：<code>tcpdump</code>、binutils
+<code>readelf/nm/objdump/strip</code>、<code>bento</code>、<code>pngfix/pngimage</code>、<code>openjpeg</code>、<code>libjpeg</code>、<code>libtiff</code>、Magma/FuzzBench
+扩展目标。</li>
+</ul>
+<h2 id="文档图表与交付材料">8. 文档、图表与交付材料</h2>
+<p>本月新增和维护了大量面向科研汇报的材料：</p>
+<ul>
+<li>完整项目报告、演示稿和当前技术全景；</li>
+<li>最近工作及下一步计划文档；</li>
+<li>架构与实验问答，明确 worker 使用的
+bitmap、约束形态、乐观求解、丢前缀、副作用和 benchmark 设计；</li>
+<li>技术档案和
+<code>New_Implementation_Archive.md</code>，将所有新增技术按功能 ID
+追踪；</li>
+<li><code>docs/codex/research-progress/</code>
+中按功能归档的研究报告、机制图、evidence 和 SHA-256 清单；</li>
+<li>public benchmark 调研、hybrid testcase 筛选、当前优势 testcase
+文档；</li>
+<li>交付材料迁移到
+<code>docs/codex</code>，避免与其他工具或目录冲突。</li>
+</ul>
+<p>重要文档包括：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>文档</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>Current_Technology_Compendium.md</code></td>
+<td>当前技术全景和 SOTA 对照</td>
+</tr>
+<tr class="even">
+<td><code>New_Implementation_Archive.md</code></td>
+<td>新功能实现档案和证据链接</td>
+</tr>
+<tr class="odd">
+<td><code>Current_Implementation_Evaluation_2026-07-30.md</code></td>
+<td>20 轮评估、LAVA-M 消融和历史对照</td>
+</tr>
+<tr class="even">
+<td><code>Current_Advantage_Testcases_2026-08-19.md</code></td>
+<td>当前最适合汇报的测试结果</td>
+</tr>
+<tr class="odd">
+<td><code>Expanded_Hybrid_Showcase_Case_Registry_2026-08-19.md</code></td>
+<td>公共 testcase registry 和下一步接入矩阵</td>
+</tr>
+<tr class="even">
+<td><code>Project_Progress_Presentation_2026-07-30.md/.pptx</code></td>
+<td>项目进展汇报材料</td>
+</tr>
+</tbody>
+</table>
+<h2 id="主要成果归纳">9. 主要成果归纳</h2>
+<h3 id="工程成果">9.1 工程成果</h3>
+<ul>
+<li>建立了多层并行调度和失败恢复协议，使 MPI campaign 不再依赖脆弱的
+rank 级假设；</li>
+<li>将 AFL++、SymCC、showmap、coverage oracle、QueryStore、CAS、solver
+telemetry 统一到可追溯数据流；</li>
+<li>为 persistent+shmem 目标增加自适应默认策略，避免 data coverage/hint
+mutator 拖垮 AFL 主吞吐；</li>
+<li>将多个 SOTA
+方向落地为模块化、可关闭、可测的机制，而不是不可控的全局开关；</li>
+<li>构建了从功能实现、测试、证据、图、文档到 registry 的交付闭环。</li>
+</ul>
+<h3 id="科研成果">9.2 科研成果</h3>
+<ul>
+<li>将 hybrid fuzzing 中的“符号执行贡献”拆成 candidate
+generation、online interesting、AFL import、showmap union、FstatsCov
+等可分别度量的层次；</li>
+<li>将覆盖率测量中的输入 ABI、terminal status、streaming drift 纳入
+oracle，降低实验误判；</li>
+<li>将 profile-guided solving、Pangolin 式复用、QF_BV proof
+exchange、TopSeed、S2F action seed
+等思想迁移为本框架中的可验证机制；</li>
+<li>建立了公开 testcase 选择标准，明确哪些 case
+能展示并行扩展，哪些能展示 hybrid 超越
+AFL-only，哪些只能作为长时候选或负例；</li>
+<li>多处文档明确“机制证据 !=
+性能结论”，为后续论文级实验保留严谨边界。</li>
+</ul>
+<h3 id="实验成果">9.3 实验成果</h3>
+<p>可用于当前汇报的实测结果：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>结论</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>并行符号执行扩展性</td>
+<td><code>synthetic-parallel_scaling</code>：<code>np=16</code> vs
+<code>np=2</code>，覆盖 <code>21.18%</code> vs <code>16.67%</code>，候选
+<code>2688</code> vs <code>974</code></td>
+</tr>
+<tr class="even">
+<td>公开 parser 并行正例</td>
+<td><code>gfts-xml_read_fuzzer</code>：seed <code>2310</code>
+edges，<code>np=16</code> <code>3441</code> edges</td>
+</tr>
+<tr class="odd">
+<td>Hybrid 明显超过 AFL-only</td>
+<td><code>lava-base64</code>：hybrid <code>230</code> edges，AFL-only
+<code>153</code> edges，<code>+50.3%</code> relative</td>
+</tr>
+<tr class="even">
+<td>SOTA 编排优于 legacy</td>
+<td><code>pcre2</code>：tuned adaptive <code>50.20%</code>，legacy
+<code>47.01%</code>，old adaptive <code>34.52%</code></td>
+</tr>
+<tr class="odd">
+<td>persistent gating 修复退化</td>
+<td><code>libarchive</code>：old adaptive <code>13.46%</code>，tuned
+hybrid <code>20.94%</code>，AFL-only <code>20.87%</code></td>
+</tr>
+<tr class="even">
+<td>新增弱候选</td>
+<td><code>gfts-png</code>：25s 单轮 hybrid <code>569</code>
+edges，AFL-only <code>510</code> edges</td>
+</tr>
+<tr class="odd">
+<td>当前默认资源配比较旧编排更优</td>
+<td>20 轮短测：libarchive <code>+0.953pp</code>，SQLite
+<code>+1.949pp</code>，Holm p 分别
+<code>0.00168</code>、<code>0.00032</code></td>
+</tr>
+<tr class="even">
+<td>求解工作量结构变化</td>
+<td>LAVA-M base64 runtime-full：Z3 full solve
+<code>-56.6%</code>，candidate <code>+33.7%</code>，但 wall time
+<code>x53.3</code> 且 listed bug 无提升</td>
+</tr>
+</tbody>
+</table>
+<h2 id="风险边界与未完成工作">10. 风险、边界与未完成工作</h2>
+<p>当前成果仍有清晰边界：</p>
+<ol type="1">
+<li><p><strong>多数 F426-F441 proof/solver 机制不是公开目标
+speedup。</strong><br />
+它们证明了可验证交换、准入、活动观测、配对和恢复机制，但还没有 8/32/128
+worker、跨节点、等 CPU、长时间公开 campaign 的性能结论。</p></li>
+<li><p><strong>短时 persistent 目标中 AFL-only 仍非常强。</strong><br />
+pcre2 在 45s 下 AFL-only full 仍略高于 tuned adaptive
+hybrid。当前结果更适合说明“hybrid 不再牺牲 AFL
+主吞吐并保留符号执行反馈”，不适合写成“所有真实目标都超过
+AFL-only”。</p></li>
+<li><p><strong>部分论文强候选尚未本地复现。</strong><br />
+<code>jhead</code> 在 ICSE23/CoFuzz、PANGOLIN、S2F 中是强候选，但本地
+60s 短跑未复现优势，且存在 QSYM/SymCC 对非关系型 branch 的 solver
+assertion 瓶颈。</p></li>
+<li><p><strong>LAVA-M bug oracle 与普通 edge coverage
+不能混用。</strong><br />
+<code>base64</code> 可作为精确约束正例，但 <code>md5sum/uniq/who</code>
+需要 bug-trigger count 和 time-to-trigger，而不是普通
+coverage。</p></li>
+<li><p><strong>Pangolin 式 context reuse 需要更合适目标。</strong><br />
+07-30 LAVA-M base64 中 poly cache/cross-prefix/prefix context
+均无命中，说明机制已经运行但该目标不能证明其收益。</p></li>
+<li><p><strong>图表和文档已丰富，但正式论文级评估还需统计设计。</strong><br />
+下一步需要更长时间窗口、更多 rounds、AUC、生存曲线、bug
+oracle、Magma/FuzzBench 标准化目标和 per-component ablation。</p></li>
+</ol>
+<h2 id="下阶段建议">11. 下阶段建议</h2>
+<h3 id="p0巩固当前可汇报结果">P0：巩固当前可汇报结果</h3>
+<ol type="1">
+<li>对
+<code>synthetic-parallel_scaling</code>、<code>gfts-xml_read_fuzzer</code>、<code>lava-base64</code>、<code>pcre2</code>
+做 5-10 轮确认，输出置信区间和 AUC；</li>
+<li>对 <code>gfts-png_read_fuzzer</code> 做 3-10 轮和 10min/1h，验证 25s
+单轮弱正例是否稳定；</li>
+<li>对 pcre2 做 component ablation：profiles
+only、profiles+diversity、profiles+diversity+density、forced data
+coverage、hint mutator forced/off；</li>
+<li>将现有 testcase registry 接入 benchmark runner
+的批量计划，避免手工复制命令。</li>
+</ol>
+<h3 id="p1接入论文强候选">P1：接入论文强候选</h3>
+<ol type="1">
+<li>修复并长时复测 <code>jhead</code>；</li>
+<li>接入 <code>tcpdump -r @@</code> 和 PCAP seed corpus；</li>
+<li>接入 binutils <code>readelf/nm/objdump/strip</code> 和 ELF seed
+corpus；</li>
+<li>接入 <code>bento</code>/Bento4 MP4 parser；</li>
+<li>接入 <code>pngfix/pngimage</code>，形成和 <code>gfts-png</code> 的
+libpng 对照。</li>
+</ol>
+<h3 id="p2建立论文级-benchmark">P2：建立论文级 benchmark</h3>
+<ol type="1">
+<li>接入 Magma <code>libpng/libxml2/sqlite3</code>，用
+reached/triggered/time-to-trigger 指标；</li>
+<li>接入 FuzzBench
+<code>harfbuzz/jsoncpp/lcms/libjpeg-turbo/libpcap/openssl_x509/php/re2/woff2/zlib</code>；</li>
+<li>对 QF_BV proof exchange 和 malleable worker pool 做 8/32/128 worker
+多节点机制实验；</li>
+<li>将 coverage、solver telemetry、AFL fuzzer_stats、QueryStore proof
+receipts 和 testcase registry 汇总为统一实验 manifest。</li>
+</ol>
+<h2 id="证据索引">12. 证据索引</h2>
+<p>主要本地证据位置：</p>
+<ul>
+<li><code>docs/codex/research-progress/</code></li>
+<li><code>docs/codex/evidence/</code></li>
+<li><code>benchmark/evidence/current-advantage-2026-08-19/</code></li>
+<li><code>benchmark/evidence/hybrid-advantage-lava-base64-symbolic-heavy-r3-2026-08-19/</code></li>
+<li><code>benchmark/evidence/public-xml-parallel-r3-2026-08-19/</code></li>
+<li><code>benchmark/evidence/showcase-supplement-screen-2026-08-19/</code></li>
+<li><code>docs/codex/Current_Implementation_Evaluation_2026-07-30.md</code></li>
+<li><code>docs/codex/Current_Advantage_Testcases_2026-08-19.md</code></li>
+<li><code>docs/codex/Expanded_Hybrid_Showcase_Case_Registry_2026-08-19.md</code></li>
+<li><code>benchmark/showcase_cases_2026_08_19.json</code></li>
+</ul>
+<p>最终报告口径：本月工作已经形成可以汇报的工程与科研进展，尤其是并行符号执行扩展、hybrid
+反馈链路、persistent-aware SOTA 编排和可验证 QF_BV proof/worker
+机制。但除明确列出的 benchmark
+外，机制测试不应被外推为覆盖率、漏洞数量或通用求解速度提升。</p>
+</body>
+</html>

@@ -1,0 +1,18 @@
+py_compile=pass
+ruff=All checks passed!
+svg_xml=pass width=1600 height=1040
+svg_render=pass width=1600 height=1040
+svg_nonblank_pixel_check=pass unique_rgb_values=15286
+cjk_font_fallback=WenQuanYi Zen Hei
+git_diff_check=pass
+
+Files checked:
+util/qfbv_partition_execution.py
+util/qfbv_distributed_partition_execution.py
+util/symcc_qfbv_distributed_partition.py
+benchmark/check_qfbv_distributed_partition_oracles.py
+benchmark/check_qfbv_distributed_crosshost_oracles.py
+benchmark/qfbv_distributed_remote_worker.py
+test/test_qfbv_distributed_partition_execution.py
+docs/codex/verify_delivery.py
+docs/codex/diagrams/f451-generation-fenced-distributed-cube-execution.svg

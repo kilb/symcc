@@ -1,0 +1,26 @@
+[Worker 2] entered worker loop
+[Worker 1] entered worker loop
+[Master] SymCC MPI Fuzzing Helper
+[Master] Workers: 2
+[Master] AFL queue: benchmark/evidence/current-advantage-2026-08-19/debug_pcre2_hybrid_err_45s/afl_out/fuzzer01/queue
+[Master] AFL showmap: /usr/local/bin/afl-showmap
+[Master] SymCC output: benchmark/evidence/current-advantage-2026-08-19/debug_pcre2_hybrid_err_45s/afl_out/symcc04
+[Master] Adaptive scheduler: LinUCB + strategy portfolio
+[Master] TopSeed campaign selector: disabled
+[Master] Online empirical domains: disabled
+[Master] Self configuration: disabled
+[Master] Hot-swappable components: disabled
+[Master] Saving all test cases to: benchmark/evidence/current-advantage-2026-08-19/debug_pcre2_hybrid_err_45s/manual_symcc04_all
+[Worker 1] sending READY bitmap=-1 completed=False
+[Worker 2] sending READY bitmap=-1 completed=False
+[Worker 1] received tag=1
+[Worker 2] received tag=1
+[Master] 0 interesting / 0 generated, 2 busy (0 tc/s)
+[Master] 0 interesting / 0 generated, 2 busy (0 tc/s)
+[Master] 0 interesting / 0 generated, 2 busy (0 tc/s)
+[Master] 0 interesting / 0 generated, 2 busy (0 tc/s)
+[Master] 0 interesting / 0 generated, 2 busy (0 tc/s)
+[Master] 0 interesting / 0 generated, 2 busy (0 tc/s)
+[Master] 0 interesting / 0 generated, 2 busy (0 tc/s)
+[Master] Final stats: 0 ok, 0 failed, 0 interesting / 0 total, 0 results quarantined, 0 READY quarantined, 0 protocol requeued, 0 protocol deferred, 0 watchdog timeouts, 0 workers recovered
+[Master] Shutting down workers with READY/STOP/ACK fencing...

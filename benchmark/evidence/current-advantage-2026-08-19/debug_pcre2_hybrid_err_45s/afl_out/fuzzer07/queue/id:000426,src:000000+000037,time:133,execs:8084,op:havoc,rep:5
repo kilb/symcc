@@ -1,0 +1,3 @@
+(foo|barÖo|b*ar)
+*
+o|ba+

@@ -1,0 +1,84 @@
+{
+  "claims": {
+    "completeness_proof": false,
+    "mechanism_target_latency_result": true,
+    "public_campaign_result": false,
+    "solver_speedup_claim": false
+  },
+  "distractor_instructions": 500,
+  "graph": {
+    "ambiguous_branch_sites": 0,
+    "ambiguous_store_tokens": 0,
+    "branches_admitted": 1,
+    "branches_rejected": 2,
+    "enabled": true,
+    "functions_admitted": 1,
+    "functions_memory_ambiguous": 0,
+    "functions_skipped_branch_limit": 0,
+    "functions_skipped_oversized": 0,
+    "functions_total": 1,
+    "stores_admitted": 2
+  },
+  "minimum_target_instruction_budget": {
+    "bfs": 519,
+    "cgs": 18
+  },
+  "repeats": 11,
+  "schema": "symcc-live-cgs-benchmark-v1",
+  "scope": "synthetic-mechanism-only",
+  "static_build_ns": {
+    "max": 542497,
+    "median": 370628,
+    "min": 360763
+  },
+  "strategies": {
+    "bfs": {
+      "cgs_execution": {
+        "active_targets": 0,
+        "branch_observations": 0,
+        "event_batches": 0,
+        "instruction_observations": 0,
+        "store_value_updates": 0,
+        "symbolic_store_invalidations": 0
+      },
+      "elapsed_ns": {
+        "max": 3470463447,
+        "median": 3430162651,
+        "min": 3212093990
+      },
+      "forks": 2,
+      "halted_values": [
+        10,
+        20,
+        30
+      ],
+      "runs": 11,
+      "steps": 519
+    },
+    "cgs": {
+      "cgs_execution": {
+        "active_targets": 0,
+        "branch_observations": 2,
+        "event_batches": 5,
+        "instruction_observations": 519,
+        "store_value_updates": 2,
+        "symbolic_store_invalidations": 0
+      },
+      "elapsed_ns": {
+        "max": 3465305214,
+        "median": 3441957820,
+        "min": 3231003782
+      },
+      "forks": 2,
+      "halted_values": [
+        10,
+        30,
+        20
+      ],
+      "runs": 11,
+      "steps": 519
+    }
+  },
+  "target_budget_reduction_fraction": 0.9653179190751445,
+  "terminal_set_equal": true
+}

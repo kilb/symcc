@@ -1,0 +1,1 @@
+f363-adversarial-query-admission: PASS (exact-limit, bounded-read, duplicate-key, nonfinite, store-isolation)

@@ -1,0 +1,110 @@
+{
+  "all_checks_passed": true,
+  "cases": [
+    {
+      "accepted": true,
+      "content_hashes": [
+        "bc5b4e391313453ff926713cf0c366740adb5ff866e6eaa3890626e6e795751b",
+        "f3ad5028d3e7be3f5d01bc88501c99e2326eb970013fb247960066f7db5b8c1a"
+      ],
+      "contents_hex": [
+        "463334342d6669727374",
+        "463334342d7365636f6e64"
+      ],
+      "generated": 2,
+      "hints": [
+        [],
+        [
+          [
+            0,
+            0,
+            1
+          ]
+        ]
+      ],
+      "killed": false,
+      "mode": "success",
+      "post_elapsed_seconds": 0.00015503400936722755,
+      "returned": 2,
+      "target_elapsed_seconds": 0.01564501179382205,
+      "target_returncode": 0,
+      "wall_elapsed_seconds": 0.015870461938902736
+    },
+    {
+      "accepted": false,
+      "budget_error": {
+        "limit": 2,
+        "objects": 3,
+        "observed": 3,
+        "resource": "objects"
+      },
+      "mode": "objects",
+      "post_elapsed_seconds": 4.282384179532528e-05,
+      "target_elapsed_seconds": 0.015621826983988285,
+      "target_returncode": 0,
+      "visible_outputs": [
+        "case-0",
+        "case-1",
+        "case-2"
+      ],
+      "wall_elapsed_seconds": 0.01572202891111374
+    },
+    {
+      "accepted": false,
+      "budget_error": {
+        "limit": 5,
+        "objects": 2,
+        "observed": 6,
+        "resource": "bytes"
+      },
+      "mode": "bytes",
+      "post_elapsed_seconds": 5.398085340857506e-05,
+      "target_elapsed_seconds": 0.01539231208153069,
+      "target_returncode": 0,
+      "visible_outputs": [
+        "case-a",
+        "case-b"
+      ],
+      "wall_elapsed_seconds": 0.015493743820115924
+    },
+    {
+      "accepted": false,
+      "budget_error": {
+        "limit": 1,
+        "objects": 1,
+        "observed": 2,
+        "resource": "hints"
+      },
+      "mode": "hints",
+      "post_elapsed_seconds": 9.745708666741848e-05,
+      "target_elapsed_seconds": 0.015459012007340789,
+      "target_returncode": 0,
+      "visible_outputs": [
+        "case",
+        "case.hints"
+      ],
+      "wall_elapsed_seconds": 0.01564010512083769
+    }
+  ],
+  "checks": {
+    "actual_subprocess_target": true,
+    "all_cases_bounded": true,
+    "byte_overflow_exact": true,
+    "hint_overflow_exact": true,
+    "object_overflow_exact": true,
+    "success_contents_exact": true
+  },
+  "configuration": {
+    "cases": [
+      "success",
+      "objects",
+      "bytes",
+      "hints"
+    ],
+    "single_object_transport_limit": 64,
+    "target": "synthetic executable Python producer",
+    "wrapper": "production SymCCEngine + run_symcc_worker"
+  },
+  "proof_boundary": "This local integration executes a real child process through the production SymCC engine wrapper and worker result admission path. It does not use MPI transport, afl-showmap, a symbolic solver, or a fuzzing campaign, and makes no coverage, throughput, bug-discovery, or LAVA-M uplift claim.",
+  "schema": "symcc-f344-bounded-hybrid-worker-integration-v1"
+}

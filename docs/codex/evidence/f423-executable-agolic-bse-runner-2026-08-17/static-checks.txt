@@ -1,0 +1,21 @@
+F423 static, structural, and review checks
+
+py_compile changed Python modules: PASS
+ruff changed Python modules: PASS
+git diff --check: PASS
+diagram SVG render and visual inspection: PASS
+diagram PNG dimensions: 1600x950
+oracle --output argument parsing and byte-identical replay: PASS
+target function/op ownership mutation: PASS
+witness post-admission replacement mutation: PASS
+candidate terminal-checkpoint mutation: PASS
+result status contradiction mutation: PASS
+controller prior-coverage drift mutation: PASS
+max_states outstanding-frontier bounded regression: PASS
+harness-entry execution regression: PASS
+focused Python: 15/15 PASS
+related Python: 108 passed + 36 subtests PASS
+complete Python: 1126 passed + 250 subtests PASS
+LLVM compiler/runtime rerun: NOT RUN (no C/C++ changes in F423)
+adjacent F422 LLVM17 evidence: 302 passed + 2 unsupported
+adjacent F422 LLVM18 evidence: 303 passed + 1 unsupported

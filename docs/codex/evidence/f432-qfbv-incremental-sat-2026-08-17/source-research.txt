@@ -1,0 +1,45 @@
+Primary sources consulted for F432 (checked 2026-08-17 UTC)
+
+1. Dominik Schreiber, Katalin Fazekas, Mathias Fleury, and Armin Biere.
+   Real-time Proof Checking for Distributed Incremental SAT Solving.
+   TACAS 2026. DOI: https://doi.org/10.1007/978-3-032-22752-2_18
+   Used for formula-increment, assumption, failed-assumption, checked-import,
+   LIDRUP/ImpCheck, and dynamic-rescheduling research boundaries.
+
+2. Ruben Goetz, Michael Doerr, and Dominik Schreiber.
+   A Natively Parallel Proof Framework for Clause-Sharing SAT Solving.
+   SAT 2026. DOI: https://doi.org/10.4230/LIPIcs.SAT.2026.17
+   Used for the persistent parallel-proof DAG and small sequential trusted-core
+   design direction. The paper reports evaluations up to 3072 cores; F432 does
+   not claim to reproduce that scale.
+
+3. Florian Pollitt, Mathias Fleury, Katalin Fazekas, Nils Froleyks,
+   Andre Schidler, Dominik Schreiber, and Armin Biere.
+   CaDiCaL 3.0. SAT 2026. DOI:
+   https://doi.org/10.4230/LIPIcs.SAT.2026.40
+   Used for the incremental SAT, assumption, proof-hint, and native C API base.
+
+4. Mallob/MallobSat official repository:
+   https://github.com/domschrei/mallob
+   Inspected commit addfd543a2ea054197f5f881ac220b42440cbe0f.
+
+5. PalRUP-Check official repository:
+   https://github.com/rubenGoetz/PalRUP-Check
+   Inspected commit d9382fb4b0acf094034ee91e2ed0a22b1b479c1d.
+
+6. ImpCheck incremental branch:
+   https://github.com/domschrei/impcheck/tree/incremental
+   Inspected commit b5f37b21385ee802ce015103b23aff62f92b1734.
+   The observed protocol distinguishes formula increments, assumptions, local
+   derivations, checked imports, and UNSAT with failed assumptions.
+
+7. CaDiCaL official repository:
+   https://github.com/arminbiere/cadical
+   Pinned release 3.0.1 commit
+   c60730422e758ef1cebe7aeddf2dda31c996bf04.
+
+Interpretation: F432 implements deterministic QF_BV bit-blasting,
+activation-scoped exact contexts, synchronous checked exchange at solve
+boundaries, and a project-native persistent LRUP proof DAG. It does not claim
+wire-format equivalence to LIDRUP or PalRUP, mid-solve streaming, Mallob's
+malleable scheduling, or their published distributed scaling results.

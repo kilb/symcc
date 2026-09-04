@@ -1,0 +1,10 @@
+F423 proves a bounded mechanism result for the current continuation IR:
+admitted Agolic plans execute in harness-entry or witness-guided mode;
+witness-guided prefixes remain single-state and solver-free until release;
+post-release states use ordinary symbolic exploration; terminal QF_BV models
+are concretely replayed before content-addressed corpus and coverage commit.
+
+F423 does not prove native KLEE or arbitrary C/C++ equivalence, complete
+external/native effects, complete symbolic-address behavior, public benchmark
+coverage improvement, wall-time speedup, or defect yield. The eight-case
+oracle is a finite semantic differential, not a campaign experiment.

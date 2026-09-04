@@ -1,0 +1,18 @@
+schema=f324-real-mpi-artifacts-v1
+run_dir=/tmp/symcc-f324-heartbeat-final.UebIcV
+mpi_exit_code=0
+processes=8
+masters=2
+workers=6
+input_files=12
+corpus_files=13
+standalone_work_directories=0
+heartbeat_batches=17
+heartbeat_renewals=67
+directory_syncs=41
+directory_syncs_avoided=26
+heartbeat_failures=0
+worker_ack_lines=2
+analysis_observations=13
+generated_observations=13
+analysis_by_master=0=7, 1=6

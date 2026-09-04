@@ -1,0 +1,63 @@
+F341 reproducibility and evidence boundary
+Date: 2026-08-10 UTC
+Platform: Linux 7.0.0-28-generic x86_64
+Python: 3.12.3
+MPI: Open MPI 4.1.6
+Filesystem under test: local overlayfs
+
+Production mechanism:
+- rank 0 strictly broadcasts result/input budgets before shared-state creation
+- default input limit is 268435456 bytes; valid range is 1..1099511627776
+- result total-byte limit must not exceed the per-input byte limit
+- external scans and public scans use context-managed scandir
+- imported-name state retains dev/inode/size/mtime/ctime identity, not only name
+- stable hash snapshot uses O_NOFOLLOW, same-fd fstat, fixed 1 MiB reads, and final path stat
+- rendezvous owner reopens the exact snapshot identity for fsync-backed content publication
+- source mutation/replacement leaves no cache/public/temp commitment and is retryable
+- deterministic input overflow publishes and dispatches nothing, then takes Abort(70)
+- worker public-to-private copy computes expected SHA-256 in the copy pass
+- final accounting consumes canonical 64-hex no-follow regular entries only
+- final new-interesting count subtracts the complete shutdown-time external hash set
+
+Automated tests:
+- directed lifecycle: 49 passed, 40 subtests passed, 0.91 s
+- related six-module integration: 338 passed, 67 subtests passed, 16.06 s
+- full warnings-as-errors Python: 731 passed, 87 subtests passed, 96.11 s
+- Ruff: passed
+- py_compile: passed
+- git diff --check: passed
+
+Actual MPI transport:
+- two Open MPI runs, each 2 ranks, 1 master, 1 worker, one physical host
+- same-name replacement case: returncode=0, elapsed=2.7352051788475364 s
+- first and replacement contents are each executed exactly once
+- two exact external content hashes are public; external=2 and new=0
+- one noncanonical metadata file and one canonical-looking symlink are not counted
+- successful active/retired epoch state is 0/1 and staging residue is empty
+- overflow case: 17-byte seed with 16-byte input/result limits
+- overflow returncode=70, elapsed=0.4667222029529512 s, target never executes
+- overflow has no public/staged object, 1/1 worker ACK, and active/retired=1/0
+- every structured MPI check passed
+
+Fresh-process owner-admission microbenchmark:
+- source scales: 8388608 and 33554432 bytes
+- sparse zero-filled regular source on local overlayfs
+- 2 warmups and 10 retained samples per mechanism and scale
+- legacy: read-all, hash, atomic publication, destination hash
+- F341: stable hash snapshot, fixed-window exact-identity publication, destination hash
+- 8 MiB traced peak: 10487568 -> 2099834 bytes, old/new=4.99447480134144
+- 8 MiB max RSS median: 42360 -> 35586 KiB, old/new=1.1903557578823132
+- 8 MiB elapsed median: 32077.3225 -> 35155.091 us, new is 9.594842275255356% slower
+- 32 MiB traced peak: 35653392 -> 2099834 bytes, old/new=16.97914787549873
+- 32 MiB max RSS median: 67538 -> 35264 KiB, old/new=1.9152109800362977
+- 32 MiB elapsed median: 66374.2645 -> 73704.299 us, new is 11.043488851013961% slower
+
+Strict boundary:
+- Path/hash/identity/provenance metadata remains O(number of observed corpus names).
+- Every master still hashes each new external input before content-owner selection.
+- The owner intentionally performs a second stable source pass for publication identity.
+- A byte budget cannot preempt a synchronous filesystem call already in progress.
+- Final-component O_NOFOLLOW does not provide a Byzantine parent-directory model.
+- The benchmark uses local sparse/page-cached files and isolates mechanism cost.
+- No real multi-host, NFS/Lustre/GPFS, storage failover, or power-loss evidence exists.
+- No DSE throughput, solver, coverage, campaign, bug-discovery, or LAVA-M uplift is claimed.

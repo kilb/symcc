@@ -1,0 +1,2 @@
+<?xml version="1.0"?><!DOCTYPE note [<!ELEMENT note (to,from,body)><!ELEMENT to (#PCDATA)><!ELEMENT from (#PCDATA)><!ELEMENT body (#PCDATA)>]><note>
+"1.0" encoding="><to>A</to><from>B</from><body>C</body></note>

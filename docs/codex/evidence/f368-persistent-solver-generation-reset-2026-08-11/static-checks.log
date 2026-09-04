@@ -1,0 +1,27 @@
+F368 static and delivery checks (2026-08-11 UTC)
+
+Scope:
+- util/query_store.py
+- test/test_query_store.py
+- run_generation_reset_checks.py
+- docs/codex/verify_delivery.py
+- runtime/src/backends/qsym/query_solver.cpp
+- persistent-solver-generation-reset-2026-08-11.svg
+
+ruff: PASS
+py_compile: PASS
+cxx17 syntax: PASS
+git diff --check: PASS
+diagram render: PASS
+historical F350/F367 replay: PASS
+F368 consecutive byte-equivalent replay: PASS
+HTML twins: PASS
+nested SHA-256: PASS
+top-level SHA-256: PASS
+delivery verifier: PASS
+
+The recorded full gate is 787 passed plus 127 subtests with all 16 required
+capabilities present and the canonical 787-node identity inventory unchanged.
+No full LLVM lit suite, hosted CI job, cross-host filesystem qualification,
+actual MPI transport, public solver campaign, fuzzing campaign, LAVA-M run, or
+performance-uplift experiment was executed for F368.

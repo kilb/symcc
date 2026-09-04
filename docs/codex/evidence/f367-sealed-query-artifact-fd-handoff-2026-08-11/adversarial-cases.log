@@ -1,0 +1,70 @@
+{
+  "all_checks_passed": true,
+  "failure_atomicity": {
+    "allocation_error_observed": true,
+    "partially_created_descriptor_closed": true,
+    "query_attempts": 0,
+    "query_status": "pending"
+  },
+  "legacy": {
+    "expected_digest": "614fe27777cf1f372b816309e74b11428e56029e9593b71df201b28d9eb9c305",
+    "observed_digest": "69b0c4d9f3f50c5eacb27058d055a3d61bfdffa992b1ab25bb62f49ae922e3c4",
+    "path_only_consumer_read_wrong_object": true
+  },
+  "one_shot": {
+    "expected_digest": "614fe27777cf1f372b816309e74b11428e56029e9593b71df201b28d9eb9c305",
+    "helper_consumed_sealed_snapshot": true,
+    "helper_observed_digest": "614fe27777cf1f372b816309e74b11428e56029e9593b71df201b28d9eb9c305",
+    "pathname_digest_after_replacement": "69b0c4d9f3f50c5eacb27058d055a3d61bfdffa992b1ab25bb62f49ae922e3c4"
+  },
+  "persistent": {
+    "all_required_seals_present": true,
+    "all_snapshots_match": true,
+    "expected_hashes": [
+      "c3fc6d96855903b3a033be1249b85d9df0efe8d1043daa43b383c3ad61423b7f",
+      "c5e9b113883b10604fe1a5d3f8b0fa443b81e67f2bee71c2f0cff5a769ba425a"
+    ],
+    "markers": [
+      "@symcc-fd:prefix",
+      "@symcc-fd:target"
+    ],
+    "message_flags": 0,
+    "received_descriptors": 2,
+    "received_hashes": [
+      "c3fc6d96855903b3a033be1249b85d9df0efe8d1043daa43b383c3ad61423b7f",
+      "c5e9b113883b10604fe1a5d3f8b0fa443b81e67f2bee71c2f0cff5a769ba425a"
+    ],
+    "received_request_id": "78747056e14aae892f03c3497fe18df2742330a40be2b21d295b79447172ffc2",
+    "request_id": "78747056e14aae892f03c3497fe18df2742330a40be2b21d295b79447172ffc2",
+    "request_id_bound": true
+  },
+  "schema": "symcc-f367-sealed-query-fd-check-v1",
+  "sealed_snapshot": {
+    "all_required_seals_present": true,
+    "all_snapshots_match": true,
+    "closed_bundle_rejected": true,
+    "expected_hashes": {
+      "full": "614fe27777cf1f372b816309e74b11428e56029e9593b71df201b28d9eb9c305",
+      "prefix": "c3fc6d96855903b3a033be1249b85d9df0efe8d1043daa43b383c3ad61423b7f",
+      "target": "c5e9b113883b10604fe1a5d3f8b0fa443b81e67f2bee71c2f0cff5a769ba425a"
+    },
+    "observed_seals": [
+      15,
+      15,
+      15
+    ],
+    "pathname_hashes_after_replacement": {
+      "full": "69b0c4d9f3f50c5eacb27058d055a3d61bfdffa992b1ab25bb62f49ae922e3c4",
+      "prefix": "69b0c4d9f3f50c5eacb27058d055a3d61bfdffa992b1ab25bb62f49ae922e3c4",
+      "target": "69b0c4d9f3f50c5eacb27058d055a3d61bfdffa992b1ab25bb62f49ae922e3c4"
+    },
+    "required_seals": 15,
+    "snapshot_hashes_after_replacement": {
+      "full": "614fe27777cf1f372b816309e74b11428e56029e9593b71df201b28d9eb9c305",
+      "prefix": "c3fc6d96855903b3a033be1249b85d9df0efe8d1043daa43b383c3ad61423b7f",
+      "target": "c5e9b113883b10604fe1a5d3f8b0fa443b81e67f2bee71c2f0cff5a769ba425a"
+    },
+    "write_rejected_errno": 1
+  }
+}
+f367-sealed-query-fd-check: PASS (sealed snapshots, one-shot, SCM_RIGHTS, rollback)

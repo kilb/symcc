@@ -1,0 +1,12 @@
+static checks: PASS with documented formatter exception
+ruff lint (F400 Python files): PASS
+py_compile (F400 Python files): PASS
+git diff --check: PASS
+diagram SVG/PNG parse, 1800x1080 SVG, 2700x1620 PNG, nonblank visual inspection: PASS
+targeted Python: 27 passed + 6 subtests
+related Python: 131 passed + 57 subtests
+full Python exact-identity gate: 995 passed + 235 subtests, zero degradation
+full LLVM 17 lit: 261 discovered, 259 passed, 2 unsupported, 0 failed
+ruff formatter: NOT A REPOSITORY GATE; whole legacy modules would be reformatted
+coverage/speedup/public-target claim: intentionally absent
+AFL/native-replay coverage attribution: intentionally absent

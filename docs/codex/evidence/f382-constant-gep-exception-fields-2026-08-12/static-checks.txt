@@ -1,0 +1,12 @@
+$ cmake --build build --target SymCC -j2
+ninja: no work to do.
+LLVM 18 build: PASS
+$ cmake --build build-llvm17 --target SymCC -j2
+ninja: no work to do.
+LLVM 17 build: PASS
+$ python3 -m ruff check F382 Python files
+All checks passed!
+$ python3 -m py_compile F382 Python files
+py_compile: PASS
+$ git diff --check
+diff whitespace: PASS

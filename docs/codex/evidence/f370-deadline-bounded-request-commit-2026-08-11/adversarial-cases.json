@@ -1,0 +1,30 @@
+{
+  "all_checks_passed": true,
+  "legacy": {
+    "descriptor_send_blocked_without_deadline": true,
+    "pipe_write_blocked_without_deadline": true
+  },
+  "production": {
+    "descriptor": {
+      "cold_recovery": true,
+      "deadline_enforced": true,
+      "partial_generation_retired": true
+    },
+    "pipe": {
+      "cold_recovery": true,
+      "deadline_enforced": true,
+      "partial_generation_retired": true
+    },
+    "preflight": {
+      "classes_rejected": [
+        "invalid-utf8",
+        "non-integer-timeout",
+        "oversized-frame",
+        "zero-timeout"
+      ],
+      "healthy_generation_preserved": true,
+      "query_ir_max_witness_representable": true
+    }
+  },
+  "schema": "symcc-f370-deadline-bounded-request-commit-v1"
+}

@@ -1,0 +1,8 @@
+build LLVM 18 SymCC: PASS
+build LLVM 17 SymCC: PASS
+ruff check: PASS
+py_compile: PASS
+git diff --check: PASS
+technology index: PASS
+diagram render and structural inspection: PASS
+14 RUN commands: PASS

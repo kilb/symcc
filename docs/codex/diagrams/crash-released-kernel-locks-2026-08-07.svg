@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1200" viewBox="0 0 1900 1200" role="img" aria-labelledby="title desc">
+  <title id="title">F326 crash-released kernel locks and coverage-state integrity</title>
+  <desc id="desc">The old directory lock could remain after a crash or be stolen from a paused process. The new protocol keeps one stable regular file, takes a bounded nonblocking kernel advisory lock, and fails closed on corrupt coverage state.</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#102a43" flood-opacity="0.15"/>
+    </filter>
+    <marker id="blue-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="green-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#16835b"/>
+    </marker>
+    <marker id="red-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#c2413a"/>
+    </marker>
+    <style>
+      text { font-family: "WenQuanYi Zen Hei", "Noto Sans CJK SC", Arial, sans-serif; fill: #172b3a; letter-spacing: 0; }
+      .title { font-size: 38px; font-weight: 700; }
+      .subtitle { font-size: 20px; fill: #dbe7ef; }
+      .band { font-size: 22px; font-weight: 700; }
+      .head { font-size: 20px; font-weight: 700; }
+      .body { font-size: 18px; }
+      .small { font-size: 16px; fill: #526575; }
+      .mono { font-family: "DejaVu Sans Mono", monospace; font-size: 15px; }
+      .metric { font-size: 23px; font-weight: 700; }
+      .light { fill: #ffffff; }
+      .light-muted { fill: #dbe7ef; }
+      .green { fill: #16835b; }
+      .red { fill: #c2413a; }
+      .blue { fill: #2563eb; }
+    </style>
+  </defs>
+
+  <rect width="1900" height="1200" fill="#f5f8fa"/>
+  <rect x="0" y="0" width="1900" height="112" fill="#17324d"/>
+  <text x="65" y="58" class="title light">F326 崩溃自动释放的内核锁与 Coverage 状态完整性</text>
+  <text x="65" y="91" class="subtitle">用稳定 inode + 有界 flock 消除永久锁与时间抢锁；损坏的权威覆盖状态一律失败关闭</text>
+
+  <!-- Old protocol -->
+  <rect x="50" y="142" width="500" height="820" rx="8" fill="#ffffff" stroke="#c7d4dd" filter="url(#shadow)"/>
+  <rect x="50" y="142" width="500" height="60" rx="8" fill="#fbe9e7"/>
+  <rect x="50" y="194" width="500" height="8" fill="#fbe9e7"/>
+  <text x="78" y="180" class="band">旧目录锁：两类不可兼得的失败</text>
+
+  <rect x="82" y="234" width="436" height="105" rx="8" fill="#f8fbfd" stroke="#8ba6b9"/>
+  <text x="106" y="271" class="head">Holder</text>
+  <text x="106" y="305" class="mono">mkdir(record.lock) → critical section</text>
+  <line x1="300" y1="339" x2="300" y2="384" stroke="#c2413a" stroke-width="4" marker-end="url(#red-arrow)"/>
+
+  <rect x="82" y="392" width="436" height="160" rx="8" fill="#fbe9e7" stroke="#c2413a"/>
+  <text x="106" y="429" class="head red">路径 A：进程 SIGKILL / crash</text>
+  <text x="106" y="465" class="body">finally 不运行，rmdir 永远不会发生</text>
+  <text x="106" y="500" class="body">后续 writer 持续看到 lock directory</text>
+  <text x="106" y="532" class="small">无 deadline 时形成永久等待</text>
+
+  <rect x="82" y="584" width="436" height="206" rx="8" fill="#fff8e8" stroke="#d79b22"/>
+  <text x="106" y="621" class="head">路径 B：按 wall-clock 年龄删锁</text>
+  <text x="106" y="657" class="body">holder 只是暂停 / 抢占 / 慢 I/O</text>
+  <text x="106" y="692" class="body">contender 判断“太旧”并 rmdir</text>
+  <text x="106" y="727" class="body">新 writer 进入；旧 holder 随后恢复</text>
+  <text x="106" y="766" class="head red">两个 writer 同时修改权威状态</text>
+
+  <rect x="82" y="825" width="436" height="97" rx="8" fill="#fbe9e7" stroke="#c2413a"/>
+  <text x="106" y="861" class="head">根因</text>
+  <text x="106" y="895" class="body">时间不能证明进程死亡，也不能 fencing 旧 holder</text>
+
+  <line x1="550" y1="552" x2="602" y2="552" stroke="#2563eb" stroke-width="5" marker-end="url(#blue-arrow)"/>
+
+  <!-- New lock protocol -->
+  <rect x="610" y="142" width="740" height="820" rx="8" fill="#ffffff" stroke="#c7d4dd" filter="url(#shadow)"/>
+  <rect x="610" y="142" width="740" height="60" rx="8" fill="#e7f0ff"/>
+  <rect x="610" y="194" width="740" height="8" fill="#e7f0ff"/>
+  <text x="638" y="180" class="band">新协议：稳定 pathname、内核所有权、单调 deadline</text>
+
+  <rect x="647" y="232" width="666" height="128" rx="8" fill="#f8fbfd" stroke="#4d7bb8"/>
+  <circle cx="685" cy="272" r="20" fill="#2563eb"/>
+  <text x="685" y="279" text-anchor="middle" class="head light">1</text>
+  <text x="722" y="278" class="head">打开唯一且稳定的普通文件</text>
+  <text x="675" y="315" class="mono">open(O_RDWR | O_CREAT | O_CLOEXEC | O_NOFOLLOW, 0600)</text>
+  <text x="675" y="344" class="small">fstat 必须为 regular file；旧 lock directory / symlink 失败关闭</text>
+
+  <line x1="980" y1="360" x2="980" y2="400" stroke="#2563eb" stroke-width="4" marker-end="url(#blue-arrow)"/>
+
+  <rect x="647" y="408" width="666" height="161" rx="8" fill="#e7f0ff" stroke="#2563eb"/>
+  <circle cx="685" cy="448" r="20" fill="#2563eb"/>
+  <text x="685" y="455" text-anchor="middle" class="head light">2</text>
+  <text x="722" y="454" class="head">尝试取得独占 advisory lock</text>
+  <text x="675" y="494" class="mono">flock(fd, LOCK_EX | LOCK_NB)</text>
+  <text x="675" y="527" class="body">EACCES / EAGAIN：按 monotonic deadline 重试</text>
+  <text x="675" y="555" class="small">超时明确失败；其他 errno 直接传播，不降级为无锁执行</text>
+
+  <line x1="980" y1="569" x2="980" y2="609" stroke="#16835b" stroke-width="4" marker-end="url(#green-arrow)"/>
+
+  <rect x="647" y="617" width="666" height="139" rx="8" fill="#eaf6f0" stroke="#16835b"/>
+  <circle cx="685" cy="657" r="20" fill="#16835b"/>
+  <text x="685" y="664" text-anchor="middle" class="head light">3</text>
+  <text x="722" y="663" class="head">在 work / target / coverage 临界区更新</text>
+  <text x="675" y="704" class="body">同一个 stable inode 承担短期互斥</text>
+  <text x="675" y="738" class="small">长期所有权仍由带 fencing token 的 JSON lease 表达</text>
+
+  <line x1="980" y1="756" x2="980" y2="796" stroke="#16835b" stroke-width="4" marker-end="url(#green-arrow)"/>
+
+  <rect x="647" y="804" width="666" height="118" rx="8" fill="#eef7f2" stroke="#16835b"/>
+  <circle cx="685" cy="844" r="20" fill="#16835b"/>
+  <text x="685" y="851" text-anchor="middle" class="head light">4</text>
+  <text x="722" y="850" class="head green">close / exception / SIGKILL → 内核释放</text>
+  <text x="675" y="889" class="body">pathname 永不 unlink，避免旧 holder 与新 opener 锁住不同 inode</text>
+
+  <line x1="1350" y1="552" x2="1402" y2="552" stroke="#16835b" stroke-width="5" marker-end="url(#green-arrow)"/>
+
+  <!-- Coverage integrity -->
+  <rect x="1410" y="142" width="440" height="820" rx="8" fill="#ffffff" stroke="#c7d4dd" filter="url(#shadow)"/>
+  <rect x="1410" y="142" width="440" height="60" rx="8" fill="#eaf6f0"/>
+  <rect x="1410" y="194" width="440" height="8" fill="#eaf6f0"/>
+  <text x="1438" y="180" class="band">Coverage-authority 失败关闭</text>
+
+  <rect x="1444" y="232" width="372" height="112" rx="8" fill="#eef7f2" stroke="#16835b"/>
+  <text x="1468" y="269" class="head green">只有 ENOENT 表示空 shard</text>
+  <text x="1468" y="305" class="body">返回 schema=1、epoch=0、entries=[]</text>
+  <text x="1468" y="332" class="small">首次提交可安全创建状态</text>
+
+  <rect x="1444" y="374" width="372" height="220" rx="8" fill="#f8fbfd" stroke="#4d7bb8"/>
+  <text x="1468" y="411" class="head">现存记录必须全部通过</text>
+  <text x="1468" y="449" class="body">schema / shard / epoch</text>
+  <text x="1468" y="484" class="body">严格递增 index + 正确 shard 归属</text>
+  <text x="1468" y="519" class="body">bucket bits ∈ [1,255]</text>
+  <text x="1468" y="554" class="body">contributors 类型与有限时间戳</text>
+  <text x="1468" y="582" class="small">验证后才执行 OR merge 和 durable replace</text>
+
+  <rect x="1444" y="624" width="372" height="171" rx="8" fill="#fbe9e7" stroke="#c2413a"/>
+  <text x="1468" y="661" class="head red">corrupt JSON / schema / I/O error</text>
+  <text x="1468" y="699" class="body">抛出异常，不当作空状态</text>
+  <text x="1468" y="734" class="body">不覆盖原字节，不推进 seen epoch</text>
+  <text x="1468" y="768" class="small">NaN / Infinity 不能伪造永生 owner</text>
+
+  <rect x="1444" y="825" width="372" height="97" rx="8" fill="#fff8e8" stroke="#d79b22"/>
+  <text x="1468" y="861" class="head">部署边界</text>
+  <text x="1468" y="894" class="small">NFS / CIFS / Lustre 必须单独验证锁管理器语义</text>
+
+  <!-- Metrics -->
+  <rect x="50" y="1000" width="1800" height="150" rx="8" fill="#17324d"/>
+  <text x="80" y="1038" class="head light">实测（Linux overlayfs；I/T/E-mechanism）</text>
+  <text x="80" y="1080" class="metric light">40 个持锁进程 SIGKILL：20/20 work + 20/20 coverage 全部重新取得</text>
+  <text x="80" y="1118" class="body light-muted">最大重新取得延迟：work 6.220 ms · coverage 10.678 ms · 0 timeout</text>
+  <text x="1820" y="1078" text-anchor="end" class="metric light">10 × 8 进程 coverage OR：0 lost update</text>
+  <text x="1820" y="1116" text-anchor="end" class="body light-muted">每轮 2048/2048 novel bits；最终 256 个 byte 均为 0xff</text>
+  <text x="1820" y="1177" text-anchor="end" class="small">无竞争短锁：9.932 → 5.349 μs，1.857×；不外推 DSE / solver / coverage 吞吐</text>
+</svg>

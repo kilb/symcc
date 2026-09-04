@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">F316 generation-aware READY join and persistent dispatch recovery</title>
+  <desc id="desc">A three-lane protocol diagram showing worker result and ready messages, a master generation join gate, exact rollback, bounded requeue, and persistent deferred recovery.</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#132238" flood-opacity="0.14"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2c4968"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#087f5b"/>
+    </marker>
+    <marker id="arrowRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#c43d4f"/>
+    </marker>
+    <style>
+      text { font-family: Inter, "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif; letter-spacing: 0; }
+      .title { font-size: 34px; font-weight: 750; fill: #12263a; }
+      .subtitle { font-size: 17px; fill: #536577; }
+      .lane { font-size: 16px; font-weight: 700; fill: #31475b; }
+      .head { font-size: 20px; font-weight: 750; fill: #12263a; }
+      .body { font-size: 15px; fill: #31475b; }
+      .small { font-size: 13px; fill: #5c6f82; }
+      .mono { font-family: "JetBrains Mono", "Noto Sans Mono", monospace; font-size: 14px; fill: #23415e; }
+      .pill { font-size: 13px; font-weight: 700; fill: #fff; }
+      .box { fill: #fff; stroke: #c9d5df; stroke-width: 1.4; filter: url(#shadow); }
+      .green { fill: #e8f7f1; stroke: #51a98b; }
+      .red { fill: #fff0f2; stroke: #db7583; }
+      .amber { fill: #fff7df; stroke: #d4a23e; }
+      .blue { fill: #eaf3fb; stroke: #709bc0; }
+      .line { fill: none; stroke: #2c4968; stroke-width: 2.2; marker-end: url(#arrow); }
+      .lineG { fill: none; stroke: #087f5b; stroke-width: 2.5; marker-end: url(#arrowGreen); }
+      .lineR { fill: none; stroke: #c43d4f; stroke-width: 2.5; marker-end: url(#arrowRed); }
+      .dash { stroke-dasharray: 8 7; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f6f8fa"/>
+  <rect x="0" y="0" width="1600" height="112" fill="#ffffff"/>
+  <rect x="0" y="109" width="1600" height="3" fill="#2e6f95"/>
+  <text x="58" y="55" class="title">F316  Generation-Aware READY Join &amp; Persistent Recovery</text>
+  <text x="60" y="87" class="subtitle">跨 MPI tag 乱序不影响判定；错误结果只能恢复当前代次，语义任务不会因日志故障静默丢失</text>
+
+  <rect x="40" y="135" width="1520" height="80" rx="6" fill="#eef3f7" stroke="#d5dee6"/>
+  <text x="62" y="166" class="lane">协议身份</text>
+  <rect x="174" y="143" width="345" height="64" rx="5" class="blue"/>
+  <text x="194" y="163" class="small">语义任务 ID（跨重试稳定）</text>
+  <text x="194" y="184" class="mono">H(path, focus, target, actions,</text>
+  <text x="194" y="201" class="mono">  schedule, continuation)</text>
+  <rect x="545" y="149" width="363" height="49" rx="5" class="amber"/>
+  <text x="565" y="170" class="small">传输代次（每次派发唯一）</text>
+  <text x="565" y="190" class="mono">T = SHA256(epoch, rank, sequence)</text>
+  <text x="926" y="172" class="body">一 rank 一活动事务</text>
+  <text x="926" y="194" class="small">恢复同时匹配 rank + T；T 不进入语义任务哈希</text>
+
+  <text x="54" y="261" class="lane">WORKER</text>
+  <text x="54" y="495" class="lane">MASTER JOIN GATE</text>
+  <text x="54" y="730" class="lane">RECOVERY / COMMIT</text>
+  <line x1="155" y1="242" x2="1550" y2="242" stroke="#d4dde5"/>
+  <line x1="155" y1="476" x2="1550" y2="476" stroke="#d4dde5"/>
+  <line x1="155" y1="711" x2="1550" y2="711" stroke="#d4dde5"/>
+
+  <rect x="190" y="275" width="238" height="125" rx="6" class="box blue"/>
+  <text x="214" y="309" class="head">执行 WORK(T)</text>
+  <text x="214" y="340" class="body">continuation / input error</text>
+  <text x="214" y="364" class="body">normal / elastic error</text>
+  <text x="214" y="388" class="small">所有出口共享统一 sender</text>
+
+  <rect x="516" y="275" width="252" height="125" rx="6" class="box green"/>
+  <text x="540" y="309" class="head">发送 RESULT</text>
+  <rect x="540" y="328" width="126" height="26" rx="13" fill="#087f5b"/>
+  <text x="558" y="346" class="pill">dispatch = T</text>
+  <text x="540" y="380" class="small">send 返回后：completed = T</text>
+
+  <rect x="855" y="275" width="272" height="125" rx="6" class="box amber"/>
+  <text x="879" y="309" class="head">发送下一条 READY</text>
+  <rect x="879" y="328" width="191" height="26" rx="13" fill="#b47b12"/>
+  <text x="895" y="346" class="pill">completed_dispatch = T</text>
+  <text x="879" y="380" class="small">发送后清空本地 completed</text>
+
+  <path d="M428 337 H516" class="lineG"/>
+  <path d="M768 337 H855" class="lineG"/>
+  <path d="M642 400 V448 H437 V520" class="lineG dash"/>
+  <text x="466" y="439" class="small">不同 tag，可后观察</text>
+  <path d="M991 400 V448 H1020 V520" class="line dash"/>
+  <text x="1033" y="439" class="small">不同 tag，可先观察</text>
+
+  <rect x="190" y="520" width="365" height="147" rx="6" class="box"/>
+  <text x="214" y="553" class="head">RESULT 事实</text>
+  <rect x="214" y="570" width="112" height="25" rx="12" fill="#087f5b"/>
+  <text x="237" y="588" class="pill">current</text>
+  <text x="337" y="588" class="body">清除 invalid，允许提交</text>
+  <rect x="214" y="608" width="148" height="25" rx="12" fill="#c43d4f"/>
+  <text x="231" y="626" class="pill">missing / malformed</text>
+  <text x="374" y="626" class="body">invalid[T]</text>
+  <text x="214" y="652" class="small">stale / unowned 仅隔离，不污染当前代次</text>
+
+  <rect x="648" y="520" width="342" height="147" rx="6" class="box"/>
+  <text x="672" y="553" class="head">代次 Join</text>
+  <text x="672" y="587" class="mono">ready[rank] == T</text>
+  <text x="672" y="618" class="mono">invalid[rank] == T</text>
+  <line x1="672" y1="633" x2="961" y2="633" stroke="#bcc9d3"/>
+  <text x="672" y="656" class="small">只有两项同时成立才进入恢复 sweep</text>
+
+  <rect x="1080" y="520" width="400" height="147" rx="6" class="box red"/>
+  <text x="1104" y="553" class="head">READY 事实</text>
+  <text x="1104" y="586" class="body">current(T)：记录 ready，不立即 idle</text>
+  <text x="1104" y="613" class="body">idle：无活动事务，允许派发</text>
+  <text x="1104" y="640" class="small">missing / malformed / stale / unowned：隔离</text>
+
+  <path d="M555 594 H648" class="line"/>
+  <path d="M1080 594 H990" class="line"/>
+
+  <rect x="190" y="747" width="300" height="110" rx="6" class="box green"/>
+  <text x="214" y="780" class="head">合法 current RESULT</text>
+  <text x="214" y="811" class="body">work fence → triage → commit</text>
+  <text x="214" y="838" class="small">同代 READY 已到时 rank 才转 idle</text>
+
+  <rect x="613" y="747" width="310" height="110" rx="6" class="box red"/>
+  <text x="637" y="780" class="head">精确代际补偿</text>
+  <text x="637" y="811" class="body">rollback(rank, T) + clear maps</text>
+  <text x="637" y="838" class="small">state snapshot 立即持久化</text>
+
+  <rect x="1046" y="747" width="222" height="110" rx="6" class="box amber"/>
+  <text x="1070" y="780" class="head">有界重排队</text>
+  <text x="1070" y="811" class="mono">retries = 0..16</text>
+  <text x="1070" y="838" class="small">默认立即重试 1 次</text>
+
+  <rect x="1320" y="747" width="230" height="110" rx="6" class="box blue"/>
+  <text x="1344" y="780" class="head">Deferred Journal</text>
+  <text x="1344" y="808" class="mono">append-only JSONL</text>
+  <text x="1344" y="838" class="small">RESUME 时 zero-TTL 回收</text>
+
+  <path d="M372 667 V747" class="lineG"/>
+  <path d="M819 667 V714 H768 V747" class="lineR"/>
+  <path d="M923 802 H1046" class="lineR"/>
+  <path d="M1268 802 H1320" class="line"/>
+  <path d="M1435 747 V706 H1157 V747" fill="none" stroke="#2c4968" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#arrow)"/>
+  <text x="1280" y="698" class="small">重启后恢复语义任务</text>
+</svg>

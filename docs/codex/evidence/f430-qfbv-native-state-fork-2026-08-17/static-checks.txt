@@ -1,0 +1,13 @@
+python3 -m ruff check benchmark/check_qfbv_native_state_fork_oracles.py
+  test/test_qfbv_native_state_fork.py util/qf_bv_backend.py
+  util/symcc_query_service.py
+Result: All checks passed.
+
+python3 -m py_compile benchmark/check_qfbv_native_state_fork_oracles.py
+  test/test_qfbv_native_state_fork.py util/qf_bv_backend.py
+  util/symcc_query_service.py
+Result: PASS
+
+cmake --build build --target symcc_qfbv_z3_forkserver -- -j2
+cmake --build build-llvm17 --target symcc_qfbv_z3_forkserver -- -j2
+Result: both current; C++ is compiled with repository -Wall/-Wextra/-Werror policy.

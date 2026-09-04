@@ -1,0 +1,1 @@
+<?xml version="1.0"?><root xmlns:ns="http://example.com"><ns:to><from>B</from><body>C<item ns:attr="val">nametspaced</ns:item></root>

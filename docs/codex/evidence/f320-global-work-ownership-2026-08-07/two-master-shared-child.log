@@ -1,0 +1,26 @@
+SymCC MPI Parallel Concolic Execution
+  Processes:     8
+  Mode:          multi-master (2 masters, auto-scaled at 3 workers/master)
+    Master 0: 3 workers
+    Master 1: 3 workers
+  Shared dir:    /tmp/symcc-f320-integrity.wE0oss/out
+  Input dir:     /tmp/symcc-f320-integrity.wE0oss/in
+  Target:        /bin/sh -c mkdir -p "$SYMCC_OUTPUT_DIR"; printf "shared-generated-child\n" > "$SYMCC_OUTPUT_DIR/out"; cat >/dev/null
+  Timeout:       1s per execution
+
+[Master] Imported 12 initial inputs from /tmp/symcc-f320-integrity.wE0oss/in
+[Master] Using 2 master(s), 3 workers in this group
+[Master] Global work ownership: rendezvous + 64 fenced shards, lease=120s
+[Master] Global quiescence commit proposed after 1.055s (limit 1s).
+[Master 1] Worker shutdown: acked=3/3 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+[Master] Global quiescence committed by all masters.
+[Master 0] Worker shutdown: acked=3/3 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+
+[Master] === Final Statistics ===
+[Master] Total analysis observations:      13
+[Master] Total test cases generated:  13
+[Master] New interesting test cases:  1
+[Master] Throughput:                  9.5 tc/s
+[Master] Masters used:               2
+[Master] Workers used:               6
+[Master] Analysis by master:         0=6, 1=7

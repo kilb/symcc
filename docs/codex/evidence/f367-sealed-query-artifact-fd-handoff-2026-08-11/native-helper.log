@@ -1,0 +1,23 @@
+$ g++ -std=c++17 -Wall -Wextra -Werror -fsyntax-only runtime/src/backends/qsym/query_solver.cpp -I/usr/include
+cxx17-syntax: PASS
+$ cmake --build build/SymCCRuntime-prefix/src/SymCCRuntime-build --target symcc-query-solver -j2
+ninja: no work to do.
+$ real one-shot and persistent helper after all CAS pathnames are replaced
+{
+  "one-shot": {
+    "assignments": {
+      "0": 65
+    },
+    "prefix_cache_hit": false,
+    "sealed_lease": true,
+    "status": "sat"
+  },
+  "persistent": {
+    "assignments": {
+      "0": 65
+    },
+    "prefix_cache_hit": false,
+    "sealed_lease": true,
+    "status": "sat"
+  }
+}

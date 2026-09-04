@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">F449 proof-aware certified partition execution</title>
+  <desc id="desc">A certified F448 partition enters a persistent lease-fenced cube ledger. Independent solver slots execute cubes. A verified SAT model cancels peers, while all verified UNSAT leaves are resolved into a base-query proof.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
+    </marker>
+    <marker id="greenArrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#15803d"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .title{font:700 28px Inter,Arial,sans-serif;fill:#0f172a}
+      .subtitle{font:400 14px Inter,Arial,sans-serif;fill:#475569}
+      .h{font:700 17px Inter,Arial,sans-serif;fill:#0f172a}
+      .t{font:500 13px Inter,Arial,sans-serif;fill:#334155}
+      .small{font:500 11px Inter,Arial,sans-serif;fill:#475569}
+      .mono{font:600 12px ui-monospace,SFMono-Regular,Consolas,monospace;fill:#334155}
+      .box{stroke-width:1.5;rx:8;filter:url(#shadow)}
+      .flow{fill:none;stroke:#334155;stroke-width:2.2;marker-end:url(#arrow)}
+      .proof{fill:none;stroke:#7c3aed;stroke-width:2;stroke-dasharray:7 5;marker-end:url(#arrow)}
+      .cancel{fill:none;stroke:#b91c1c;stroke-width:2;stroke-dasharray:6 5;marker-end:url(#arrow)}
+    </style>
+  </defs>
+
+  <rect width="1280" height="720" fill="#f8fafc"/>
+  <text x="54" y="54" class="title">F449  |  Proof-aware certified partition execution</text>
+  <text x="54" y="80" class="subtitle">Parallelism inside one QF_BV query, with replayable SAT witnesses and compositional UNSAT evidence</text>
+
+  <rect x="54" y="124" width="225" height="212" class="box" fill="#e0f2fe" stroke="#0284c7"/>
+  <text x="76" y="156" class="h">1  Certified partition</text>
+  <text x="76" y="184" class="t">Exact bit-blast plan</text>
+  <text x="76" y="208" class="t">F448 split transcript</text>
+  <text x="76" y="232" class="t">Disjoint + exhaustive cubes</text>
+  <rect x="76" y="254" width="181" height="54" rx="5" fill="#fff" stroke="#7dd3fc"/>
+  <text x="90" y="277" class="mono">formula / CNF / assumptions</text>
+  <text x="90" y="296" class="mono">partition_sha256</text>
+
+  <rect x="340" y="112" width="258" height="236" class="box" fill="#fef3c7" stroke="#d97706"/>
+  <text x="362" y="146" class="h">2  Persistent cube ledger</text>
+  <text x="362" y="174" class="t">pending -> leased -> terminal</text>
+  <text x="362" y="198" class="t">owner + token + expiry fence</text>
+  <text x="362" y="222" class="t">heartbeat, retry, crash reclaim</text>
+  <rect x="362" y="244" width="214" height="76" rx="5" fill="#fff" stroke="#fbbf24"/>
+  <text x="378" y="266" class="mono">execution_sha256</text>
+  <text x="378" y="286" class="mono">cube ordinal / scope</text>
+  <text x="378" y="306" class="mono">canonical result JSON</text>
+
+  <path d="M279 230 H332" class="flow"/>
+  <text x="287" y="215" class="small">verified catalog</text>
+
+  <rect x="662" y="106" width="278" height="344" class="box" fill="#ede9fe" stroke="#7c3aed"/>
+  <text x="684" y="140" class="h">3  Independent solver slots</text>
+  <text x="684" y="164" class="small">one backend/context per active slot</text>
+  <g>
+    <rect x="686" y="184" width="230" height="48" rx="6" fill="#fff" stroke="#a78bfa"/>
+    <text x="704" y="205" class="mono">slot 0  assume(cube 0)</text>
+    <text x="704" y="222" class="small">model check or LRUP receipt</text>
+    <rect x="686" y="246" width="230" height="48" rx="6" fill="#fff" stroke="#a78bfa"/>
+    <text x="704" y="267" class="mono">slot 1  assume(cube 1)</text>
+    <text x="704" y="284" class="small">same permanent CNF identity</text>
+    <rect x="686" y="308" width="230" height="48" rx="6" fill="#fff" stroke="#a78bfa"/>
+    <text x="704" y="329" class="mono">slot ...</text>
+    <text x="704" y="346" class="small">bounded by global parallelism</text>
+    <rect x="686" y="370" width="230" height="48" rx="6" fill="#fff" stroke="#a78bfa"/>
+    <text x="704" y="391" class="mono">slot P-1</text>
+    <text x="704" y="408" class="small">cooperative cancellation</text>
+  </g>
+  <path d="M598 230 H654" class="flow"/>
+  <text x="610" y="215" class="small">claim</text>
+  <path d="M654 280 H612" class="proof"/>
+  <text x="608" y="300" class="small">fenced result</text>
+
+  <rect x="1000" y="112" width="226" height="152" class="box" fill="#dcfce7" stroke="#15803d"/>
+  <text x="1022" y="146" class="h">4A  SAT convergence</text>
+  <text x="1022" y="174" class="t">Replay cube polarity</text>
+  <text x="1022" y="198" class="t">Replay Query IR candidate</text>
+  <text x="1022" y="222" class="t">Commit winner, cancel peers</text>
+  <path d="M940 190 H992" fill="none" stroke="#15803d" stroke-width="2.2" marker-end="url(#greenArrow)"/>
+
+  <rect x="1000" y="298" width="226" height="190" class="box" fill="#f3e8ff" stroke="#7c3aed"/>
+  <text x="1022" y="332" class="h">4B  UNSAT convergence</text>
+  <text x="1022" y="360" class="t">Replay every leaf receipt</text>
+  <text x="1022" y="384" class="t">Reverse certified split tree</text>
+  <text x="1022" y="408" class="t">Resolve each split literal</text>
+  <text x="1022" y="432" class="t">Publish base-query LRUP</text>
+  <text x="1022" y="458" class="mono">K leaves -> K-1 steps</text>
+  <path d="M940 382 H992" class="proof"/>
+
+  <path d="M1113 264 V290" class="cancel"/>
+  <text x="1124" y="283" class="small" fill="#b91c1c">exclusive outcomes</text>
+
+  <rect x="128" y="520" width="1024" height="124" class="box" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="154" y="552" class="h">Trust and lifecycle boundary</text>
+  <text x="154" y="580" class="t">QueryStore independently rebuilds the base bit-blast plan and replays the final model/proof before admission.</text>
+  <text x="154" y="606" class="t">Lifecycle edge: partition-execution -> partition -> proof dependencies. Active ledgers block unsafe GC; terminal ledgers are deleted first.</text>
+  <circle cx="888" cy="552" r="5" fill="#334155"/><text x="900" y="557" class="small">execution flow</text>
+  <circle cx="1000" cy="552" r="5" fill="#7c3aed"/><text x="1012" y="557" class="small">proof flow</text>
+  <circle cx="888" cy="584" r="5" fill="#b91c1c"/><text x="900" y="589" class="small">cancellation</text>
+
+  <text x="54" y="688" class="small">Correctness comes from exact identities, lease fencing, independent replay and split-tree resolution; heuristics affect load balance only.</text>
+</svg>

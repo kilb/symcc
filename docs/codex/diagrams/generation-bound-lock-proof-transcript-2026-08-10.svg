@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <style>
+      .cjk { font-family: "WenQuanYi Zen Hei", "Noto Sans CJK SC", sans-serif; }
+      .latin { font-family: "DejaVu Sans", sans-serif; }
+      .title { font-size: 31px; font-weight: 700; fill: #ffffff; }
+      .subtitle { font-size: 16px; fill: #cbd5e1; }
+      .section { font-size: 21px; font-weight: 700; fill: #16324f; }
+      .heading { font-size: 17px; font-weight: 700; }
+      .body { font-size: 14px; fill: #344054; }
+      .small { font-size: 12px; fill: #475467; }
+      .lane { font-size: 16px; font-weight: 700; fill: #344054; }
+    </style>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#344054"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="1000" fill="#f7f9fc"/>
+  <rect width="1600" height="100" fill="#102f4a"/>
+  <text x="64" y="47" class="cjk title">F352 代次绑定的跨节点锁证明转录</text>
+  <text x="64" y="77" class="cjk subtitle">把行为证明、当前 generation、全 master 共识与本地 capability 绑定为一次可重算提交</text>
+  <rect x="1250" y="27" width="286" height="46" rx="6" fill="#087f8c"/>
+  <text x="1393" y="56" text-anchor="middle" class="latin" font-size="16" font-weight="700" fill="#ffffff">proof-transcript-v1</text>
+
+  <rect x="48" y="128" width="500" height="278" rx="7" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <rect x="48" y="128" width="500" height="44" rx="7" fill="#fee4e2"/>
+  <line x1="48" y1="172" x2="548" y2="172" stroke="#f04438" stroke-width="2"/>
+  <text x="70" y="158" class="cjk section" fill="#912018">旧完成门：字段正确不等于属于当前请求</text>
+
+  <rect x="78" y="203" width="130" height="78" rx="6" fill="#eff8ff" stroke="#2e90fa" stroke-width="2"/>
+  <text x="143" y="232" text-anchor="middle" class="latin heading" fill="#175cd3">request g=8</text>
+  <text x="143" y="258" text-anchor="middle" class="latin small">in-flight current</text>
+  <line x1="216" y1="242" x2="274" y2="242" stroke="#344054" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="282" y="194" width="230" height="96" rx="6" fill="#fff6ed" stroke="#f79009" stroke-width="2"/>
+  <text x="397" y="224" text-anchor="middle" class="latin heading" fill="#b54708">stale result g=7</text>
+  <text x="397" y="250" text-anchor="middle" class="latin body">clean=true, verified=true</text>
+  <text x="397" y="274" text-anchor="middle" class="latin body">identity count = M</text>
+
+  <rect x="78" y="316" width="434" height="63" rx="6" fill="#fff1f3" stroke="#f97066"/>
+  <text x="295" y="342" text-anchor="middle" class="cjk heading" fill="#912018">缺失：generation、完整证据转录、capability 来源绑定</text>
+  <text x="295" y="365" text-anchor="middle" class="cjk body">旧结果重放或字段拼接可能被记为本代成功</text>
+
+  <rect x="576" y="128" width="976" height="278" rx="7" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <rect x="576" y="128" width="976" height="44" rx="7" fill="#dff7f3"/>
+  <line x1="576" y1="172" x2="1552" y2="172" stroke="#0e9384" stroke-width="2"/>
+  <text x="598" y="158" class="cjk section" fill="#065f67">F352：规范化共同转录 + client-local capability 门</text>
+
+  <rect x="608" y="198" width="192" height="168" rx="6" fill="#eff8ff" stroke="#2e90fa" stroke-width="2"/>
+  <circle cx="636" cy="226" r="15" fill="#1570ef"/>
+  <text x="636" y="232" text-anchor="middle" class="latin" font-size="14" font-weight="700" fill="#fff">1</text>
+  <text x="704" y="232" text-anchor="middle" class="cjk heading" fill="#175cd3">当前挑战</text>
+  <text x="704" y="269" text-anchor="middle" class="latin body">epoch E</text>
+  <text x="704" y="296" text-anchor="middle" class="latin body">generation g</text>
+  <text x="704" y="330" text-anchor="middle" class="cjk small">旧 g 不能复用</text>
+
+  <line x1="808" y1="282" x2="850" y2="282" stroke="#344054" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="858" y="198" width="300" height="168" rx="6" fill="#f4f3ff" stroke="#7f56d9" stroke-width="2"/>
+  <circle cx="886" cy="226" r="15" fill="#7f56d9"/>
+  <text x="886" y="232" text-anchor="middle" class="latin" font-size="14" font-weight="700" fill="#fff">2</text>
+  <text x="1008" y="232" text-anchor="middle" class="cjk heading" fill="#5925dc">规范化证明字节串</text>
+  <text x="1008" y="265" text-anchor="middle" class="latin body">members + representatives</text>
+  <text x="1008" y="291" text-anchor="middle" class="latin body">round / contention / release</text>
+  <text x="1008" y="317" text-anchor="middle" class="latin body">identity + fixed-width lengths</text>
+  <text x="1008" y="345" text-anchor="middle" class="latin" font-size="13" fill="#5925dc">T = SHA256(domain || E || g || proof)</text>
+
+  <line x1="1166" y1="282" x2="1208" y2="282" stroke="#344054" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="1216" y="198" width="304" height="168" rx="6" fill="#ecfdf3" stroke="#12b76a" stroke-width="2"/>
+  <circle cx="1244" cy="226" r="15" fill="#12b76a"/>
+  <text x="1244" y="232" text-anchor="middle" class="latin" font-size="14" font-weight="700" fill="#fff">3</text>
+  <text x="1368" y="232" text-anchor="middle" class="cjk heading" fill="#027a48">双层完成门</text>
+  <text x="1368" y="263" text-anchor="middle" class="latin body">all masters commit same (g, T)</text>
+  <text x="1368" y="291" text-anchor="middle" class="latin body">expected ranks = result ranks</text>
+  <text x="1368" y="319" text-anchor="middle" class="latin body">startup capability = result capability</text>
+  <rect x="1282" y="334" width="172" height="23" rx="4" fill="#087443"/>
+  <text x="1368" y="351" text-anchor="middle" class="latin" font-size="12" font-weight="700" fill="#fff">commit success only if all hold</text>
+
+  <rect x="48" y="436" width="1504" height="316" rx="7" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="72" y="474" class="cjk section">一次资格事务的执行时序</text>
+
+  <text x="76" y="529" class="latin lane">Master 0</text>
+  <text x="76" y="603" class="latin lane">Master 1</text>
+  <text x="76" y="677" class="latin lane">Master 2</text>
+  <text x="76" y="725" class="latin lane">Control</text>
+  <line x1="190" y1="524" x2="1518" y2="524" stroke="#98a2b3" stroke-width="2"/>
+  <line x1="190" y1="598" x2="1518" y2="598" stroke="#98a2b3" stroke-width="2"/>
+  <line x1="190" y1="672" x2="1518" y2="672" stroke="#98a2b3" stroke-width="2"/>
+  <line x1="190" y1="720" x2="1518" y2="720" stroke="#98a2b3" stroke-width="2"/>
+
+  <g class="latin" font-size="12" text-anchor="middle">
+    <rect x="224" y="500" width="150" height="48" rx="5" fill="#eff8ff" stroke="#2e90fa"/><text x="299" y="520" fill="#175cd3">accept challenge</text><text x="299" y="539" fill="#175cd3">generation g</text>
+    <rect x="224" y="574" width="150" height="48" rx="5" fill="#eff8ff" stroke="#2e90fa"/><text x="299" y="594" fill="#175cd3">accept challenge</text><text x="299" y="613" fill="#175cd3">generation g</text>
+    <rect x="224" y="648" width="150" height="48" rx="5" fill="#eff8ff" stroke="#2e90fa"/><text x="299" y="668" fill="#175cd3">accept challenge</text><text x="299" y="687" fill="#175cd3">generation g</text>
+
+    <rect x="438" y="500" width="210" height="48" rx="5" fill="#fff6ed" stroke="#f79009"/><text x="543" y="520" fill="#b54708">behavior rounds</text><text x="543" y="539" fill="#b54708">namespace identity</text>
+    <rect x="438" y="574" width="210" height="48" rx="5" fill="#fff6ed" stroke="#f79009"/><text x="543" y="594" fill="#b54708">behavior rounds</text><text x="543" y="613" fill="#b54708">namespace identity</text>
+    <rect x="438" y="648" width="210" height="48" rx="5" fill="#fff6ed" stroke="#f79009"/><text x="543" y="668" fill="#b54708">behavior rounds</text><text x="543" y="687" fill="#b54708">namespace identity</text>
+
+    <rect x="716" y="500" width="186" height="48" rx="5" fill="#f4f3ff" stroke="#7f56d9"/><text x="809" y="520" fill="#5925dc">compute T0</text><text x="809" y="539" fill="#5925dc">canonical bytes</text>
+    <rect x="716" y="574" width="186" height="48" rx="5" fill="#f4f3ff" stroke="#7f56d9"/><text x="809" y="594" fill="#5925dc">compute T1</text><text x="809" y="613" fill="#5925dc">canonical bytes</text>
+    <rect x="716" y="648" width="186" height="48" rx="5" fill="#f4f3ff" stroke="#7f56d9"/><text x="809" y="668" fill="#5925dc">compute T2</text><text x="809" y="687" fill="#5925dc">canonical bytes</text>
+
+    <rect x="970" y="500" width="190" height="48" rx="5" fill="#dff7f3" stroke="#0e9384"/><text x="1065" y="520" fill="#065f67">receive ordered set</text><text x="1065" y="539" fill="#065f67">require T0=T1=T2</text>
+    <rect x="970" y="574" width="190" height="48" rx="5" fill="#dff7f3" stroke="#0e9384"/><text x="1065" y="594" fill="#065f67">receive ordered set</text><text x="1065" y="613" fill="#065f67">require T0=T1=T2</text>
+    <rect x="970" y="648" width="190" height="48" rx="5" fill="#dff7f3" stroke="#0e9384"/><text x="1065" y="668" fill="#065f67">receive ordered set</text><text x="1065" y="687" fill="#065f67">require T0=T1=T2</text>
+
+    <rect x="1228" y="500" width="248" height="48" rx="5" fill="#ecfdf3" stroke="#12b76a"/><text x="1352" y="520" fill="#027a48">recompute + structure gate</text><text x="1352" y="539" fill="#027a48">rank/capability exact match</text>
+    <rect x="1228" y="574" width="248" height="48" rx="5" fill="#ecfdf3" stroke="#12b76a"/><text x="1352" y="594" fill="#027a48">recompute + structure gate</text><text x="1352" y="613" fill="#027a48">rank/capability exact match</text>
+    <rect x="1228" y="648" width="248" height="48" rx="5" fill="#ecfdf3" stroke="#12b76a"/><text x="1352" y="668" fill="#027a48">recompute + structure gate</text><text x="1352" y="687" fill="#027a48">rank/capability exact match</text>
+  </g>
+  <rect x="452" y="707" width="182" height="27" rx="4" fill="#475467"/>
+  <text x="543" y="726" text-anchor="middle" class="latin" font-size="12" fill="#fff">F351 phases</text>
+  <rect x="950" y="707" width="230" height="27" rx="4" fill="#087f8c"/>
+  <text x="1065" y="726" text-anchor="middle" class="latin" font-size="12" fill="#fff">qualification-transcript-commit</text>
+  <rect x="1264" y="707" width="176" height="27" rx="4" fill="#087443"/>
+  <text x="1352" y="726" text-anchor="middle" class="latin" font-size="12" fill="#fff">success / fail closed</text>
+
+  <rect x="48" y="782" width="738" height="170" rx="7" fill="#ecfdf3" stroke="#12b76a" stroke-width="2"/>
+  <text x="72" y="817" class="cjk section" fill="#027a48">已验证机制：10 / 10</text>
+  <text x="72" y="849" class="cjk body">正常：M=3，H=2，g=7，三方 transcript 相同且可重算</text>
+  <text x="72" y="878" class="cjk body">分歧：单方改变 digest，三方完成行为轮次后统一失败</text>
+  <text x="72" y="907" class="cjk body">重放/拼接：旧 generation、零轮次、foreign capability 全部拒绝</text>
+  <rect x="72" y="922" width="332" height="21" rx="4" fill="#087443"/>
+  <text x="238" y="938" text-anchor="middle" class="latin" font-size="12" font-weight="700" fill="#fff">766 passed + 114 subtests, warnings as errors</text>
+
+  <rect x="814" y="782" width="738" height="170" rx="7" fill="#fff7ed" stroke="#f79009" stroke-width="2"/>
+  <text x="838" y="817" class="cjk section" fill="#b54708">证据边界</text>
+  <text x="838" y="849" class="cjk body">当前集成：本地 overlayfs + 线程控制面 + 合成 processor name</text>
+  <text x="838" y="878" class="cjk body">未测试：真实多机 MPI、NFS/Lustre/CephFS、server failover、网络分区</text>
+  <text x="838" y="907" class="cjk body">unkeyed SHA-256 检测内部故障，不提供 Byzantine 签名或 MAC 认证</text>
+  <text x="838" y="936" class="cjk body">不推导：求解吞吐、coverage、bug discovery 或 LAVA-M 提升</text>
+
+  <text x="800" y="982" text-anchor="middle" class="latin" font-size="12" fill="#667085">SymCC parallel concolic execution · F352 · generation challenge + canonical proof transcript + local capability binding</text>
+</svg>

@@ -1,0 +1,1 @@
+<?xml version="1.0"?><!DOCTYPE note [<!ELEMENT note (to,from,body)><!ELEMENT to (#PCDATA)><!ELEMENT from (#PCDATA)><!ELEMENT body (#PCDATA)>]><note><toml version="1.>A</to><from>B</fro응응응응응응응응응응응응응응m><body>C</body></note>

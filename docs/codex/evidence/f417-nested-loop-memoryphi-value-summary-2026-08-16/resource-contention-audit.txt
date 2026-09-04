@@ -1,0 +1,14 @@
+F417 full-gate resource-contention audit
+
+initial_execution=LLVM17 full lit ran concurrently with the complete Python gate
+initial_result=282 passed, 2 unsupported, 1 failed out of 285 tests discovered before the big-endian fixture was added
+initial_failure=poly_exact_widening_renaming.c
+initial_observation=poly exact projection returned unknown near the approximately 500 ms solver budget
+initial_raw_log_sealed=no
+initial_raw_log_limitation=the same /tmp path was overwritten by the required final full rerun
+isolated_rerun=1 passed, 0 failed
+final_execution=LLVM17 full lit under exclusive load after the big-endian fixture was added
+final_result=284 passed, 2 unsupported, 0 failed out of 286 tests
+f417_focused_both_versions=2 passed, 0 failed
+interpretation=resource contention affected an existing timeout-sensitive test; no F417 regression was observed
+claim_boundary=this audit is a chronology, not proof that the missing initial raw log was preserved

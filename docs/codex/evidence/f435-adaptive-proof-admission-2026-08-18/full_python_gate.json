@@ -1,0 +1,84 @@
+{
+  "capabilities": {
+    "commands": {
+      "cc": "/usr/bin/cc",
+      "clang": "/usr/bin/clang",
+      "cmake": "/usr/bin/cmake"
+    },
+    "libraries": {
+      "c": "libc.so.6"
+    },
+    "python_modules": {
+      "mpi4py": "/home/ubuntu/venv/symcc/lib/python3.12/site-packages/mpi4py/__init__.py",
+      "pytest": "/home/ubuntu/venv/symcc/lib/python3.12/site-packages/pytest/__init__.py"
+    }
+  },
+  "details": {
+    "collection_errors": [],
+    "skipped": [],
+    "subtests_skipped": [],
+    "xfailed": []
+  },
+  "gate": {
+    "failures": [],
+    "limits": {
+      "max_deselected": 0,
+      "max_missing_nodeids": 0,
+      "max_skips": 0,
+      "max_unexpected_nodeids": 0,
+      "max_xfails": 0,
+      "max_xpasses": 0,
+      "min_collected": 1267
+    },
+    "passed": true
+  },
+  "inventory": {
+    "details_truncated": false,
+    "duplicate_observed": [],
+    "duplicate_observed_count": 0,
+    "expected": 1267,
+    "manifest_error": null,
+    "manifest_path": "test/pytest-nodeids.json",
+    "manifest_schema": "symcc-pytest-nodeid-manifest-v1",
+    "manifest_sha256": "f526a59f3a6241569d64e0ba6cfcdb01e79670dd5ef50c9c3ee55edbdd87e9be",
+    "matched": true,
+    "missing": [],
+    "missing_count": 0,
+    "observed": 1267,
+    "observed_sha256": "f526a59f3a6241569d64e0ba6cfcdb01e79670dd5ef50c9c3ee55edbdd87e9be",
+    "required": true,
+    "unexpected": [],
+    "unexpected_count": 0
+  },
+  "missing_capabilities": [],
+  "outcomes": {
+    "collected": 1267,
+    "collection_errors": 0,
+    "deselected": 0,
+    "failed": 0,
+    "passed": 1267,
+    "skipped": 0,
+    "subtests_failed": 0,
+    "subtests_passed": 291,
+    "subtests_skipped": 0,
+    "xfailed": 0,
+    "xpassed": 0
+  },
+  "pytest": {
+    "arguments": [
+      "-q",
+      "-W",
+      "error",
+      "-p",
+      "no:cacheprovider"
+    ],
+    "exit_code": 0,
+    "plugin_autoload_disabled": true,
+    "version": "9.1.1"
+  },
+  "python": {
+    "executable": "/home/ubuntu/venv/symcc/bin/python3",
+    "version": "3.12.3"
+  },
+  "schema": "symcc-python-test-gate-v2"
+}

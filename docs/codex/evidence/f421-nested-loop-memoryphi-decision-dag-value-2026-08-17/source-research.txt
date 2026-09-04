@@ -1,0 +1,18 @@
+F421 research positioning
+
+LoopSCC: https://arxiv.org/abs/2411.02863
+  General motivation for compositional reasoning about complex loop SCCs.
+
+Automatic Partial Loop Summarization in Dynamic Test Generation:
+https://www.microsoft.com/en-us/research/publication/automatic-partial-loop-summarization-in-dynamic-test-generation/
+  Prior partial-summary direction based on guards and induction relations.
+
+LLVM Language Reference: https://llvm.org/docs/LangRef.html
+  Authoritative icmp, select, poison and integer wrap semantics.
+
+Local claim boundary:
+  F421 is a finite, two-level, affine-address and affine-leaf Decision DAG
+  proof language. It is not a general LoopSCC implementation and does not yet
+  replace loop execution. Executable replacement is staged separately under
+  the F421 refinement contract as F422/F423.
+

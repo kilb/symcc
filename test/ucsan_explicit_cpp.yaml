@@ -1,0 +1,4 @@
+entry: exercise_cpp
+scope:
+  - exercise_cpp
+external: pure

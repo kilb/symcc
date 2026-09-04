@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="760" viewBox="0 0 1320 760" role="img" aria-labelledby="title desc">
+  <title id="title">F309 In-Flight Target Leasing</title>
+  <desc id="desc">Unified branch-target scheduling with grouped leases, completion release, timeout recovery, and scheduler integrity repairs.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#334155"/>
+    </marker>
+    <filter id="shadow" x="-8%" y="-12%" width="116%" height="132%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.14"/>
+    </filter>
+    <style>
+      .bg{fill:#f8fafc}.header{fill:#e0f2fe;stroke:#0284c7;stroke-width:2}.source{fill:#fff;stroke:#475569;stroke-width:2;filter:url(#shadow)}
+      .gate{fill:#fef9c3;stroke:#ca8a04;stroke-width:2;filter:url(#shadow)}.state{fill:#ecfdf5;stroke:#059669;stroke-width:2;filter:url(#shadow)}
+      .worker{fill:#eef2ff;stroke:#4f46e5;stroke-width:2;filter:url(#shadow)}.repair{fill:#fff7ed;stroke:#ea580c;stroke-width:2}
+      .title{font:700 30px Arial,sans-serif;fill:#0f172a}.label{font:700 18px Arial,sans-serif;fill:#0f172a}.small{font:15px Arial,sans-serif;fill:#334155}
+      .tiny{font:13px Arial,sans-serif;fill:#475569}.arrow{stroke:#334155;stroke-width:2.5;fill:none;marker-end:url(#arrow)}
+      .ok{stroke:#059669;stroke-width:2.5;fill:none;marker-end:url(#arrow)}.retry{stroke:#ea580c;stroke-width:2.5;fill:none;stroke-dasharray:8 6;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="1320" height="760"/>
+  <rect class="header" x="32" y="28" width="1256" height="88" rx="8"/>
+  <text class="title" x="60" y="70">F309 In-Flight Target Leasing</text>
+  <text class="small" x="60" y="98">Unobserved symbolic work becomes scheduler state: one active target group, one worker assignment, bounded recovery.</text>
+
+  <text class="label" x="58" y="155">Candidate lanes</text>
+  <rect class="source" x="50" y="176" width="176" height="76" rx="7"/>
+  <text class="label" x="76" y="207">Prefix DAG</text><text class="tiny" x="76" y="231">open-prefix utility</text>
+  <rect class="source" x="50" y="270" width="176" height="76" rx="7"/>
+  <text class="label" x="76" y="301">CSTG</text><text class="tiny" x="76" y="325">transition actions</text>
+  <rect class="source" x="50" y="364" width="176" height="76" rx="7"/>
+  <text class="label" x="76" y="395">Concurrency</text><text class="tiny" x="76" y="419">nearest frontier</text>
+  <rect class="source" x="50" y="458" width="176" height="76" rx="7"/>
+  <text class="label" x="76" y="489">Edge / Replay</text><text class="tiny" x="76" y="513">directed utility</text>
+
+  <rect class="gate" x="316" y="246" width="226" height="206" rx="8"/>
+  <text class="label" x="344" y="282">Atomic Admission Gate</text>
+  <text class="small" x="344" y="316">1. expire stale leases</text>
+  <text class="small" x="344" y="344">2. collect primary + S2F</text>
+  <text class="small" x="344" y="372">3. reject any conflict</text>
+  <text class="small" x="344" y="400">4. reserve whole group</text>
+  <text class="tiny" x="344" y="430">skip actions are not leased</text>
+
+  <rect class="state" x="632" y="190" width="276" height="164" rx="8"/>
+  <text class="label" x="660" y="226">In-Memory Registry</text>
+  <text class="small" x="660" y="258">target -&gt; deadline</text>
+  <text class="small" x="660" y="286">primary -&gt; target group</text>
+  <text class="tiny" x="660" y="316">default lease: 120 seconds</text>
+  <text class="tiny" x="660" y="338">not restored after restart</text>
+
+  <rect class="worker" x="1000" y="238" width="252" height="132" rx="8"/>
+  <text class="label" x="1028" y="276">Targeted Worker</text>
+  <text class="small" x="1028" y="308">path + primary target</text>
+  <text class="small" x="1028" y="334">grouped S2F actions</text>
+
+  <path class="arrow" d="M226 214 C270 214 270 286 306 286"/>
+  <path class="arrow" d="M226 308 L306 326"/>
+  <path class="arrow" d="M226 402 L306 374"/>
+  <path class="arrow" d="M226 496 C270 496 270 414 306 414"/>
+  <path class="arrow" d="M542 332 L622 280"/>
+  <path class="ok" d="M908 280 L990 294"/>
+  <text class="tiny" x="920" y="263">available</text>
+  <path class="retry" d="M632 322 C580 360 588 414 552 414"/>
+  <text class="tiny" x="568" y="382">occupied: suppress</text>
+  <path class="ok" d="M1126 370 C1126 470 850 470 770 364"/>
+  <text class="tiny" x="928" y="456">result: release group</text>
+  <path class="retry" d="M770 354 L770 420 C770 462 696 462 696 364"/>
+  <text class="tiny" x="706" y="448">deadline: expire</text>
+
+  <rect class="repair" x="316" y="566" width="936" height="132" rx="8"/>
+  <text class="label" x="346" y="602">Integrity repairs proven with regression tests</text>
+  <text class="small" x="346" y="636">Stable round-robin cursor</text>
+  <text class="small" x="582" y="636">Prune/restore cell recount</text>
+  <text class="small" x="842" y="636">Trace-independent terminal retirement</text>
+  <text class="small" x="346" y="670">Idempotent state restore</text>
+  <text class="small" x="582" y="670">Orphan-cell rejection</text>
+  <text class="small" x="842" y="670">CSTG truncated-trace outcome recovery</text>
+</svg>

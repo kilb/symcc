@@ -1,0 +1,20 @@
+F367 sealed query artifact FD handoff final qualification
+date_utc=2026-08-11
+
+ruff format --check: PASS
+ruff: PASS
+py_compile: PASS
+cxx17 syntax: PASS
+git diff --check: PASS
+diagram XML parse: PASS
+diagram render: PASS (1600x1100; footer text pixel-checked and visually inspected)
+historical F350/F365/F366 replay: PASS
+HTML twins: PASS
+nested SHA-256: PASS
+top-level SHA-256: PASS
+delivery verifier: PASS
+
+Scope boundary: local Linux correctness evidence only. This qualification does
+not claim full LLVM lit, cross-host filesystem qualification, hosted CI, actual
+MPI transport, vendored QSYM/PIN execution, a public benchmark campaign,
+LAVA-M coverage, performance, or bug-discovery uplift.

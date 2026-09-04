@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1450" viewBox="0 0 1900 1450">
+  <defs>
+    <style>
+      .title { font: 700 46px 'WenQuanYi Zen Hei', sans-serif; fill: #f8fafc; }
+      .subtitle { font: 400 22px 'WenQuanYi Zen Hei', sans-serif; fill: #b8c7d9; }
+      .section { font: 700 28px 'WenQuanYi Zen Hei', sans-serif; fill: #17283e; }
+      .head { font: 700 23px 'WenQuanYi Zen Hei', sans-serif; fill: #17283e; }
+      .body { font: 400 19px 'WenQuanYi Zen Hei', sans-serif; fill: #31445a; }
+      .small { font: 400 16px 'WenQuanYi Zen Hei', sans-serif; fill: #63758a; }
+      .tiny { font: 400 14px 'WenQuanYi Zen Hei', sans-serif; fill: #718196; }
+      .white { fill: #ffffff; }
+      .mono { font: 400 16px 'DejaVu Sans Mono', monospace; fill: #31445a; }
+      .monoLight { font: 400 16px 'DejaVu Sans Mono', monospace; fill: #e5edf6; }
+      .center { text-anchor: middle; }
+      .right { text-anchor: end; }
+    </style>
+    <marker id="arrow-blue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#2f6fb5"/>
+    </marker>
+    <marker id="arrow-teal" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#269c91"/>
+    </marker>
+    <marker id="arrow-coral" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#d65c4d"/>
+    </marker>
+  </defs>
+
+  <rect width="1900" height="1450" fill="#f4f7fa"/>
+  <rect width="1900" height="116" fill="#17283e"/>
+  <rect y="108" width="1900" height="8" fill="#27a397"/>
+  <text x="70" y="62" class="title">F330 运行期跨主机共享锁资格续期</text>
+  <text x="72" y="94" class="subtitle">一次启动证明 -> generation-fenced 可续期语义租约 -> 漂移时失败关闭</text>
+
+  <text x="70" y="162" class="section">01  控制面与执行次序</text>
+  <rect x="68" y="184" width="1764" height="430" rx="8" fill="#ffffff" stroke="#ccd8e5" stroke-width="2"/>
+
+  <text x="102" y="219" class="small">独立 master_comm；worker 只留在 group_comm；rank 0 是唯一续期发起者</text>
+  <line x1="225" y1="254" x2="225" y2="570" stroke="#9fb3c8" stroke-width="2"/>
+  <line x1="675" y1="254" x2="675" y2="570" stroke="#9fb3c8" stroke-width="2"/>
+  <line x1="1125" y1="254" x2="1125" y2="570" stroke="#9fb3c8" stroke-width="2"/>
+  <line x1="1575" y1="254" x2="1575" y2="570" stroke="#9fb3c8" stroke-width="2"/>
+
+  <rect x="104" y="238" width="242" height="48" rx="6" fill="#dceaf8" stroke="#79a8d6"/>
+  <text x="225" y="269" class="head center">Master 0 / root</text>
+  <rect x="554" y="238" width="242" height="48" rx="6" fill="#dff2ef" stroke="#70bdb4"/>
+  <text x="675" y="269" class="head center">Peer masters</text>
+  <rect x="1004" y="238" width="242" height="48" rx="6" fill="#fff0d8" stroke="#e6ac4d"/>
+  <text x="1125" y="269" class="head center">共享锁 inode</text>
+  <rect x="1454" y="238" width="242" height="48" rx="6" fill="#e8edf3" stroke="#9babbc"/>
+  <text x="1575" y="269" class="head center">Work lease / worker</text>
+
+  <rect x="100" y="309" width="250" height="59" rx="6" fill="#2f6fb5"/>
+  <text x="225" y="335" class="body white center">到期且安全门开放</text>
+  <text x="225" y="357" class="small white center">begin generation g+1</text>
+
+  <line x1="350" y1="388" x2="640" y2="388" stroke="#2f6fb5" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <text x="495" y="378" class="mono center">{epoch, g+1, token}</text>
+  <text x="495" y="410" class="tiny center">isend；严格schema / 防重放</text>
+
+  <rect x="548" y="426" width="254" height="58" rx="6" fill="#269c91"/>
+  <text x="675" y="451" class="body white center">只接受本地 generation+1</text>
+  <text x="675" y="473" class="small white center">peer 被动加入，不用本地timer</text>
+
+  <line x1="630" y1="511" x2="270" y2="511" stroke="#269c91" stroke-width="3" marker-end="url(#arrow-teal)"/>
+  <line x1="720" y1="511" x2="1530" y2="511" stroke="#269c91" stroke-width="3" marker-end="url(#arrow-teal)"/>
+  <text x="1110" y="500" class="body center">各master先 heartbeat_all()，保护当前任务租约</text>
+
+  <line x1="675" y1="548" x2="1080" y2="548" stroke="#e09a28" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <line x1="225" y1="574" x2="1080" y2="574" stroke="#e09a28" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <text x="905" y="538" class="small right">OPEN -> HELD -> EXCLUDED -> RELEASED -> REACQUIRED</text>
+  <text x="1128" y="552" class="small">完整 H / H*(M-1) / H 证据</text>
+
+  <text x="70" y="660" class="section">02  代次状态机与双向出口</text>
+  <rect x="68" y="682" width="1764" height="334" rx="8" fill="#ffffff" stroke="#ccd8e5" stroke-width="2"/>
+
+  <rect x="98" y="716" width="535" height="265" rx="8" fill="#17283e"/>
+  <text x="126" y="754" class="head white">身份分离</text>
+  <text x="126" y="794" class="monoLight">L_E = SHA256(lock-v1 || epoch)</text>
+  <text x="126" y="830" class="monoLight">R_g = SHA256(renewal-v1 || E || g)</text>
+  <text x="126" y="866" class="monoLight">X_g = SHA256(exchange-v2 || L_E || g)</text>
+  <line x1="126" y1="891" x2="602" y2="891" stroke="#60748c"/>
+  <text x="126" y="922" class="small white">稳定inode只绑定epoch；请求与每个phase绑定generation</text>
+  <text x="126" y="950" class="small white">迟到 / 重放 / 跳代 / token冲突 -> 不推进状态</text>
+
+  <rect x="672" y="718" width="280" height="104" rx="8" fill="#e8edf3" stroke="#9babbc"/>
+  <text x="812" y="754" class="head center">QUALIFIED(g)</text>
+  <text x="812" y="786" class="small center">completed_at + interval</text>
+  <text x="812" y="810" class="tiny center">in_flight = 0</text>
+
+  <line x1="952" y1="770" x2="1070" y2="770" stroke="#2f6fb5" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <text x="1012" y="756" class="tiny center">root request</text>
+  <rect x="1084" y="718" width="276" height="104" rx="8" fill="#fff0d8" stroke="#e6ac4d"/>
+  <text x="1222" y="754" class="head center">CHECKING(g+1)</text>
+  <text x="1222" y="786" class="small center">全体master + 稳定inode</text>
+  <text x="1222" y="810" class="tiny center">旧资格不可作为fallback</text>
+
+  <line x1="1215" y1="822" x2="1215" y2="871" stroke="#269c91" stroke-width="4"/>
+  <line x1="1215" y1="871" x2="1015" y2="871" stroke="#269c91" stroke-width="4" marker-end="url(#arrow-teal)"/>
+  <rect x="756" y="858" width="245" height="86" rx="8" fill="#dff2ef" stroke="#70bdb4"/>
+  <text x="878" y="891" class="head center">SUCCESS</text>
+  <text x="878" y="919" class="small center">推进g；替换能力快照</text>
+
+  <line x1="1360" y1="770" x2="1490" y2="770" stroke="#d65c4d" stroke-width="4" marker-end="url(#arrow-coral)"/>
+  <rect x="1504" y="718" width="276" height="226" rx="8" fill="#fae3df" stroke="#df8579"/>
+  <text x="1642" y="758" class="head center">FAIL CLOSED</text>
+  <text x="1532" y="797" class="body">- 立即输出每rank失败指标</text>
+  <text x="1532" y="831" class="body">- global control error</text>
+  <text x="1532" y="865" class="body">- worker STOP / exact ACK</text>
+  <text x="1532" y="899" class="body">- MPI_Abort(70)</text>
+  <text x="1532" y="928" class="small">不恢复使用上一代 true 快照</text>
+
+  <text x="70" y="1064" class="section">03  安全预算、实验结果与证明边界</text>
+  <rect x="68" y="1086" width="550" height="294" rx="8" fill="#ffffff" stroke="#ccd8e5" stroke-width="2"/>
+  <text x="98" y="1125" class="head">三类启动门</text>
+  <rect x="98" y="1150" width="490" height="44" rx="5" fill="#dceaf8"/>
+  <text x="118" y="1178" class="body">时间：now - completed_at >= interval</text>
+  <rect x="98" y="1205" width="490" height="44" rx="5" fill="#fff0d8"/>
+  <text x="118" y="1233" class="body">租约：T_runtime = min(T_probe, lease_ttl / 3)</text>
+  <rect x="98" y="1260" width="490" height="44" rx="5" fill="#dff2ef"/>
+  <text x="118" y="1288" class="body">协议：无quiescence prepare；wall余量 > T+1s</text>
+  <text x="98" y="1335" class="small">默认 interval=60s；只对真实startup cluster=true启用</text>
+  <text x="98" y="1362" class="tiny">检测窗口约 interval + timeout + scheduling delay</text>
+
+  <rect x="644" y="1086" width="590" height="294" rx="8" fill="#ffffff" stroke="#ccd8e5" stroke-width="2"/>
+  <text x="674" y="1125" class="head">保存的机制证据</text>
+  <text x="674" y="1163" class="body">真实MPI / 合成拓扑：2 master + 5 worker</text>
+  <text x="674" y="1197" class="body">正常：双方3代成功，exit 0</text>
+  <text x="674" y="1231" class="body">第2代排他漂移：双方1 success / 1 failure</text>
+  <text x="674" y="1265" class="body">失败关闭：exit 70</text>
+  <line x1="674" y1="1287" x2="1204" y2="1287" stroke="#d8e1ea"/>
+  <text x="674" y="1320" class="small">续期中位：13.218 / 18.811 / 24.317 ms</text>
+  <text x="674" y="1349" class="small">新增控制面增量：-0.008% 至 +0.254%（噪声级）</text>
+
+  <rect x="1260" y="1086" width="572" height="294" rx="8" fill="#fff8eb" stroke="#e6ac4d" stroke-width="2"/>
+  <text x="1290" y="1125" class="head">严格边界</text>
+  <circle cx="1300" cy="1162" r="7" fill="#269c91"/>
+  <text x="1320" y="1169" class="body">可证明：代次、防重放、续期、失败关闭接线</text>
+  <circle cx="1300" cy="1202" r="7" fill="#269c91"/>
+  <text x="1320" y="1209" class="body">可证明：完整证据数未被性能优化删除</text>
+  <circle cx="1300" cy="1242" r="7" fill="#d65c4d"/>
+  <text x="1320" y="1249" class="body">不证明：真实远端client / backend failover</text>
+  <circle cx="1300" cy="1282" r="7" fill="#d65c4d"/>
+  <text x="1320" y="1289" class="body">不证明：MPI rank repair / network partition</text>
+  <circle cx="1300" cy="1322" r="7" fill="#d65c4d"/>
+  <text x="1320" y="1329" class="body">不证明：solver、coverage、LAVA-M提升</text>
+  <text x="1290" y="1361" class="tiny">synthetic_topology=true / deployment_evidence=false</text>
+
+  <text x="70" y="1420" class="tiny">F330 · 2026-08-07 · Runtime semantic lease renewal · evidence-first / fail-closed</text>
+</svg>

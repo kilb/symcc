@@ -1,0 +1,9 @@
+ruff check: PASS
+py_compile: PASS
+generated technology index check: PASS
+git diff --check: PASS
+SVG ElementTree parse: PASS
+PNG dimensions/mode 2700x1620 RGB: PASS
+diagram visual inspection: PASS
+finite matching/SCC oracles: PASS
+coverage/speedup/public-target claim: intentionally absent

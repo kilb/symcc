@@ -1,0 +1,3 @@
+(ffoo|ba((rr)+
+oo|bar)+
+foo|bar)!*)

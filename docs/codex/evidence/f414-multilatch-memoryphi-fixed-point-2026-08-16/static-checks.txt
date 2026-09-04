@@ -1,0 +1,19 @@
+build LLVM 18 SymCC: PASS
+build LLVM 17 SymCC: PASS
+py_compile: PASS
+ruff check: PASS
+git diff --check: PASS
+technology index: PASS
+diagram render and visual inspection: PASS
+Codex delivery verifier: PASS
+17 RUN commands: PASS
+two-to-four direct latch CFG and true-first decision tree: PASS
+mutually exclusive writer/carry MemoryPhi transfers: PASS
+common scalar PHI recurrence and whole-domain no-wrap: PASS
+closed integer guard-expression provenance and width/range replay: PASS
+nondeterministic guard source rejection: PASS
+complete/store alias versus recurrence-reachable alias separation: PASS
+finite monotone lane union and explicit stability round: PASS
+complete witness alternatives and bool-as-integer mutation rejection: PASS
+runtime byte-init bitmap authority and infeasible-path observation: PASS
+public coverage/solver/defect-yield/end-to-end speedup claim: intentionally absent

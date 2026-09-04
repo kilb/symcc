@@ -1,0 +1,31 @@
+Producer
+  compiler/ContinuationLowering.cpp
+  GuardedHeapInitializationDecision
+  GuardedHeapInitializationPath
+  GuardedHeapInitializationCertificate
+  guardedHeapUnionInitialization
+  pointerIntervalCovers
+  bounded-guard-correlated-heap-union-initialization
+  initialization_guard_tree
+
+Consumer and runtime trust boundary
+  util/live_continuation.py
+  _guarded_heap_union_initialization
+  symcc-guarded-heap-union-initialization-v1
+  capability dependency and use-point closure
+  runtime live/size/byte-init markers remain authoritative
+
+Production-chain tests
+  test/live_guarded_heap_union_initialization.ll
+  test/live_collective_heap_union_initialization.ll
+  util/check_live_continuation_lowering.py
+  benchmark/generate_guarded_heap_union_initialization_fixture.py
+
+Independent evidence
+  benchmark/check_guarded_heap_union_initialization_oracles.py
+  benchmark/benchmark_guarded_heap_union_initialization.py
+
+Documentation
+  docs/codex/research-progress/Guard_Correlated_Heap_Union_Initialization_F407_2026-08-16.md
+  docs/codex/diagrams/guard-correlated-heap-union-initialization-f407.svg
+  docs/codex/diagrams/guard-correlated-heap-union-initialization-f407.png

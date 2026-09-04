@@ -1,0 +1,9 @@
+experiment_id,run_id,pair_id,target,configuration,mode,np,round,timestamp_sec,edge_cov_pct,edges_found,edges_total,total_cases
+symcc-f5a76e5da970b573,ca13bfbc4d5550827fbb39e3,d520bb1ade6b66772037d751,jhead-jhead,hybrid,hybrid,8,1,0.0,22.1,396,1792,13
+symcc-f5a76e5da970b573,ca13bfbc4d5550827fbb39e3,d520bb1ade6b66772037d751,jhead-jhead,hybrid,hybrid,8,1,20.0,32.37,580,1792,519
+symcc-f5a76e5da970b573,ca13bfbc4d5550827fbb39e3,d520bb1ade6b66772037d751,jhead-jhead,hybrid,hybrid,8,1,40.0,32.65,585,1792,642
+symcc-f5a76e5da970b573,ca13bfbc4d5550827fbb39e3,d520bb1ade6b66772037d751,jhead-jhead,hybrid,hybrid,8,1,60.0,32.81,588,1792,721
+symcc-f5a76e5da970b573,aae91fac651a4f745a3fbab0,d520bb1ade6b66772037d751,jhead-jhead,afl-only,afl-only,8,1,0.0,22.1,396,1792,13
+symcc-f5a76e5da970b573,aae91fac651a4f745a3fbab0,d520bb1ade6b66772037d751,jhead-jhead,afl-only,afl-only,8,1,20.0,33.65,603,1792,2848
+symcc-f5a76e5da970b573,aae91fac651a4f745a3fbab0,d520bb1ade6b66772037d751,jhead-jhead,afl-only,afl-only,8,1,40.0,34.32,615,1792,3411
+symcc-f5a76e5da970b573,aae91fac651a4f745a3fbab0,d520bb1ade6b66772037d751,jhead-jhead,afl-only,afl-only,8,1,60.0,34.49,618,1792,3917

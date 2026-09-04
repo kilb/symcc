@@ -1,0 +1,48 @@
+{
+  "all_passed": true,
+  "cases": [
+    {
+      "accepted_patterns": 2,
+      "branches": 2,
+      "enumerated_patterns": 4,
+      "outcomes_preserved": true
+    },
+    {
+      "accepted_patterns": 2,
+      "branches": 3,
+      "enumerated_patterns": 8,
+      "outcomes_preserved": true
+    },
+    {
+      "accepted_patterns": 2,
+      "branches": 4,
+      "enumerated_patterns": 16,
+      "outcomes_preserved": true
+    },
+    {
+      "accepted_patterns": 2,
+      "branches": 5,
+      "enumerated_patterns": 32,
+      "outcomes_preserved": true
+    },
+    {
+      "accepted_patterns": 2,
+      "branches": 6,
+      "enumerated_patterns": 64,
+      "outcomes_preserved": true
+    },
+    {
+      "accepted_patterns": 2,
+      "branches": 7,
+      "enumerated_patterns": 128,
+      "outcomes_preserved": true
+    },
+    {
+      "accepted_patterns": 2,
+      "branches": 8,
+      "enumerated_patterns": 256,
+      "outcomes_preserved": true
+    }
+  ],
+  "schema": "symcc-live-cbc-oracle-v1"
+}

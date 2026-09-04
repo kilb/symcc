@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">F428 verified QF_BV learned lemma exchange</title>
+  <desc id="desc">A proof-carrying flow from a producer through content-addressed context, proof, and lemma stores to a descendant-prefix consumer and an independent QueryStore commit gate.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 z" fill="#16324f"/>
+    </marker>
+    <marker id="arrow-teal" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 z" fill="#1c7c7d"/>
+    </marker>
+    <style>
+      .title { font: 700 34px 'WenQuanYi Zen Hei','DejaVu Sans',sans-serif; fill: #13283d; }
+      .subtitle { font: 400 17px 'WenQuanYi Zen Hei','DejaVu Sans',sans-serif; fill: #526171; }
+      .lane { font: 700 21px 'WenQuanYi Zen Hei','DejaVu Sans',sans-serif; fill: #ffffff; }
+      .badge { font: 700 15px 'WenQuanYi Zen Hei','DejaVu Sans',sans-serif; fill: #ffffff; }
+      .head { font: 700 19px 'WenQuanYi Zen Hei','DejaVu Sans',sans-serif; fill: #183044; }
+      .body { font: 400 15px 'WenQuanYi Zen Hei','DejaVu Sans',sans-serif; fill: #314556; }
+      .small { font: 400 13px 'WenQuanYi Zen Hei','DejaVu Sans',sans-serif; fill: #566979; }
+      .tag { font: 700 13px 'WenQuanYi Zen Hei','DejaVu Sans',sans-serif; fill: #ffffff; }
+      .gate-label { font: 700 18px 'WenQuanYi Zen Hei','DejaVu Sans',sans-serif; fill: #ffffff; }
+      .mono { font: 600 14px 'DejaVu Sans Mono',monospace; fill: #24445d; }
+      .box { fill: #ffffff; stroke: #bcc8d1; stroke-width: 2; rx: 7; }
+      .producer { fill: #eef6f7; stroke: #1c7c7d; stroke-width: 2.5; rx: 7; }
+      .proof { fill: #fff7e8; stroke: #d78a1d; stroke-width: 2.5; rx: 7; }
+      .consumer { fill: #f2f5fb; stroke: #4169a1; stroke-width: 2.5; rx: 7; }
+      .gate { fill: #f3f8f0; stroke: #56884d; stroke-width: 2.5; rx: 7; }
+      .reject { fill: #fff1f0; stroke: #cf5c5c; stroke-width: 2; rx: 7; }
+      .flow { fill: none; stroke: #16324f; stroke-width: 3; marker-end: url(#arrow); }
+      .verify { fill: none; stroke: #1c7c7d; stroke-width: 3; marker-end: url(#arrow-teal); }
+      .dash { stroke-dasharray: 8 7; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1000" fill="#f7f9fb"/>
+  <rect x="0" y="0" width="1600" height="112" fill="#ffffff"/>
+  <rect x="0" y="108" width="1600" height="4" fill="#1c7c7d"/>
+  <text x="70" y="58" class="title">F428 可验证 QF_BV Learned Lemma 共享</text>
+  <text x="70" y="88" class="subtitle">只共享可由源前缀独立证明的中间知识；复用计算，但不复用远端信任</text>
+  <rect x="1245" y="26" width="300" height="58" rx="5" fill="#16324f"/>
+  <text x="1395" y="49" text-anchor="middle" class="badge">Cs entails L</text>
+  <text x="1395" y="71" text-anchor="middle" class="badge">Cs prefix-of Ct</text>
+
+  <rect x="55" y="145" width="430" height="52" rx="6" fill="#1c7c7d"/>
+  <text x="270" y="178" text-anchor="middle" class="lane">A. Producer Worker</text>
+  <rect x="585" y="145" width="430" height="52" rx="6" fill="#d78a1d"/>
+  <text x="800" y="178" text-anchor="middle" class="lane">B. Untrusted Shared Transport</text>
+  <rect x="1115" y="145" width="430" height="52" rx="6" fill="#4169a1"/>
+  <text x="1330" y="178" text-anchor="middle" class="lane">C. Descendant Consumer</text>
+
+  <rect x="55" y="225" width="430" height="118" class="producer"/>
+  <rect x="76" y="245" width="44" height="28" rx="14" fill="#1c7c7d"/>
+  <text x="98" y="264" text-anchor="middle" class="tag">1</text>
+  <text x="136" y="264" class="head">完整 Query IR 求解</text>
+  <text x="76" y="296" class="body">persistent prefix + push(target) → SAT</text>
+  <text x="76" y="321" class="body">model 仍由原 Query IR evaluator 精确重放</text>
+
+  <rect x="55" y="385" width="430" height="134" class="producer"/>
+  <rect x="76" y="405" width="44" height="28" rx="14" fill="#1c7c7d"/>
+  <text x="98" y="424" text-anchor="middle" class="tag">2</text>
+  <text x="136" y="424" class="head">有界 one-shot 候选提取</text>
+  <text x="76" y="456" class="mono">get-learned-literals :preprocess</text>
+  <text x="76" y="482" class="body">严格接受：sat + 一个 literal list</text>
+  <text x="76" y="506" class="small">未知符号 / command / 超限 / 诊断输出 → reject</text>
+
+  <rect x="55" y="561" width="430" height="150" class="proof"/>
+  <rect x="76" y="581" width="44" height="28" rx="14" fill="#d78a1d"/>
+  <text x="98" y="600" text-anchor="middle" class="tag">3</text>
+  <text x="136" y="600" class="head">逐候选建立蕴含证明</text>
+  <text x="76" y="638" class="mono">Cs AND NOT L  -&gt;  UNSAT</text>
+  <text x="76" y="666" class="body">cvc5 safe-mode CPC → local Ethos</text>
+  <text x="76" y="691" class="small">候选来源不可信；proof 才是授权依据</text>
+
+  <rect x="585" y="225" width="430" height="112" class="box"/>
+  <text x="610" y="256" class="head">F426 Context CAS</text>
+  <text x="610" y="286" class="body">parent-linked root / term / capability identity</text>
+  <text x="610" y="313" class="small">精确 ancestry，不按 offsets 或深度猜测</text>
+
+  <rect x="585" y="370" width="430" height="112" class="box"/>
+  <text x="610" y="401" class="head">F427 Proof + Receipt CAS</text>
+  <text x="610" y="431" class="body">CPC proof、Ethos policy、toolchain identity</text>
+  <text x="610" y="458" class="small">共享字节不能自行授权 UNSAT 或 lemma</text>
+
+  <rect x="585" y="515" width="430" height="142" class="proof"/>
+  <text x="610" y="546" class="head">F428 Lemma Record CAS + SQLite Index</text>
+  <text x="610" y="577" class="body">lemma + source context + entailment + receipt</text>
+  <text x="610" y="604" class="body">record/result/policy SHA-256；create-once publication</text>
+  <text x="610" y="631" class="small">配额、flock、stable no-follow read、fsync</text>
+
+  <rect x="585" y="690" width="430" height="86" class="reject"/>
+  <text x="610" y="721" class="head">拒绝边界</text>
+  <text x="610" y="750" class="body">sibling / policy drift / tamper / timeout → 不注入</text>
+
+  <rect x="1115" y="225" width="430" height="118" class="consumer"/>
+  <rect x="1136" y="245" width="44" height="28" rx="14" fill="#4169a1"/>
+  <text x="1158" y="264" text-anchor="middle" class="tag">4</text>
+  <text x="1196" y="264" class="head">重建目标 prefix Ct</text>
+  <text x="1136" y="296" class="body">逐 parent walk 得到精确 ancestor contexts</text>
+  <text x="1136" y="321" class="small">source 必须是 root/term/capability 的真前缀</text>
+
+  <rect x="1115" y="385" width="430" height="134" class="consumer"/>
+  <rect x="1136" y="405" width="44" height="28" rx="14" fill="#4169a1"/>
+  <text x="1158" y="424" text-anchor="middle" class="tag">5</text>
+  <text x="1196" y="424" class="head">本地重新证明</text>
+  <text x="1136" y="456" class="body">重建 Cs AND NOT L reference，重新运行 Ethos</text>
+  <text x="1136" y="482" class="body">只有 exact “correct” 才执行 assert(L)</text>
+  <text x="1136" y="506" class="small">每 process 最多 64 条；digest 去重</text>
+
+  <rect x="1115" y="561" width="430" height="150" class="consumer"/>
+  <rect x="1136" y="581" width="44" height="28" rx="14" fill="#4169a1"/>
+  <text x="1158" y="600" text-anchor="middle" class="tag">6</text>
+  <text x="1196" y="600" class="head">原公式仍是最终权威</text>
+  <text x="1136" y="638" class="body">assert(L) + push(target) + check-sat</text>
+  <text x="1136" y="666" class="body">SAT：完整 model replay；UNSAT：F427 receipt</text>
+  <text x="1136" y="691" class="small">lemma 从不独立授权最终结果</text>
+
+  <path d="M485 284 H585" class="flow"/>
+  <path d="M485 452 C535 452 535 571 585 571" class="flow"/>
+  <path d="M485 636 H585" class="flow"/>
+  <path d="M1015 281 H1115" class="flow"/>
+  <path d="M1015 426 C1060 426 1060 452 1115 452" class="verify"/>
+  <path d="M1015 586 C1065 586 1065 452 1115 452" class="flow"/>
+
+  <rect x="55" y="825" width="1490" height="118" class="gate"/>
+  <rect x="78" y="846" width="260" height="36" rx="5" fill="#56884d"/>
+  <text x="208" y="870" text-anchor="middle" class="gate-label">QueryStore Commit Gate</text>
+  <text x="370" y="858" class="head">独立重建与第二次裁决</text>
+  <text x="370" y="889" class="body">活动 lemma：重新检查 target ancestry + CPC/Ethos receipt</text>
+  <text x="370" y="916" class="body">新发布 lemma：重建完整公式 source + CAS load + CPC/Ethos receipt</text>
+  <rect x="1255" y="848" width="258" height="68" rx="6" fill="#ffffff" stroke="#56884d" stroke-width="2"/>
+  <text x="1384" y="875" text-anchor="middle" class="head">通过后才持久化</text>
+  <text x="1384" y="901" text-anchor="middle" class="small">计数也不能由 worker 伪造</text>
+
+  <path d="M270 711 V825" class="verify dash"/>
+  <path d="M800 776 V825" class="verify dash"/>
+  <path d="M1330 711 V825" class="verify dash"/>
+</svg>

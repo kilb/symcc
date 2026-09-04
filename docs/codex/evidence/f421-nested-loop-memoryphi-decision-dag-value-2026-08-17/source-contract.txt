@@ -1,0 +1,25 @@
+F421 source and contract inventory
+
+compiler/ContinuationLowering.cpp
+  - symcc-loop-memoryphi-byte-lane-induction-v11
+  - bounded-nested-loop-memoryphi-decision-dag-value-summary
+  - postorder shared Decision DAG construction and finite specialization
+
+util/live_continuation.py
+  - strict actual-IR DAG reconstruction
+  - topology, depth, reachability, affine leaf, ABI, path and witness checks
+
+util/check_live_continuation_lowering.py
+  - v11 expectation flag and capability closure
+  - certificate and actual-lowered-program mutation battery
+
+test/live_nested_loop_memoryphi_decision_dag_value.ll
+test/live_nested_loop_memoryphi_decision_dag_value_fallback.ll
+test/test_nested_loop_memoryphi_decision_dag_value.py
+  - runtime, endian, sharing, mixed-writer, depth and rejection coverage
+
+benchmark/generate_nested_loop_memoryphi_decision_dag_fixture.py
+benchmark/check_nested_loop_memoryphi_decision_dag_oracles.py
+benchmark/benchmark_nested_loop_memoryphi_decision_dag.py
+  - parameterized fixture, independent finite oracle and mechanism benchmark
+

@@ -1,0 +1,437 @@
+{
+  "all_outcomes_matched": true,
+  "claim_boundary": "whole-process byte-initialization propagation and UBI sink outcomes; not a coverage, vulnerability-yield, per-instruction-cost, or cross-system speedup result",
+  "environment": {
+    "platform": "Linux-7.0.0-28-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3"
+  },
+  "matched_outcomes": 308,
+  "modes": 28,
+  "rows": [
+    {
+      "elapsed_ms": {
+        "maximum": 6.318306,
+        "median": 5.765559,
+        "minimum": 4.427807,
+        "p95": 6.227956
+      },
+      "expected": "valid",
+      "matched": 11,
+      "mode": 0,
+      "returncodes": [
+        0
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 74.160625,
+        "median": 67.68281,
+        "minimum": 60.422984,
+        "p95": 73.066272
+      },
+      "expected": "use-before-initialization in branch condition",
+      "matched": 11,
+      "mode": 1,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 74.278621,
+        "median": 69.041423,
+        "minimum": 63.007203,
+        "p95": 73.889459
+      },
+      "expected": "use-before-initialization in pointer dereference",
+      "matched": 11,
+      "mode": 2,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 5.857827,
+        "median": 5.220513,
+        "minimum": 4.502699,
+        "p95": 5.8126045
+      },
+      "expected": "valid",
+      "matched": 11,
+      "mode": 3,
+      "returncodes": [
+        0
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 70.77608,
+        "median": 63.149306,
+        "minimum": 61.219958,
+        "p95": 67.97004999999999
+      },
+      "expected": "use-before-initialization in branch condition",
+      "matched": 11,
+      "mode": 4,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 6.412708,
+        "median": 5.202456,
+        "minimum": 4.508157,
+        "p95": 6.264366000000001
+      },
+      "expected": "valid",
+      "matched": 11,
+      "mode": 5,
+      "returncodes": [
+        0
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 72.68633,
+        "median": 67.062443,
+        "minimum": 62.335297,
+        "p95": 72.64759649999999
+      },
+      "expected": "use-before-initialization in branch condition",
+      "matched": 11,
+      "mode": 6,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 71.848096,
+        "median": 67.165327,
+        "minimum": 61.241631,
+        "p95": 71.4904755
+      },
+      "expected": "use-before-initialization in branch condition",
+      "matched": 11,
+      "mode": 7,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 69.164359,
+        "median": 66.413442,
+        "minimum": 59.634426,
+        "p95": 69.00115
+      },
+      "expected": "use-before-initialization in pointer dereference",
+      "matched": 11,
+      "mode": 8,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 69.367714,
+        "median": 65.965803,
+        "minimum": 61.04729,
+        "p95": 68.7233095
+      },
+      "expected": "use-before-initialization in branch condition",
+      "matched": 11,
+      "mode": 9,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 5.915995,
+        "median": 5.17088,
+        "minimum": 4.762318,
+        "p95": 5.7546335
+      },
+      "expected": "valid",
+      "matched": 11,
+      "mode": 10,
+      "returncodes": [
+        0
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 71.658974,
+        "median": 62.866293,
+        "minimum": 60.495555,
+        "p95": 70.9092315
+      },
+      "expected": "use-before-initialization in memory access extent",
+      "matched": 11,
+      "mode": 11,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 72.734624,
+        "median": 62.859974,
+        "minimum": 60.688504,
+        "p95": 72.24850649999999
+      },
+      "expected": "use-before-initialization in branch condition",
+      "matched": 11,
+      "mode": 12,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 6.021172,
+        "median": 5.193303,
+        "minimum": 4.292805,
+        "p95": 5.8762799999999995
+      },
+      "expected": "valid",
+      "matched": 11,
+      "mode": 13,
+      "returncodes": [
+        0
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 74.635931,
+        "median": 68.26211,
+        "minimum": 61.6876,
+        "p95": 73.1533465
+      },
+      "expected": "use-before-initialization in branch condition",
+      "matched": 11,
+      "mode": 14,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 6.107582,
+        "median": 5.415947,
+        "minimum": 4.788007,
+        "p95": 5.9088595
+      },
+      "expected": "valid",
+      "matched": 11,
+      "mode": 15,
+      "returncodes": [
+        0
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 5.591679,
+        "median": 5.130289,
+        "minimum": 4.400216,
+        "p95": 5.5305475
+      },
+      "expected": "valid",
+      "matched": 11,
+      "mode": 16,
+      "returncodes": [
+        0
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 70.269616,
+        "median": 61.792959,
+        "minimum": 59.672285,
+        "p95": 69.64363900000001
+      },
+      "expected": "use-before-initialization in branch condition",
+      "matched": 11,
+      "mode": 17,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 69.017251,
+        "median": 65.417344,
+        "minimum": 60.02327,
+        "p95": 68.446843
+      },
+      "expected": "use-before-initialization in branch condition",
+      "matched": 11,
+      "mode": 18,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 6.319889,
+        "median": 5.100154,
+        "minimum": 4.541027,
+        "p95": 6.1068155
+      },
+      "expected": "valid",
+      "matched": 11,
+      "mode": 19,
+      "returncodes": [
+        0
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 6.081953,
+        "median": 5.000043,
+        "minimum": 4.108389,
+        "p95": 5.806846500000001
+      },
+      "expected": "valid",
+      "matched": 11,
+      "mode": 20,
+      "returncodes": [
+        0
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 5.276808,
+        "median": 4.965572,
+        "minimum": 4.399044,
+        "p95": 5.270654
+      },
+      "expected": "valid",
+      "matched": 11,
+      "mode": 21,
+      "returncodes": [
+        0
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 70.957376,
+        "median": 63.809057,
+        "minimum": 60.395738,
+        "p95": 69.58392549999999
+      },
+      "expected": "use-before-initialization in pointer dereference",
+      "matched": 11,
+      "mode": 22,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 71.254682,
+        "median": 62.773937,
+        "minimum": 60.374106,
+        "p95": 70.0156525
+      },
+      "expected": "use-after-free",
+      "matched": 11,
+      "mode": 23,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 6.24713,
+        "median": 5.348716,
+        "minimum": 4.521278,
+        "p95": 6.011337
+      },
+      "expected": "valid",
+      "matched": 11,
+      "mode": 24,
+      "returncodes": [
+        0
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 69.130813,
+        "median": 62.116805,
+        "minimum": 59.968479,
+        "p95": 68.98593149999999
+      },
+      "expected": "use-before-initialization in branch condition",
+      "matched": 11,
+      "mode": 25,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 68.481582,
+        "median": 65.64801,
+        "minimum": 60.581627,
+        "p95": 68.377156
+      },
+      "expected": "use-before-initialization in pointer dereference",
+      "matched": 11,
+      "mode": 26,
+      "returncodes": [
+        -6
+      ],
+      "samples": 11
+    },
+    {
+      "elapsed_ms": {
+        "maximum": 5.882195,
+        "median": 5.138141,
+        "minimum": 4.680936,
+        "p95": 5.841684000000001
+      },
+      "expected": "valid",
+      "matched": 11,
+      "mode": 27,
+      "returncodes": [
+        0
+      ],
+      "samples": 11
+    }
+  ],
+  "samples_per_mode": 11,
+  "schema": "symcc-f395-byte-initialization-ubi-benchmark-v1",
+  "total_outcomes": 308,
+  "valid_modes": 12,
+  "violation_modes": 16
+}

@@ -1,0 +1,26 @@
+F372 static and delivery checks (2026-08-11 UTC)
+
+Scope:
+- util/distributed_state.py
+- test/test_distributed_state.py
+- run_bounded_cas_revalidation_checks.py
+- docs/codex/verify_delivery.py
+- bounded-cas-publication-revalidation-2026-08-11.svg
+
+ruff: PASS
+py_compile: PASS
+git diff --check: PASS
+diagram render and visual inspection: PASS
+historical F366 and F368-F371 replay: PASS
+F372 consecutive byte-equivalent replay: PASS
+F366 20-run convergence stress: PASS
+HTML twins: PASS
+nested SHA-256: PASS
+top-level SHA-256: PASS
+delivery verifier: PASS
+
+The recorded full gate is 787 passed plus 137 subtests with all 16 required
+capabilities present and the canonical 787-node identity inventory unchanged.
+No power-loss test, cross-host filesystem qualification, hosted CI job, actual
+MPI transport, public solver benchmark, fuzzing campaign, LAVA-M run, or
+performance-uplift experiment was executed for F372.

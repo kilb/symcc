@@ -1,0 +1,33 @@
+F441 multi-round review findings
+================================
+
+Round 1 - state model and aliasing
+- Found: pending recovery plans and snapshots could retain caller-owned mutable containers.
+- Fixed: canonical deep copy at every sealed protocol boundary.
+- Verified: post-seal caller mutation cannot alter plan/snapshot/receipt digests.
+
+Round 2 - conservation and queue admission
+- Found: receipt in-flight count was computed after pending state was cleared.
+- Fixed: capture the exact old active-lease set before mutation and join it to requeue rows.
+- Found: fresh work could take a shard with queued recovery work; dequeue and lease issue were separate.
+- Fixed: recovery priority plus atomic claim-and-new-lease transition.
+
+Round 3 - identity and membership
+- Found: rank alone was not durable across Shrink and failure-group ranks were not mapped to endpoints.
+- Fixed: stable endpoint/incarnation identities, old/new rank attestation and Get_failed group mapping.
+- Added: duplicate, reappearing, non-dense and concurrent-extra-failure cases fail closed.
+
+Round 4 - real runtime contract
+- Found: `--enable-mpi-ext=ulfm` built without the required public extension surface.
+- Fixed: use Open MPI's `ftmpi` extension name and verify MPIX symbols.
+- Found: Open MPI 5.0.10 does not export MPIX_Comm_ishrink; mpi4py 4.1 has no lowercase object iallgather.
+- Fixed: blocking Shrink under launcher hard timeout; two-stage standard-buffer Iallgather with per-request deadline.
+- Negative control: system Open MPI 4.1.6 returned NotImplementedError on multirank Revoke.
+
+Round 5 - physical failure and claim discipline
+- Found: a blocking Barrier is not a portable failure detector and local shared-memory transport did not
+  converge within 60 seconds.
+- Fixed: supervisor-style suspicion explicitly initiates Revoke; qualifying local experiment uses TCP/self.
+- Verified: physical rank exit gives world 4->3, one repair and identical survivor receipts.
+- Boundary: no hot-loop integration, durable publication, spare growth, multi-node MTTR, speedup,
+  coverage or defect-yield claim.

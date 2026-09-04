@@ -1,0 +1,22 @@
+schema=symcc-f428-oracle-reproducibility-v1
+access_date=2026-08-17
+command=python3 benchmark/check_qfbv_lemma_exchange_oracles.py --repetitions 5 --output OUTPUT.json
+independent_runs=2
+fresh_consumers_per_run=5
+stable_schema=symcc-f428-qfbv-verified-lemma-oracle-v1
+stable_finite_valuations=65536
+stable_source_models=1
+stable_valid_lemma_counterexamples=0
+stable_invalid_lemma_counterexamples=1
+stable_producer_candidates=1
+stable_producer_published=1
+stable_lemma=(= symcc_input_1 #b01000010)
+stable_record_sha256=d2afee32ce53f11e309dc39f9900e65750286cdc291d67420170b82dfaba5b99
+stable_fresh_worker_injections=5/5
+stable_negative_rejections=4/4
+stable_false_authorizations=0
+stable_cvc5_sha256=7562a8b0b835e3eaad5f1a7b4616cd762350cf567b6be03d7e8ee24fa5ced5ee
+stable_ethos_sha256=7f73a7e8a584cabb9b50c3a57d6f222661f184cc323fb661a3ec78092c201c5d
+stable_signature_files=51
+nonstable_fields=backend_checker_us,store_checker_us,total_us,total_us_median
+interpretation=Timing fields are retained as bounded mechanism-cost observations and are not compared for equality or interpreted as speedup.

@@ -1,0 +1,52 @@
+{
+  "repeats": 11,
+  "rows": [
+    {
+      "alias_partition_models": 2,
+      "cfg_forks": 0,
+      "heap_refinements": 1,
+      "median_build_load_snapshot_us": 55.854,
+      "references": 1,
+      "snapshot_bytes": 1700,
+      "terms": 4
+    },
+    {
+      "alias_partition_models": 5,
+      "cfg_forks": 0,
+      "heap_refinements": 2,
+      "median_build_load_snapshot_us": 121.483,
+      "references": 2,
+      "snapshot_bytes": 3508,
+      "terms": 9
+    },
+    {
+      "alias_partition_models": 52,
+      "cfg_forks": 0,
+      "heap_refinements": 4,
+      "median_build_load_snapshot_us": 273.663,
+      "references": 4,
+      "snapshot_bytes": 8756,
+      "terms": 25
+    },
+    {
+      "alias_partition_models": 21147,
+      "cfg_forks": 0,
+      "heap_refinements": 8,
+      "median_build_load_snapshot_us": 776.911,
+      "references": 8,
+      "snapshot_bytes": 25780,
+      "terms": 81
+    },
+    {
+      "alias_partition_models": 82864869804,
+      "cfg_forks": 0,
+      "heap_refinements": 16,
+      "median_build_load_snapshot_us": 2662.702,
+      "references": 16,
+      "snapshot_bytes": 85960,
+      "terms": 289
+    }
+  ],
+  "schema": "symcc-pose-symbolic-heap-mechanism-benchmark-v1",
+  "timing_boundary": "single-process Python mechanism cost; not end-to-end SymCC throughput and not a lazy-initialization wall-time baseline"
+}

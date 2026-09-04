@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1450" viewBox="0 0 1900 1450">
+  <defs>
+    <style>
+      text { font-family: "WenQuanYi Zen Hei", sans-serif; fill: #172b43; }
+      .title { font-size: 46px; font-weight: 700; fill: #ffffff; }
+      .subtitle { font-size: 21px; fill: #bdc9d8; }
+      .section { font-size: 27px; font-weight: 700; }
+      .head { font-size: 22px; font-weight: 700; }
+      .body { font-size: 17px; }
+      .small { font-size: 14px; fill: #60758e; }
+      .mono { font-family: "DejaVu Sans Mono", monospace; font-size: 15px; }
+      .center { text-anchor: middle; }
+      .white { fill: #ffffff; }
+      .light { fill: #d9e5f2; }
+      .teal { fill: #16897f; }
+      .teal-light { fill: #78d4cb; }
+      .danger { fill: #a63e36; }
+      .amber { fill: #9a6412; }
+    </style>
+    <marker id="arrow-blue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#3478bd"/>
+    </marker>
+    <marker id="arrow-teal" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#25a397"/>
+    </marker>
+  </defs>
+
+  <rect width="1900" height="1450" fill="#f3f6f9"/>
+  <rect width="1900" height="112" fill="#172b43"/>
+  <rect y="106" width="1900" height="6" fill="#25a397"/>
+  <text x="68" y="66" class="title">F332 epoch 绑定的运行期资格配置共识</text>
+  <text x="68" y="96" class="subtitle">隐式环境一致性 -&gt; canonical binary64 commitment -&gt; bounded agreement -&gt; generation-0 fail closed</text>
+
+  <text x="68" y="154" class="section">01 静默配置漂移与规范承诺</text>
+  <rect x="65" y="176" width="555" height="374" rx="8" fill="#ffffff" stroke="#c5d2df" stroke-width="2"/>
+  <text x="95" y="216" class="head">旧隐含前提：每个 master 的环境相同</text>
+  <rect x="95" y="252" width="220" height="142" rx="7" fill="#e3f4f1" stroke="#68c4ba"/>
+  <text x="205" y="284" class="head center">master 0</text>
+  <text x="120" y="319" class="mono">I = 60.0</text>
+  <text x="120" y="347" class="mono">T = 5.0</text>
+  <text x="120" y="375" class="mono">j = 0.10</text>
+  <rect x="370" y="252" width="220" height="142" rx="7" fill="#fae2df" stroke="#df8d84"/>
+  <text x="480" y="284" class="head center">master 1</text>
+  <text x="395" y="319" class="mono">I = 60.0</text>
+  <text x="395" y="347" class="mono">T = 5.0</text>
+  <text x="395" y="375" class="mono danger">j = 0.25</text>
+  <line x1="315" y1="324" x2="370" y2="324" stroke="#dd5a4f" stroke-width="4" stroke-dasharray="7 5"/>
+  <rect x="95" y="430" width="495" height="88" rx="6" fill="#fff0d8"/>
+  <text x="342" y="462" class="head center amber">旧请求只绑定 epoch + generation</text>
+  <text x="342" y="493" class="small center">peer 可接受请求；差异只能在 metrics 中事后出现</text>
+
+  <rect x="646" y="176" width="1189" height="374" rx="8" fill="#ffffff" stroke="#c5d2df" stroke-width="2"/>
+  <text x="676" y="216" class="head">F332：比较执行时的值，而不是环境字符串</text>
+  <text x="676" y="244" class="small">有限值 / 范围校验 · signed zero 规范化 · 主机端序无关 · epoch 隔离</text>
+  <g>
+    <rect x="680" y="286" width="205" height="78" rx="7" fill="#dceafb" stroke="#76a9dc"/>
+    <text x="782" y="317" class="head center">有效配置</text>
+    <text x="782" y="345" class="small center">epoch, I, T, j</text>
+    <rect x="970" y="286" width="250" height="78" rx="7" fill="#eef4fa" stroke="#9fb7cf"/>
+    <text x="1095" y="317" class="head center">IEEE754 BE64</text>
+    <text x="1095" y="345" class="small center">struct.pack(&quot;&gt;ddd&quot;)</text>
+    <rect x="1305" y="286" width="220" height="78" rx="7" fill="#172b43"/>
+    <text x="1415" y="317" class="head center white">SHA-256</text>
+    <text x="1415" y="345" class="small center light">domain separated</text>
+    <rect x="1610" y="286" width="190" height="78" rx="7" fill="#e3f4f1" stroke="#68c4ba"/>
+    <text x="1705" y="317" class="head center">fingerprint</text>
+    <text x="1705" y="345" class="small center">64 lowercase hex</text>
+  </g>
+  <g fill="none" stroke="#3478bd" stroke-width="4" marker-end="url(#arrow-blue)">
+    <line x1="885" y1="325" x2="958" y2="325"/>
+    <line x1="1220" y1="325" x2="1293" y2="325"/>
+    <line x1="1525" y1="325" x2="1598" y2="325"/>
+  </g>
+  <rect x="680" y="408" width="1120" height="110" rx="6" fill="#172b43"/>
+  <text x="710" y="439" class="mono teal-light">F = SHA256(domain || epoch || BE64(I) || BE64(T) || BE64(j))</text>
+  <text x="710" y="474" class="body white">完整记录还携带 maximum_interval；接收端重算派生值与指纹</text>
+  <text x="710" y="500" class="small light">配置摘要用于稳定完整性承诺，不是密钥认证或拜占庭共识</text>
+
+  <text x="68" y="602" class="section">02 启动共识、每代再绑定与有序失败关闭</text>
+  <rect x="65" y="625" width="1770" height="360" rx="8" fill="#ffffff" stroke="#c5d2df" stroke-width="2"/>
+  <g>
+    <rect x="95" y="680" width="235" height="82" rx="7" fill="#dceafb" stroke="#76a9dc"/>
+    <text x="212" y="712" class="head center">local record</text>
+    <text x="212" y="741" class="small center">schema + values + F</text>
+    <rect x="410" y="680" width="275" height="82" rx="7" fill="#172b43"/>
+    <text x="547" y="712" class="head center white">bounded exchange</text>
+    <text x="547" y="741" class="small center light">rank / phase / token / deadline</text>
+    <rect x="765" y="680" width="265" height="82" rx="7" fill="#e3f4f1" stroke="#68c4ba"/>
+    <text x="897" y="712" class="head center">exact agreement</text>
+    <text x="897" y="741" class="small center">all records == local · seal F</text>
+    <rect x="1110" y="680" width="275" height="82" rx="7" fill="#fff0d8" stroke="#efb858"/>
+    <text x="1247" y="712" class="head center">request schema v2</text>
+    <text x="1247" y="741" class="small center">epoch + g + F + token</text>
+    <rect x="1465" y="680" width="300" height="82" rx="7" fill="#e3f4f1" stroke="#68c4ba"/>
+    <text x="1615" y="712" class="head center">runtime qualification</text>
+    <text x="1615" y="741" class="small center">only after local F is unchanged</text>
+  </g>
+  <g fill="none" stroke="#3478bd" stroke-width="4" marker-end="url(#arrow-blue)">
+    <line x1="330" y1="721" x2="398" y2="721"/>
+    <line x1="685" y1="721" x2="753" y2="721"/>
+    <line x1="1030" y1="721" x2="1098" y2="721"/>
+    <line x1="1385" y1="721" x2="1453" y2="721"/>
+  </g>
+
+  <rect x="95" y="812" width="790" height="132" rx="6" fill="#e3f4f1"/>
+  <text x="125" y="848" class="head teal">健康路径</text>
+  <text x="125" y="882" class="body">config consensus -&gt; cached jitter -&gt; v2 request -&gt; F330 lock litmus</text>
+  <text x="125" y="913" class="body">正常 shutdown -&gt; master rendezvous -&gt; final barrier</text>
+  <text x="125" y="935" class="small">共识每个作业一次；每代只做本地指纹冻结检查</text>
+
+  <rect x="930" y="812" width="835" height="132" rx="6" fill="#fae2df" stroke="#df8d84"/>
+  <text x="960" y="848" class="head danger">漂移 / 缺 rank / 畸形记录</text>
+  <text x="960" y="882" class="body">generation=0, attempts=0 -&gt; local STOP + exact ACK</text>
+  <text x="960" y="913" class="body">bounded master rendezvous -&gt; MPI_Abort(70)</text>
+  <text x="960" y="935" class="small">rendezvous超时同样失败关闭；不回退到无续期的弱模式</text>
+
+  <text x="68" y="1038" class="section">03 证据、成本与严格边界</text>
+  <rect x="65" y="1062" width="555" height="312" rx="8" fill="#ffffff" stroke="#c5d2df" stroke-width="2"/>
+  <text x="95" y="1103" class="head">真实 Open MPI 健康路径</text>
+  <text x="95" y="1140" class="body">7 ranks · 2 master + 5 worker</text>
+  <text x="95" y="1174" class="body">固定 epoch 指纹：2/2 完全一致</text>
+  <text x="95" y="1208" class="body">generation：3 / 3 · failures：0 / 0</text>
+  <text x="95" y="1242" class="body">worker ACK：3/3 + 2/2 · exit 0</text>
+  <line x1="95" y1="1268" x2="590" y2="1268" stroke="#d7e0e9"/>
+  <text x="95" y="1303" class="body teal">请求与配置承诺贯穿真实 MPI 主循环</text>
+  <text x="95" y="1334" class="small">processor名称来自测试wrapper，不是多主机部署</text>
+
+  <rect x="650" y="1062" width="555" height="312" rx="8" fill="#ffffff" stroke="#c5d2df" stroke-width="2"/>
+  <text x="680" y="1103" class="head">逐 rank jitter 漂移故障注入</text>
+  <text x="680" y="1140" class="body">root / peer：0.10 / 0.25</text>
+  <text x="680" y="1174" class="body">generation / attempts：0 / 0（双方）</text>
+  <text x="680" y="1208" class="body">ACK：3/3 + 2/2，均先于 Abort</text>
+  <text x="680" y="1242" class="body">0.875331-0.912403 s · 2/2 exit 70</text>
+  <line x1="680" y1="1268" x2="1175" y2="1268" stroke="#d7e0e9"/>
+  <text x="680" y="1303" class="body danger">无静默降级 · 无任何 renewal attempt</text>
+  <text x="680" y="1334" class="small">真实transport + 合成topology/config drift</text>
+
+  <rect x="1235" y="1062" width="600" height="312" rx="8" fill="#fff8ea" stroke="#efb858" stroke-width="2"/>
+  <text x="1265" y="1103" class="head">机制成本与边界</text>
+  <text x="1265" y="1140" class="body">2 masters：+0.050506 ms（1.041691x）</text>
+  <text x="1265" y="1174" class="body">4 masters：+0.104471 ms（1.077403x）</text>
+  <text x="1265" y="1208" class="body">8 masters：+0.339265 ms（1.220914x）</text>
+  <line x1="1265" y1="1232" x2="1805" y2="1232" stroke="#dfc990"/>
+  <text x="1265" y="1265" class="body">不证明：真实多主机 / rank repair / partition</text>
+  <text x="1265" y="1299" class="body">不证明：DSE / solver / coverage / LAVA-M 提升</text>
+  <text x="1265" y="1334" class="small">synthetic_control_plane=true · deployment_evidence=false</text>
+
+  <text x="68" y="1414" class="small">F332 · 2026-08-07 · canonical configuration commitment · bounded agreement · evidence-first</text>
+</svg>

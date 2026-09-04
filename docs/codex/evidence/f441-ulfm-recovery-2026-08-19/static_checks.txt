@@ -1,0 +1,22 @@
+F441 static acceptance checks
+=============================
+
+python3 -m py_compile: passed
+  util/mpi_ulfm_recovery.py
+  benchmark/check_mpi_ulfm_recovery_oracles.py
+  test/test_mpi_ulfm_recovery.py
+  docs/codex/verify_delivery.py
+
+python3 -m ruff check: passed
+  all four Python files above
+
+bash -n F441 scripts: passed
+  benchmark/install_openmpi_ulfm_5_0_10.sh
+  benchmark/run_f441_ulfm_tests.sh
+
+independent deterministic/capability/live JSON verification: passed
+technology index --check: passed
+SVG/XML and PNG dimensions: passed
+  canonical and evidence SVG 1800x1120
+  canonical and evidence PNG 2700x1680 RGB
+git diff --check: passed

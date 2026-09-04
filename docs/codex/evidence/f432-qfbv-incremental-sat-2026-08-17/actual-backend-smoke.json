@@ -1,0 +1,26 @@
+{
+  "native": {
+    "completed": true,
+    "imported_clauses": 0,
+    "native_result": 20,
+    "native_signature": "cadical-3.0.1-c607304",
+    "proof_propagations": 1,
+    "proof_steps": 2,
+    "proof_verified": true,
+    "status": "unsat",
+    "store_records": 1
+  },
+  "one_shot": {
+    "completed": true,
+    "imported_clauses": 0,
+    "native_result": null,
+    "native_signature": null,
+    "proof_propagations": 1,
+    "proof_steps": 2,
+    "proof_verified": true,
+    "status": "unsat",
+    "store_records": 1
+  },
+  "passed": true,
+  "schema": "symcc-f432-actual-backend-smoke-v1"
+}

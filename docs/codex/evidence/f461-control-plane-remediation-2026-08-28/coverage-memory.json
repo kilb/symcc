@@ -1,0 +1,22 @@
+{
+  "measurement": "tracemalloc peak during dense delta grouping",
+  "rows": [
+    {
+      "amplification": 8.77,
+      "input_bytes": 16384,
+      "peak_bytes": 143660
+    },
+    {
+      "amplification": 8.17,
+      "input_bytes": 65536,
+      "peak_bytes": 535340
+    },
+    {
+      "amplification": 8.33,
+      "input_bytes": 262144,
+      "peak_bytes": 2182444
+    }
+  ],
+  "schema": "symcc-f461-dense-coverage-memory-v1",
+  "scope": "single-process Python allocation; excludes filesystem and target memory"
+}

@@ -1,0 +1,55 @@
+F348 budgeted transitive live-state graph restoration
+Date: 2026-08-10 UTC
+Repository base commit: 146e01b2d6f8e02fd2526764d46ea0d80a4bb6f6 (dirty research worktree)
+Host: Linux 7.0.0-28-generic x86_64 GNU/Linux
+Python: 3.12.3
+Evidence filesystem: overlayfs
+
+Implementation
+- add independent unique-object and canonical-byte budgets to each restore
+- validate the full current graph and every parent continuation graph
+- memoize parsed mappings by digest for one restore and charge shared nodes once
+- validate memory-page schemas and symbolic expression leaves transitively
+- reject duplicate symbolic names, page indexes, and symbolic cell offsets
+- verify parent checkpoint canonical identities and reject parent cycles
+- expose observed graph object and canonical-byte counts in the bundle and CLI
+- configure matching master and worker limits from two bounded environment values
+- revoke positive identity knowledge after JSON or schema failure
+
+Directed regression
+- 4 passed + 4 subtests, 208 deselected, warnings as errors, 0.63 s
+
+Related regression
+- 356 passed + 81 subtests, warnings as errors, 17.20 s
+
+Full Python regression
+- 749 passed + 101 subtests, warnings as errors, 94.35 s
+
+Local production-primitive integration
+- 9/9 exact checks true
+- checkpoint id: 140f390e3166a8b0777dfbf2af286835bd2512eae315a35e5b066e06a26d61eb
+- parent-chain descriptors: 2
+- unique graph objects: 8
+- canonical graph bytes: 2062
+- stable snapshot reads: 8
+- exact 8-object / 2062-byte budget: accepted
+- 7-object budget: rejected before eighth graph node admission
+- 2061-byte budget: rejected before over-budget parse retention
+- wrong-schema page reachable from parent: rejected
+- duplicate symbolic name: rejected
+- invalid JSON: rejected and positive identity cache empty
+- temporary residue: empty
+
+Complexity
+- restore time: O(sum of unique canonical object bytes + graph edges)
+- restore cache: O(unique graph objects + parsed canonical content)
+- repeated digest references: O(1) mapping lookup after first stable read
+- budget checks: O(1) per first-seen digest
+- canonical-byte accounting excludes interpreter object overhead
+
+Claim boundary
+- deterministic local mechanism evidence on real content-addressed files
+- no real MPI transport, target, afl-showmap, or symbolic solver invocation
+- no fuzzing campaign or multi-host/NFS/Lustre experiment
+- no throughput, coverage, bug-discovery, or LAVA-M uplift claim
+- graph quotas and content hashes are not Byzantine storage proof

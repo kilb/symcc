@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">F315 MPI dispatch generation result fencing</title>
+  <desc id="desc">A master derives a per-dispatch token from an epoch, worker rank and sequence. The worker echoes it on every result path. The master validates the token before consuming active state, accepting only the current generation and quarantining all other results.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#315b7d"/>
+    </marker>
+    <style>
+      .title{font:700 34px system-ui,sans-serif;fill:#102a43}
+      .sub{font:500 18px system-ui,sans-serif;fill:#486581}
+      .lane{font:700 19px system-ui,sans-serif;fill:#ffffff}
+      .h{font:700 21px system-ui,sans-serif;fill:#102a43}
+      .b{font:500 16px system-ui,sans-serif;fill:#243b53}
+      .small{font:500 14px system-ui,sans-serif;fill:#486581}
+      .mono{font:600 14px ui-monospace,monospace;fill:#243b53}
+      .box{fill:#ffffff;stroke:#9fb3c8;stroke-width:2}
+      .blue{fill:#eaf4ff;stroke:#2f80c9;stroke-width:2.5}
+      .teal{fill:#e8f7f4;stroke:#168c7a;stroke-width:2.5}
+      .green{fill:#ebf8ee;stroke:#2f855a;stroke-width:2.5}
+      .amber{fill:#fff7e6;stroke:#c98216;stroke-width:2.5}
+      .red{fill:#fff0f0;stroke:#c44545;stroke-width:2.5}
+      .arrow{fill:none;stroke:#315b7d;stroke-width:3;marker-end:url(#arrow)}
+      .dash{fill:none;stroke:#829ab1;stroke-width:2.5;stroke-dasharray:9 8;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="#f8fbfd"/>
+  <text x="70" y="62" class="title">F315  MPI Dispatch Generation &amp; Result Fencing</text>
+  <text x="70" y="94" class="sub">Validate delivery generation before consuming rank-owned state</text>
+
+  <rect x="55" y="125" width="1490" height="205" rx="8" fill="#eef5fb" stroke="#b8cadd"/>
+  <rect x="55" y="125" width="175" height="205" rx="8" fill="#2f80c9"/>
+  <text x="142" y="215" text-anchor="middle" class="lane">MASTER</text>
+  <text x="142" y="244" text-anchor="middle" class="lane">DISPATCH</text>
+
+  <rect x="270" y="157" width="300" height="135" rx="7" class="blue"/>
+  <text x="295" y="191" class="h">Dispatch coordinates</text>
+  <text x="295" y="226" class="mono">epoch = random 256 bit</text>
+  <text x="295" y="255" class="mono">worker = r, sequence = n</text>
+
+  <path d="M570 224 H640" class="arrow"/>
+  <rect x="640" y="157" width="390" height="135" rx="7" class="teal"/>
+  <text x="665" y="191" class="h">Derive unique token</text>
+  <text x="665" y="226" class="mono">T = SHA256(v1 | epoch | rank | seq)</text>
+  <text x="665" y="255" class="small">64-char lowercase hex; excluded from work ID</text>
+
+  <path d="M1030 224 H1100" class="arrow"/>
+  <rect x="1100" y="157" width="390" height="135" rx="7" class="blue"/>
+  <text x="1125" y="191" class="h">Bind transaction + message</text>
+  <text x="1125" y="226" class="b">transaction.dispatch_token = T</text>
+  <text x="1125" y="255" class="b">TAG_WORK[dispatch_token] = T</text>
+
+  <rect x="55" y="360" width="1490" height="185" rx="8" fill="#edf8f5" stroke="#acd5cb"/>
+  <rect x="55" y="360" width="175" height="185" rx="8" fill="#168c7a"/>
+  <text x="142" y="438" text-anchor="middle" class="lane">WORKER r</text>
+  <text x="142" y="467" text-anchor="middle" class="lane">ECHO</text>
+
+  <rect x="270" y="393" width="315" height="118" rx="7" class="teal"/>
+  <text x="295" y="428" class="h">Strict receive</text>
+  <text x="295" y="463" class="b">Validate 64-hex token</text>
+  <text x="295" y="490" class="small">Invalid WORK is a protocol error</text>
+
+  <path d="M585 452 H655" class="arrow"/>
+  <rect x="655" y="393" width="420" height="118" rx="7" class="box"/>
+  <text x="680" y="428" class="h">Every execution exit</text>
+  <text x="680" y="463" class="b">continuation / import failure / execute</text>
+  <text x="680" y="490" class="small">Success and failures use one sender</text>
+
+  <path d="M1075 452 H1145" class="arrow"/>
+  <rect x="1145" y="393" width="345" height="118" rx="7" class="green"/>
+  <text x="1170" y="428" class="h">Authoritative echo</text>
+  <text x="1170" y="463" class="b">result.dispatch_token = T</text>
+  <text x="1170" y="490" class="small">TAG_RESULT returns to master</text>
+
+  <path d="M1320 511 C1320 570 1050 570 1050 612" class="dash"/>
+
+  <rect x="55" y="585" width="1490" height="255" rx="8" fill="#fffaf0" stroke="#e4c486"/>
+  <rect x="55" y="585" width="175" height="255" rx="8" fill="#c98216"/>
+  <text x="142" y="689" text-anchor="middle" class="lane">MASTER</text>
+  <text x="142" y="718" text-anchor="middle" class="lane">RESULT GATE</text>
+
+  <rect x="270" y="625" width="365" height="165" rx="7" class="amber"/>
+  <text x="295" y="661" class="h">Pre-consumption check</text>
+  <text x="295" y="697" class="b">Expected T comes from ACTIVE tx</text>
+  <text x="295" y="728" class="b">Compare result token before any pop</text>
+  <text x="295" y="759" class="small">unowned / missing / malformed / stale</text>
+
+  <path d="M635 685 H720" class="arrow"/>
+  <text x="678" y="672" text-anchor="middle" class="small">current</text>
+  <rect x="720" y="625" width="355" height="165" rx="7" class="green"/>
+  <text x="745" y="661" class="h">Trusted commit chain</text>
+  <text x="745" y="697" class="b">consume active maps</text>
+  <text x="745" y="728" class="b">begin-commit → triage → commit</text>
+  <text x="745" y="759" class="small">Update coverage, leases and feedback</text>
+
+  <path d="M635 756 C690 815 1095 815 1140 756" class="arrow"/>
+  <text x="875" y="826" text-anchor="middle" class="small">non-current: fail closed</text>
+  <rect x="1140" y="625" width="350" height="165" rx="7" class="red"/>
+  <text x="1165" y="661" class="h">Quarantine + telemetry</text>
+  <text x="1165" y="697" class="b">No triage; do not release current lease</text>
+  <text x="1165" y="728" class="b">No learning; preserve active state</text>
+  <text x="1165" y="759" class="small">reasoned quarantine stats + warning</text>
+
+  <text x="70" y="875" class="small">Trust boundary: an in-job generation key, not authentication, consensus, or a performance result.</text>
+</svg>

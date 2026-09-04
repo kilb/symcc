@@ -1,0 +1,41 @@
+F449 MULTI-ROUND REVIEW RECORD
+Captured: 2026-08-25 UTC
+
+R1 - Proof scope and soundness
+Reviewed signed assumptions, exact failed-assumption cores, leaf LRUP replay,
+split-tree resolution, root receipt replay, SAT assumption polarity, and Query
+IR witness execution. Fixed silent assumption de-duplication and persistent
+UNSAT confirmation that could otherwise lose the cube scope.
+
+R2 - Task state machine and crash recovery
+Reviewed pending/leased/sat/unsat/cancelled/exhausted transitions, monotonically
+increasing fence tokens, expiry, heartbeat, retry budgets, stale completion,
+and SAT peer cancellation. Added real crash-reclaim and active-peer cancellation
+tests; finite timestamp validation now fails closed.
+
+R3 - Persistent protocol and concurrency
+Reviewed SQLite transaction boundaries, concurrent claim/complete/finalize,
+restart reconstruction, canonical JSON, and immutable execution identity.
+Fixed non-deterministic aggregate proof producers so two coordinators converge
+on the same CAS object. Persisted JSON now rejects duplicate members,
+NaN/Infinity, non-ASCII, oversized, and non-canonical encodings.
+
+R4 - Service, resource, and lifecycle integration
+Reviewed global cube-slot budgeting, per-slot backend ownership, parent query
+lease renewal, result telemetry, independent QueryStore replay, and dependent-
+first artifact GC. Added partition-execution lifecycle edges and active-state
+fail-closed inventory behavior.
+
+R5 - Adversarial tests, documentation, and claim boundary
+Reviewed symlink and metadata drift, cube inventory mutation, duplicate JSON,
+proof-digest tamper, negative assumptions, dual coordinator races, and E2E
+one-shot/persistent backends. Documentation distinguishes mechanism evidence
+from speedup, coverage, and defect-yield claims.
+
+FINAL GATES
+- Focused: 22 passed.
+- Coupled regression: 143 passed, 50 subtests passed.
+- Full capability gate: 1419 passed, 310 subtests passed; zero skip, xfail,
+  xpass, deselect, collection error, missing nodeid, or unexpected nodeid.
+- External capabilities: 16/16 present.
+- Static checks: py_compile, Ruff, and git diff --check passed.

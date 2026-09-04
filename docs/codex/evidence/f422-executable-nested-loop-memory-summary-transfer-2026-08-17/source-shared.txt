@@ -1,0 +1,7 @@
+compiler/ContinuationLowering.cpp  producer effect/live-out proof and preheader operation
+util/live_continuation.py  strict reconstruction, normalization, prepare/commit runtime
+util/live_state_search.py  fallback/target CFG reachability without branch tokens
+util/check_live_continuation_lowering.py  capability, mutation, execution, and transaction checks
+benchmark/README.md  reproducibility and claim boundary
+docs/codex/verify_delivery.py  executable delivery consistency checks
+test/pytest-nodeids.json  canonical 1111-test identity inventory

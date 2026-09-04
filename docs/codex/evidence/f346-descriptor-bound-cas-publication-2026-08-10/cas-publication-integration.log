@@ -1,0 +1,40 @@
+{
+  "all_checks_passed": true,
+  "checks": {
+    "baseline_avoids_fallback_rehash": true,
+    "baseline_publication_exact": true,
+    "exact_inode_competitor_converges": true,
+    "failed_publications_are_not_cached": true,
+    "same_inode_corruption_rejected": true,
+    "symlink_competitor_rejected_without_follow": true,
+    "temporary_publication_names_are_cleaned": true,
+    "wrong_inode_competitor_rejected": true
+  },
+  "configuration": {
+    "cases": [
+      "baseline",
+      "same-inode-corruption",
+      "wrong-inode-competitor",
+      "exact-inode-competitor",
+      "symlink-competitor"
+    ],
+    "max_object_bytes": 128,
+    "source": "real regular files with deterministic publication fault injection"
+  },
+  "observations": {
+    "baseline_fallback_hashes": 0,
+    "corrupt_fallback_hashes": 1,
+    "exact_competitor_fallback_hashes": 1,
+    "failed_identity_caches": {
+      "corrupt": [],
+      "symlink": [],
+      "wrong_competitor": []
+    },
+    "object_id": "1589759a7aaffb44bed4c4f0389fcb8d7ffa1ad44cab4b8647cb4f77e49be3cd",
+    "symlink_competitor_fallback_hashes": 0,
+    "temporary_residue": [],
+    "wrong_competitor_fallback_hashes": 1
+  },
+  "proof_boundary": "This local mechanism integration exercises the production CAS writer and deterministic post-rename fault injection. It does not execute MPI, a target, afl-showmap, a symbolic solver, or a fuzzing campaign, and makes no throughput, coverage, bug-discovery, or LAVA-M uplift claim.",
+  "schema": "symcc-f346-descriptor-bound-cas-publication-v1"
+}

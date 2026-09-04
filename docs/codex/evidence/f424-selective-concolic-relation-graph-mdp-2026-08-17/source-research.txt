@@ -1,0 +1,19 @@
+Primary source:
+Selective Concolic Testing, Formal Methods 2026.
+https://link.springer.com/chapter/10.1007/978-3-032-26220-2_14
+
+Paper mechanisms used as design input:
+- an MDP state represents covered-statement information;
+- actions divide path-condition work between randomized and SMT solving;
+- program transition probabilities are estimated with Laplace smoothing;
+- the practical implementation uses probability-guided off-path selection,
+  a weighted variable relation graph and graph partition, an operator
+  bag-of-words timeout predictor, JFS, and KLEE.
+
+Project interpretation:
+F424 implements a bounded QF_BV approximation of the relation-graph/two-stage
+candidate dataflow and probability-based scheduler. The partition is a static
+operator-risk cut, not METIS; it does not use the paper's trained SVM, JFS,
+KLEE, BVFP support, or public evaluation corpus. All partial candidates are
+validated against the original full formula, which is a project-specific
+fail-soft authority boundary.

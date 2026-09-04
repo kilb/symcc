@@ -1,0 +1,3 @@
+wall_seconds=299
+exit_status=0
+source=shell-date-seconds

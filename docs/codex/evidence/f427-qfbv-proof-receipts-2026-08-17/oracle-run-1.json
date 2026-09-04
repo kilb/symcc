@@ -1,0 +1,47 @@
+{
+  "checks": {
+    "cas_tamper_rejected": 1,
+    "cross_worker_reuses": 5,
+    "false_authorizations": 0,
+    "generated_checked_unsat": 1,
+    "reference_tamper_rejected": 1,
+    "unique_receipts": 1
+  },
+  "proof_store": {
+    "proof_bytes": 356,
+    "proofs": 1,
+    "receipts": 1,
+    "result_keys": 1
+  },
+  "schema": "symcc-f427-qfbv-proof-receipt-oracle-v1",
+  "timing_us": {
+    "backend_checker": [
+      31826
+    ],
+    "generation": [
+      7719
+    ],
+    "reuse_total": [
+      508657,
+      475494,
+      538953,
+      564020,
+      564968
+    ],
+    "reuse_total_median": 538953,
+    "store_checker": [
+      31794,
+      31746,
+      31760,
+      31734,
+      31788,
+      31793
+    ]
+  },
+  "toolchain": {
+    "cvc5_sha256": "7562a8b0b835e3eaad5f1a7b4616cd762350cf567b6be03d7e8ee24fa5ced5ee",
+    "cvc5_version": "cvc5 1.3.4 [git f3b21c4 on branch HEAD]",
+    "ethos_sha256": "7f73a7e8a584cabb9b50c3a57d6f222661f184cc323fb661a3ec78092c201c5d",
+    "signature_files": 51
+  }
+}

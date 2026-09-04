@@ -1,0 +1,16 @@
+ninja: Entering directory `.symcc-research-evidence/current-eval-2026-07-30/build/libarchive'
+[1/1] /home/ubuntu/code/symcc/build/symcc -DHAVE_CONFIG_H -DLIBARCHIVE_STATIC -I/home/ubuntu/code/symcc/benchmark/public/gfts_build/libarchive-src/libarchive -I/home/ubuntu/code/symcc/.symcc-research-evidence/current-eval-2026-07-30/build/libarchive -I/usr/include/libxml2 -Wall -Wformat -Wformat-security -O3 -DNDEBUG -MD -MT libarchive/CMakeFiles/archive_static.dir/archive_write_set_format_7zip.c.o -MF libarchive/CMakeFiles/archive_static.dir/archive_write_set_format_7zip.c.o.d -o libarchive/CMakeFiles/archive_static.dir/archive_write_set_format_7zip.c.o -c /home/ubuntu/code/symcc/benchmark/public/gfts_build/libarchive-src/libarchive/archive_write_set_format_7zip.c
+/home/ubuntu/code/symcc/benchmark/public/gfts_build/libarchive-src/libarchive/archive_write_set_format_7zip.c:1534:13: warning: implicit truncation from 'int' to a one-bit wide bit-field changes value from 1 to -1 [-Wsingle-bit-bitfield-constant-conversion]
+ 1534 |                 file->dir = 1;
+      |                           ^ ~
+Warning: unhandled LLVM intrinsic llvm.umin.i64; the result will be concretized
+Warning: unhandled LLVM intrinsic llvm.umin.i64; the result will be concretized
+Warning: unhandled LLVM intrinsic llvm.umin.i64; the result will be concretized
+Warning: unhandled LLVM intrinsic llvm.smin.i32; the result will be concretized
+Warning: unhandled LLVM intrinsic llvm.umin.i64; the result will be concretized
+Warning: unhandled LLVM intrinsic llvm.smin.i32; the result will be concretized
+Warning: unhandled LLVM intrinsic llvm.umin.i64; the result will be concretized
+Warning: unhandled LLVM intrinsic llvm.umax.i32; the result will be concretized
+Warning: unhandled LLVM intrinsic llvm.smin.i32; the result will be concretized
+Warning: unhandled LLVM intrinsic llvm.smin.i32; the result will be concretized
+1 warning generated.

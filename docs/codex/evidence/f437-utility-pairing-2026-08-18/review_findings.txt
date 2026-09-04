@@ -1,0 +1,30 @@
+F437 four-round review
+
+Round 1 - controller and replay invariants
+- Rejected validly resealed extra fields in outcome/snapshot schemas.
+- Recomputed reward totals from outcome counts during snapshot verification.
+- Reserved one controller event slot for every admitted decision outcome.
+- Preserved historical checker and event-lag cost in later pair scores.
+
+Round 2 - realtime and multi-rank semantics
+- Modeled admit = delivered + backpressure + expired instead of admit = delivered.
+- Sampled active_at_publication at barrier release rather than after waiting.
+- Replaced fixed +/-/+ clause polarity with random fixed-cardinality positions,
+  preserving family identity without making the workload trivially easy.
+- Required every opportunity to have one decision and every admit one outcome.
+
+Round 3 - persistence and failure atomicity
+- Added independently verified QueryStore snapshots keyed by worker and policy.
+- Committed result and monotonic checkpoint in one BEGIN IMMEDIATE transaction.
+- Rejected same-ordinal forks, ignored stale rollback, and restored only
+  quiescent snapshots in the persistent backend.
+- Added restart recovery and corrupted-snapshot fail-closed tests.
+
+Round 4 - exception safety, identity and gate stability
+- Validated outcome type/name before removing a pending admission.
+- Unified protocol/backend/QueryStore worker identity validation and restored
+  using the identity actually passed to realtime sessions.
+- Made cancellation tests prove the slow backend reached a cancellable request;
+  the old one-second helper could fabricate SAT without that precondition under
+  dual-LLVM host load.
+- Re-ran focused, complete Python, dual-LLVM, static and delivery gates.

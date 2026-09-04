@@ -1,0 +1,316 @@
+{
+  "cases": [
+    {
+      "cube_count": 2,
+      "leaf_proofs": 2,
+      "median_replay_us": 40094,
+      "median_wall_us": 219360,
+      "resolution_steps": 1,
+      "rounds": 5,
+      "samples": [
+        {
+          "attempts": 2,
+          "leaf_proofs": 2,
+          "proof_records": 3,
+          "replay_us": 40094,
+          "resolution_steps": 1,
+          "wall_us": 217875
+        },
+        {
+          "attempts": 2,
+          "leaf_proofs": 2,
+          "proof_records": 3,
+          "replay_us": 41547,
+          "resolution_steps": 1,
+          "wall_us": 225467
+        },
+        {
+          "attempts": 2,
+          "leaf_proofs": 2,
+          "proof_records": 3,
+          "replay_us": 39683,
+          "resolution_steps": 1,
+          "wall_us": 222971
+        },
+        {
+          "attempts": 2,
+          "leaf_proofs": 2,
+          "proof_records": 3,
+          "replay_us": 39801,
+          "resolution_steps": 1,
+          "wall_us": 213984
+        },
+        {
+          "attempts": 2,
+          "leaf_proofs": 2,
+          "proof_records": 3,
+          "replay_us": 42204,
+          "resolution_steps": 1,
+          "wall_us": 219360
+        }
+      ]
+    },
+    {
+      "cube_count": 4,
+      "leaf_proofs": 4,
+      "median_replay_us": 70130,
+      "median_wall_us": 377501,
+      "resolution_steps": 3,
+      "rounds": 5,
+      "samples": [
+        {
+          "attempts": 4,
+          "leaf_proofs": 4,
+          "proof_records": 5,
+          "replay_us": 70453,
+          "resolution_steps": 3,
+          "wall_us": 382835
+        },
+        {
+          "attempts": 4,
+          "leaf_proofs": 4,
+          "proof_records": 5,
+          "replay_us": 73433,
+          "resolution_steps": 3,
+          "wall_us": 377501
+        },
+        {
+          "attempts": 4,
+          "leaf_proofs": 4,
+          "proof_records": 5,
+          "replay_us": 68996,
+          "resolution_steps": 3,
+          "wall_us": 361912
+        },
+        {
+          "attempts": 4,
+          "leaf_proofs": 4,
+          "proof_records": 5,
+          "replay_us": 69560,
+          "resolution_steps": 3,
+          "wall_us": 379647
+        },
+        {
+          "attempts": 4,
+          "leaf_proofs": 4,
+          "proof_records": 5,
+          "replay_us": 70130,
+          "resolution_steps": 3,
+          "wall_us": 371993
+        }
+      ]
+    },
+    {
+      "cube_count": 8,
+      "leaf_proofs": 8,
+      "median_replay_us": 129544,
+      "median_wall_us": 699040,
+      "resolution_steps": 7,
+      "rounds": 5,
+      "samples": [
+        {
+          "attempts": 8,
+          "leaf_proofs": 8,
+          "proof_records": 9,
+          "replay_us": 129977,
+          "resolution_steps": 7,
+          "wall_us": 696065
+        },
+        {
+          "attempts": 8,
+          "leaf_proofs": 8,
+          "proof_records": 9,
+          "replay_us": 129359,
+          "resolution_steps": 7,
+          "wall_us": 675647
+        },
+        {
+          "attempts": 8,
+          "leaf_proofs": 8,
+          "proof_records": 9,
+          "replay_us": 129201,
+          "resolution_steps": 7,
+          "wall_us": 699040
+        },
+        {
+          "attempts": 8,
+          "leaf_proofs": 8,
+          "proof_records": 9,
+          "replay_us": 129544,
+          "resolution_steps": 7,
+          "wall_us": 729363
+        },
+        {
+          "attempts": 8,
+          "leaf_proofs": 8,
+          "proof_records": 9,
+          "replay_us": 130166,
+          "resolution_steps": 7,
+          "wall_us": 807209
+        }
+      ]
+    },
+    {
+      "cube_count": 16,
+      "leaf_proofs": 16,
+      "median_replay_us": 247864,
+      "median_wall_us": 1326808,
+      "resolution_steps": 15,
+      "rounds": 5,
+      "samples": [
+        {
+          "attempts": 16,
+          "leaf_proofs": 16,
+          "proof_records": 17,
+          "replay_us": 252457,
+          "resolution_steps": 15,
+          "wall_us": 1350627
+        },
+        {
+          "attempts": 16,
+          "leaf_proofs": 16,
+          "proof_records": 17,
+          "replay_us": 247864,
+          "resolution_steps": 15,
+          "wall_us": 1326808
+        },
+        {
+          "attempts": 16,
+          "leaf_proofs": 16,
+          "proof_records": 17,
+          "replay_us": 247444,
+          "resolution_steps": 15,
+          "wall_us": 1275042
+        },
+        {
+          "attempts": 16,
+          "leaf_proofs": 16,
+          "proof_records": 17,
+          "replay_us": 251284,
+          "resolution_steps": 15,
+          "wall_us": 1346180
+        },
+        {
+          "attempts": 16,
+          "leaf_proofs": 16,
+          "proof_records": 17,
+          "replay_us": 247746,
+          "resolution_steps": 15,
+          "wall_us": 1320256
+        }
+      ]
+    },
+    {
+      "cube_count": 32,
+      "leaf_proofs": 32,
+      "median_replay_us": 491150,
+      "median_wall_us": 2662578,
+      "resolution_steps": 31,
+      "rounds": 5,
+      "samples": [
+        {
+          "attempts": 32,
+          "leaf_proofs": 32,
+          "proof_records": 33,
+          "replay_us": 489570,
+          "resolution_steps": 31,
+          "wall_us": 2787478
+        },
+        {
+          "attempts": 32,
+          "leaf_proofs": 32,
+          "proof_records": 33,
+          "replay_us": 501435,
+          "resolution_steps": 31,
+          "wall_us": 2744135
+        },
+        {
+          "attempts": 32,
+          "leaf_proofs": 32,
+          "proof_records": 33,
+          "replay_us": 490594,
+          "resolution_steps": 31,
+          "wall_us": 2662578
+        },
+        {
+          "attempts": 32,
+          "leaf_proofs": 32,
+          "proof_records": 33,
+          "replay_us": 491150,
+          "resolution_steps": 31,
+          "wall_us": 2631700
+        },
+        {
+          "attempts": 32,
+          "leaf_proofs": 32,
+          "proof_records": 33,
+          "replay_us": 496213,
+          "resolution_steps": 31,
+          "wall_us": 2618234
+        }
+      ]
+    },
+    {
+      "cube_count": 64,
+      "leaf_proofs": 64,
+      "median_replay_us": 956365,
+      "median_wall_us": 5394938,
+      "resolution_steps": 63,
+      "rounds": 5,
+      "samples": [
+        {
+          "attempts": 64,
+          "leaf_proofs": 64,
+          "proof_records": 65,
+          "replay_us": 984746,
+          "resolution_steps": 63,
+          "wall_us": 5394938
+        },
+        {
+          "attempts": 64,
+          "leaf_proofs": 64,
+          "proof_records": 65,
+          "replay_us": 945795,
+          "resolution_steps": 63,
+          "wall_us": 5496592
+        },
+        {
+          "attempts": 64,
+          "leaf_proofs": 64,
+          "proof_records": 65,
+          "replay_us": 956365,
+          "resolution_steps": 63,
+          "wall_us": 5253596
+        },
+        {
+          "attempts": 64,
+          "leaf_proofs": 64,
+          "proof_records": 65,
+          "replay_us": 952631,
+          "resolution_steps": 63,
+          "wall_us": 5631266
+        },
+        {
+          "attempts": 64,
+          "leaf_proofs": 64,
+          "proof_records": 65,
+          "replay_us": 982069,
+          "resolution_steps": 63,
+          "wall_us": 5204376
+        }
+      ]
+    }
+  ],
+  "claim": "mechanism evidence only; wall times are not application speedup or coverage measurements",
+  "rounds": 5,
+  "sat_first_winner": {
+    "assignments": {
+      "0": 0
+    },
+    "cancelled_cubes": 63,
+    "completed_cubes": 1,
+    "winner": "444695f38911be36b404f8814a25bb9091a61bb1055f19a2fac839ee0a8437e1"
+  },
+  "schema": "symcc-f449-partition-execution-oracle-v1",
+  "status": "pass"
+}

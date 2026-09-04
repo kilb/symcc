@@ -1,0 +1,16 @@
+{
+  "__version__": [
+    18,
+    1,
+    8
+  ],
+  "elapsed": 2.829829216003418,
+  "tests": [
+    {
+      "code": "PASS",
+      "elapsed": 2.8240272998809814,
+      "name": "compiler :: test_qfbv_native_state_fork.py",
+      "output": "Exit Code: 0\n\nCommand Output (stdout):\n--\n# RUN: at line 3\nenv SYMCC_QFBV_FORKSERVER=/home/ubuntu/code/symcc/build-llvm17/symcc-qfbv-z3-forkserver python3 /home/ubuntu/code/symcc/test/test_qfbv_native_state_fork.py\n# executed command: env SYMCC_QFBV_FORKSERVER=/home/ubuntu/code/symcc/build-llvm17/symcc-qfbv-z3-forkserver python3 /home/ubuntu/code/symcc/test/test_qfbv_native_state_fork.py\n# .---command stderr------------\n# | ........\n# | ----------------------------------------------------------------------\n# | Ran 8 tests in 2.750s\n# | \n# | OK\n# `-----------------------------\n\n--\n"
+    }
+  ]
+}

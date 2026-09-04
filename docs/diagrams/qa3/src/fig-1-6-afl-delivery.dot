@@ -1,0 +1,41 @@
+
+digraph G {
+  graph [
+    bgcolor="white", pad="0.28", nodesep="0.38", ranksep="0.58",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=24,
+    labelloc="t", labeljust="l"
+  ];
+  node [
+    shape=box, style="rounded,filled", margin="0.18,0.12",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=12,
+    color="#CBD5E1", penwidth=1.3, fillcolor="#F8FAFC"
+  ];
+  edge [
+    fontname="WenQuanYi Zen Hei", fontcolor="#64748B", fontsize=10,
+    color="#64748B", penwidth=1.5, arrowsize=0.75
+  ];
+
+  label="图 1-6  Concolic 产出到 AFL 的三条交付路径";
+  rankdir=TB;
+
+  accepted [label="Master B1 接受\n一个 concolic 产出", fillcolor="#CCFBF1", color="#0F766E"];
+  sibling [label="(a) symcc01/queue\n兄弟实例同步源", fillcolor="#DBEAFE", color="#2563EB"];
+  direct [label="(b) fuzzer01/queue\n直接写运行中实例目录", fillcolor="#DBEAFE", color="#2563EB"];
+  hint [label="(c) symcc01/extras\nhint token", fillcolor="#DBEAFE", color="#2563EB"];
+  delay [label="同步门\n-M 默认约 10 min", fillcolor="#FEE2E2", color="#B91C1C"];
+  noscan [label="运行中 AFL\n不重扫自己的 queue", fillcolor="#FEE2E2", color="#B91C1C"];
+  afl [label="AFL 内部 corpus / dictionary", fillcolor="#DCFCE7", color="#15803D"];
+
+  accepted -> sibling [label="写解"];
+  accepted -> direct [label="写解"];
+  accepted -> hint [label="写 token"];
+  sibling -> delay -> afl [label="短轮次未到", color="#B91C1C"];
+  direct -> noscan -> afl [label="0/200 被采纳", color="#B91C1C"];
+  hint -> afl [label="可用", color="#15803D", penwidth=2.4];
+
+  conclusion [shape=note, label="≤300 s 的历史 benchmark\n只有字典 token 到达 AFL；\n解本身仅进入离线并集语料", fillcolor="#FEF3C7", color="#D97706"];
+  afl -> conclusion [style=dotted, arrowhead=none];
+  fix [shape=note, label="修复方向\nAFL_SYNC_TIME=1\n或将 symcc01 接入 -F foreign_dirs", fillcolor="#F1F5F9"];
+  conclusion -> fix [style=dashed];
+
+}

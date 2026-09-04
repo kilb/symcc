@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1320" viewBox="0 0 1900 1320" role="img" aria-labelledby="title desc">
+  <title id="title">F349 descriptor-anchored CAS namespace</title>
+  <desc id="desc">A public CAS root and digest shard are opened as stable directory descriptors. All leaf publication and snapshot operations use the shard descriptor. If public root or shard names are replaced by symbolic links, I/O remains on the detached original directory and final identity closure rejects the operation before cache admission.</desc>
+  <defs>
+    <style>
+      .title{font:700 38px Inter,Segoe UI,Arial,sans-serif;fill:#17324d;letter-spacing:0}
+      .subtitle{font:400 18px Inter,Segoe UI,Arial,sans-serif;fill:#4e6478;letter-spacing:0}
+      .section{font:700 22px Inter,Segoe UI,Arial,sans-serif;fill:#17324d;letter-spacing:0}
+      .head{font:700 18px Inter,Segoe UI,Arial,sans-serif;fill:#17324d;letter-spacing:0}
+      .body{font:400 16px Inter,Segoe UI,Arial,sans-serif;fill:#334b60;letter-spacing:0}
+      .small{font:400 14px Inter,Segoe UI,Arial,sans-serif;fill:#5d7183;letter-spacing:0}
+      .mono{font:500 15px SFMono-Regular,Consolas,monospace;fill:#24445f;letter-spacing:0}
+      .white{fill:#fff}
+      .line{fill:none;stroke:#53718a;stroke-width:3;marker-end:url(#arrow)}
+      .teal{fill:none;stroke:#00897b;stroke-width:4;marker-end:url(#arrowTeal)}
+      .red{fill:none;stroke:#d84343;stroke-width:4;marker-end:url(#arrowRed)}
+      .dash{stroke-dasharray:10 8}
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#53718a"/></marker>
+    <marker id="arrowTeal" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#00897b"/></marker>
+    <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#d84343"/></marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#17324d" flood-opacity="0.12"/></filter>
+  </defs>
+
+  <rect width="1900" height="1320" fill="#f7fafc"/>
+  <rect x="0" y="0" width="1900" height="112" fill="#17324d"/>
+  <rect x="0" y="112" width="1900" height="7" fill="#00a896"/>
+  <text x="72" y="58" class="title white">F349 · Descriptor-Anchored CAS Namespace</text>
+  <text x="72" y="91" class="subtitle white">Bind root, shard, leaf I/O and cache admission to one verified directory-descriptor transaction</text>
+
+  <text x="72" y="160" class="section">1  Public names become verified directory capabilities</text>
+  <rect x="72" y="184" width="1110" height="448" rx="8" fill="#fff" stroke="#b9c9d8" stroke-width="2" filter="url(#shadow)"/>
+  <text x="102" y="224" class="head">PUBLIC CAS NAMESPACE</text>
+  <text x="102" y="252" class="small">Names remain compatible; internal I/O stops reparsing their parents.</text>
+
+  <path d="M112 302 h120 l18 22 h238 v160 h-376 z" fill="#e7f0f7" stroke="#3f6f91" stroke-width="3"/>
+  <text x="145" y="365" class="head">CAS root</text>
+  <text x="145" y="398" class="mono">/state/objects</text>
+  <text x="145" y="443" class="small">open absolute final component</text>
+  <rect x="174" y="498" width="246" height="72" rx="7" fill="#355d7a"/>
+  <text x="205" y="529" class="head white">ROOT FD</text>
+  <text x="205" y="553" class="mono white">I(Rfd) = (dev, ino)</text>
+  <path d="M295 484 L295 498" class="teal"/>
+
+  <path d="M560 302 h102 l18 22 h252 v160 h-372 z" fill="#e0f3ef" stroke="#00897b" stroke-width="3"/>
+  <text x="594" y="365" class="head">Digest shard</text>
+  <text x="594" y="398" class="mono">33/</text>
+  <text x="594" y="443" class="small">open relative to Rfd</text>
+  <rect x="623" y="498" width="246" height="72" rx="7" fill="#00796b"/>
+  <text x="654" y="529" class="head white">SHARD FD</text>
+  <text x="654" y="553" class="mono white">I(Sfd) = (dev, ino)</text>
+  <path d="M744 484 L744 498" class="teal"/>
+  <path d="M488 390 L560 390" class="teal"/>
+
+  <rect x="1000" y="314" width="138" height="158" rx="7" fill="#fff4df" stroke="#e68a00" stroke-width="3"/>
+  <path d="M1020 342 h98 M1020 368 h98 M1020 394 h70" stroke="#e4b65e" stroke-width="4"/>
+  <text x="1020" y="430" class="head">Leaf</text>
+  <text x="1020" y="456" class="mono">b78f...</text>
+  <path d="M932 390 L1000 390" class="teal"/>
+  <rect x="972" y="500" width="188" height="70" rx="7" fill="#fff4df" stroke="#e68a00" stroke-width="2"/>
+  <text x="1066" y="529" text-anchor="middle" class="head">Leaf operations</text>
+  <text x="1066" y="554" text-anchor="middle" class="mono">(Sfd, fixed name)</text>
+
+  <rect x="1228" y="184" width="600" height="448" rx="8" fill="#fff" stroke="#b9c9d8" stroke-width="2" filter="url(#shadow)"/>
+  <text x="1258" y="224" class="head">CONCURRENT NAMESPACE REPLACEMENT</text>
+  <text x="1258" y="252" class="small">The public name moves; the opened directory inode does not.</text>
+
+  <path d="M1268 302 h100 l18 22 h174 v124 h-292 z" fill="#f7e8e8" stroke="#cf4b4b" stroke-width="3"/>
+  <text x="1300" y="360" class="head">Public shard name</text>
+  <text x="1300" y="394" class="body">renamed / replaced</text>
+  <line x1="1288" y1="330" x2="1536" y2="424" stroke="#cf4b4b" stroke-width="5"/>
+  <line x1="1536" y1="330" x2="1288" y2="424" stroke="#cf4b4b" stroke-width="5"/>
+
+  <path d="M1610 302 h70 l18 22 h94 v124 h-182 z" fill="#fff3e0" stroke="#e68a00" stroke-width="3"/>
+  <text x="1634" y="360" class="head">Alias</text>
+  <text x="1634" y="392" class="body">outside</text>
+  <path d="M1558 376 C1580 376 1588 376 1610 376" class="red dash"/>
+
+  <rect x="1270" y="492" width="242" height="88" rx="7" fill="#e0f3ef" stroke="#00897b" stroke-width="2"/>
+  <text x="1298" y="527" class="head">I/O remains anchored</text>
+  <text x="1298" y="555" class="small">detached original receives bytes</text>
+  <rect x="1540" y="492" width="252" height="88" rx="7" fill="#fdeaea" stroke="#d84343" stroke-width="2"/>
+  <text x="1568" y="527" class="head">Public proof fails</text>
+  <text x="1568" y="555" class="small">reject before positive cache</text>
+  <path d="M1512 536 L1540 536" class="red"/>
+
+  <text x="72" y="688" class="section">2  One transaction: acquire → operate → close namespace identity</text>
+  <rect x="72" y="714" width="1756" height="308" rx="8" fill="#fff" stroke="#b9c9d8" stroke-width="2"/>
+
+  <circle cx="150" cy="778" r="34" fill="#355d7a"/><text x="150" y="786" text-anchor="middle" class="head white">1</text>
+  <text x="105" y="839" class="head">Acquire root</text>
+  <text x="95" y="869" class="small">O_DIRECTORY</text><text x="95" y="893" class="small">O_NOFOLLOW</text>
+
+  <circle cx="425" cy="778" r="34" fill="#3f6f91"/><text x="425" y="786" text-anchor="middle" class="head white">2</text>
+  <text x="370" y="839" class="head">Acquire shard</text>
+  <text x="360" y="869" class="small">mkdir/open at Rfd</text><text x="360" y="893" class="small">record identity</text>
+
+  <circle cx="700" cy="778" r="34" fill="#00897b"/><text x="700" y="786" text-anchor="middle" class="head white">3</text>
+  <text x="640" y="839" class="head">Anchored I/O</text>
+  <text x="622" y="869" class="small">temporary + renameat</text><text x="622" y="893" class="small">or stable snapshot</text>
+
+  <circle cx="975" cy="778" r="34" fill="#e68a00"/><text x="975" y="786" text-anchor="middle" class="head white">4</text>
+  <text x="914" y="839" class="head">Leaf closure</text>
+  <text x="897" y="869" class="small">fd identity + path</text><text x="897" y="893" class="small">digest / competitor</text>
+
+  <circle cx="1250" cy="778" r="34" fill="#6c4ed9"/><text x="1250" y="786" text-anchor="middle" class="head white">5</text>
+  <text x="1180" y="839" class="head">Directory closure</text>
+  <text x="1169" y="869" class="small">root dev/ino equal</text><text x="1169" y="893" class="small">shard dev/ino equal</text>
+
+  <circle cx="1525" cy="778" r="34" fill="#2e7d32"/><text x="1525" y="786" text-anchor="middle" class="head white">6</text>
+  <text x="1467" y="839" class="head">Commit cache</text>
+  <text x="1437" y="869" class="small">only after context exits</text><text x="1437" y="893" class="small">otherwise pop identity</text>
+
+  <path d="M184 778 L391 778" class="line"/><path d="M459 778 L666 778" class="line"/>
+  <path d="M734 778 L941 778" class="teal"/><path d="M1009 778 L1216 778" class="line"/>
+  <path d="M1284 778 L1491 778" class="teal"/>
+  <rect x="1637" y="748" width="150" height="106" rx="7" fill="#fdeaea" stroke="#d84343" stroke-width="2"/>
+  <text x="1712" y="785" text-anchor="middle" class="head">REJECT</text>
+  <text x="1712" y="815" text-anchor="middle" class="small">stale public path</text>
+  <text x="1712" y="839" text-anchor="middle" class="small">no cache fact</text>
+  <path d="M1250 812 C1250 952 1670 952 1670 854" class="red"/>
+
+  <rect x="104" y="930" width="1650" height="58" rx="7" fill="#edf5fa"/>
+  <text x="929" y="966" text-anchor="middle" class="mono">success ⇒ root(fd)=root(path) ∧ shard(fd)=shard(root-fd,name) ∧ leaf bytes hash to digest</text>
+
+  <text x="72" y="1080" class="section">3  Measured mechanism evidence and bounded claims</text>
+  <rect x="72" y="1106" width="526" height="154" rx="8" fill="#e0f3ef" stroke="#00897b" stroke-width="2"/>
+  <text x="102" y="1146" class="head">11 / 11 integration checks</text>
+  <text x="102" y="1180" class="body">4 redirected directories: 0 external entries</text>
+  <text x="102" y="1212" class="body">4 failed stores: 0 cached identities</text>
+  <text x="102" y="1242" class="small">detached bytes exact · temporary residue 0</text>
+
+  <rect x="630" y="1106" width="526" height="154" rx="8" fill="#e7f0f7" stroke="#3f6f91" stroke-width="2"/>
+  <text x="660" y="1146" class="head">Compatibility retained</text>
+  <text x="660" y="1180" class="body">cached put: 0 payload rehashes</text>
+  <text x="660" y="1212" class="body">exact leaf competitor: 1 fallback hash</text>
+  <text x="660" y="1242" class="small">full regression: 753 tests + 101 subtests</text>
+
+  <rect x="1188" y="1106" width="640" height="154" rx="8" fill="#fff3e0" stroke="#e68a00" stroke-width="2"/>
+  <text x="1218" y="1146" class="head">Evidence boundary</text>
+  <text x="1218" y="1180" class="body">local overlayfs correctness; no MPI, solver or campaign</text>
+  <text x="1218" y="1212" class="body">ancestors above configured root remain trusted</text>
+  <text x="1218" y="1242" class="small">portable dir_fd/openat design; not full openat2 RESOLVE_BENEATH</text>
+
+  <text x="72" y="1298" class="small">F349 extends verified leaf publication into a root–shard–leaf namespace transaction without changing digest layout or live-state JSON format.</text>
+</svg>

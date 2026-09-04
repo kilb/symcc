@@ -1,0 +1,583 @@
+{
+  "parameters": {
+    "SYMCC_BACKSOLVER": {
+      "values": [
+        "0",
+        "1"
+      ]
+    },
+    "SYMCC_EXECUTOR_CLASS": {
+      "values": [
+        "exact",
+        "tailored",
+        "sampling"
+      ]
+    },
+    "SYMCC_FAST_SOLVE": {
+      "active_when": {
+        "SYMCC_EXECUTOR_CLASS": [
+          "tailored",
+          "sampling"
+        ]
+      },
+      "values": [
+        "0",
+        "1"
+      ]
+    },
+    "SYMCC_MULTI_SOLVE": {
+      "active_when": {
+        "SYMCC_EXECUTOR_CLASS": [
+          "tailored",
+          "sampling"
+        ]
+      },
+      "values": [
+        "0",
+        "1",
+        "2"
+      ]
+    },
+    "SYMCC_OPTIMISTIC_FIRST": {
+      "active_when": {
+        "SYMCC_EXECUTOR_CLASS": [
+          "tailored",
+          "sampling"
+        ]
+      },
+      "values": [
+        "0",
+        "1"
+      ]
+    },
+    "SYMCC_POLY_CACHE": {
+      "active_when": {
+        "SYMCC_EXECUTOR_CLASS": [
+          "sampling"
+        ]
+      },
+      "values": [
+        "0",
+        "1"
+      ]
+    },
+    "SYMCC_POLY_CROSS_PREFIX": {
+      "active_when": {
+        "SYMCC_EXECUTOR_CLASS": [
+          "sampling"
+        ],
+        "SYMCC_POLY_CACHE": [
+          "1"
+        ]
+      },
+      "values": [
+        "0",
+        "1"
+      ]
+    },
+    "SYMCC_POLY_CROSS_PREFIX_PROBES": {
+      "active_when": {
+        "SYMCC_POLY_CROSS_PREFIX": [
+          "1"
+        ]
+      },
+      "max": 256,
+      "min": 1,
+      "numeric": true,
+      "values": [
+        "8",
+        "16",
+        "32",
+        "64"
+      ]
+    },
+    "SYMCC_POLY_DENSE_DIM": {
+      "active_when": {
+        "SYMCC_POLY_CACHE": [
+          "1"
+        ]
+      },
+      "max": 64,
+      "min": 4,
+      "numeric": true,
+      "values": [
+        "8",
+        "16",
+        "32",
+        "64"
+      ]
+    },
+    "SYMCC_POLY_EXACT_PROJECTION": {
+      "active_when": {
+        "SYMCC_POLY_PROJECTED_REUSE": [
+          "1"
+        ]
+      },
+      "values": [
+        "0",
+        "1"
+      ]
+    },
+    "SYMCC_POLY_EXACT_PROJECTION_PROBES": {
+      "active_when": {
+        "SYMCC_POLY_EXACT_PROJECTION": [
+          "1"
+        ]
+      },
+      "max": 64,
+      "min": 1,
+      "numeric": true,
+      "values": [
+        "2",
+        "4",
+        "8",
+        "16"
+      ]
+    },
+    "SYMCC_POLY_EXACT_PROJECTION_ROWS": {
+      "active_when": {
+        "SYMCC_POLY_EXACT_PROJECTION": [
+          "1"
+        ]
+      },
+      "max": 128,
+      "min": 1,
+      "numeric": true,
+      "values": [
+        "16",
+        "32",
+        "64",
+        "128"
+      ]
+    },
+    "SYMCC_POLY_EXACT_PROJECTION_TIMEOUT": {
+      "active_when": {
+        "SYMCC_POLY_EXACT_PROJECTION": [
+          "1"
+        ]
+      },
+      "max": 1000,
+      "min": 1,
+      "numeric": true,
+      "values": [
+        "5",
+        "10",
+        "25",
+        "50"
+      ]
+    },
+    "SYMCC_POLY_EXACT_PROJECTION_VARS": {
+      "active_when": {
+        "SYMCC_POLY_EXACT_PROJECTION": [
+          "1"
+        ]
+      },
+      "max": 6,
+      "min": 1,
+      "numeric": true,
+      "values": [
+        "1",
+        "2",
+        "4",
+        "6"
+      ]
+    },
+    "SYMCC_POLY_FIELD_RENAMING": {
+      "active_when": {
+        "SYMCC_POLY_CROSS_PREFIX": [
+          "1"
+        ]
+      },
+      "values": [
+        "0",
+        "1"
+      ]
+    },
+    "SYMCC_POLY_JOHN_STEPS": {
+      "active_when": {
+        "SYMCC_POLY_CACHE": [
+          "1"
+        ]
+      },
+      "max": 32,
+      "min": 1,
+      "numeric": true,
+      "values": [
+        "2",
+        "4",
+        "8",
+        "16"
+      ]
+    },
+    "SYMCC_POLY_LINEAR_BYTES": {
+      "active_when": {
+        "SYMCC_POLY_CACHE": [
+          "1"
+        ]
+      },
+      "max": 16,
+      "min": 2,
+      "numeric": true,
+      "values": [
+        "4",
+        "6",
+        "8",
+        "12"
+      ]
+    },
+    "SYMCC_POLY_PROJECTED_REUSE": {
+      "active_when": {
+        "SYMCC_POLY_CROSS_PREFIX": [
+          "1"
+        ]
+      },
+      "values": [
+        "0",
+        "1"
+      ]
+    },
+    "SYMCC_POLY_RANGE_BYTES": {
+      "active_when": {
+        "SYMCC_POLY_CACHE": [
+          "1"
+        ]
+      },
+      "max": 16,
+      "min": 2,
+      "numeric": true,
+      "values": [
+        "4",
+        "8",
+        "12",
+        "16"
+      ]
+    },
+    "SYMCC_POLY_RENAME_ATTEMPTS": {
+      "active_when": {
+        "SYMCC_POLY_FIELD_RENAMING": [
+          "1"
+        ]
+      },
+      "max": 4096,
+      "min": 1,
+      "numeric": true,
+      "values": [
+        "32",
+        "64",
+        "128",
+        "256"
+      ]
+    },
+    "SYMCC_POLY_RENAME_EXACT_PROBES": {
+      "active_when": {
+        "SYMCC_POLY_EXACT_PROJECTION": [
+          "1"
+        ],
+        "SYMCC_POLY_FIELD_RENAMING": [
+          "1"
+        ]
+      },
+      "max": 32,
+      "min": 1,
+      "numeric": true,
+      "values": [
+        "2",
+        "4",
+        "8",
+        "16"
+      ]
+    },
+    "SYMCC_POLY_RENAME_VARS": {
+      "active_when": {
+        "SYMCC_POLY_FIELD_RENAMING": [
+          "1"
+        ]
+      },
+      "max": 8,
+      "min": 1,
+      "numeric": true,
+      "values": [
+        "4",
+        "6",
+        "8"
+      ]
+    },
+    "SYMCC_POLY_SAMPLES": {
+      "active_when": {
+        "SYMCC_POLY_CACHE": [
+          "1"
+        ]
+      },
+      "max": 32,
+      "min": 1,
+      "numeric": true,
+      "values": [
+        "2",
+        "4",
+        "8",
+        "16"
+      ]
+    },
+    "SYMCC_POLY_TEMPLATE_BYTES": {
+      "active_when": {
+        "SYMCC_POLY_CACHE": [
+          "1"
+        ]
+      },
+      "max": 16,
+      "min": 2,
+      "numeric": true,
+      "values": [
+        "4",
+        "8",
+        "12",
+        "16"
+      ]
+    },
+    "SYMCC_POLY_TEMPLATE_PAIRS": {
+      "active_when": {
+        "SYMCC_POLY_CACHE": [
+          "1"
+        ]
+      },
+      "max": 128,
+      "min": 4,
+      "numeric": true,
+      "values": [
+        "8",
+        "16",
+        "24",
+        "48"
+      ]
+    },
+    "SYMCC_POLY_WALK": {
+      "active_when": {
+        "SYMCC_POLY_CACHE": [
+          "1"
+        ]
+      },
+      "values": [
+        "john",
+        "dikin",
+        "coordinate"
+      ]
+    },
+    "SYMCC_PREFIX_CONTEXT_CACHE": {
+      "values": [
+        "0",
+        "1"
+      ]
+    },
+    "SYMCC_QUERY_SHAPE_SELECTION": {
+      "scope": "query-service",
+      "values": [
+        "0",
+        "1"
+      ]
+    },
+    "SYMCC_QUERY_TRAVERSAL": {
+      "scope": "query-service",
+      "values": [
+        "structural",
+        "dfs",
+        "bfs",
+        "priority"
+      ]
+    },
+    "SYMCC_SELECTIVE_QUERY": {
+      "scope": "query-service",
+      "values": [
+        "0",
+        "1"
+      ]
+    },
+    "SYMCC_SELECTIVE_QUERY_COMPLETIONS": {
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": [
+          "1"
+        ]
+      },
+      "max": 8,
+      "min": 0,
+      "numeric": true,
+      "scope": "query-service",
+      "values": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
+    },
+    "SYMCC_SELECTIVE_QUERY_LEARNING": {
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": [
+          "1"
+        ]
+      },
+      "scope": "query-service",
+      "values": [
+        "0",
+        "1"
+      ]
+    },
+    "SYMCC_SELECTIVE_QUERY_MAX_FIXED": {
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": [
+          "1"
+        ]
+      },
+      "max": 4096,
+      "min": 1,
+      "numeric": true,
+      "scope": "query-service",
+      "values": [
+        "16",
+        "32",
+        "64",
+        "128"
+      ]
+    },
+    "SYMCC_SELECTIVE_QUERY_MAX_SYMBOLIC": {
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": [
+          "1"
+        ]
+      },
+      "max": 4096,
+      "min": 1,
+      "numeric": true,
+      "scope": "query-service",
+      "values": [
+        "4",
+        "8",
+        "16",
+        "32"
+      ]
+    },
+    "SYMCC_SELECTIVE_QUERY_MIN_FIXED": {
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": [
+          "1"
+        ]
+      },
+      "max": 4096,
+      "min": 1,
+      "numeric": true,
+      "scope": "query-service",
+      "values": [
+        "1",
+        "2",
+        "4",
+        "8"
+      ]
+    },
+    "SYMCC_SELECTIVE_QUERY_POLICY_EXPLORE": {
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": [
+          "1"
+        ],
+        "SYMCC_SELECTIVE_QUERY_LEARNING": [
+          "1"
+        ]
+      },
+      "max": 1024,
+      "min": 0,
+      "numeric": true,
+      "scope": "query-service",
+      "values": [
+        "2",
+        "4",
+        "8",
+        "16"
+      ]
+    },
+    "SYMCC_SELECTIVE_QUERY_POLICY_MIN_SAVINGS_US": {
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": [
+          "1"
+        ],
+        "SYMCC_SELECTIVE_QUERY_LEARNING": [
+          "1"
+        ]
+      },
+      "max": 3600000000,
+      "min": 0,
+      "numeric": true,
+      "scope": "query-service",
+      "values": [
+        "0",
+        "100",
+        "1000",
+        "10000"
+      ]
+    },
+    "SYMCC_SELECTIVE_QUERY_POLICY_MIN_TIMEOUT": {
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": [
+          "1"
+        ],
+        "SYMCC_SELECTIVE_QUERY_LEARNING": [
+          "1"
+        ]
+      },
+      "max": 1000,
+      "min": 1,
+      "numeric": true,
+      "scope": "query-service",
+      "values": [
+        "2",
+        "5",
+        "10",
+        "25"
+      ]
+    },
+    "SYMCC_SELECTIVE_QUERY_TIMEOUT": {
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": [
+          "1"
+        ]
+      },
+      "max": 1000,
+      "min": 1,
+      "numeric": true,
+      "scope": "query-service",
+      "values": [
+        "10",
+        "25",
+        "50",
+        "100"
+      ]
+    },
+    "SYMCC_TACE": {
+      "scope": "coordinator-campaign",
+      "values": [
+        "0",
+        "1"
+      ]
+    },
+    "SYMCC_TACE_MIN_BYTES": {
+      "active_when": {
+        "SYMCC_TACE": [
+          "1"
+        ]
+      },
+      "max": 1048576,
+      "min": 256,
+      "numeric": true,
+      "scope": "coordinator-campaign",
+      "values": [
+        "1024",
+        "4096",
+        "16384"
+      ]
+    },
+    "SYMCC_UNSAT_CORE_CACHE": {
+      "values": [
+        "0",
+        "1"
+      ]
+    }
+  },
+  "provider": "symcc-coordinator",
+  "schema": "symcc-parameter-provider-v1"
+}

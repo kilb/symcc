@@ -1,0 +1,5 @@
+Command:
+PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q -W error test/test_distributed_state.py -k 'nested_root_is_created_and_reopened_component_by_component or relative_root_returns_stable_absolute_object_paths or root_creation_rejects_symlink_ancestor_without_side_effects or existing_root_rejects_symlink_ancestor or publication_rejects_replaced_root_ancestor or live_read_rejects_replaced_root_ancestor or publication_rejects_replaced_root_without_redirecting_io or object_namespace_rejects_root_and_shard_symlinks'
+
+Result:
+8 passed, 155 deselected in 0.21s

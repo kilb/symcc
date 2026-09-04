@@ -1,0 +1,913 @@
+{
+  "acks_independently_replayed": 12,
+  "active_delivery_rate": 1.0,
+  "activity_receipts_independently_replayed": 6,
+  "artifact_sha256": "d905e44a0d98ae899ac3f4a43f740c8f16da7fd6a482b9915f31c9fa0e6e67cc",
+  "checker_cpu": {
+    "maximum_us": 5532,
+    "median_us": 3019,
+    "minimum_us": 2480,
+    "p95_us": 5532,
+    "samples": 6,
+    "total_us": 19939
+  },
+  "claim_boundary": "checked proof-stream mechanism and MPI/CAS scaling evidence only; no fuzzing coverage, defect-yield, or public-benchmark effectiveness claim",
+  "clause_activation_rate": 0.5,
+  "clause_activity_conflict": 0,
+  "clause_activity_enabled": true,
+  "clause_activity_protocol": "symcc-qfbv-native-clause-activity-v1",
+  "clause_activity_receipts": 6,
+  "clause_activity_unactivated": 6,
+  "clause_activity_unit": 6,
+  "config": {
+    "clauses": 860,
+    "consumer_ranks": [
+      3,
+      4
+    ],
+    "mode": "active",
+    "poll_interval_ms": 1,
+    "protocol": "symcc-qfbv-realtime-multirank-v1",
+    "publisher_ranks": [
+      1,
+      2
+    ],
+    "publishers": 2,
+    "rounds": 3,
+    "schema": "symcc-f434-multirank-config-v1",
+    "seed": 128056,
+    "solve_timeout_ms": 30000,
+    "track_clause_activity": true,
+    "utility_pairing": false,
+    "variables": 200,
+    "world_size": 5
+  },
+  "config_sha256": "717cd2871299d7022df95b490bafb56cbfdf523d1f26571c82a5bb949d1ad355",
+  "delivered_imports": 12,
+  "delivery_rate": 1.0,
+  "epoch_makespan": {
+    "maximum_us": 2716630,
+    "median_us": 983872,
+    "minimum_us": 279890,
+    "p95_us": 2716630,
+    "samples": 3,
+    "total_us": 3980392
+  },
+  "expected_imports": 12,
+  "filesystem_qualification": {
+    "accepted": true,
+    "capability": {
+      "advisory_lock_exclusion": true,
+      "advisory_lock_release": true,
+      "cluster_lock_contention_checks": 0,
+      "cluster_lock_members": [
+        {
+          "processor": "cuda-ke",
+          "rank": 0
+        },
+        {
+          "processor": "cuda-ke",
+          "rank": 1
+        },
+        {
+          "processor": "cuda-ke",
+          "rank": 2
+        },
+        {
+          "processor": "cuda-ke",
+          "rank": 3
+        },
+        {
+          "processor": "cuda-ke",
+          "rank": 4
+        }
+      ],
+      "cluster_lock_release_checks": 0,
+      "cluster_lock_representatives": [
+        0
+      ],
+      "cluster_lock_rounds": 0,
+      "cluster_lock_verified": false,
+      "cross_directory_replace": true,
+      "device": 92,
+      "directory_fsync": true,
+      "distributed_filesystem": false,
+      "durable_unlink": true,
+      "file_fsync": true,
+      "filesystem_id": 18395215968828387670,
+      "filesystem_type": "overlay",
+      "hard_link": true,
+      "mount_point": "/",
+      "mount_source": "overlay",
+      "probe_scope": "same-host-subprocess-v1",
+      "publication_device": 92,
+      "publication_filesystem_id": 18395215968828387670,
+      "publication_replace": true,
+      "publication_root": "/tmp/f437-ablation-final/proof-runs/run-2f4cbfdb88a68dba492fb3dae7403b27",
+      "root": "/tmp/f437-ablation-final/proof-runs/run-2f4cbfdb88a68dba492fb3dae7403b27",
+      "same_directory_replace": true,
+      "schema": "symcc-shared-filesystem-capabilities-v1"
+    },
+    "clean": true,
+    "contention_checks": 0,
+    "error": "",
+    "identity_checks": 0,
+    "members": [
+      {
+        "processor": "cuda-ke",
+        "rank": 0
+      },
+      {
+        "processor": "cuda-ke",
+        "rank": 1
+      },
+      {
+        "processor": "cuda-ke",
+        "rank": 2
+      },
+      {
+        "processor": "cuda-ke",
+        "rank": 3
+      },
+      {
+        "processor": "cuda-ke",
+        "rank": 4
+      }
+    ],
+    "proof_transcript": "",
+    "qualification_generation": 0,
+    "release_checks": 0,
+    "representatives": [
+      0
+    ],
+    "rounds": 0,
+    "scope": "same-host-subprocess-v1",
+    "verified": false
+  },
+  "import_opportunities": 12,
+  "library_sha256": "dc55826dcda173d607df89db8fae5997c14b9048a15282cf9f22f10c8125633f",
+  "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+  "notification_to_finish": {
+    "maximum_us": 2680311,
+    "median_us": 950423,
+    "minimum_us": 239633,
+    "p95_us": 2680311,
+    "samples": 6,
+    "total_us": 7734972
+  },
+  "opportunity_delivery_rate": 1.0,
+  "processor_count": 1,
+  "processors": [
+    "cuda-ke"
+  ],
+  "proof_root": "/tmp/f437-ablation-final/proof-runs/run-2f4cbfdb88a68dba492fb3dae7403b27/proofs",
+  "protocol": "symcc-qfbv-realtime-multirank-v1",
+  "publish": {
+    "maximum_us": 35445,
+    "median_us": 34960,
+    "minimum_us": 25006,
+    "p95_us": 35445,
+    "samples": 6,
+    "total_us": 190735
+  },
+  "rank_reports": [
+    {
+      "config_sha256": "717cd2871299d7022df95b490bafb56cbfdf523d1f26571c82a5bb949d1ad355",
+      "error": "",
+      "library_sha256": "dc55826dcda173d607df89db8fae5997c14b9048a15282cf9f22f10c8125633f",
+      "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+      "pid": 4181689,
+      "processor": "cuda-ke",
+      "proof_store_identity_sha256": "6570e51787f4e833d255c82ee6909aab6884e8804044468321602b19504daa81",
+      "protocol": "symcc-qfbv-realtime-multirank-v1",
+      "rank": 0,
+      "role": "coordinator",
+      "rounds": [
+        {
+          "cnf_sha256": "2f944537d61b54474eaa50dd72886e523dbb8347a36636a2f35b5db09ebedbaa",
+          "epoch_makespan_us": 983872,
+          "formula_sha256": "305b08d8a7a10febb679a1cfe93746bab70d9b74da26c06d7fa284d760325b8a",
+          "publisher_records": [
+            "91edd7e9ef749bcaad050f268ab23989edcd81fd8d750ccd67328ebd4baddd1c",
+            "b6a1d95f88b56bf24bc4384e76397b3083d46f1b1991e7b2f55aec0221585c47"
+          ],
+          "round": 0
+        },
+        {
+          "cnf_sha256": "f6e71de2fd0dda8b91f4c8c11dceaf163437427765367ec04ffbe16a26f95fe4",
+          "epoch_makespan_us": 279890,
+          "formula_sha256": "1542288850d875e8fb259aeeb8bdd22fa0cd96439dca0339e51dd82cd993b2e3",
+          "publisher_records": [
+            "57718ff1a74b35673d3cb0e69b96cf390c7c1ed7f005817c90d9870fae99e499",
+            "ae66044ad552ea6f843219d15a80dcc18ff420d41a9399f6dac88d58dd4c0266"
+          ],
+          "round": 1
+        },
+        {
+          "cnf_sha256": "8e662a24ac232b56d332522897f03f28381b54beeb447fe787f1fbe2ad3cb062",
+          "epoch_makespan_us": 2716630,
+          "formula_sha256": "ce84e928301dbe0c1f7e89401830c5d25b32b11ce0c99c5b4ebd9095b316d927",
+          "publisher_records": [
+            "a6d966e8085f3afbe9f3738c877ddea0ecc949907cb03c432816f63510c900d5",
+            "c2e6ca9e40b83e1a2db8bf4690c7cd6df0b425dfc2a6cabddaccbd6eec93368a"
+          ],
+          "round": 2
+        }
+      ],
+      "schema": "symcc-f434-multirank-rank-report-v1",
+      "world_size": 5
+    },
+    {
+      "config_sha256": "717cd2871299d7022df95b490bafb56cbfdf523d1f26571c82a5bb949d1ad355",
+      "error": "",
+      "library_sha256": "dc55826dcda173d607df89db8fae5997c14b9048a15282cf9f22f10c8125633f",
+      "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+      "pid": 4181690,
+      "processor": "cuda-ke",
+      "proof_store_identity_sha256": "6570e51787f4e833d255c82ee6909aab6884e8804044468321602b19504daa81",
+      "protocol": "symcc-qfbv-realtime-multirank-v1",
+      "rank": 1,
+      "role": "publisher",
+      "rounds": [
+        {
+          "cnf_sha256": "2f944537d61b54474eaa50dd72886e523dbb8347a36636a2f35b5db09ebedbaa",
+          "created": true,
+          "event_sequence": 2,
+          "formula_sha256": "305b08d8a7a10febb679a1cfe93746bab70d9b74da26c06d7fa284d760325b8a",
+          "publish_elapsed_us": 25006,
+          "record_sha256": "b6a1d95f88b56bf24bc4384e76397b3083d46f1b1991e7b2f55aec0221585c47",
+          "round": 0
+        },
+        {
+          "cnf_sha256": "f6e71de2fd0dda8b91f4c8c11dceaf163437427765367ec04ffbe16a26f95fe4",
+          "created": true,
+          "event_sequence": 4,
+          "formula_sha256": "1542288850d875e8fb259aeeb8bdd22fa0cd96439dca0339e51dd82cd993b2e3",
+          "publish_elapsed_us": 34978,
+          "record_sha256": "ae66044ad552ea6f843219d15a80dcc18ff420d41a9399f6dac88d58dd4c0266",
+          "round": 1
+        },
+        {
+          "cnf_sha256": "8e662a24ac232b56d332522897f03f28381b54beeb447fe787f1fbe2ad3cb062",
+          "created": true,
+          "event_sequence": 6,
+          "formula_sha256": "ce84e928301dbe0c1f7e89401830c5d25b32b11ce0c99c5b4ebd9095b316d927",
+          "publish_elapsed_us": 35445,
+          "record_sha256": "c2e6ca9e40b83e1a2db8bf4690c7cd6df0b425dfc2a6cabddaccbd6eec93368a",
+          "round": 2
+        }
+      ],
+      "schema": "symcc-f434-multirank-rank-report-v1",
+      "world_size": 5
+    },
+    {
+      "config_sha256": "717cd2871299d7022df95b490bafb56cbfdf523d1f26571c82a5bb949d1ad355",
+      "error": "",
+      "library_sha256": "dc55826dcda173d607df89db8fae5997c14b9048a15282cf9f22f10c8125633f",
+      "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+      "pid": 4181691,
+      "processor": "cuda-ke",
+      "proof_store_identity_sha256": "6570e51787f4e833d255c82ee6909aab6884e8804044468321602b19504daa81",
+      "protocol": "symcc-qfbv-realtime-multirank-v1",
+      "rank": 2,
+      "role": "publisher",
+      "rounds": [
+        {
+          "cnf_sha256": "2f944537d61b54474eaa50dd72886e523dbb8347a36636a2f35b5db09ebedbaa",
+          "created": true,
+          "event_sequence": 1,
+          "formula_sha256": "305b08d8a7a10febb679a1cfe93746bab70d9b74da26c06d7fa284d760325b8a",
+          "publish_elapsed_us": 25022,
+          "record_sha256": "91edd7e9ef749bcaad050f268ab23989edcd81fd8d750ccd67328ebd4baddd1c",
+          "round": 0
+        },
+        {
+          "cnf_sha256": "f6e71de2fd0dda8b91f4c8c11dceaf163437427765367ec04ffbe16a26f95fe4",
+          "created": true,
+          "event_sequence": 3,
+          "formula_sha256": "1542288850d875e8fb259aeeb8bdd22fa0cd96439dca0339e51dd82cd993b2e3",
+          "publish_elapsed_us": 34943,
+          "record_sha256": "57718ff1a74b35673d3cb0e69b96cf390c7c1ed7f005817c90d9870fae99e499",
+          "round": 1
+        },
+        {
+          "cnf_sha256": "8e662a24ac232b56d332522897f03f28381b54beeb447fe787f1fbe2ad3cb062",
+          "created": true,
+          "event_sequence": 5,
+          "formula_sha256": "ce84e928301dbe0c1f7e89401830c5d25b32b11ce0c99c5b4ebd9095b316d927",
+          "publish_elapsed_us": 35341,
+          "record_sha256": "a6d966e8085f3afbe9f3738c877ddea0ecc949907cb03c432816f63510c900d5",
+          "round": 2
+        }
+      ],
+      "schema": "symcc-f434-multirank-rank-report-v1",
+      "world_size": 5
+    },
+    {
+      "config_sha256": "717cd2871299d7022df95b490bafb56cbfdf523d1f26571c82a5bb949d1ad355",
+      "error": "",
+      "library_sha256": "dc55826dcda173d607df89db8fae5997c14b9048a15282cf9f22f10c8125633f",
+      "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+      "pid": 4181692,
+      "processor": "cuda-ke",
+      "proof_store_identity_sha256": "6570e51787f4e833d255c82ee6909aab6884e8804044468321602b19504daa81",
+      "protocol": "symcc-qfbv-realtime-multirank-v1",
+      "rank": 3,
+      "role": "consumer",
+      "rounds": [
+        {
+          "acks": [
+            {
+              "ack_sha256": "0add8f37bf49f282bd5e74d98d4f19050f3f9d02f21a0a0eccbddbaef8814daf",
+              "authorized_monotonic_ns": 2395264110962153,
+              "checker_policy_sha256": "25549cae5e75074399860a9f6c519667072c608ff95648cffb749d13d9e265c7",
+              "clause_protocol": "symcc-qfbv-incremental-lrup-clause-v1",
+              "clause_sha256": "f959953acec90e412862313696869961f3faa0e642eaaddd494f4d76e2f86010",
+              "cnf_sha256": "2f944537d61b54474eaa50dd72886e523dbb8347a36636a2f35b5db09ebedbaa",
+              "delivery_ordinal": 1,
+              "event_sequence": 1,
+              "event_stream_protocol": "symcc-qfbv-monotonic-proof-event-stream-v1",
+              "formula_sha256": "305b08d8a7a10febb679a1cfe93746bab70d9b74da26c06d7fa284d760325b8a",
+              "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+              "protocol": "symcc-qfbv-realtime-lidrup-stream-v1",
+              "record_sha256": "91edd7e9ef749bcaad050f268ab23989edcd81fd8d750ccd67328ebd4baddd1c",
+              "schema": "symcc-qfbv-checked-import-ack-v1",
+              "solve_generation": 1,
+              "stream_id": "10071d4fc13856f86049c485ed68394f67441845203814ee5b15d13a9cc1e0f1",
+              "token": 1
+            },
+            {
+              "ack_sha256": "6bb3383d1ecf117f333f442e6e4e1f1c8777aa6a80e3d683bb83f7aaee356889",
+              "authorized_monotonic_ns": 2395264117107397,
+              "checker_policy_sha256": "25549cae5e75074399860a9f6c519667072c608ff95648cffb749d13d9e265c7",
+              "clause_protocol": "symcc-qfbv-incremental-lrup-clause-v1",
+              "clause_sha256": "080a9ed428559ef602668b4c00f114f1a11c3f6b02a435f0bdc154578e4d7f22",
+              "cnf_sha256": "2f944537d61b54474eaa50dd72886e523dbb8347a36636a2f35b5db09ebedbaa",
+              "delivery_ordinal": 2,
+              "event_sequence": 2,
+              "event_stream_protocol": "symcc-qfbv-monotonic-proof-event-stream-v1",
+              "formula_sha256": "305b08d8a7a10febb679a1cfe93746bab70d9b74da26c06d7fa284d760325b8a",
+              "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+              "protocol": "symcc-qfbv-realtime-lidrup-stream-v1",
+              "record_sha256": "b6a1d95f88b56bf24bc4384e76397b3083d46f1b1991e7b2f55aec0221585c47",
+              "schema": "symcc-qfbv-checked-import-ack-v1",
+              "solve_generation": 1,
+              "stream_id": "10071d4fc13856f86049c485ed68394f67441845203814ee5b15d13a9cc1e0f1",
+              "token": 2
+            }
+          ],
+          "active_at_publication": true,
+          "activity_conflict": 0,
+          "activity_protocol": "symcc-qfbv-native-clause-activity-v1",
+          "activity_receipts": [
+            {
+              "ack_sha256": "0add8f37bf49f282bd5e74d98d4f19050f3f9d02f21a0a0eccbddbaef8814daf",
+              "activity_ordinal": 1,
+              "activity_sha256": "9463933fb57d8af4f310c4442d3c49af9dfe081c99fd6ee439d63a8d7bfeb24c",
+              "clause_sha256": "f959953acec90e412862313696869961f3faa0e642eaaddd494f4d76e2f86010",
+              "cnf_sha256": "2f944537d61b54474eaa50dd72886e523dbb8347a36636a2f35b5db09ebedbaa",
+              "decision_level": 1,
+              "falsifying_assignments": [
+                2781
+              ],
+              "formula_sha256": "305b08d8a7a10febb679a1cfe93746bab70d9b74da26c06d7fa284d760325b8a",
+              "kind": "unit",
+              "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+              "protocol": "symcc-qfbv-native-clause-activity-v1",
+              "realtime_protocol": "symcc-qfbv-realtime-lidrup-stream-v1",
+              "record_sha256": "91edd7e9ef749bcaad050f268ab23989edcd81fd8d750ccd67328ebd4baddd1c",
+              "schema": "symcc-qfbv-clause-activity-receipt-v1",
+              "solve_generation": 1,
+              "source_worker": "f434-publisher-rank-2",
+              "stream_id": "10071d4fc13856f86049c485ed68394f67441845203814ee5b15d13a9cc1e0f1",
+              "token": 1,
+              "unit_literal": 2780
+            }
+          ],
+          "activity_unactivated": 1,
+          "activity_unit": 1,
+          "backpressure": 0,
+          "checker_elapsed_us": 2480,
+          "cnf_sha256": "2f944537d61b54474eaa50dd72886e523dbb8347a36636a2f35b5db09ebedbaa",
+          "delivered_record_sha256": [
+            "91edd7e9ef749bcaad050f268ab23989edcd81fd8d750ccd67328ebd4baddd1c",
+            "b6a1d95f88b56bf24bc4384e76397b3083d46f1b1991e7b2f55aec0221585c47"
+          ],
+          "events_observed": 2,
+          "formula_sha256": "305b08d8a7a10febb679a1cfe93746bab70d9b74da26c06d7fa284d760325b8a",
+          "imports_delivered": 2,
+          "imports_enqueued_before_wait_deadline": true,
+          "imports_expected": 2,
+          "notification_to_finish_us": 957090,
+          "round": 0,
+          "solve_elapsed_us": 982351,
+          "solve_error": "",
+          "solve_result": 10,
+          "stream_error": "",
+          "timed_out": false
+        },
+        {
+          "acks": [
+            {
+              "ack_sha256": "f06039c76c104204ba346e7a2168bc1a455a594ef762584e4fafa3aac7db2ab7",
+              "authorized_monotonic_ns": 2395265168395321,
+              "checker_policy_sha256": "25549cae5e75074399860a9f6c519667072c608ff95648cffb749d13d9e265c7",
+              "clause_protocol": "symcc-qfbv-incremental-lrup-clause-v1",
+              "clause_sha256": "f959953acec90e412862313696869961f3faa0e642eaaddd494f4d76e2f86010",
+              "cnf_sha256": "f6e71de2fd0dda8b91f4c8c11dceaf163437427765367ec04ffbe16a26f95fe4",
+              "delivery_ordinal": 1,
+              "event_sequence": 3,
+              "event_stream_protocol": "symcc-qfbv-monotonic-proof-event-stream-v1",
+              "formula_sha256": "1542288850d875e8fb259aeeb8bdd22fa0cd96439dca0339e51dd82cd993b2e3",
+              "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+              "protocol": "symcc-qfbv-realtime-lidrup-stream-v1",
+              "record_sha256": "57718ff1a74b35673d3cb0e69b96cf390c7c1ed7f005817c90d9870fae99e499",
+              "schema": "symcc-qfbv-checked-import-ack-v1",
+              "solve_generation": 1,
+              "stream_id": "dbfaf5407abee4ba91ee5b27224bca466f11a70ed99044b3e87467af6dedc0ca",
+              "token": 1
+            },
+            {
+              "ack_sha256": "f4f5747202693ac8b67e354d2de4819973c3e8c7ffbf65831793592aa1f091ad",
+              "authorized_monotonic_ns": 2395265175168562,
+              "checker_policy_sha256": "25549cae5e75074399860a9f6c519667072c608ff95648cffb749d13d9e265c7",
+              "clause_protocol": "symcc-qfbv-incremental-lrup-clause-v1",
+              "clause_sha256": "080a9ed428559ef602668b4c00f114f1a11c3f6b02a435f0bdc154578e4d7f22",
+              "cnf_sha256": "f6e71de2fd0dda8b91f4c8c11dceaf163437427765367ec04ffbe16a26f95fe4",
+              "delivery_ordinal": 2,
+              "event_sequence": 4,
+              "event_stream_protocol": "symcc-qfbv-monotonic-proof-event-stream-v1",
+              "formula_sha256": "1542288850d875e8fb259aeeb8bdd22fa0cd96439dca0339e51dd82cd993b2e3",
+              "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+              "protocol": "symcc-qfbv-realtime-lidrup-stream-v1",
+              "record_sha256": "ae66044ad552ea6f843219d15a80dcc18ff420d41a9399f6dac88d58dd4c0266",
+              "schema": "symcc-qfbv-checked-import-ack-v1",
+              "solve_generation": 1,
+              "stream_id": "dbfaf5407abee4ba91ee5b27224bca466f11a70ed99044b3e87467af6dedc0ca",
+              "token": 2
+            }
+          ],
+          "active_at_publication": true,
+          "activity_conflict": 0,
+          "activity_protocol": "symcc-qfbv-native-clause-activity-v1",
+          "activity_receipts": [
+            {
+              "ack_sha256": "f06039c76c104204ba346e7a2168bc1a455a594ef762584e4fafa3aac7db2ab7",
+              "activity_ordinal": 1,
+              "activity_sha256": "d61ceb2b32ef11e5ae108223b0e6abe8a8b87b6ac06246d782941ed838406b38",
+              "clause_sha256": "f959953acec90e412862313696869961f3faa0e642eaaddd494f4d76e2f86010",
+              "cnf_sha256": "f6e71de2fd0dda8b91f4c8c11dceaf163437427765367ec04ffbe16a26f95fe4",
+              "decision_level": 1,
+              "falsifying_assignments": [
+                2781
+              ],
+              "formula_sha256": "1542288850d875e8fb259aeeb8bdd22fa0cd96439dca0339e51dd82cd993b2e3",
+              "kind": "unit",
+              "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+              "protocol": "symcc-qfbv-native-clause-activity-v1",
+              "realtime_protocol": "symcc-qfbv-realtime-lidrup-stream-v1",
+              "record_sha256": "57718ff1a74b35673d3cb0e69b96cf390c7c1ed7f005817c90d9870fae99e499",
+              "schema": "symcc-qfbv-clause-activity-receipt-v1",
+              "solve_generation": 1,
+              "source_worker": "f434-publisher-rank-2",
+              "stream_id": "dbfaf5407abee4ba91ee5b27224bca466f11a70ed99044b3e87467af6dedc0ca",
+              "token": 1,
+              "unit_literal": 2780
+            }
+          ],
+          "activity_unactivated": 1,
+          "activity_unit": 1,
+          "backpressure": 0,
+          "checker_elapsed_us": 2819,
+          "cnf_sha256": "f6e71de2fd0dda8b91f4c8c11dceaf163437427765367ec04ffbe16a26f95fe4",
+          "delivered_record_sha256": [
+            "57718ff1a74b35673d3cb0e69b96cf390c7c1ed7f005817c90d9870fae99e499",
+            "ae66044ad552ea6f843219d15a80dcc18ff420d41a9399f6dac88d58dd4c0266"
+          ],
+          "events_observed": 2,
+          "formula_sha256": "1542288850d875e8fb259aeeb8bdd22fa0cd96439dca0339e51dd82cd993b2e3",
+          "imports_delivered": 2,
+          "imports_enqueued_before_wait_deadline": true,
+          "imports_expected": 2,
+          "notification_to_finish_us": 243021,
+          "round": 1,
+          "solve_elapsed_us": 278260,
+          "solve_error": "",
+          "solve_result": 10,
+          "stream_error": "",
+          "timed_out": false
+        },
+        {
+          "acks": [
+            {
+              "ack_sha256": "6ebeffc691b79e93ab508cc9b51c69161ef0eeeb031b8010bda80fc6a8c72acc",
+              "authorized_monotonic_ns": 2395265481628884,
+              "checker_policy_sha256": "25549cae5e75074399860a9f6c519667072c608ff95648cffb749d13d9e265c7",
+              "clause_protocol": "symcc-qfbv-incremental-lrup-clause-v1",
+              "clause_sha256": "f959953acec90e412862313696869961f3faa0e642eaaddd494f4d76e2f86010",
+              "cnf_sha256": "8e662a24ac232b56d332522897f03f28381b54beeb447fe787f1fbe2ad3cb062",
+              "delivery_ordinal": 1,
+              "event_sequence": 5,
+              "event_stream_protocol": "symcc-qfbv-monotonic-proof-event-stream-v1",
+              "formula_sha256": "ce84e928301dbe0c1f7e89401830c5d25b32b11ce0c99c5b4ebd9095b316d927",
+              "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+              "protocol": "symcc-qfbv-realtime-lidrup-stream-v1",
+              "record_sha256": "a6d966e8085f3afbe9f3738c877ddea0ecc949907cb03c432816f63510c900d5",
+              "schema": "symcc-qfbv-checked-import-ack-v1",
+              "solve_generation": 1,
+              "stream_id": "c35534216a36af4494199e128e84d8cd2e0d2fa385822bcb39a8bca3311dfd11",
+              "token": 1
+            },
+            {
+              "ack_sha256": "deab8fde6913650a1ccc23ed0a7752237ba5138dd665077b42857a9157bce6a3",
+              "authorized_monotonic_ns": 2395265487729341,
+              "checker_policy_sha256": "25549cae5e75074399860a9f6c519667072c608ff95648cffb749d13d9e265c7",
+              "clause_protocol": "symcc-qfbv-incremental-lrup-clause-v1",
+              "clause_sha256": "080a9ed428559ef602668b4c00f114f1a11c3f6b02a435f0bdc154578e4d7f22",
+              "cnf_sha256": "8e662a24ac232b56d332522897f03f28381b54beeb447fe787f1fbe2ad3cb062",
+              "delivery_ordinal": 2,
+              "event_sequence": 6,
+              "event_stream_protocol": "symcc-qfbv-monotonic-proof-event-stream-v1",
+              "formula_sha256": "ce84e928301dbe0c1f7e89401830c5d25b32b11ce0c99c5b4ebd9095b316d927",
+              "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+              "protocol": "symcc-qfbv-realtime-lidrup-stream-v1",
+              "record_sha256": "c2e6ca9e40b83e1a2db8bf4690c7cd6df0b425dfc2a6cabddaccbd6eec93368a",
+              "schema": "symcc-qfbv-checked-import-ack-v1",
+              "solve_generation": 1,
+              "stream_id": "c35534216a36af4494199e128e84d8cd2e0d2fa385822bcb39a8bca3311dfd11",
+              "token": 2
+            }
+          ],
+          "active_at_publication": true,
+          "activity_conflict": 0,
+          "activity_protocol": "symcc-qfbv-native-clause-activity-v1",
+          "activity_receipts": [
+            {
+              "ack_sha256": "6ebeffc691b79e93ab508cc9b51c69161ef0eeeb031b8010bda80fc6a8c72acc",
+              "activity_ordinal": 1,
+              "activity_sha256": "610cad3b345f8d6c51d750182123e2ea4f6d25bc1eedcc63f918bd76602705aa",
+              "clause_sha256": "f959953acec90e412862313696869961f3faa0e642eaaddd494f4d76e2f86010",
+              "cnf_sha256": "8e662a24ac232b56d332522897f03f28381b54beeb447fe787f1fbe2ad3cb062",
+              "decision_level": 1,
+              "falsifying_assignments": [
+                2781
+              ],
+              "formula_sha256": "ce84e928301dbe0c1f7e89401830c5d25b32b11ce0c99c5b4ebd9095b316d927",
+              "kind": "unit",
+              "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+              "protocol": "symcc-qfbv-native-clause-activity-v1",
+              "realtime_protocol": "symcc-qfbv-realtime-lidrup-stream-v1",
+              "record_sha256": "a6d966e8085f3afbe9f3738c877ddea0ecc949907cb03c432816f63510c900d5",
+              "schema": "symcc-qfbv-clause-activity-receipt-v1",
+              "solve_generation": 1,
+              "source_worker": "f434-publisher-rank-2",
+              "stream_id": "c35534216a36af4494199e128e84d8cd2e0d2fa385822bcb39a8bca3311dfd11",
+              "token": 1,
+              "unit_literal": 2780
+            }
+          ],
+          "activity_unactivated": 1,
+          "activity_unit": 1,
+          "backpressure": 0,
+          "checker_elapsed_us": 3220,
+          "cnf_sha256": "8e662a24ac232b56d332522897f03f28381b54beeb447fe787f1fbe2ad3cb062",
+          "delivered_record_sha256": [
+            "a6d966e8085f3afbe9f3738c877ddea0ecc949907cb03c432816f63510c900d5",
+            "c2e6ca9e40b83e1a2db8bf4690c7cd6df0b425dfc2a6cabddaccbd6eec93368a"
+          ],
+          "events_observed": 2,
+          "formula_sha256": "ce84e928301dbe0c1f7e89401830c5d25b32b11ce0c99c5b4ebd9095b316d927",
+          "imports_delivered": 2,
+          "imports_enqueued_before_wait_deadline": true,
+          "imports_expected": 2,
+          "notification_to_finish_us": 2671160,
+          "round": 2,
+          "solve_elapsed_us": 2706942,
+          "solve_error": "",
+          "solve_result": 20,
+          "stream_error": "",
+          "timed_out": false
+        }
+      ],
+      "schema": "symcc-f434-multirank-rank-report-v1",
+      "world_size": 5
+    },
+    {
+      "config_sha256": "717cd2871299d7022df95b490bafb56cbfdf523d1f26571c82a5bb949d1ad355",
+      "error": "",
+      "library_sha256": "dc55826dcda173d607df89db8fae5997c14b9048a15282cf9f22f10c8125633f",
+      "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+      "pid": 4181693,
+      "processor": "cuda-ke",
+      "proof_store_identity_sha256": "6570e51787f4e833d255c82ee6909aab6884e8804044468321602b19504daa81",
+      "protocol": "symcc-qfbv-realtime-multirank-v1",
+      "rank": 4,
+      "role": "consumer",
+      "rounds": [
+        {
+          "acks": [
+            {
+              "ack_sha256": "82dcbc50ce0f06b2ff3d9286f61e545ba5392aad9fa5ccb5e344176c52f1a8c0",
+              "authorized_monotonic_ns": 2395264130489401,
+              "checker_policy_sha256": "25549cae5e75074399860a9f6c519667072c608ff95648cffb749d13d9e265c7",
+              "clause_protocol": "symcc-qfbv-incremental-lrup-clause-v1",
+              "clause_sha256": "f959953acec90e412862313696869961f3faa0e642eaaddd494f4d76e2f86010",
+              "cnf_sha256": "2f944537d61b54474eaa50dd72886e523dbb8347a36636a2f35b5db09ebedbaa",
+              "delivery_ordinal": 1,
+              "event_sequence": 1,
+              "event_stream_protocol": "symcc-qfbv-monotonic-proof-event-stream-v1",
+              "formula_sha256": "305b08d8a7a10febb679a1cfe93746bab70d9b74da26c06d7fa284d760325b8a",
+              "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+              "protocol": "symcc-qfbv-realtime-lidrup-stream-v1",
+              "record_sha256": "91edd7e9ef749bcaad050f268ab23989edcd81fd8d750ccd67328ebd4baddd1c",
+              "schema": "symcc-qfbv-checked-import-ack-v1",
+              "solve_generation": 1,
+              "stream_id": "7d6a8191c215b4a16686c7f357c8a73bd64988aa289dc2d10ef754c99403c5c8",
+              "token": 1
+            },
+            {
+              "ack_sha256": "41e7e9672e71585c9e391d5b63c24f6e522400ceb5da12db40f823eb23c23aad",
+              "authorized_monotonic_ns": 2395264136257867,
+              "checker_policy_sha256": "25549cae5e75074399860a9f6c519667072c608ff95648cffb749d13d9e265c7",
+              "clause_protocol": "symcc-qfbv-incremental-lrup-clause-v1",
+              "clause_sha256": "080a9ed428559ef602668b4c00f114f1a11c3f6b02a435f0bdc154578e4d7f22",
+              "cnf_sha256": "2f944537d61b54474eaa50dd72886e523dbb8347a36636a2f35b5db09ebedbaa",
+              "delivery_ordinal": 2,
+              "event_sequence": 2,
+              "event_stream_protocol": "symcc-qfbv-monotonic-proof-event-stream-v1",
+              "formula_sha256": "305b08d8a7a10febb679a1cfe93746bab70d9b74da26c06d7fa284d760325b8a",
+              "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+              "protocol": "symcc-qfbv-realtime-lidrup-stream-v1",
+              "record_sha256": "b6a1d95f88b56bf24bc4384e76397b3083d46f1b1991e7b2f55aec0221585c47",
+              "schema": "symcc-qfbv-checked-import-ack-v1",
+              "solve_generation": 1,
+              "stream_id": "7d6a8191c215b4a16686c7f357c8a73bd64988aa289dc2d10ef754c99403c5c8",
+              "token": 2
+            }
+          ],
+          "active_at_publication": true,
+          "activity_conflict": 0,
+          "activity_protocol": "symcc-qfbv-native-clause-activity-v1",
+          "activity_receipts": [
+            {
+              "ack_sha256": "82dcbc50ce0f06b2ff3d9286f61e545ba5392aad9fa5ccb5e344176c52f1a8c0",
+              "activity_ordinal": 1,
+              "activity_sha256": "7c70dbb2818244c306a4e48e2d6200db3966d7d53f499bc5441da80f69ccf144",
+              "clause_sha256": "f959953acec90e412862313696869961f3faa0e642eaaddd494f4d76e2f86010",
+              "cnf_sha256": "2f944537d61b54474eaa50dd72886e523dbb8347a36636a2f35b5db09ebedbaa",
+              "decision_level": 1,
+              "falsifying_assignments": [
+                2781
+              ],
+              "formula_sha256": "305b08d8a7a10febb679a1cfe93746bab70d9b74da26c06d7fa284d760325b8a",
+              "kind": "unit",
+              "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+              "protocol": "symcc-qfbv-native-clause-activity-v1",
+              "realtime_protocol": "symcc-qfbv-realtime-lidrup-stream-v1",
+              "record_sha256": "91edd7e9ef749bcaad050f268ab23989edcd81fd8d750ccd67328ebd4baddd1c",
+              "schema": "symcc-qfbv-clause-activity-receipt-v1",
+              "solve_generation": 1,
+              "source_worker": "f434-publisher-rank-2",
+              "stream_id": "7d6a8191c215b4a16686c7f357c8a73bd64988aa289dc2d10ef754c99403c5c8",
+              "token": 1,
+              "unit_literal": 2780
+            }
+          ],
+          "activity_unactivated": 1,
+          "activity_unit": 1,
+          "backpressure": 0,
+          "checker_elapsed_us": 2510,
+          "cnf_sha256": "2f944537d61b54474eaa50dd72886e523dbb8347a36636a2f35b5db09ebedbaa",
+          "delivered_record_sha256": [
+            "91edd7e9ef749bcaad050f268ab23989edcd81fd8d750ccd67328ebd4baddd1c",
+            "b6a1d95f88b56bf24bc4384e76397b3083d46f1b1991e7b2f55aec0221585c47"
+          ],
+          "events_observed": 2,
+          "formula_sha256": "305b08d8a7a10febb679a1cfe93746bab70d9b74da26c06d7fa284d760325b8a",
+          "imports_delivered": 2,
+          "imports_enqueued_before_wait_deadline": true,
+          "imports_expected": 2,
+          "notification_to_finish_us": 943757,
+          "round": 0,
+          "solve_elapsed_us": 968787,
+          "solve_error": "",
+          "solve_result": 10,
+          "stream_error": "",
+          "timed_out": false
+        },
+        {
+          "acks": [
+            {
+              "ack_sha256": "547fb1afad60098e11941c53b79ef6c3b3fa94c4ce8e6512303dc3bb806d9d1a",
+              "authorized_monotonic_ns": 2395265149648159,
+              "checker_policy_sha256": "25549cae5e75074399860a9f6c519667072c608ff95648cffb749d13d9e265c7",
+              "clause_protocol": "symcc-qfbv-incremental-lrup-clause-v1",
+              "clause_sha256": "f959953acec90e412862313696869961f3faa0e642eaaddd494f4d76e2f86010",
+              "cnf_sha256": "f6e71de2fd0dda8b91f4c8c11dceaf163437427765367ec04ffbe16a26f95fe4",
+              "delivery_ordinal": 1,
+              "event_sequence": 3,
+              "event_stream_protocol": "symcc-qfbv-monotonic-proof-event-stream-v1",
+              "formula_sha256": "1542288850d875e8fb259aeeb8bdd22fa0cd96439dca0339e51dd82cd993b2e3",
+              "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+              "protocol": "symcc-qfbv-realtime-lidrup-stream-v1",
+              "record_sha256": "57718ff1a74b35673d3cb0e69b96cf390c7c1ed7f005817c90d9870fae99e499",
+              "schema": "symcc-qfbv-checked-import-ack-v1",
+              "solve_generation": 1,
+              "stream_id": "e23510e1fb1567bf8764b339e83a342e5dc33dadf738924096a4cce2676b25d1",
+              "token": 1
+            },
+            {
+              "ack_sha256": "1a169773cbdb178bc567c5dc59b87790e7f2f386a38d9eedf60e76c2572e824d",
+              "authorized_monotonic_ns": 2395265156010130,
+              "checker_policy_sha256": "25549cae5e75074399860a9f6c519667072c608ff95648cffb749d13d9e265c7",
+              "clause_protocol": "symcc-qfbv-incremental-lrup-clause-v1",
+              "clause_sha256": "080a9ed428559ef602668b4c00f114f1a11c3f6b02a435f0bdc154578e4d7f22",
+              "cnf_sha256": "f6e71de2fd0dda8b91f4c8c11dceaf163437427765367ec04ffbe16a26f95fe4",
+              "delivery_ordinal": 2,
+              "event_sequence": 4,
+              "event_stream_protocol": "symcc-qfbv-monotonic-proof-event-stream-v1",
+              "formula_sha256": "1542288850d875e8fb259aeeb8bdd22fa0cd96439dca0339e51dd82cd993b2e3",
+              "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+              "protocol": "symcc-qfbv-realtime-lidrup-stream-v1",
+              "record_sha256": "ae66044ad552ea6f843219d15a80dcc18ff420d41a9399f6dac88d58dd4c0266",
+              "schema": "symcc-qfbv-checked-import-ack-v1",
+              "solve_generation": 1,
+              "stream_id": "e23510e1fb1567bf8764b339e83a342e5dc33dadf738924096a4cce2676b25d1",
+              "token": 2
+            }
+          ],
+          "active_at_publication": true,
+          "activity_conflict": 0,
+          "activity_protocol": "symcc-qfbv-native-clause-activity-v1",
+          "activity_receipts": [
+            {
+              "ack_sha256": "547fb1afad60098e11941c53b79ef6c3b3fa94c4ce8e6512303dc3bb806d9d1a",
+              "activity_ordinal": 1,
+              "activity_sha256": "df40421d120668b5eb4696aa383ce53e9113787ee85794491688bb66d9ac4234",
+              "clause_sha256": "f959953acec90e412862313696869961f3faa0e642eaaddd494f4d76e2f86010",
+              "cnf_sha256": "f6e71de2fd0dda8b91f4c8c11dceaf163437427765367ec04ffbe16a26f95fe4",
+              "decision_level": 1,
+              "falsifying_assignments": [
+                2781
+              ],
+              "formula_sha256": "1542288850d875e8fb259aeeb8bdd22fa0cd96439dca0339e51dd82cd993b2e3",
+              "kind": "unit",
+              "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+              "protocol": "symcc-qfbv-native-clause-activity-v1",
+              "realtime_protocol": "symcc-qfbv-realtime-lidrup-stream-v1",
+              "record_sha256": "57718ff1a74b35673d3cb0e69b96cf390c7c1ed7f005817c90d9870fae99e499",
+              "schema": "symcc-qfbv-clause-activity-receipt-v1",
+              "solve_generation": 1,
+              "source_worker": "f434-publisher-rank-2",
+              "stream_id": "e23510e1fb1567bf8764b339e83a342e5dc33dadf738924096a4cce2676b25d1",
+              "token": 1,
+              "unit_literal": 2780
+            }
+          ],
+          "activity_unactivated": 1,
+          "activity_unit": 1,
+          "backpressure": 0,
+          "checker_elapsed_us": 3378,
+          "cnf_sha256": "f6e71de2fd0dda8b91f4c8c11dceaf163437427765367ec04ffbe16a26f95fe4",
+          "delivered_record_sha256": [
+            "57718ff1a74b35673d3cb0e69b96cf390c7c1ed7f005817c90d9870fae99e499",
+            "ae66044ad552ea6f843219d15a80dcc18ff420d41a9399f6dac88d58dd4c0266"
+          ],
+          "events_observed": 2,
+          "formula_sha256": "1542288850d875e8fb259aeeb8bdd22fa0cd96439dca0339e51dd82cd993b2e3",
+          "imports_delivered": 2,
+          "imports_enqueued_before_wait_deadline": true,
+          "imports_expected": 2,
+          "notification_to_finish_us": 239633,
+          "round": 1,
+          "solve_elapsed_us": 274777,
+          "solve_error": "",
+          "solve_result": 10,
+          "stream_error": "",
+          "timed_out": false
+        },
+        {
+          "acks": [
+            {
+              "ack_sha256": "b9d0709785d427e749809afec6ef908a31504f0c24b4dc5bb9864f184086e45b",
+              "authorized_monotonic_ns": 2395265472529417,
+              "checker_policy_sha256": "25549cae5e75074399860a9f6c519667072c608ff95648cffb749d13d9e265c7",
+              "clause_protocol": "symcc-qfbv-incremental-lrup-clause-v1",
+              "clause_sha256": "f959953acec90e412862313696869961f3faa0e642eaaddd494f4d76e2f86010",
+              "cnf_sha256": "8e662a24ac232b56d332522897f03f28381b54beeb447fe787f1fbe2ad3cb062",
+              "delivery_ordinal": 1,
+              "event_sequence": 5,
+              "event_stream_protocol": "symcc-qfbv-monotonic-proof-event-stream-v1",
+              "formula_sha256": "ce84e928301dbe0c1f7e89401830c5d25b32b11ce0c99c5b4ebd9095b316d927",
+              "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+              "protocol": "symcc-qfbv-realtime-lidrup-stream-v1",
+              "record_sha256": "a6d966e8085f3afbe9f3738c877ddea0ecc949907cb03c432816f63510c900d5",
+              "schema": "symcc-qfbv-checked-import-ack-v1",
+              "solve_generation": 1,
+              "stream_id": "a5b890d3ced47e0a9ca7f97457525c66ce421ae1666ccfda8d8f5f03b6931ff0",
+              "token": 1
+            },
+            {
+              "ack_sha256": "6c0e3893b81bf0c0725e91c814bdca89a713475bdc151282d0e343dd0a6b82de",
+              "authorized_monotonic_ns": 2395265503181575,
+              "checker_policy_sha256": "25549cae5e75074399860a9f6c519667072c608ff95648cffb749d13d9e265c7",
+              "clause_protocol": "symcc-qfbv-incremental-lrup-clause-v1",
+              "clause_sha256": "080a9ed428559ef602668b4c00f114f1a11c3f6b02a435f0bdc154578e4d7f22",
+              "cnf_sha256": "8e662a24ac232b56d332522897f03f28381b54beeb447fe787f1fbe2ad3cb062",
+              "delivery_ordinal": 2,
+              "event_sequence": 6,
+              "event_stream_protocol": "symcc-qfbv-monotonic-proof-event-stream-v1",
+              "formula_sha256": "ce84e928301dbe0c1f7e89401830c5d25b32b11ce0c99c5b4ebd9095b316d927",
+              "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+              "protocol": "symcc-qfbv-realtime-lidrup-stream-v1",
+              "record_sha256": "c2e6ca9e40b83e1a2db8bf4690c7cd6df0b425dfc2a6cabddaccbd6eec93368a",
+              "schema": "symcc-qfbv-checked-import-ack-v1",
+              "solve_generation": 1,
+              "stream_id": "a5b890d3ced47e0a9ca7f97457525c66ce421ae1666ccfda8d8f5f03b6931ff0",
+              "token": 2
+            }
+          ],
+          "active_at_publication": true,
+          "activity_conflict": 0,
+          "activity_protocol": "symcc-qfbv-native-clause-activity-v1",
+          "activity_receipts": [
+            {
+              "ack_sha256": "b9d0709785d427e749809afec6ef908a31504f0c24b4dc5bb9864f184086e45b",
+              "activity_ordinal": 1,
+              "activity_sha256": "2269dd62233fda3c1982f281c02a24f24c1b8f2f319df7fd20c49b8e9442b0ea",
+              "clause_sha256": "f959953acec90e412862313696869961f3faa0e642eaaddd494f4d76e2f86010",
+              "cnf_sha256": "8e662a24ac232b56d332522897f03f28381b54beeb447fe787f1fbe2ad3cb062",
+              "decision_level": 1,
+              "falsifying_assignments": [
+                2781
+              ],
+              "formula_sha256": "ce84e928301dbe0c1f7e89401830c5d25b32b11ce0c99c5b4ebd9095b316d927",
+              "kind": "unit",
+              "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+              "protocol": "symcc-qfbv-native-clause-activity-v1",
+              "realtime_protocol": "symcc-qfbv-realtime-lidrup-stream-v1",
+              "record_sha256": "a6d966e8085f3afbe9f3738c877ddea0ecc949907cb03c432816f63510c900d5",
+              "schema": "symcc-qfbv-clause-activity-receipt-v1",
+              "solve_generation": 1,
+              "source_worker": "f434-publisher-rank-2",
+              "stream_id": "a5b890d3ced47e0a9ca7f97457525c66ce421ae1666ccfda8d8f5f03b6931ff0",
+              "token": 1,
+              "unit_literal": 2780
+            }
+          ],
+          "activity_unactivated": 1,
+          "activity_unit": 1,
+          "backpressure": 0,
+          "checker_elapsed_us": 5532,
+          "cnf_sha256": "8e662a24ac232b56d332522897f03f28381b54beeb447fe787f1fbe2ad3cb062",
+          "delivered_record_sha256": [
+            "a6d966e8085f3afbe9f3738c877ddea0ecc949907cb03c432816f63510c900d5",
+            "c2e6ca9e40b83e1a2db8bf4690c7cd6df0b425dfc2a6cabddaccbd6eec93368a"
+          ],
+          "events_observed": 2,
+          "formula_sha256": "ce84e928301dbe0c1f7e89401830c5d25b32b11ce0c99c5b4ebd9095b316d927",
+          "imports_delivered": 2,
+          "imports_enqueued_before_wait_deadline": true,
+          "imports_expected": 2,
+          "notification_to_finish_us": 2680311,
+          "round": 2,
+          "solve_elapsed_us": 2715747,
+          "solve_error": "",
+          "solve_result": 20,
+          "stream_error": "",
+          "timed_out": false
+        }
+      ],
+      "schema": "symcc-f434-multirank-rank-report-v1",
+      "world_size": 5
+    }
+  ],
+  "run_nonce": "2f4cbfdb88a68dba492fb3dae7403b27",
+  "schema": "symcc-f434-multirank-result-v1",
+  "scope": "local-host-mpi-mechanism",
+  "solve": {
+    "maximum_us": 2715747,
+    "median_us": 975569,
+    "minimum_us": 274777,
+    "p95_us": 2715747,
+    "samples": 6,
+    "total_us": 7926864
+  },
+  "status": "pass",
+  "utility_pairing_admitted": 0,
+  "utility_pairing_enabled": false,
+  "utility_pairing_exploit": 0,
+  "utility_pairing_explore": 0,
+  "utility_pairing_opportunities": 0,
+  "utility_pairing_outcomes": {
+    "backpressure": 0,
+    "conflict": 0,
+    "expired": 0,
+    "unactivated": 0,
+    "unit": 0
+  },
+  "utility_pairing_policy_sha256": "",
+  "utility_pairing_protocol": "",
+  "utility_pairing_suppressed": 0,
+  "utility_pairing_suppression_rate": 0.0
+}

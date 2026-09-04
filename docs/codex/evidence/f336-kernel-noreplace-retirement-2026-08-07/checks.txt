@@ -1,0 +1,81 @@
+F336 kernel-enforced no-clobber epoch-retirement checks
+Date: 2026-08-07 UTC
+Host: cuda-ke
+Kernel: Linux 7.0.0-28-generic x86_64
+Python: 3.12.3 / glibc 2.39
+MPI: Open MPI 4.1.6 / mpi4py 4.1.1 / MPI 3.1
+Filesystem: overlay
+
+Static and syntax checks
+- ruff touched production/test/evidence Python: pass
+- Python bytecode compilation for touched Python: pass
+- git diff --check including untracked delivery files: pass
+- evidence-directory __pycache__ residue: none
+
+Tests
+- distributed/lifecycle/filesystem directed tests: 199 passed, 30 subtests in 16.39 s
+- related MPI/distributed/hybrid tests: 316 passed, 38 subtests in 19.77 s
+- full warnings-as-errors Python regression: 712 passed, 58 subtests in 98.48 s
+- no-clobber negatives: existing nonempty target, missing libc primitive, clobbering probe implementation, probe fsync failure, and exact MPI retirement-id collision all fail closed
+- two independent processes racing one destination: exactly 1 publisher and 1 EEXIST rejection; winner bytes published and loser source retained
+
+Syscall evidence
+- successful call: renameat2(AT_FDCWD, active, AT_FDCWD, retired, RENAME_NOREPLACE) = 0
+- durability barrier after success: fsync(shared-root-fd) = 0
+- collision call: renameat2(AT_FDCWD, active-collision, AT_FDCWD, retired, RENAME_NOREPLACE) = -1 EEXIST
+- collision source bytes after rejection: intact
+
+Real MPI collision and convergence
+- ranks and masters/workers: 7 and 2/5
+- sealed work epoch: f336 repeated 16 times
+- actual MPI transport: true
+- actual multi-host: false
+- synthetic topology: false
+- injected object: durable preexisting retired root with fixed 128-bit c...c id and must-not-clobber marker
+- startup primitive qualified in both runs: true
+- injected worker ACKs before retirement collision: 3/3 + 2/2
+- injected return code and elapsed: 72 and 3.6496080132201314 s
+- active after injected collision: true
+- exact retired roots after collision: 1
+- preexisting retired marker bytes intact: true
+- matching recovery startup reclaimed roots: 1
+- matching recovery worker ACKs: 3/3 + 2/2
+- matching recovery return code and elapsed: 0 and 3.6820830849464983 s
+- active after matching recovery: false
+- exact new retired roots after matching recovery: 1
+- collision and recovered retirement identities differ: true
+- content-addressed seed digest and bytes intact: true
+- all JSON checks: pass
+
+Mechanism cost
+- warm-ups/repetitions: 5/60 interleaved and alternating
+- durable replace median/p95: 2598.2515/2626.5274499999996 us
+- durable no-replace median/p95: 2603.3195/2643.9984999999997 us
+- no-replace median overhead and ratio: 5.068000000000211 us and 1.0019505425090682x
+- startup probe median/p95: 11944.33/13023.953799999996 us
+- raw sample counts: replace 60, no-replace 60, startup probe 60
+- all samples complete: true
+
+Strict evidence boundaries
+- deployment_evidence=false
+- actual_multi_host=false
+- natural_random_collision_observed=false
+- remote_power_loss_tested=false
+- nfs_lustre_gpfs_cross_client_tested=false
+- nfs_server_failover_tested=false
+- cross_job_lock_exclusion_tested=false
+- mpi_rank_repair_tested=false
+- network_partition_tested=false
+- ulfm_repair_tested=false
+- end_to_end_campaign_benchmarked=false
+- dse_throughput_benchmarked=false
+- solver_or_coverage_uplift_measured=false
+- bug_discovery_uplift_measured=false
+- lava_m_campaign_run=false
+- startup probe is a fixed persistent-run cost, not a solver hot-path cost
+- F335 GC limit still bounds retired roots, not entries or wall time
+
+Repository inventory after F336
+- documented feature IDs: F00-F336 (337 total)
+- documented SYMCC configuration names: 411
+- top-level test files: 246

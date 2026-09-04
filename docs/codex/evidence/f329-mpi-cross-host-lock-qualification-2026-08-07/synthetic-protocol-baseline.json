@@ -1,0 +1,53 @@
+{
+  "deployment_evidence": false,
+  "records": {
+    "2": {
+      "contention_checks": 2,
+      "failures": 0,
+      "masters": 2,
+      "max_ms": 143.582704,
+      "mean_ms": 125.3894486,
+      "median_ms": 123.2491535,
+      "min_ms": 121.926919,
+      "p95_ms": 143.582704,
+      "release_checks": 2,
+      "rounds": 2,
+      "runs": 20,
+      "synthetic_processors": 2,
+      "warmups": 2
+    },
+    "3": {
+      "contention_checks": 6,
+      "failures": 0,
+      "masters": 3,
+      "max_ms": 185.632035,
+      "mean_ms": 177.1931331,
+      "median_ms": 174.8229505,
+      "min_ms": 172.849359,
+      "p95_ms": 185.632035,
+      "release_checks": 3,
+      "rounds": 3,
+      "runs": 20,
+      "synthetic_processors": 3,
+      "warmups": 2
+    },
+    "4": {
+      "contention_checks": 12,
+      "failures": 0,
+      "masters": 4,
+      "max_ms": 237.692097,
+      "mean_ms": 227.55712024999997,
+      "median_ms": 225.94178699999998,
+      "min_ms": 223.601917,
+      "p95_ms": 237.692097,
+      "release_checks": 4,
+      "rounds": 4,
+      "runs": 20,
+      "synthetic_processors": 4,
+      "warmups": 2
+    }
+  },
+  "schema": "symcc-f329-synthetic-protocol-benchmark-v1",
+  "synthetic_topology": true,
+  "timing_scope": "same-host Python-thread control-plane plus overlayfs flock rounds; local nine-operation probe excluded"
+}

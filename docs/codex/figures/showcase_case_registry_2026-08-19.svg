@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="780" viewBox="0 0 1240 780">
+  <defs>
+    <style>
+      .bg { fill: #f5f7fb; }
+      .title { font: 700 25px Arial, sans-serif; fill: #172033; }
+      .subtitle { font: 14px Arial, sans-serif; fill: #536075; }
+      .card { fill: #ffffff; stroke: #d7deea; stroke-width: 1; rx: 8; }
+      .head { font: 700 17px Arial, sans-serif; fill: #172033; }
+      .label { font: 13px Arial, sans-serif; fill: #2b3445; }
+      .small { font: 12px Arial, sans-serif; fill: #536075; }
+      .metric { font: 700 14px Arial, sans-serif; fill: #172033; }
+      .line { stroke: #d7deea; stroke-width: 1; }
+      .pill1 { fill: #2f6fed; }
+      .pill2 { fill: #23a26d; }
+      .pill3 { fill: #ef8b36; }
+      .pill4 { fill: #7c8da6; }
+      .pilltxt { font: 700 12px Arial, sans-serif; fill: #ffffff; }
+    </style>
+  </defs>
+  <rect class="bg" width="1240" height="780"/>
+  <text x="42" y="48" class="title">Hybrid / Parallel Symbolic Execution Showcase Case Registry</text>
+  <text x="42" y="74" class="subtitle">Measured cases, available local candidates, and literature-backed integration targets for the current SymCC parallel framework.</text>
+
+  <rect x="42" y="105" width="1156" height="142" class="card"/>
+  <text x="66" y="136" class="head">A. Confirmed local positives</text>
+  <line x1="66" y1="154" x2="1174" y2="154" class="line"/>
+  <circle cx="80" cy="181" r="6" fill="#2f6fed"/>
+  <text x="96" y="186" class="label">synthetic-parallel_scaling</text>
+  <text x="320" y="186" class="small">parallel task dispatch and worker scaling</text>
+  <text x="730" y="186" class="metric">np16 vs np2: +27.1% relative edge coverage, 2.76x candidates</text>
+  <circle cx="80" cy="213" r="6" fill="#2f6fed"/>
+  <text x="96" y="218" class="label">gfts-xml_read_fuzzer</text>
+  <text x="320" y="218" class="small">public XML parser with structured paths</text>
+  <text x="730" y="218" class="metric">seed to np16: 2310 -> 3441 edges; np2 to np16: +331 edges</text>
+
+  <rect x="42" y="275" width="1156" height="172" class="card"/>
+  <text x="66" y="306" class="head">B. Confirmed hybrid and SOTA orchestration cases</text>
+  <line x1="66" y1="324" x2="1174" y2="324" class="line"/>
+  <circle cx="80" cy="351" r="6" fill="#23a26d"/>
+  <text x="96" y="356" class="label">lava-base64</text>
+  <text x="320" y="356" class="small">precise value constraints, symbolic-heavy hybrid</text>
+  <text x="730" y="356" class="metric">hybrid 230 edges vs AFL-only 153 edges, +50.3% relative</text>
+  <circle cx="80" cy="383" r="6" fill="#23a26d"/>
+  <text x="96" y="388" class="label">pcre2-pcre2_fuzzer</text>
+  <text x="320" y="388" class="small">persistent-aware gating and AFL++ profile orchestration</text>
+  <text x="730" y="388" class="metric">tuned hybrid 50.20% vs legacy 47.01%, AFL execs 2.28M -> 21.58M</text>
+  <circle cx="80" cy="415" r="6" fill="#23a26d"/>
+  <text x="96" y="420" class="label">libarchive-archive_fuzzer</text>
+  <text x="320" y="420" class="small">real parser weak positive, persistent gating ablation</text>
+  <text x="730" y="420" class="metric">tuned hybrid 20.94% vs AFL-only 20.87%; old forced data map 13.46%</text>
+
+  <rect x="42" y="475" width="565" height="222" class="card"/>
+  <text x="66" y="506" class="head">C. Local candidates and boundary cases</text>
+  <line x1="66" y1="524" x2="582" y2="524" class="line"/>
+  <text x="66" y="552" class="label">gfts-png_read_fuzzer</text>
+  <text x="262" y="552" class="small">25s weak positive: hybrid 569 edges vs AFL-only 510</text>
+  <text x="66" y="583" class="label">sqlite-sqlite_fuzzer</text>
+  <text x="262" y="583" class="small">available; use SQL grammar/dictionary and AUC</text>
+  <text x="66" y="614" class="label">freetype2-freetype2_fuzzer</text>
+  <text x="262" y="614" class="small">available; seed stratification needed</text>
+  <text x="66" y="645" class="label">jhead-jhead</text>
+  <text x="262" y="645" class="small">available; fix solver assertion and run 10min/1h</text>
+  <text x="66" y="676" class="label">lava-md5sum / uniq / who</text>
+  <text x="262" y="676" class="small">available; use bug oracle rather than edge coverage</text>
+
+  <rect x="633" y="475" width="565" height="222" class="card"/>
+  <text x="657" y="506" class="head">D. Literature-backed integration queue</text>
+  <line x1="657" y1="524" x2="1174" y2="524" class="line"/>
+  <text x="657" y="552" class="label">tcpdump</text>
+  <text x="822" y="552" class="small">S2F highlights strong hybrid over pure fuzzing signal</text>
+  <text x="657" y="583" class="label">binutils: readelf/nm/objdump/strip</text>
+  <text x="822" y="583" class="small">CoFuzz, Pangolin, S2F; ELF multi-layer parser</text>
+  <text x="657" y="614" class="label">bento / Bento4</text>
+  <text x="822" y="614" class="small">CoFuzz and Pangolin strong MP4 structure target</text>
+  <text x="657" y="645" class="label">pngfix / pngimage, openjpeg, libjpeg, libtiff</text>
+  <text x="822" y="645" class="small">image parsers; comparison/data coverage ablations</text>
+  <text x="657" y="676" class="label">Magma and FuzzBench expansion</text>
+  <text x="822" y="676" class="small">ground-truth and standardized long-run metrics</text>
+
+  <rect x="42" y="720" width="1156" height="34" fill="#eaf0fb" rx="8"/>
+  <text x="66" y="742" class="small">Use measured cases for current reporting; use candidates for the next long-run matrix. Do not merge literature results into local measured claims.</text>
+</svg>

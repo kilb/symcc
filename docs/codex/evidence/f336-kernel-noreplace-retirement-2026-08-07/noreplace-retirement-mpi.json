@@ -1,0 +1,72 @@
+{
+  "actual_mpi_transport": true,
+  "actual_multi_host": false,
+  "all_checks_passed": true,
+  "checks": {
+    "all_workers_ack_before_collision_failure": true,
+    "both_runs_are_bounded": true,
+    "collision_aborts_with_72": true,
+    "collision_preserves_both_names_and_old_bytes": true,
+    "content_addressed_seed_remains_intact": true,
+    "matching_restart_reclaims_collision_and_retires": true,
+    "real_multi_master_frontend_exercised": true,
+    "startup_primitive_was_qualified": true
+  },
+  "collision_injected": true,
+  "command": [
+    "mpirun",
+    "--oversubscribe",
+    "-np",
+    "7",
+    "python3",
+    "/tmp/symcc-f336-noreplace-mpi-nx104z49/noreplace_retirement_wrapper.py",
+    "-i",
+    "/tmp/symcc-f336-noreplace-mpi-nx104z49/input",
+    "-o",
+    "/tmp/symcc-f336-noreplace-mpi-nx104z49/output",
+    "-t",
+    "1",
+    "--max-idle",
+    "1",
+    "--wall-timeout",
+    "3",
+    "--workers-per-master",
+    "3",
+    "--simulate",
+    "--",
+    "/bin/true"
+  ],
+  "configuration": {
+    "collision_retirement_id": "cccccccccccccccccccccccccccccccc",
+    "masters": 2,
+    "ranks": 7,
+    "retired_gc_limit": 1,
+    "work_epoch": "f336f336f336f336f336f336f336f336f336f336f336f336f336f336f336f336",
+    "workers": 5
+  },
+  "deployment_evidence": false,
+  "injected": {
+    "elapsed": 3.6496080132201314,
+    "returncode": 72
+  },
+  "proof_boundary": "One physical host and a test-only durable destination collision prove ACK-before-Abort(72), kernel no-clobber behavior, active recovery, startup GC, and same-epoch convergence. This does not prove remote-filesystem crash persistence, cross-job locks, rank repair, DSE throughput, coverage, solver, or LAVA-M uplift.",
+  "recovered": {
+    "elapsed": 3.6820830849464983,
+    "returncode": 0
+  },
+  "schema": "symcc-f336-kernel-noreplace-retirement-mpi-v1",
+  "state_observations": {
+    "active_exists_after_collision": true,
+    "active_exists_after_matching_recovery": false,
+    "collision_marker_hex": "6d7573742d6e6f742d636c6f62626572",
+    "corpus_seed_digest": "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd",
+    "corpus_seed_intact": true,
+    "retired_roots_after_collision": [
+      ".retired-standalone-work-f336f336f336f336f336f336f336f336f336f336f336f336f336f336f336f336-cccccccccccccccccccccccccccccccc"
+    ],
+    "retired_roots_after_matching_recovery": [
+      ".retired-standalone-work-f336f336f336f336f336f336f336f336f336f336f336f336f336f336f336f336-97ef2c91f450ed78dee65f3abd04fcbe"
+    ]
+  },
+  "synthetic_topology": false
+}

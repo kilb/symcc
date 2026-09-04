@@ -1,0 +1,21 @@
+F420 static and structural checks
+
+build LLVM 18 SymCC: PASS
+build LLVM 17 SymCC: PASS
+py_compile changed Python modules: PASS
+ruff check changed Python modules: PASS
+technology index update/check: PASS
+JSON and JUnit XML parse: PASS
+diagram render and visual inspection: PASS
+diagram PNG dimensions: 2400x1500
+focused fixture files: 3
+focused RUN commands: 28 (15 default/generated, 3 big-endian, 10 fallback)
+v10 schema references in producer/strict consumer/checker: 33
+F420 LLVM17 focused: 3/3 PASS
+F420 LLVM18 focused: 3/3 PASS
+F416--F420 LLVM17 related: 12/12 PASS
+F416--F420 LLVM18 related: 12/12 PASS
+F420 Python targeted: 6/6 PASS
+F416--F420 Python related: 27/27 PASS
+full Python gate: 1103 tests + 250 subtests PASS
+full LLVM17 controlled gate: 296 PASS + 2 existing UNSUPPORTED

@@ -1,0 +1,359 @@
+{
+  "all_checks_passed": true,
+  "configuration": {
+    "process_model": "one fresh Python subprocess per sample",
+    "samples_per_mechanism_per_scale": 10,
+    "scales_bytes": [
+      8388608,
+      33554432
+    ],
+    "source": "sparse zero-filled regular file on local overlayfs",
+    "warmups_per_mechanism_per_scale": 2
+  },
+  "proof_boundary": "The microbenchmark isolates one result-file staging operation. Legacy performs read-all plus content-addressed atomic write; F340 uses its production streaming staging helper. Both perform post-write SHA-256 verification and fsync-backed publication. tracemalloc is Python allocator peak, ru_maxrss is process peak, and elapsed time is local page-cache/overlayfs behavior. Results are not campaign throughput, solver, coverage, multi-host, NFS, bug-discovery, or LAVA-M evidence.",
+  "ratios": {
+    "33554432": {
+      "elapsed_old_over_new": 0.9077905310275238,
+      "max_rss_old_over_new": 1.8952002577042844,
+      "traced_peak_old_over_new": 16.980603304572792
+    },
+    "8388608": {
+      "elapsed_old_over_new": 0.7813342404848634,
+      "max_rss_old_over_new": 1.2337000268312315,
+      "traced_peak_old_over_new": 4.994800051056469
+    }
+  },
+  "raw_samples": {
+    "33554432": {
+      "legacy": [
+        {
+          "elapsed_us": 64711.643,
+          "max_rss_kib": 70580,
+          "mechanism": "legacy",
+          "size_bytes": 33554432,
+          "traced_peak_bytes": 35653086
+        },
+        {
+          "elapsed_us": 66093.406,
+          "max_rss_kib": 69432,
+          "mechanism": "legacy",
+          "size_bytes": 33554432,
+          "traced_peak_bytes": 35653086
+        },
+        {
+          "elapsed_us": 63896.301,
+          "max_rss_kib": 72160,
+          "mechanism": "legacy",
+          "size_bytes": 33554432,
+          "traced_peak_bytes": 35653086
+        },
+        {
+          "elapsed_us": 67932.844,
+          "max_rss_kib": 69048,
+          "mechanism": "legacy",
+          "size_bytes": 33554432,
+          "traced_peak_bytes": 35653086
+        },
+        {
+          "elapsed_us": 65116.061,
+          "max_rss_kib": 72164,
+          "mechanism": "legacy",
+          "size_bytes": 33554432,
+          "traced_peak_bytes": 35653086
+        },
+        {
+          "elapsed_us": 66950.302,
+          "max_rss_kib": 69184,
+          "mechanism": "legacy",
+          "size_bytes": 33554432,
+          "traced_peak_bytes": 35653086
+        },
+        {
+          "elapsed_us": 66829.15,
+          "max_rss_kib": 70616,
+          "mechanism": "legacy",
+          "size_bytes": 33554432,
+          "traced_peak_bytes": 35653086
+        },
+        {
+          "elapsed_us": 64130.364,
+          "max_rss_kib": 70584,
+          "mechanism": "legacy",
+          "size_bytes": 33554432,
+          "traced_peak_bytes": 35653086
+        },
+        {
+          "elapsed_us": 64623.964,
+          "max_rss_kib": 72212,
+          "mechanism": "legacy",
+          "size_bytes": 33554432,
+          "traced_peak_bytes": 35653086
+        },
+        {
+          "elapsed_us": 65530.073,
+          "max_rss_kib": 73768,
+          "mechanism": "legacy",
+          "size_bytes": 33554432,
+          "traced_peak_bytes": 35653086
+        }
+      ],
+      "streaming": [
+        {
+          "elapsed_us": 74112.669,
+          "max_rss_kib": 37168,
+          "mechanism": "streaming",
+          "size_bytes": 33554432,
+          "traced_peak_bytes": 2099636
+        },
+        {
+          "elapsed_us": 69976.307,
+          "max_rss_kib": 39828,
+          "mechanism": "streaming",
+          "size_bytes": 33554432,
+          "traced_peak_bytes": 2099636
+        },
+        {
+          "elapsed_us": 71814.573,
+          "max_rss_kib": 37284,
+          "mechanism": "streaming",
+          "size_bytes": 33554432,
+          "traced_peak_bytes": 2099636
+        },
+        {
+          "elapsed_us": 72102.035,
+          "max_rss_kib": 38268,
+          "mechanism": "streaming",
+          "size_bytes": 33554432,
+          "traced_peak_bytes": 2099636
+        },
+        {
+          "elapsed_us": 71003.038,
+          "max_rss_kib": 37168,
+          "mechanism": "streaming",
+          "size_bytes": 33554432,
+          "traced_peak_bytes": 2099636
+        },
+        {
+          "elapsed_us": 73341.574,
+          "max_rss_kib": 37168,
+          "mechanism": "streaming",
+          "size_bytes": 33554432,
+          "traced_peak_bytes": 2099636
+        },
+        {
+          "elapsed_us": 71246.302,
+          "max_rss_kib": 37168,
+          "mechanism": "streaming",
+          "size_bytes": 33554432,
+          "traced_peak_bytes": 2099636
+        },
+        {
+          "elapsed_us": 69864.631,
+          "max_rss_kib": 38612,
+          "mechanism": "streaming",
+          "size_bytes": 33554432,
+          "traced_peak_bytes": 2099636
+        },
+        {
+          "elapsed_us": 75423.136,
+          "max_rss_kib": 37220,
+          "mechanism": "streaming",
+          "size_bytes": 33554432,
+          "traced_peak_bytes": 2099636
+        },
+        {
+          "elapsed_us": 72974.615,
+          "max_rss_kib": 39888,
+          "mechanism": "streaming",
+          "size_bytes": 33554432,
+          "traced_peak_bytes": 2099636
+        }
+      ]
+    },
+    "8388608": {
+      "legacy": [
+        {
+          "elapsed_us": 32590.562,
+          "max_rss_kib": 45892,
+          "mechanism": "legacy",
+          "size_bytes": 8388608,
+          "traced_peak_bytes": 10487262
+        },
+        {
+          "elapsed_us": 31322.751,
+          "max_rss_kib": 47568,
+          "mechanism": "legacy",
+          "size_bytes": 8388608,
+          "traced_peak_bytes": 10487262
+        },
+        {
+          "elapsed_us": 32781.569,
+          "max_rss_kib": 46052,
+          "mechanism": "legacy",
+          "size_bytes": 8388608,
+          "traced_peak_bytes": 10487262
+        },
+        {
+          "elapsed_us": 33481.238,
+          "max_rss_kib": 45996,
+          "mechanism": "legacy",
+          "size_bytes": 8388608,
+          "traced_peak_bytes": 10487262
+        },
+        {
+          "elapsed_us": 33117.692,
+          "max_rss_kib": 42860,
+          "mechanism": "legacy",
+          "size_bytes": 8388608,
+          "traced_peak_bytes": 10487262
+        },
+        {
+          "elapsed_us": 31808.861,
+          "max_rss_kib": 46000,
+          "mechanism": "legacy",
+          "size_bytes": 8388608,
+          "traced_peak_bytes": 10487262
+        },
+        {
+          "elapsed_us": 33439.115,
+          "max_rss_kib": 45960,
+          "mechanism": "legacy",
+          "size_bytes": 8388608,
+          "traced_peak_bytes": 10487262
+        },
+        {
+          "elapsed_us": 32797.053,
+          "max_rss_kib": 44464,
+          "mechanism": "legacy",
+          "size_bytes": 8388608,
+          "traced_peak_bytes": 10487262
+        },
+        {
+          "elapsed_us": 33895.49,
+          "max_rss_kib": 47648,
+          "mechanism": "legacy",
+          "size_bytes": 8388608,
+          "traced_peak_bytes": 10487262
+        },
+        {
+          "elapsed_us": 19293.317,
+          "max_rss_kib": 45964,
+          "mechanism": "legacy",
+          "size_bytes": 8388608,
+          "traced_peak_bytes": 10487262
+        }
+      ],
+      "streaming": [
+        {
+          "elapsed_us": 41867.29,
+          "max_rss_kib": 37292,
+          "mechanism": "streaming",
+          "size_bytes": 8388608,
+          "traced_peak_bytes": 2099636
+        },
+        {
+          "elapsed_us": 40718.328,
+          "max_rss_kib": 38372,
+          "mechanism": "streaming",
+          "size_bytes": 8388608,
+          "traced_peak_bytes": 2099636
+        },
+        {
+          "elapsed_us": 41422.483,
+          "max_rss_kib": 37244,
+          "mechanism": "streaming",
+          "size_bytes": 8388608,
+          "traced_peak_bytes": 2099636
+        },
+        {
+          "elapsed_us": 43247.79,
+          "max_rss_kib": 38332,
+          "mechanism": "streaming",
+          "size_bytes": 8388608,
+          "traced_peak_bytes": 2099636
+        },
+        {
+          "elapsed_us": 42064.296,
+          "max_rss_kib": 37248,
+          "mechanism": "streaming",
+          "size_bytes": 8388608,
+          "traced_peak_bytes": 2099636
+        },
+        {
+          "elapsed_us": 40491.228,
+          "max_rss_kib": 38512,
+          "mechanism": "streaming",
+          "size_bytes": 8388608,
+          "traced_peak_bytes": 2099636
+        },
+        {
+          "elapsed_us": 42348.243,
+          "max_rss_kib": 37168,
+          "mechanism": "streaming",
+          "size_bytes": 8388608,
+          "traced_peak_bytes": 2099636
+        },
+        {
+          "elapsed_us": 43008.983,
+          "max_rss_kib": 37168,
+          "mechanism": "streaming",
+          "size_bytes": 8388608,
+          "traced_peak_bytes": 2099636
+        },
+        {
+          "elapsed_us": 42989.985,
+          "max_rss_kib": 37168,
+          "mechanism": "streaming",
+          "size_bytes": 8388608,
+          "traced_peak_bytes": 2099636
+        },
+        {
+          "elapsed_us": 41585.76,
+          "max_rss_kib": 38364,
+          "mechanism": "streaming",
+          "size_bytes": 8388608,
+          "traced_peak_bytes": 2099636
+        }
+      ]
+    }
+  },
+  "schema": "symcc-f340-result-staging-cost-v1",
+  "summaries": {
+    "33554432": {
+      "legacy": {
+        "elapsed_us_median": 65323.066999999995,
+        "elapsed_us_p95": 67932.844,
+        "max_rss_kib_median": 70600.0,
+        "max_rss_kib_p95": 73768.0,
+        "traced_peak_bytes_median": 35653086.0,
+        "traced_peak_bytes_p95": 35653086.0
+      },
+      "streaming": {
+        "elapsed_us_median": 71958.304,
+        "elapsed_us_p95": 75423.136,
+        "max_rss_kib_median": 37252.0,
+        "max_rss_kib_p95": 39888.0,
+        "traced_peak_bytes_median": 2099636.0,
+        "traced_peak_bytes_p95": 2099636.0
+      }
+    },
+    "8388608": {
+      "legacy": {
+        "elapsed_us_median": 32789.311,
+        "elapsed_us_p95": 33895.49,
+        "max_rss_kib_median": 45980.0,
+        "max_rss_kib_p95": 47648.0,
+        "traced_peak_bytes_median": 10487262.0,
+        "traced_peak_bytes_p95": 10487262.0
+      },
+      "streaming": {
+        "elapsed_us_median": 41965.793000000005,
+        "elapsed_us_p95": 43247.79,
+        "max_rss_kib_median": 37270.0,
+        "max_rss_kib_p95": 38512.0,
+        "traced_peak_bytes_median": 2099636.0,
+        "traced_peak_bytes_p95": 2099636.0
+      }
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "artifact_sha256": "3e798bb412c866d23a31e88a07478f404f6d1a3297855f9c2f125742c831e972",
+  "checked_import_cold_total_overhead_ratio": 1.4877720488605772,
+  "checked_imports_delivered": 64,
+  "claim_boundary": "same-process mechanism-cost benchmark; no coverage, defect-rate, network-latency, or distributed-scaling claim",
+  "formula": "qfbv-38-operator-matrix-sat",
+  "idle_total_overhead_ratio": 24.1961709586086,
+  "library": "/tmp/f433-review/libsymcc_qfbv_cadical_realtime.so",
+  "library_sha256": "5afef95ef6744d9a5aed36a4cd4375b9268dcbe256439634f9999f6412a8cb06",
+  "native_cold": {
+    "maximum_us": 28087,
+    "median_us": 24306,
+    "minimum_us": 24258,
+    "p95_us": 24450,
+    "rounds": 64,
+    "total_us": 1561668
+  },
+  "native_reuse": {
+    "maximum_us": 145,
+    "median_us": 116,
+    "minimum_us": 110,
+    "p95_us": 121,
+    "rounds": 64,
+    "total_us": 7417
+  },
+  "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+  "realtime_checked_import": {
+    "maximum_us": 52058,
+    "median_us": 36095,
+    "minimum_us": 34757,
+    "p95_us": 37194,
+    "rounds": 64,
+    "total_us": 2323406
+  },
+  "realtime_idle": {
+    "maximum_us": 24017,
+    "median_us": 2339,
+    "minimum_us": 2251,
+    "p95_us": 2757,
+    "rounds": 64,
+    "total_us": 179463
+  },
+  "rounds": 64,
+  "schema": "symcc-f433-realtime-stream-benchmark-v1"
+}

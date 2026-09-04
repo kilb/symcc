@@ -1,0 +1,79 @@
+{
+  "admitted": {
+    "artifact_sha256": "93574e077782c255468029add9f1b8e590d071bc636ca23627b2d6462dab9a9d",
+    "runtime_profiles": 2,
+    "suppressed_profiles": 0
+  },
+  "compiler": "/home/ubuntu/code/symcc/build/symcc",
+  "coordinator": {
+    "checkpoint_truncations": 0,
+    "current_profiles": 2,
+    "current_suppressed": 0,
+    "current_version": "2a06921a228cb4149e10a431e41e63c360a3c3f2d86617776fc3a29a2c566714",
+    "empirical_domain_attempts": 2,
+    "empirical_domain_context_skips": 0,
+    "empirical_domain_parse_failures": 0,
+    "empirical_domain_prefilter_rejects": 0,
+    "empirical_domain_profiles_loaded": 6,
+    "empirical_domain_sat": 0,
+    "empirical_domain_solver_queries": 2,
+    "empirical_domain_solver_time_us": 142,
+    "empirical_domain_unknown_fallbacks": 0,
+    "empirical_domain_unsat_fallbacks": 2,
+    "empirical_domain_validated": 0,
+    "empirical_domain_validation_failures": 0,
+    "generations_published": 3,
+    "profiles_suppressed": 1,
+    "publication_failures": 0,
+    "records_observed": 6,
+    "semantic_noops": 0,
+    "suppression_generations": 1,
+    "window_records": 2
+  },
+  "cost_guarded": {
+    "artifact_sha256": "234f3098b0b58eee40495102a01addc88c8d23942d0d68c6b78e0f6e27cb452c",
+    "min_solver_time_us": 143,
+    "runtime_profiles": 2,
+    "suppressed_profiles": 0
+  },
+  "exact_domain": {
+    "bits": 32,
+    "site": 3562788607769723438,
+    "values": [
+      1,
+      2
+    ]
+  },
+  "feedback_min_solver_queries": 2,
+  "feedback_min_solver_time_us": 0,
+  "feedback_min_validated_ratio_ppm": 125000,
+  "probe_feedback": {
+    "attempts": 2,
+    "prefilter_rejects": 0,
+    "rows": 2,
+    "sat": 0,
+    "solver_queries": 2,
+    "solver_time_us": 142,
+    "solver_unsat": 2,
+    "unknown": 0,
+    "validated": 0,
+    "validation_failures": 0
+  },
+  "readmitted": {
+    "artifact_sha256": "93574e077782c255468029add9f1b8e590d071bc636ca23627b2d6462dab9a9d",
+    "reprobe_exact_rows": 1,
+    "reprobe_solver_queries": 1,
+    "runtime_profiles": 2,
+    "suppressed_profiles": 0
+  },
+  "schema": "symcc-evp-admission-smoke-v1",
+  "source": "/home/ubuntu/code/symcc/test/empirical_value_profile_feedback.c",
+  "suppressed": {
+    "artifact_sha256": "3197c0d4e2e2a4ea6a1021f354a619efaf912153144e073695eb9cac8e746980",
+    "post_suppression_exact_rows": 0,
+    "runtime_profiles": 1,
+    "suppressed_profiles": 1
+  },
+  "target_sha256": "9da36117c2b0bafbc55836a484e34d8d609e7dc7fa1ea1363b4de4eb5d3b1a03",
+  "window": 2
+}

@@ -1,0 +1,17 @@
+F450 STATIC AND PRESENTATION CHECKS
+Captured: 2026-08-25 UTC
+
+py_compile=pass
+All checks passed!
+svg_xml=pass
+svg_render=pass
+git_diff_check=pass
+
+Scope:
+- Python bytecode compilation covered the checker, query-service wiring,
+  mechanism oracle, focused tests, and delivery verifier.
+- Ruff covered the same five Python files.
+- The SVG was parsed as XML, checked for the canonical 1500 x 940 viewBox,
+  rendered to a 1500 x 940 PNG with CairoSVG, and visually inspected for
+  clipping, overlap, branch direction, and outcome labeling.
+- git diff --check found no whitespace errors in tracked changes.

@@ -1,0 +1,76 @@
+ninja: Entering directory `.symcc-research-evidence/current-eval-2026-07-30/build/libarchive'
+[1/1] /home/ubuntu/code/symcc/build/symcc -DHAVE_CONFIG_H -DLIBARCHIVE_STATIC -I/home/ubuntu/code/symcc/benchmark/public/gfts_build/libarchive-src/libarchive -I/home/ubuntu/code/symcc/.symcc-research-evidence/current-eval-2026-07-30/build/libarchive -I/usr/include/libxml2 -Wall -Wformat -Wformat-security -O3 -DNDEBUG -MD -MT libarchive/CMakeFiles/archive_static.dir/archive_write_set_format_7zip.c.o -MF libarchive/CMakeFiles/archive_static.dir/archive_write_set_format_7zip.c.o.d -o libarchive/CMakeFiles/archive_static.dir/archive_write_set_format_7zip.c.o -c /home/ubuntu/code/symcc/benchmark/public/gfts_build/libarchive-src/libarchive/archive_write_set_format_7zip.c
+FAILED: libarchive/CMakeFiles/archive_static.dir/archive_write_set_format_7zip.c.o 
+/home/ubuntu/code/symcc/build/symcc -DHAVE_CONFIG_H -DLIBARCHIVE_STATIC -I/home/ubuntu/code/symcc/benchmark/public/gfts_build/libarchive-src/libarchive -I/home/ubuntu/code/symcc/.symcc-research-evidence/current-eval-2026-07-30/build/libarchive -I/usr/include/libxml2 -Wall -Wformat -Wformat-security -O3 -DNDEBUG -MD -MT libarchive/CMakeFiles/archive_static.dir/archive_write_set_format_7zip.c.o -MF libarchive/CMakeFiles/archive_static.dir/archive_write_set_format_7zip.c.o.d -o libarchive/CMakeFiles/archive_static.dir/archive_write_set_format_7zip.c.o -c /home/ubuntu/code/symcc/benchmark/public/gfts_build/libarchive-src/libarchive/archive_write_set_format_7zip.c
+/home/ubuntu/code/symcc/benchmark/public/gfts_build/libarchive-src/libarchive/archive_write_set_format_7zip.c:1534:13: warning: implicit truncation from 'int' to a one-bit wide bit-field changes value from 1 to -1 [-Wsingle-bit-bitfield-constant-conversion]
+ 1534 |                 file->dir = 1;
+      |                           ^ ~
+Warning: unhandled LLVM intrinsic llvm.umin.i64; the result will be concretized
+Warning: unhandled LLVM intrinsic llvm.umin.i64; the result will be concretized
+Warning: unhandled LLVM intrinsic llvm.umin.i64; the result will be concretized
+Warning: unhandled LLVM intrinsic llvm.smin.i32; the result will be concretized
+Warning: unhandled LLVM intrinsic llvm.umin.i64; the result will be concretized
+Warning: unhandled LLVM intrinsic llvm.smin.i32; the result will be concretized
+Warning: unhandled LLVM intrinsic llvm.umin.i64; the result will be concretized
+Warning: unhandled LLVM intrinsic llvm.umax.i32; the result will be concretized
+Warning: unhandled LLVM intrinsic llvm.smin.i32; the result will be concretized
+Warning: unhandled LLVM intrinsic llvm.smin.i32; the result will be concretized
+PLEASE submit a bug report to https://github.com/llvm/llvm-project/issues/ and include the crash backtrace, preprocessed source, and associated run script.
+Stack dump:
+0.	Program arguments: /usr/lib/llvm-18/bin/clang -fpass-plugin=/home/ubuntu/code/symcc/build/libsymcc.so -DHAVE_CONFIG_H -DLIBARCHIVE_STATIC -I/home/ubuntu/code/symcc/benchmark/public/gfts_build/libarchive-src/libarchive -I/home/ubuntu/code/symcc/.symcc-research-evidence/current-eval-2026-07-30/build/libarchive -I/usr/include/libxml2 -Wall -Wformat -Wformat-security -O3 -DNDEBUG -MD -MT libarchive/CMakeFiles/archive_static.dir/archive_write_set_format_7zip.c.o -MF libarchive/CMakeFiles/archive_static.dir/archive_write_set_format_7zip.c.o.d -o libarchive/CMakeFiles/archive_static.dir/archive_write_set_format_7zip.c.o -c /home/ubuntu/code/symcc/benchmark/public/gfts_build/libarchive-src/libarchive/archive_write_set_format_7zip.c -L/home/ubuntu/code/symcc/build/SymCCRuntime-prefix/src/SymCCRuntime-build -lsymcc-rt -Wl,-rpath,/home/ubuntu/code/symcc/build/SymCCRuntime-prefix/src/SymCCRuntime-build -Qunused-arguments
+1.	<eof> parser at end of file
+2.	Optimizer
+Stack dump without symbol names (ensure you have llvm-symbolizer in your PATH or set the environment var `LLVM_SYMBOLIZER_PATH` to point to it):
+0  libLLVM.so.18.1      0x0000741517e343bf llvm::sys::PrintStackTrace(llvm::raw_ostream&, int) + 63
+1  libLLVM.so.18.1      0x0000741517e324f9 llvm::sys::RunSignalHandlers() + 89
+2  libLLVM.so.18.1      0x0000741517d7e227
+3  libc.so.6            0x0000741516c38330
+4  libLLVM.so.18.1      0x00007415191f4de4 llvm::AAResults::getModRefInfo(llvm::CallBase const*, llvm::MemoryLocation const&, llvm::AAQueryInfo&) + 340
+5  libLLVM.so.18.1      0x00007415191f5de8 llvm::AAResults::getModRefInfo(llvm::Instruction const*, std::optional<llvm::MemoryLocation> const&, llvm::AAQueryInfo&) + 152
+6  libsymcc.so          0x00007415144d8429 llvm::AAResults::getModRefInfo(llvm::Instruction const*, std::optional<llvm::MemoryLocation> const&) + 585
+7  libsymcc.so          0x00007415144c7a30 Symbolizer::tryBuildImplicitFlowMemoryLoad(llvm::LoadInst&, llvm::DominatorTree&, llvm::PostDominatorTree&) + 656
+8  libsymcc.so          0x00007415144caeb3 Symbolizer::finalizePHINodes() + 2563
+9  libsymcc.so          0x00007415144e1382
+10 libsymcc.so          0x00007415144e1515 SymbolizePass::run(llvm::Function&, llvm::AnalysisManager<llvm::Function>&) + 69
+11 libsymcc.so          0x000074151464db3d llvm::detail::PassModel<llvm::Function, SymbolizePass, llvm::PreservedAnalyses, llvm::AnalysisManager<llvm::Function>>::run(llvm::Function&, llvm::AnalysisManager<llvm::Function>&) + 13
+12 libLLVM.so.18.1      0x0000741517fbd551 llvm::PassManager<llvm::Function, llvm::AnalysisManager<llvm::Function>>::run(llvm::Function&, llvm::AnalysisManager<llvm::Function>&) + 305
+13 libLLVM.so.18.1      0x0000741519f21db6
+14 libLLVM.so.18.1      0x0000741517fc0d30 llvm::ModuleToFunctionPassAdaptor::run(llvm::Module&, llvm::AnalysisManager<llvm::Module>&) + 336
+15 libLLVM.so.18.1      0x0000741519f21ba6
+16 libLLVM.so.18.1      0x0000741517fbc261 llvm::PassManager<llvm::Module, llvm::AnalysisManager<llvm::Module>>::run(llvm::Module&, llvm::AnalysisManager<llvm::Module>&) + 401
+17 libclang-cpp.so.18.1 0x00007415202b8590
+18 libclang-cpp.so.18.1 0x00007415202afef3 clang::EmitBackendOutput(clang::DiagnosticsEngine&, clang::HeaderSearchOptions const&, clang::CodeGenOptions const&, clang::TargetOptions const&, clang::LangOptions const&, llvm::StringRef, llvm::Module*, clang::BackendAction, llvm::IntrusiveRefCntPtr<llvm::vfs::FileSystem>, std::unique_ptr<llvm::raw_pwrite_stream, std::default_delete<llvm::raw_pwrite_stream>>, clang::BackendConsumer*) + 2675
+19 libclang-cpp.so.18.1 0x0000741520638a07 clang::BackendConsumer::HandleTranslationUnit(clang::ASTContext&) + 1479
+20 libclang-cpp.so.18.1 0x000074151f2303d6 clang::ParseAST(clang::Sema&, bool, bool) + 598
+21 libclang-cpp.so.18.1 0x000074152109f62c clang::FrontendAction::Execute() + 92
+22 libclang-cpp.so.18.1 0x000074152101c0b4 clang::CompilerInstance::ExecuteAction(clang::FrontendAction&) + 708
+23 libclang-cpp.so.18.1 0x000074152111b63d clang::ExecuteCompilerInvocation(clang::CompilerInstance*) + 765
+24 clang                0x000063b35e96242e cc1_main(llvm::ArrayRef<char const*>, char const*, void*) + 3694
+25 clang                0x000063b35e95f894
+26 libclang-cpp.so.18.1 0x0000741520ccc972
+27 libLLVM.so.18.1      0x0000741517d7df77 llvm::CrashRecoveryContext::RunSafely(llvm::function_ref<void ()>) + 151
+28 libclang-cpp.so.18.1 0x0000741520ccc237 clang::driver::CC1Command::Execute(llvm::ArrayRef<std::optional<llvm::StringRef>>, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>*, bool*) const + 407
+29 libclang-cpp.so.18.1 0x0000741520c94518 clang::driver::Compilation::ExecuteCommand(clang::driver::Command const&, clang::driver::Command const*&, bool) const + 888
+30 libclang-cpp.so.18.1 0x0000741520c9477f clang::driver::Compilation::ExecuteJobs(clang::driver::JobList const&, llvm::SmallVectorImpl<std::pair<int, clang::driver::Command const*>>&, bool) const + 159
+31 libclang-cpp.so.18.1 0x0000741520cb0c20 clang::driver::Driver::ExecuteCompilation(clang::driver::Compilation&, llvm::SmallVectorImpl<std::pair<int, clang::driver::Command const*>>&) + 352
+32 clang                0x000063b35e95f1ec clang_main(int, char**, llvm::ToolContext const&) + 11180
+33 clang                0x000063b35e96c383 main + 131
+34 libc.so.6            0x0000741516c1d1ca
+35 libc.so.6            0x0000741516c1d28b __libc_start_main + 139
+36 clang                0x000063b35e95c255 _start + 37
+clang: error: clang frontend command failed with exit code 139 (use -v to see invocation)
+Ubuntu clang version 18.1.3 (1ubuntu1)
+Target: x86_64-pc-linux-gnu
+Thread model: posix
+InstalledDir: /usr/lib/llvm-18/bin
+clang: note: diagnostic msg: 
+********************
+
+PLEASE ATTACH THE FOLLOWING FILES TO THE BUG REPORT:
+Preprocessed source(s) and associated run script(s) are located at:
+clang: note: diagnostic msg: /tmp/archive_write_set_format_7zip-63cc19.c
+clang: note: diagnostic msg: /tmp/archive_write_set_format_7zip-63cc19.sh
+clang: note: diagnostic msg: 
+
+********************
+ninja: build stopped: subcommand failed.

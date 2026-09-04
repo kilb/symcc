@@ -1,0 +1,65 @@
+{
+  "capabilities": {
+    "commands": {
+      "cc": "/usr/bin/cc"
+    },
+    "libraries": {
+      "z3": "libz3.so.4"
+    },
+    "python_modules": {
+      "lark": "/tmp/symcc-f360-venv.LL3BNi/lib/python3.12/site-packages/lark/__init__.py",
+      "mpi4py": "/tmp/symcc-f360-venv.LL3BNi/lib/python3.12/site-packages/mpi4py/__init__.py",
+      "parglare": "/tmp/symcc-f360-venv.LL3BNi/lib/python3.12/site-packages/parglare/__init__.py",
+      "tree_sitter": "/tmp/symcc-f360-venv.LL3BNi/lib/python3.12/site-packages/tree_sitter/__init__.py",
+      "tree_sitter_json": "/tmp/symcc-f360-venv.LL3BNi/lib/python3.12/site-packages/tree_sitter_json/__init__.py"
+    }
+  },
+  "details": {
+    "collection_errors": [],
+    "skipped": [],
+    "subtests_skipped": [],
+    "xfailed": []
+  },
+  "gate": {
+    "failures": [],
+    "limits": {
+      "max_deselected": 0,
+      "max_skips": 0,
+      "max_xfails": 0,
+      "max_xpasses": 0,
+      "min_collected": 2
+    },
+    "passed": true
+  },
+  "missing_capabilities": [],
+  "outcomes": {
+    "collected": 2,
+    "collection_errors": 0,
+    "deselected": 0,
+    "failed": 0,
+    "passed": 2,
+    "skipped": 0,
+    "subtests_failed": 0,
+    "subtests_passed": 0,
+    "subtests_skipped": 0,
+    "xfailed": 0,
+    "xpassed": 0
+  },
+  "pytest": {
+    "arguments": [
+      "-q",
+      "-W",
+      "error",
+      "-p",
+      "no:cacheprovider",
+      "test/test_pytest_discovery_contract.py"
+    ],
+    "exit_code": 0,
+    "version": "9.1.1"
+  },
+  "python": {
+    "executable": "/tmp/symcc-f360-venv.LL3BNi/bin/python",
+    "version": "3.12.3"
+  },
+  "schema": "symcc-python-test-gate-v1"
+}

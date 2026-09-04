@@ -1,0 +1,47 @@
+$ PYTHONDONTWRITEBYTECODE=1 python3 run_artifact_reachability_checks.py
+{
+  "all_checks_passed": true,
+  "bounded_incomplete_scan": {
+    "missing_primary_is_unknown": true,
+    "scan_complete": false,
+    "scanned_entries": 1,
+    "sweep_authorized": false
+  },
+  "counterfactual_database_only": {
+    "artifact_rows_visible": 4,
+    "indexed_orphans_visible": 1,
+    "namespace_anomalies_visible": false,
+    "physical_objects_present": 5,
+    "query_references_visible": 3,
+    "unindexed_orphans_visible": false
+  },
+  "production_cli": {
+    "complete_exit": 0,
+    "complete_report": true,
+    "partial_exit": 2,
+    "partial_report": false
+  },
+  "production_report_only": {
+    "indexed_orphans": 1,
+    "namespace_reference_closure": true,
+    "noncanonical_entries": 1,
+    "objects_preserved": true,
+    "orphan_physical": 2,
+    "report_only": true,
+    "scan_complete": true,
+    "sweep_authorized": false,
+    "unindexed_physical": 1
+  },
+  "publication_fence": {
+    "audit_reference_count": 3,
+    "errors": [],
+    "publisher_blocked_during_audit": true,
+    "publishers_completed": 1,
+    "queries_after_release": 2,
+    "threads_terminated": true
+  },
+  "schema": "symcc-f373-query-artifact-reachability-evidence-v1"
+}
+f373-query-artifact-reachability: PASS
+sha256=43b0efaf58398fdea5e2a12544fb589c8349ac46a148e1caf41e837705955f09
+consecutive_byte_identical=true

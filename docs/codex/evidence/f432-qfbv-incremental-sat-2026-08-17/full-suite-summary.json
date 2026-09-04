@@ -1,0 +1,54 @@
+{
+  "actual_backend_smoke": {
+    "native": "unsat-proof-verified",
+    "one_shot": "unsat-proof-verified",
+    "passed": true
+  },
+  "all_passed": true,
+  "benchmarks": {
+    "claim_scope": "same-process mechanism only",
+    "cold_native_total_speedup": [
+      1.7551886678196502,
+      1.7648655031688905
+    ],
+    "rounds_per_run": 64,
+    "runs": 2
+  },
+  "llvm17": {
+    "discovered": 320,
+    "failures": 0,
+    "unresolved": 0
+  },
+  "llvm18": {
+    "discovered": 320,
+    "failures": 0,
+    "unresolved": 0
+  },
+  "oracles": {
+    "cases_per_run": 512,
+    "matrix_model": {
+      "0": 66,
+      "1": 3
+    },
+    "mismatches_per_run": 0,
+    "proof_propagations_per_run": 22,
+    "proof_steps_per_run": 24,
+    "runs": 2,
+    "seed": 62514
+  },
+  "python": {
+    "nodeids_expected": 1236,
+    "nodeids_observed": 1236,
+    "passed": 1236,
+    "subtests_passed": 291
+  },
+  "related_python": {
+    "passed": 116,
+    "subtests_passed": 58
+  },
+  "schema": "symcc-f432-full-suite-summary-v1",
+  "targeted_python": {
+    "passed": 38,
+    "subtests_passed": 13
+  }
+}

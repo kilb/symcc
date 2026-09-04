@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080" role="img" aria-labelledby="title desc">
+  <title id="title">F372 bounded content-equivalent CAS publication revalidation</title>
+  <desc id="desc">A schematic comparing one-shot false rejection under concurrent exact writers with bounded three-way revalidation of exact, wrong, and unstable public objects.</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#17232c" flood-opacity="0.13"/></filter>
+    <marker id="blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#286f8e"/></marker>
+    <marker id="red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#bd4b4b"/></marker>
+    <marker id="green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#2b7b5d"/></marker>
+    <style>
+      .bg{fill:#f4f6f7}.panel{fill:#fff;stroke:#c8d0d5;stroke-width:2;filter:url(#shadow)}.write{fill:#eef5fa;stroke:#78a5bd;stroke-width:2}.race{fill:#fff2f1;stroke:#dc8e88;stroke-width:2}.gate{fill:#fff8e5;stroke:#d2ad52;stroke-width:2}.ok{fill:#edf8f2;stroke:#71a78e;stroke-width:2}.neutral{fill:#f1f3f4;stroke:#929da5;stroke-width:2}
+      .title{font:700 38px Arial,sans-serif;fill:#18232d}.subtitle{font:400 18px Arial,sans-serif;fill:#53616b}.section{font:700 24px Arial,sans-serif;fill:#25343e}.label{font:700 18px Arial,sans-serif;fill:#24323c}.body{font:400 16px Arial,sans-serif;fill:#354650}.small{font:400 14px Arial,sans-serif;fill:#56636c}.mono{font:600 15px 'DejaVu Sans Mono',monospace;fill:#26343e}.redtext{fill:#a83c3c}.green{fill:#216e54}.blueText{fill:#245f7d}
+      .line{fill:none;stroke:#286f8e;stroke-width:4;marker-end:url(#blue)}.lineRed{fill:none;stroke:#bd4b4b;stroke-width:4;marker-end:url(#red)}.lineGreen{fill:none;stroke:#2b7b5d;stroke-width:4;marker-end:url(#green)}
+    </style>
+  </defs>
+  <rect class="bg" width="1600" height="1080"/>
+  <text class="title" x="70" y="67">F372 · Bounded Content-Equivalent CAS Publication Revalidation</text>
+  <text class="subtitle" x="70" y="101">Content identity wins · unstable observation retries · stable corruption fails immediately</text>
+
+  <rect class="panel" x="60" y="132" width="1480" height="245" rx="8"/>
+  <text class="section redtext" x="90" y="174">One-shot counterexample: exact writers can still race during verification</text>
+  <rect class="write" x="92" y="209" width="235" height="108" rx="6"/><text class="label" x="118" y="243">Writer W1</text><text class="mono" x="118" y="275">replace inode A</text><text class="small" x="118" y="300">digest = H</text>
+  <rect class="write" x="403" y="209" width="235" height="108" rx="6"/><text class="label" x="429" y="243">Writer W2</text><text class="mono" x="429" y="275">replace inode B</text><text class="small" x="429" y="300">same digest H</text>
+  <rect class="gate" x="714" y="195" width="290" height="136" rx="6"/><text class="label" x="740" y="229">W1 verifies public B</text><text class="body" x="740" y="260">stable snapshot begins</text><text class="mono" x="740" y="289">path identity: B</text><text class="small" x="740" y="314">descriptor still A</text>
+  <rect class="write" x="1080" y="209" width="210" height="108" rx="6"/><text class="label" x="1106" y="243">Writer W3</text><text class="mono" x="1106" y="275">replace inode C</text><text class="small" x="1106" y="300">same digest H</text>
+  <rect class="race" x="1350" y="209" width="145" height="108" rx="6"/><text class="label redtext" x="1374" y="243">False fail</text><text class="mono redtext" x="1374" y="275">ESTALE</text><text class="small" x="1374" y="300">1 attempt</text>
+  <path class="line" d="M327 263H393"/><path class="line" d="M638 263H704"/><path class="lineRed" d="M1004 263H1070"/><path class="lineRed" d="M1290 263H1340"/>
+  <text class="small redtext" x="650" y="352">B and C are both exact content H; only the observation was unstable</text>
+
+  <rect class="panel" x="60" y="412" width="1480" height="475" rx="8"/>
+  <text class="section blueText" x="90" y="455">F372 post-publication verifier</text>
+  <rect class="write" x="92" y="498" width="280" height="145" rx="6"/><text class="label" x="118" y="533">1 · Identity mismatch</text><text class="body" x="118" y="565">own descriptor ≠ public path</text><text class="body" x="118" y="593">evict cached identity</text><text class="small" x="118" y="620">root + shard stay anchored</text>
+  <rect class="gate" x="450" y="484" width="330" height="173" rx="6"/><text class="label" x="476" y="519">2 · Stable snapshot attempt</text><text class="mono" x="476" y="551">budget = 32</text><text class="body" x="476" y="580">no-follow · regular-only</text><text class="body" x="476" y="608">bounded by max_object_bytes</text><text class="small" x="476" y="635">descriptor-relative leaf</text>
+  <rect class="neutral" x="870" y="477" width="300" height="105" rx="6"/><text class="label" x="896" y="512">UNSTABLE</text><text class="body" x="896" y="542">path drift / read error</text><text class="small" x="896" y="564">attempt &lt; 32 → retry</text>
+  <rect class="race" x="870" y="615" width="300" height="105" rx="6"/><text class="label redtext" x="896" y="650">STABLE WRONG</text><text class="mono redtext" x="896" y="680">sha256 ≠ object_id</text><text class="small" x="896" y="702">fail immediately</text>
+  <rect class="ok" x="1255" y="477" width="240" height="105" rx="6"/><text class="label green" x="1281" y="512">STABLE EXACT</text><text class="mono green" x="1281" y="542">sha256 = H</text><text class="small" x="1281" y="564">cache identity</text>
+  <rect class="race" x="1255" y="615" width="240" height="105" rx="6"/><text class="label redtext" x="1281" y="650">EXHAUSTED</text><text class="mono redtext" x="1281" y="680">32 unstable</text><text class="small" x="1281" y="702">fail closed</text>
+  <path class="line" d="M372 570H440"/><path class="line" d="M780 530H860"/><path class="lineRed" d="M780 610H830V667H860"/>
+  <path class="lineGreen" d="M780 505H820V464H1215V530H1245"/>
+  <path class="lineRed" d="M1170 550H1210V667H1245"/>
+  <text class="small green" x="1080" y="457">stable digest = H</text>
+  <text class="small redtext" x="1183" y="603">attempt 32</text>
+  <path d="M1020 477V435H615V474" fill="none" stroke="#286f8e" stroke-width="3" stroke-dasharray="9 7" marker-end="url(#blue)"/>
+  <text class="small blueText" x="796" y="429">retry only an uncommitted observation</text>
+  <rect class="neutral" x="92" y="762" width="1403" height="82" rx="6"/><text class="label" x="118" y="796">Outer invariants remain unchanged</text><text class="body" x="118" y="825">atomic replace + shard fsync · temporary cleanup · descriptor-anchored root/shard recheck · exact canonical path</text>
+
+  <rect class="panel" x="60" y="922" width="1480" height="105" rx="8"/>
+  <text class="section green" x="90" y="962">Measured mechanism evidence</text>
+  <text class="body" x="90" y="994">Counterfactual: exact content rejected after 1 unstable read · Production: exact content admitted on attempt 4</text>
+  <text class="body" x="90" y="1019">Wrong digest: 1-attempt reject · Persistent drift: 32-attempt reject · Real 8-writer convergence PASS · F366 stress 20/20</text>
+</svg>

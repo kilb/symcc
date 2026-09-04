@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">R5 bounded query validation and adaptive scheduling architecture</title>
+  <desc id="desc">Stable artifact admission feeds bounded query evaluation and bounded adaptive state, which then drives prefix, transition, data coverage, and worker scheduling.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#40536b"/>
+    </marker>
+    <style>
+      .title { font: 700 31px system-ui, sans-serif; fill: #172235; }
+      .subtitle { font: 400 16px system-ui, sans-serif; fill: #526174; }
+      .lane { font: 700 16px system-ui, sans-serif; fill: #ffffff; }
+      .head { font: 700 19px system-ui, sans-serif; fill: #172235; }
+      .body { font: 400 14px system-ui, sans-serif; fill: #344255; }
+      .metric { font: 700 14px ui-monospace, monospace; fill: #172235; }
+      .small { font: 400 12px system-ui, sans-serif; fill: #526174; }
+      .box { stroke-width: 2; rx: 6; }
+      .arrow { fill: none; stroke: #40536b; stroke-width: 3; marker-end: url(#arrow); }
+      .dash { fill: none; stroke: #728197; stroke-width: 2; stroke-dasharray: 8 7; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <text x="70" y="62" class="title">R5: Bounded Query Validation and Adaptive Scheduling</text>
+  <text x="70" y="94" class="subtitle">One resource contract for artifacts, expressions, candidates, learned state, and hot paths</text>
+
+  <rect x="70" y="125" width="370" height="46" rx="6" fill="#315b85"/>
+  <text x="255" y="155" class="lane" text-anchor="middle">INPUT AND PERSISTED ARTIFACTS</text>
+  <rect x="615" y="125" width="370" height="46" rx="6" fill="#3d7259"/>
+  <text x="800" y="155" class="lane" text-anchor="middle">ADMISSION AND SHARED BUDGETS</text>
+  <rect x="1160" y="125" width="370" height="46" rx="6" fill="#8a5a2b"/>
+  <text x="1345" y="155" class="lane" text-anchor="middle">SCHEDULING STRUCTURES</text>
+
+  <rect x="70" y="200" width="370" height="135" class="box" fill="#e8f1fa" stroke="#4d78a1"/>
+  <text x="95" y="232" class="head">Query body / SMT2 CAS</text>
+  <text x="95" y="264" class="body">Query body bound to six SQLite digests</text>
+  <text x="95" y="292" class="body">SMT2 consumed from stable CAS snapshot</text>
+  <text x="95" y="318" class="small">Reject symlink, non-regular, or identity-drifted files</text>
+
+  <rect x="70" y="365" width="370" height="135" class="box" fill="#edf5ec" stroke="#5d8b66"/>
+  <text x="95" y="397" class="head">Telemetry / guidance</text>
+  <text x="95" y="429" class="body">Whole-artifact regular UTF-8 admission</text>
+  <text x="95" y="457" class="metric">64 MiB; distance ≤ 1,000,000 sites</text>
+  <text x="95" y="483" class="small">Overflow rejects the whole artifact, never a prefix</text>
+
+  <rect x="70" y="530" width="370" height="135" class="box" fill="#fff4df" stroke="#b77b2d"/>
+  <text x="95" y="562" class="head">Adaptive checkpoint</text>
+  <text x="95" y="594" class="body">Writer checks temporary file before replace</text>
+  <text x="95" y="622" class="body">Reader enforces the identical byte budget</text>
+  <text x="95" y="648" class="metric">Default 256 MiB; maximum 1 GiB</text>
+
+  <path d="M440 267 C520 267 535 250 615 250" class="arrow"/>
+  <path d="M440 432 C525 432 530 438 615 438" class="arrow"/>
+  <path d="M440 597 C525 597 530 625 615 625" class="arrow"/>
+
+  <rect x="615" y="200" width="370" height="235" class="box" fill="#e9f5ef" stroke="#4f8066"/>
+  <text x="640" y="232" class="head">Independent SAT commit gate</text>
+  <text x="640" y="266" class="body">Explicit post-order stack + DAG memo</text>
+  <text x="640" y="294" class="body">Cycle detection; budget exhaustion fails closed</text>
+  <line x1="640" y1="314" x2="960" y2="314" stroke="#9ab6a6"/>
+  <text x="640" y="342" class="metric">reachable nodes ≤ 250,000</text>
+  <text x="640" y="369" class="metric">witnesses ≤ 64; candidates ≤ 4,096</text>
+  <text x="640" y="396" class="metric">node evaluations ≤ 8,000,000</text>
+  <text x="640" y="422" class="small">Local evaluator width ≤ 4096 bits</text>
+
+  <rect x="615" y="470" width="370" height="195" class="box" fill="#f0f3f8" stroke="#70829a"/>
+  <text x="640" y="502" class="head">Layered adaptive state budget</text>
+  <text x="640" y="536" class="metric">SYMCC_ADAPTIVE_STATE_ENTRIES</text>
+  <text x="640" y="565" class="body">contexts / replay / path visits</text>
+  <text x="640" y="593" class="body">data winners / concurrency / CSTG sidecar</text>
+  <text x="640" y="621" class="body">SimiFuzz workers / profiles / pending</text>
+  <text x="640" y="648" class="small">Relative retry_after binds to the new monotonic clock</text>
+
+  <path d="M985 317 C1060 317 1085 255 1160 255" class="arrow"/>
+  <path d="M985 567 C1060 567 1085 590 1160 590" class="arrow"/>
+
+  <rect x="1160" y="200" width="370" height="145" class="box" fill="#fff1e5" stroke="#b36a35"/>
+  <text x="1185" y="232" class="head">PrefixDAG + MultiGo</text>
+  <text x="1185" y="264" class="body">nodes ≤ 65,536; cache ≤ 2N</text>
+  <text x="1185" y="292" class="body">Space-Saving site-frequency sketch</text>
+  <text x="1185" y="320" class="small">Approximate low counts; bounded over the site domain</text>
+
+  <rect x="1160" y="375" width="370" height="125" class="box" fill="#e8f1fa" stroke="#4d78a1"/>
+  <text x="1185" y="407" class="head">CSTG actionseed</text>
+  <text x="1185" y="439" class="body">Build seed → actions in one grouping pass</text>
+  <text x="1185" y="472" class="metric">Assembly: O(C × S) → O(C)</text>
+
+  <rect x="1160" y="530" width="370" height="135" class="box" fill="#edf5ec" stroke="#5d8b66"/>
+  <text x="1185" y="562" class="head">Data coverage path index</text>
+  <text x="1185" y="594" class="body">Update quality_sum,count on winner changes</text>
+  <text x="1185" y="626" class="metric">path_bonus: O(F) → O(1)</text>
+  <text x="1185" y="652" class="small">Restore reconstructs the same aggregate</text>
+
+  <path d="M1345 345 L1345 375" class="dash"/>
+  <path d="M1345 500 L1345 530" class="dash"/>
+
+  <rect x="70" y="715" width="1460" height="115" rx="6" fill="#172235"/>
+  <text x="100" y="752" class="lane">UNCHANGED CORRECTNESS BOUNDARY</text>
+  <text x="100" y="782" style="font: 400 16px system-ui, sans-serif; fill: #e4eaf2;">Candidates must satisfy every Query IR root; target replay and the AFL oracle retain final authority.</text>
+  <text x="100" y="809" style="font: 400 15px ui-monospace, monospace; fill: #9fd6b5;">81,920 winners × 512 queries: 0.724276737 s → 0.000077346 s; checksum equal (kernel evidence only)</text>
+</svg>

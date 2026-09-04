@@ -1,0 +1,37 @@
+Research snapshot date: 2026-08-26 UTC
+
+Cottontail: Large Language Model-Driven Concolic Execution for Highly
+Structured Test Input Generation, IEEE S&P 2026.
+Paper: https://haoxintu.github.io/files/sp2026-cottontail.pdf
+Official artifact: https://github.com/Cottontail-Proj/cottontail
+Artifact HEAD: 4efa4dcf8225040feeef8fd7017d32aaa21c9340
+Local use: structured candidate actions, history acquisition and iterative
+verified outcomes. No claim of a compiler/prompt/benchmark reproduction.
+
+Large Language Model Assisted Hybrid Fuzzing (HyLLfuzz), arXiv:2412.15931.
+Paper: https://arxiv.org/abs/2412.15931
+Official artifact: https://github.com/mengrj/hyllfuzz
+Artifact HEAD: 2f784572fca67a04db4d12e17e02bb9e5e164f97
+Local use: react at coverage/solver roadblocks and expose bounded trace/taint
+evidence. The local task is not an equivalent source-level backward slice.
+
+ConcoLixir: Reactive LLM Discovery Oracles for Python Concolic Testing,
+arXiv:2606.26545, v1 2026-06-25.
+Paper: https://arxiv.org/abs/2606.26545
+Local use: the model is a bounded discovery oracle after solver failure or
+coverage plateau, never the solver/correctness oracle.
+
+Agolic: Agentic Planning for Symbolic Execution, arXiv:2608.06397,
+v1 2026-07-31.
+Paper: https://arxiv.org/abs/2608.06397
+Local use: verified evidence from earlier bounded runs configures later runs;
+the underlying executor remains authoritative.
+
+ConcoLLMic: Agentic Concolic Execution.
+Official artifact: https://github.com/ConcoLLMic/ConcoLLMic
+Artifact HEAD: 9634e68698a2048babbf811991f1a993a897a3a2
+Local context: compared against the pre-existing action-seed/route interface;
+F455 does not claim a full ConcoLLMic reproduction.
+
+All published performance numbers belong to their respective papers. F455's
+fixed-backend mechanism oracle is not evidence for those numbers.

@@ -1,0 +1,71 @@
+{
+  "claim_boundary": "Mechanism-only synthetic rarity, selection, normalization, and persistence cost; no target coverage, solver-throughput, or bug-yield claim.",
+  "dataset": {
+    "features": 4,
+    "observations": 4,
+    "parameters": [
+      "SYMCC_BACKSOLVER",
+      "SYMCC_PREFIX_CONTEXT_CACHE"
+    ]
+  },
+  "iterations": 1000,
+  "latency": {
+    "bound_three_file_state_reload": {
+      "max_us": 2981.304,
+      "median_us": 700.904,
+      "p95_us": 791.521
+    },
+    "branch_trace_normalization_128": {
+      "max_us": 92.989,
+      "median_us": 79.099,
+      "p95_us": 84.758
+    },
+    "hierarchical_parameter_selection": {
+      "max_us": 78.758,
+      "median_us": 9.274,
+      "p95_us": 10.425
+    },
+    "parasuit_parameter_selection": {
+      "max_us": 31.598,
+      "median_us": 22.554,
+      "p95_us": 23.215
+    },
+    "rarity_analysis": {
+      "max_us": 6.63,
+      "median_us": 3.716,
+      "p95_us": 3.786
+    }
+  },
+  "oracle": {
+    "analysis_digests": 1,
+    "baseline": {
+      "SYMCC_BACKSOLVER": 1.5,
+      "SYMCC_PREFIX_CONTEXT_CACHE": 0.5
+    },
+    "combined": {
+      "SYMCC_BACKSOLVER": 0.0,
+      "SYMCC_PREFIX_CONTEXT_CACHE": 1.0
+    },
+    "normalized": {
+      "SYMCC_BACKSOLVER": 0.0,
+      "SYMCC_PREFIX_CONTEXT_CACHE": 1.0
+    },
+    "penalized": {
+      "SYMCC_BACKSOLVER": 1,
+      "SYMCC_PREFIX_CONTEXT_CACHE": 0
+    },
+    "selected": [
+      "SYMCC_PREFIX_CONTEXT_CACHE"
+    ],
+    "selection_digests": 1
+  },
+  "schema": "symcc-f398-parasuit-parameter-policy-benchmark-v1",
+  "state": {
+    "base_bytes": 15534,
+    "restored_coverage_observations": 1,
+    "selection_sidecar_bytes": 925,
+    "state_rejections": 0,
+    "value_sidecar_bytes": 923
+  },
+  "upstream_revision": "e991924b827db80b117e1f5389fe07820bad13f0"
+}

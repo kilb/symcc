@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="940" viewBox="0 0 1600 940" role="img" aria-labelledby="title desc">
+  <title id="title">F319 shared MPI lifecycle and ordered quiescence</title>
+  <desc id="desc">Worker READY and RESULT join, acknowledged local shutdown, exact-token master statistics exchange, and bounded final barrier.</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#17212b" flood-opacity="0.13"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#15803d"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#b91c1c"/>
+    </marker>
+    <style>
+      .title{font:700 34px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#17212b}
+      .sub{font:400 18px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#52606d}
+      .lane{font:700 22px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#17212b}
+      .h{font:700 18px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#17212b}
+      .t{font:400 15px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#334155}
+      .small{font:500 13px ui-monospace,SFMono-Regular,Consolas,monospace;fill:#475569}
+      .white{fill:#fff}
+    </style>
+  </defs>
+
+  <rect width="1600" height="940" fill="#f8fafc"/>
+  <rect x="0" y="0" width="1600" height="105" fill="#ffffff"/>
+  <path d="M0 104 H1600" stroke="#cbd5e1"/>
+  <text x="70" y="52" class="title">F319 共享 MPI 生命周期与有序静止协议</text>
+  <text x="70" y="82" class="sub">跨 tag 汇合、晚到结果守恒、exact ACK、有限 deadline 与显式失败</text>
+
+  <g filter="url(#shadow)">
+    <rect x="65" y="140" width="330" height="650" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+    <rect x="445" y="140" width="480" height="650" rx="8" fill="#ffffff" stroke="#60a5fa"/>
+    <rect x="975" y="140" width="270" height="650" rx="8" fill="#ffffff" stroke="#34d399"/>
+    <rect x="1295" y="140" width="240" height="650" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  </g>
+
+  <rect x="65" y="140" width="330" height="64" rx="8" fill="#e2e8f0"/>
+  <rect x="445" y="140" width="480" height="64" rx="8" fill="#dbeafe"/>
+  <rect x="975" y="140" width="270" height="64" rx="8" fill="#d1fae5"/>
+  <rect x="1295" y="140" width="240" height="64" rx="8" fill="#e2e8f0"/>
+  <text x="230" y="181" text-anchor="middle" class="lane">Worker rank</text>
+  <text x="685" y="181" text-anchor="middle" class="lane">Local master + mpi_lifecycle</text>
+  <text x="1110" y="181" text-anchor="middle" class="lane">Root master</text>
+  <text x="1415" y="181" text-anchor="middle" class="lane">Job exit</text>
+
+  <line x1="230" y1="220" x2="230" y2="755" stroke="#94a3b8" stroke-dasharray="5 7"/>
+  <line x1="685" y1="220" x2="685" y2="755" stroke="#60a5fa" stroke-dasharray="5 7"/>
+  <line x1="1110" y1="220" x2="1110" y2="755" stroke="#34d399" stroke-dasharray="5 7"/>
+  <line x1="1415" y1="220" x2="1415" y2="755" stroke="#94a3b8" stroke-dasharray="5 7"/>
+
+  <rect x="95" y="235" width="270" height="95" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+  <text x="115" y="266" class="h">1. RESULT / READY 可乱序观察</text>
+  <text x="115" y="293" class="t">worker 先发送 RESULT，再发送 READY；</text>
+  <text x="115" y="317" class="t">master 的选择性 tag probe 不假设观察顺序。</text>
+
+  <path d="M365 255 H610" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <text x="475" y="245" text-anchor="middle" class="small">READY may appear first</text>
+  <rect x="545" y="275" width="280" height="88" rx="6" fill="#eff6ff" stroke="#60a5fa"/>
+  <text x="565" y="304" class="h">AvailabilityGate 停泊 READY</text>
+  <text x="565" y="330" class="t">active ownership 尚未退役：不可 claim</text>
+  <text x="565" y="352" class="small">eligible = ready - active</text>
+  <path d="M365 350 H610" stroke="#15803d" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <text x="475" y="341" text-anchor="middle" class="small">validated RESULT</text>
+
+  <rect x="545" y="385" width="280" height="100" rx="6" fill="#ecfdf5" stroke="#34d399"/>
+  <text x="565" y="415" class="h">统一结果消费</text>
+  <text x="565" y="441" class="t">严格 hash / count 校验，先退役 owner；</text>
+  <text x="565" y="465" class="t">主循环与 shutdown late-result 共用。</text>
+
+  <path d="M610 515 H365" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <text x="485" y="505" text-anchor="middle" class="small">tokenized isend(STOP)</text>
+  <rect x="95" y="535" width="270" height="86" rx="6" fill="#fff7ed" stroke="#fb923c"/>
+  <text x="115" y="565" class="h">2. 本地资源清理</text>
+  <text x="115" y="591" class="t">run dir / profile / live state 完成后</text>
+  <text x="115" y="613" class="t">回显 source + rank + exact token ACK</text>
+  <path d="M365 640 H610" stroke="#15803d" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <text x="485" y="631" text-anchor="middle" class="small">TAG_STOP_ACK</text>
+
+  <rect x="545" y="655" width="280" height="92" rx="6" fill="#f0fdf4" stroke="#22c55e"/>
+  <text x="565" y="684" class="h">local group clean</text>
+  <text x="565" y="710" class="t">pending = 0 且 communication/result</text>
+  <text x="565" y="733" class="t">errors = 0；否则 Abort(70)</text>
+
+  <path d="M825 405 H1035" stroke="#15803d" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <text x="930" y="394" text-anchor="middle" class="small">stats-v1 + random token</text>
+  <rect x="1005" y="430" width="210" height="128" rx="6" fill="#ecfdf5" stroke="#34d399"/>
+  <text x="1025" y="461" class="h">3. Master 收敛</text>
+  <text x="1025" y="487" class="t">drain late hash traffic</text>
+  <text x="1025" y="512" class="t">strict schema / nonnegative int</text>
+  <text x="1025" y="537" class="t">每 peer 只接纳一次</text>
+  <path d="M1035 580 H825" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <text x="930" y="570" text-anchor="middle" class="small">exact-token stats ACK</text>
+
+  <path d="M1215 655 H1340" stroke="#15803d" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <path d="M825 655 H1340" stroke="#15803d" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <rect x="1325" y="675" width="180" height="72" rx="6" fill="#f0fdf4" stroke="#22c55e"/>
+  <text x="1415" y="705" text-anchor="middle" class="h">Ibarrier + Test</text>
+  <text x="1415" y="731" text-anchor="middle" class="t">deadline 内 Finalize</text>
+
+  <path d="M685 770 C685 820 1260 815 1370 765" fill="none" stroke="#b91c1c" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arrow-red)"/>
+  <text x="1010" y="812" text-anchor="middle" class="small">任一 deadline / protocol error: fail closed, Abort(70/71), 不进入无界 collective</text>
+
+  <rect x="65" y="840" width="1470" height="70" rx="7" fill="#17212b"/>
+  <text x="95" y="870" class="h white">核心不变量</text>
+  <text x="245" y="870" class="t white">READY 只表示接收边界，不会越过 active RESULT；ACK 只证明 exact generation 清理完成；</text>
+  <text x="245" y="894" class="t white">统计与 finalization 均有有限期限，通信错误不能被“最终收到了 ACK”掩盖。</text>
+</svg>

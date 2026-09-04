@@ -1,0 +1,33 @@
+Producer
+  compiler/ContinuationLowering.cpp
+  LiveFunctionAnalyses
+  promoteLiveScalarAllocas
+  MemorySSAHeapInitializationCertificate
+  memorySSAHeapInitialization
+  memorySSAHeapInitializationRecord
+  bounded-memoryssa-aa-heap-initialization
+  initialization_memoryssa
+
+Consumer and runtime trust boundary
+  util/live_continuation.py
+  _memoryssa_heap_initialization
+  symcc-memoryssa-aa-heap-initialization-v1
+  logical CFG predecessor reconstruction
+  store and memory-definition ordinal identity
+  runtime live/size/byte-init markers remain authoritative
+
+Production-chain tests
+  test/live_memoryssa_aa_heap_initialization.ll
+  test/live_guarded_heap_union_initialization.ll
+  test/live_collective_heap_union_initialization.ll
+  util/check_live_continuation_lowering.py
+  benchmark/generate_memoryssa_aa_heap_initialization_fixture.py
+
+Independent evidence
+  benchmark/check_memoryssa_aa_heap_initialization_oracles.py
+  benchmark/benchmark_memoryssa_aa_heap_initialization.py
+
+Documentation
+  docs/codex/research-progress/MemorySSA_AA_Heap_Initialization_F408_2026-08-16.md
+  docs/codex/diagrams/memoryssa-aa-heap-initialization-f408.svg
+  docs/codex/diagrams/memoryssa-aa-heap-initialization-f408.png

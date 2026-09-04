@@ -1,0 +1,35 @@
+
+digraph G {
+  graph [
+    bgcolor="white", pad="0.28", nodesep="0.38", ranksep="0.58",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=26,
+    labelloc="t", labeljust="l"
+  ];
+  node [
+    shape=box, style="rounded,filled", margin="0.18,0.12",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=13,
+    color="#CBD5E1", penwidth=1.3, fillcolor="#F8FAFC"
+  ];
+  edge [
+    fontname="WenQuanYi Zen Hei", fontcolor="#64748B", fontsize=11,
+    color="#64748B", penwidth=1.5, arrowsize=0.75
+  ];
+
+  label="图 4-2  种子长度决定可见符号变量与可达深度";
+  rankdir=TB;
+
+  target [label="目标链\nSYMC → n≥8 → buf[4]=3 → checksum=0x42", fillcolor="#FEF3C7", color="#D97706"];
+  long [label="8 字节种子 AAAAAAAA\n偏移 0…7 均可被读取和符号化", fillcolor="#CCFBF1", color="#0F766E"];
+  short [label="4 字节种子 AAAA\n只有偏移 0…3 存在", fillcolor="#FFEDD5", color="#C2410C"];
+  l1 [label="gen 0→4\nA… → S… → SY… → SYM… → SYMC…", fillcolor="#DBEAFE", color="#2563EB"];
+  l2 [label="gen 5\n求解 buf[4] = 3", fillcolor="#DBEAFE", color="#2563EB"];
+  l3 [label="gen 6\n一次 Z3 求解 3 字节 checksum\n命中深层代码", fillcolor="#DCFCE7", color="#15803D"];
+  s1 [label="gen 0→4\n同样得到 SYMC", fillcolor="#DBEAFE", color="#2563EB"];
+  eof [label="n = read() 返回值 = 4\n具体值，不是符号分支", fillcolor="#FEE2E2", color="#B91C1C"];
+  stuck [label="不动点\n求解器不能创造未建模字节", fillcolor="#FEE2E2", color="#B91C1C"];
+
+  target -> {long short};
+  long -> l1 -> l2 -> l3;
+  short -> s1 -> eof -> stuck;
+
+}

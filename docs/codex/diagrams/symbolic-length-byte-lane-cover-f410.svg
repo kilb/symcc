@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      .title { font: 700 42px 'WenQuanYi Zen Hei', 'Noto Sans CJK SC', sans-serif; fill: #17212b; }
+      .subtitle { font: 400 20px 'WenQuanYi Zen Hei', 'Noto Sans CJK SC', sans-serif; fill: #52616d; }
+      .head { font: 700 24px 'WenQuanYi Zen Hei', 'Noto Sans CJK SC', sans-serif; fill: #17212b; }
+      .body { font: 400 19px 'WenQuanYi Zen Hei', 'Noto Sans CJK SC', sans-serif; fill: #27343c; }
+      .small { font: 400 16px 'WenQuanYi Zen Hei', 'Noto Sans CJK SC', sans-serif; fill: #53616a; }
+      .mono { font: 600 16px 'DejaVu Sans Mono', monospace; fill: #26343b; }
+      .label { font: 700 16px 'WenQuanYi Zen Hei', 'Noto Sans CJK SC', sans-serif; fill: #fff; }
+      .metric { font: 700 27px 'DejaVu Sans', sans-serif; fill: #17212b; }
+      .metriclabel { font: 400 15px 'WenQuanYi Zen Hei', 'Noto Sans CJK SC', sans-serif; fill: #52616d; }
+      .metricwhite { font: 700 27px 'DejaVu Sans', sans-serif; fill: #fff; }
+      .metriclabelwhite { font: 400 15px 'WenQuanYi Zen Hei', 'Noto Sans CJK SC', sans-serif; fill: #dce4e7; }
+      .foot { font: 400 16px 'WenQuanYi Zen Hei', 'Noto Sans CJK SC', sans-serif; fill: #cfd8dc; }
+      .arrow { stroke: #5d6a73; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .dash { stroke: #74818a; stroke-width: 2.4; stroke-dasharray: 9 7; fill: none; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5d6a73"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#25313a" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#f7f8f6"/>
+  <rect x="0" y="0" width="1920" height="10" fill="#cf5d4c"/>
+  <text x="68" y="74" class="title">F410  符号长度区域效应 × 动态索引 Byte-Lane Cover</text>
+  <text x="68" y="109" class="subtitle">静态证明有限地址域完整映射，运行时 bitmap 决定当前 length/index 组合是否可读</text>
+
+  <g filter="url(#shadow)">
+    <rect x="68" y="148" width="530" height="570" rx="8" fill="#fff" stroke="#d0d7da" stroke-width="2"/>
+    <rect x="695" y="148" width="530" height="570" rx="8" fill="#fff" stroke="#d0d7da" stroke-width="2"/>
+    <rect x="1322" y="148" width="530" height="570" rx="8" fill="#fff" stroke="#d0d7da" stroke-width="2"/>
+  </g>
+
+  <rect x="68" y="148" width="530" height="60" rx="8" fill="#266d75"/>
+  <rect x="695" y="148" width="530" height="60" rx="8" fill="#d18b28"/>
+  <rect x="1322" y="148" width="530" height="60" rx="8" fill="#66598d"/>
+  <text x="98" y="187" class="label">1  PRODUCER：有界区域效应</text>
+  <text x="725" y="187" class="label">2  CERTIFICATE：全量 lane cover</text>
+  <text x="1352" y="187" class="label">3  RUNTIME：实际 definedness</text>
+
+  <rect x="102" y="242" width="462" height="94" rx="8" fill="#e7f3f3" stroke="#72aeb2" stroke-width="2"/>
+  <text x="128" y="278" class="head">对象容量闭合</text>
+  <text x="128" y="311" class="mono">C = min(object span, 64)</text>
+
+  <path d="M333 336 L333 371" class="arrow"/>
+  <rect x="102" y="372" width="462" height="132" rx="8" fill="#fff2df" stroke="#dfa754" stroke-width="2"/>
+  <text x="128" y="408" class="head">符号长度不分叉</text>
+  <text x="128" y="442" class="mono">assume  n ≤ᵤ C</text>
+  <text x="128" y="476" class="mono">gₖ := (k &lt;ᵤ n),  0 ≤ k &lt; C</text>
+
+  <path d="M333 504 L333 539" class="arrow"/>
+  <rect x="102" y="540" width="462" height="138" rx="8" fill="#eef5e9" stroke="#86ae73" stroke-width="2"/>
+  <text x="128" y="576" class="head">条件 byte effect</text>
+  <text x="128" y="610" class="mono">M'[base+k] = ite(gₖ, new, old)</text>
+  <text x="128" y="642" class="small">copy/move：全部 source reads 先于 writes</text>
+  <text x="128" y="668" class="small">MemorySSA 线性链 · 唯一 region writer</text>
+
+  <path d="M598 433 C640 433 652 332 695 332" class="arrow"/>
+
+  <rect x="729" y="242" width="462" height="120" rx="8" fill="#fff2df" stroke="#dfa754" stroke-width="2"/>
+  <text x="755" y="278" class="head">有限动态地址域</text>
+  <text x="755" y="312" class="mono">A = {a₀, a₁, …, aₘ}</text>
+  <text x="755" y="340" class="small">index bits / min / max / exact values</text>
+
+  <path d="M960 362 L960 397" class="arrow"/>
+  <rect x="729" y="398" width="462" height="148" rx="8" fill="#f7eddd" stroke="#caa16a" stroke-width="2"/>
+  <text x="755" y="434" class="head">精确笛卡尔积见证</text>
+  <text x="755" y="469" class="mono">∀ a∈A, ∀ lane∈[0,w)</text>
+  <text x="755" y="503" class="mono">offset = a + lane - writer</text>
+  <text x="755" y="531" class="small">0 ≤ offset &lt; C · 最多 2,048 witnesses</text>
+
+  <path d="M960 546 L960 581" class="arrow"/>
+  <rect x="729" y="582" width="462" height="96" rx="8" fill="#f0edf7" stroke="#9b8db8" stroke-width="2"/>
+  <text x="755" y="618" class="head">v1 transcript 严格闭合</text>
+  <text x="755" y="650" class="small">writer site · length · aliases · lanes · skipped defs</text>
+
+  <path d="M1225 433 C1270 433 1278 332 1322 332" class="arrow"/>
+
+  <rect x="1356" y="242" width="462" height="118" rx="8" fill="#f0edf7" stroke="#9b8db8" stroke-width="2"/>
+  <text x="1382" y="278" class="head">Consumer 重放</text>
+  <text x="1382" y="312" class="body">schema · 顺序 · CFG dominance · owner</text>
+  <text x="1382" y="340" class="small">guard/write/read/lane 任一替换均失败关闭</text>
+
+  <path d="M1587 360 L1587 395" class="arrow"/>
+  <rect x="1356" y="396" width="462" height="132" rx="8" fill="#e8f4ee" stroke="#76a58a" stroke-width="2"/>
+  <text x="1382" y="432" class="head">逐字节初始化 bitmap</text>
+  <text x="1382" y="467" class="mono">I'[base+k] = I[base+k] ∨ gₖ</text>
+  <text x="1382" y="500" class="small">证书不直接设置 initialized；实际 store 才更新</text>
+
+  <path d="M1587 528 L1587 563" class="arrow"/>
+  <rect x="1356" y="564" width="462" height="114" rx="8" fill="#e9f1f5" stroke="#78a0b3" stroke-width="2"/>
+  <text x="1382" y="600" class="head">动态 load 可读条件</text>
+  <text x="1382" y="635" class="mono">address=a ∧ ∧ₗ I[a+l]</text>
+  <text x="1382" y="663" class="small">未初始化组合 → solver-infeasible</text>
+
+  <rect x="68" y="756" width="1784" height="160" rx="8" fill="#fff" stroke="#d0d7da" stroke-width="2" filter="url(#shadow)"/>
+  <text x="98" y="794" class="head">运行时示意：C = 8，n = 5，动态 i16 load</text>
+
+  <g transform="translate(100 816)">
+    <rect x="0" y="0" width="86" height="58" fill="#2f7d71" stroke="#fff" stroke-width="2"/>
+    <rect x="86" y="0" width="86" height="58" fill="#2f7d71" stroke="#fff" stroke-width="2"/>
+    <rect x="172" y="0" width="86" height="58" fill="#2f7d71" stroke="#fff" stroke-width="2"/>
+    <rect x="258" y="0" width="86" height="58" fill="#2f7d71" stroke="#fff" stroke-width="2"/>
+    <rect x="344" y="0" width="86" height="58" fill="#2f7d71" stroke="#fff" stroke-width="2"/>
+    <rect x="430" y="0" width="86" height="58" fill="#d9dee1" stroke="#fff" stroke-width="2"/>
+    <rect x="516" y="0" width="86" height="58" fill="#d9dee1" stroke="#fff" stroke-width="2"/>
+    <rect x="602" y="0" width="86" height="58" fill="#d9dee1" stroke="#fff" stroke-width="2"/>
+    <text x="36" y="36" class="label">0</text><text x="122" y="36" class="label">1</text>
+    <text x="208" y="36" class="label">2</text><text x="294" y="36" class="label">3</text>
+    <text x="380" y="36" class="label">4</text><text x="466" y="36" class="body">5</text>
+    <text x="552" y="36" class="body">6</text><text x="638" y="36" class="body">7</text>
+  </g>
+  <text x="835" y="838" class="body">index = 3：lane {3,4} 均 initialized</text>
+  <rect x="817" y="852" width="448" height="42" rx="6" fill="#e8f4ee" stroke="#76a58a"/>
+  <text x="839" y="880" class="mono">readable(3) = true</text>
+  <text x="1330" y="838" class="body">index = 4：lane {4,5} 含未初始化字节</text>
+  <rect x="1312" y="852" width="482" height="42" rx="6" fill="#faece8" stroke="#ce7867"/>
+  <text x="1334" y="880" class="mono">readable(4) = false → infeasible</text>
+
+  <rect x="68" y="948" width="1784" height="88" rx="8" fill="#25323a"/>
+  <text x="98" y="981" class="label">已封存证据</text>
+  <text x="268" y="981" class="metricwhite">48,294</text>
+  <text x="398" y="981" class="metriclabelwhite">cases</text>
+  <text x="500" y="981" class="metricwhite">364,317</text>
+  <text x="652" y="981" class="metriclabelwhite">lane checks</text>
+  <text x="804" y="981" class="metricwhite">102,004</text>
+  <text x="948" y="981" class="metriclabelwhite">guard equivalences</text>
+  <text x="1154" y="981" class="metricwhite">22</text>
+  <text x="1200" y="981" class="metriclabelwhite">LLVM RUN</text>
+  <text x="1355" y="981" class="metricwhite">0</text>
+  <text x="1380" y="981" class="metriclabelwhite">state forks at 64-byte boundary</text>
+  <text x="98" y="1014" class="foot">边界：有界机制证据；不代表公共目标 coverage、solver throughput、bug yield 或 end-to-end speedup。</text>
+</svg>

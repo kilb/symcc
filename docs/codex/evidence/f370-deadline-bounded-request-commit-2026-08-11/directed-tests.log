@@ -1,0 +1,3 @@
+$ PYTHONDONTWRITEBYTECODE=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q test/test_query_store.py
+....................                                         [100%]
+20 passed, 12 subtests passed in 4.66s

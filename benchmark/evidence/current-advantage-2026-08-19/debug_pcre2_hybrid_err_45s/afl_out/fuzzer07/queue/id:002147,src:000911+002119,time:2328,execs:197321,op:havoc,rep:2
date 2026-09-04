@@ -1,0 +1,4 @@
+(bad)*
+(foo|bfooo|bad)*
+(foo|bao|bad)*
+(foo|bad)*

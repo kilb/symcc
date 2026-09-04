@@ -1,0 +1,124 @@
+{
+  "schema": "symcc-parallel-scale-analysis-v1",
+  "target": "synthetic-parallel_scaling",
+  "mode": "mpi",
+  "input_csv": [
+    "/home/ubuntu/code/symcc/benchmark/evidence/parallel-scale-study-2026-08-20/synthetic_mpi_60s_r3/benchmark_data.csv"
+  ],
+  "parallel_unit": "concolic-workers",
+  "summaries": [
+    {
+      "workers": 1,
+      "np": 2,
+      "rounds": 3,
+      "generated_rate": 42.90162935728019,
+      "generated_rate_ci_low": 42.84274067494571,
+      "generated_rate_ci_high": 42.960518039614676,
+      "unique_rate": 16.214217488290117,
+      "unique_rate_ci_low": 16.200608142942922,
+      "unique_rate_ci_high": 16.227826833637312,
+      "edges": 155.0,
+      "edges_ci_low": 155.0,
+      "edges_ci_high": 155.0,
+      "acceptance_ratio": 0.37793943333153723
+    },
+    {
+      "workers": 3,
+      "np": 4,
+      "rounds": 3,
+      "generated_rate": 67.59934165041398,
+      "generated_rate_ci_low": 66.06476726982095,
+      "generated_rate_ci_high": 69.133916031007,
+      "unique_rate": 23.796773551875827,
+      "unique_rate_ci_low": 23.4856302564017,
+      "unique_rate_ci_high": 24.107916847349955,
+      "edges": 182.33333333333334,
+      "edges_ci_low": 181.02666666666667,
+      "edges_ci_high": 183.64000000000001,
+      "acceptance_ratio": 0.35202670574721634
+    },
+    {
+      "workers": 7,
+      "np": 8,
+      "rounds": 3,
+      "generated_rate": 95.27895145654868,
+      "generated_rate_ci_low": 93.52920982006749,
+      "generated_rate_ci_high": 97.02869309302987,
+      "unique_rate": 31.361074250809235,
+      "unique_rate_ci_low": 31.161188755716758,
+      "unique_rate_ci_high": 31.560959745901712,
+      "edges": 193.0,
+      "edges_ci_low": 183.2,
+      "edges_ci_high": 202.8,
+      "acceptance_ratio": 0.3291500774450823
+    },
+    {
+      "workers": 15,
+      "np": 16,
+      "rounds": 3,
+      "generated_rate": 117.87581804817067,
+      "generated_rate_ci_low": 116.14249129359602,
+      "generated_rate_ci_high": 119.60914480274532,
+      "unique_rate": 36.46883886555116,
+      "unique_rate_ci_low": 36.282888727787736,
+      "unique_rate_ci_high": 36.65478900331459,
+      "edges": 190.33333333333334,
+      "edges_ci_low": 185.76000000000002,
+      "edges_ci_high": 194.90666666666667,
+      "acceptance_ratio": 0.30938354846155086
+    },
+    {
+      "workers": 31,
+      "np": 32,
+      "rounds": 3,
+      "generated_rate": 131.18960938564402,
+      "generated_rate_ci_low": 127.91800224075442,
+      "generated_rate_ci_high": 134.46121653053362,
+      "unique_rate": 40.03623669990115,
+      "unique_rate_ci_low": 39.54232878011406,
+      "unique_rate_ci_high": 40.530144619688244,
+      "edges": 191.33333333333334,
+      "edges_ci_low": 185.75125088639257,
+      "edges_ci_high": 196.91541578027412,
+      "acceptance_ratio": 0.3051784122796717
+    }
+  ],
+  "unique_throughput_usl": {
+    "scale": 14.170629231353253,
+    "contention": 0.34339572906494137,
+    "coherency": 0.0,
+    "r_squared": 0.9762121987438985,
+    "rmse": 1.3308207683779294,
+    "analytic_peak": null,
+    "doubling_ceiling": 9
+  },
+  "generated_throughput_usl": {
+    "scale": 35.55617476364743,
+    "contention": 0.25222091674804686,
+    "coherency": 0.0,
+    "r_squared": 0.9817704228155438,
+    "rmse": 4.365380663655805,
+    "analytic_peak": null,
+    "doubling_ceiling": 14
+  },
+  "coverage_saturation": {
+    "seed_edges": 2.0,
+    "baseline_parallelism": 1,
+    "baseline_edges": 155.0,
+    "asymptotic_gain": 38.000038,
+    "rate": 0.6434851568233921,
+    "r_squared": 0.8437379991140409,
+    "rmse": 1.622857297053184,
+    "edge_gain_ceiling": 7,
+    "asymptotic_edges": 193.00003800000002
+  },
+  "ceiling": {
+    "recommended_parallelism": 7,
+    "usl_ceiling": 9,
+    "coverage_ceiling": 7,
+    "resource_ceiling": 95,
+    "limiting_factors": [
+      "coverage-novelty"
+    ]
+  }
+}

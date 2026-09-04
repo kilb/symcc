@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1120" viewBox="0 0 1800 1120">
+  <defs>
+    <style>
+      .title { font: 700 42px 'DejaVu Sans', sans-serif; fill: #17202a; }
+      .subtitle { font: 400 21px 'DejaVu Sans', sans-serif; fill: #46515c; }
+      .phase { font: 700 25px 'DejaVu Sans', sans-serif; fill: #17202a; }
+      .label { font: 700 19px 'DejaVu Sans', sans-serif; fill: #17202a; }
+      .body { font: 400 17px 'DejaVu Sans', sans-serif; fill: #26323d; }
+      .small { font: 400 15px 'DejaVu Sans', sans-serif; fill: #46515c; }
+      .mono { font: 500 15px 'DejaVu Sans Mono', monospace; fill: #17202a; }
+      .white { fill: #ffffff; }
+      .line { stroke: #52606d; stroke-width: 3; fill: none; }
+      .dash { stroke: #7b8794; stroke-width: 2; stroke-dasharray: 8 7; fill: none; }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#52606d"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#b42318"/>
+    </marker>
+  </defs>
+
+  <rect width="1800" height="1120" fill="#f7f9fb"/>
+  <rect x="0" y="0" width="1800" height="112" fill="#ffffff"/>
+  <rect x="0" y="108" width="1800" height="4" fill="#167d88"/>
+  <text x="72" y="60" class="title">F441  Generation-Fenced MPI / ULFM Recovery</text>
+  <text x="74" y="91" class="subtitle">Transport ranks are disposable  |  endpoint and shard identities are durable  |  every old lease is fenced before replay</text>
+
+  <g>
+    <circle cx="126" cy="174" r="25" fill="#2667a8"/><text x="118" y="182" class="label white">1</text>
+    <text x="165" y="182" class="phase">Generation g</text>
+    <circle cx="533" cy="174" r="25" fill="#b42318"/><text x="525" y="182" class="label white">2</text>
+    <text x="572" y="182" class="phase">Failure &amp; revoke</text>
+    <circle cx="941" cy="174" r="25" fill="#c27b17"/><text x="933" y="182" class="label white">3</text>
+    <text x="980" y="182" class="phase">Shrink &amp; attest</text>
+    <circle cx="1397" cy="174" r="25" fill="#2f7d4c"/><text x="1389" y="182" class="label white">4</text>
+    <text x="1436" y="182" class="phase">Commit g+1</text>
+  </g>
+
+  <!-- old generation -->
+  <g>
+    <rect x="62" y="220" width="350" height="410" rx="8" fill="#eaf2fb" stroke="#2667a8" stroke-width="3"/>
+    <text x="88" y="260" class="label">Durable generation state</text>
+    <rect x="91" y="287" width="292" height="84" rx="6" fill="#ffffff" stroke="#6f9bc8" stroke-width="2"/>
+    <text x="112" y="319" class="mono">generation_token(g)</text>
+    <text x="112" y="346" class="small">hash(run, members, generation)</text>
+    <text x="89" y="405" class="label">Stable endpoint → MPI rank</text>
+    <g fill="#ffffff" stroke="#6f9bc8" stroke-width="2">
+      <rect x="91" y="426" width="292" height="42" rx="5"/>
+      <rect x="91" y="477" width="292" height="42" rx="5"/>
+      <rect x="91" y="528" width="292" height="42" rx="5"/>
+    </g>
+    <text x="112" y="453" class="mono">endpoint-A  → rank 0</text>
+    <text x="112" y="504" class="mono">endpoint-B  → rank 1</text>
+    <text x="112" y="555" class="mono">endpoint-C  → rank 2</text>
+    <text x="237" y="600" class="small" text-anchor="middle">Shard: owner + token</text>
+    <text x="237" y="621" class="small" text-anchor="middle">checkpoint + cursor</text>
+  </g>
+
+  <!-- failure -->
+  <g>
+    <rect x="458" y="220" width="345" height="410" rx="8" fill="#fff0ee" stroke="#b42318" stroke-width="3"/>
+    <text x="484" y="260" class="label">Rank / node loss observed</text>
+    <rect x="492" y="290" width="277" height="88" rx="6" fill="#ffffff" stroke="#d77b70" stroke-width="2"/>
+    <text x="515" y="322" class="mono">ERR_PROC_FAILED</text>
+    <text x="515" y="349" class="small">or heartbeat/supervisor suspicion</text>
+    <path d="M521 421 L741 421" stroke="#b42318" stroke-width="5"/>
+    <path d="M609 396 L653 447 M653 396 L609 447" stroke="#b42318" stroke-width="7"/>
+    <text x="631" y="481" class="label" text-anchor="middle" fill="#8f1d13">endpoint-C / rank 2 lost</text>
+    <rect x="492" y="512" width="277" height="80" rx="6" fill="#b42318"/>
+    <text x="631" y="545" class="label white" text-anchor="middle">MPI_Comm_revoke</text>
+    <text x="631" y="570" class="small white" text-anchor="middle">old transport becomes unusable</text>
+  </g>
+
+  <!-- shrink and attest -->
+  <g>
+    <rect x="850" y="220" width="435" height="410" rx="8" fill="#fff5e5" stroke="#c27b17" stroke-width="3"/>
+    <text x="878" y="260" class="label">Repair transport, then bind identity</text>
+    <rect x="882" y="288" width="371" height="76" rx="6" fill="#ffffff" stroke="#d79b4a" stroke-width="2"/>
+    <text x="905" y="320" class="mono">MPI_Comm_shrink()</text>
+    <text x="905" y="346" class="small">survivors receive dense new ranks</text>
+    <path d="M930 405 L1207 405" class="dash"/>
+    <text x="900" y="439" class="mono">endpoint-A: old 0 → new 0</text>
+    <text x="900" y="469" class="mono">endpoint-B: old 1 → new 1</text>
+    <text x="900" y="499" class="mono" fill="#b42318">endpoint-C: missing</text>
+    <rect x="882" y="528" width="371" height="72" rx="6" fill="#ffffff" stroke="#d79b4a" stroke-width="2"/>
+    <text x="905" y="557" class="body">2-stage bounded Iallgather + Agree</text>
+    <text x="905" y="582" class="small">incarnation, host, old/new rank, base token</text>
+  </g>
+
+  <!-- new generation -->
+  <g>
+    <rect x="1332" y="220" width="406" height="410" rx="8" fill="#eaf6ee" stroke="#2f7d4c" stroke-width="3"/>
+    <text x="1360" y="260" class="label">Atomic recovery commit</text>
+    <circle cx="1379" cy="309" r="10" fill="#2f7d4c"/>
+    <text x="1402" y="315" class="body">generation := g + 1</text>
+    <circle cx="1379" cy="351" r="10" fill="#2f7d4c"/>
+    <text x="1402" y="357" class="body">new membership token</text>
+    <circle cx="1379" cy="393" r="10" fill="#2f7d4c"/>
+    <text x="1402" y="399" class="body">failed-owner shards rebalanced</text>
+    <circle cx="1379" cy="435" r="10" fill="#2f7d4c"/>
+    <text x="1402" y="441" class="body">all in-flight leases requeued</text>
+    <circle cx="1379" cy="477" r="10" fill="#2f7d4c"/>
+    <text x="1402" y="483" class="body">new shard and lease tokens</text>
+    <rect x="1360" y="521" width="350" height="77" rx="6" fill="#2f7d4c"/>
+    <text x="1535" y="552" class="label white" text-anchor="middle">SEALED RECOVERY RECEIPT</text>
+    <text x="1535" y="575" class="small white" text-anchor="middle">membership + conservation</text>
+    <text x="1535" y="594" class="small white" text-anchor="middle">post-state SHA-256</text>
+  </g>
+
+  <path d="M412 425 L458 425" class="line" marker-end="url(#arrow)"/>
+  <path d="M803 425 L850 425" class="line" marker-end="url(#arrow)"/>
+  <path d="M1285 425 L1332 425" class="line" marker-end="url(#arrow)"/>
+
+  <!-- persistent state lane -->
+  <rect x="62" y="681" width="1676" height="170" rx="8" fill="#ffffff" stroke="#66788a" stroke-width="2"/>
+  <text x="90" y="721" class="phase">Persistent shard and lease lane</text>
+  <line x1="90" y1="738" x2="1710" y2="738" class="dash"/>
+  <text x="104" y="774" class="mono">before failure</text>
+  <text x="104" y="802" class="small">shard S → endpoint-C; work Q; checkpoint H; cursor k; lease L(g)</text>
+  <path d="M574 790 L711 790" class="line" marker-end="url(#arrow)"/>
+  <text x="754" y="774" class="mono">recovery queue</text>
+  <text x="754" y="802" class="small">preserve Q + H + k; never accept L(g) again</text>
+  <path d="M1181 790 L1306 790" class="line" marker-end="url(#arrow)"/>
+  <text x="1342" y="774" class="mono">after replay</text>
+  <text x="1342" y="802" class="small">new owner + L(g+1) + durable completion chain</text>
+  <text x="90" y="834" class="small">Conservative rule: even survivor-owned in-flight work is replayed because the old result route has been revoked.</text>
+
+  <!-- evidence lane -->
+  <rect x="62" y="890" width="1676" height="154" rx="8" fill="#eef5f2" stroke="#327a65" stroke-width="2"/>
+  <text x="90" y="930" class="phase">Three non-interchangeable evidence levels</text>
+  <rect x="93" y="952" width="482" height="62" rx="6" fill="#ffffff" stroke="#70a89a" stroke-width="2"/>
+  <text x="115" y="978" class="label">Protocol oracle</text>
+  <text x="115" y="1002" class="small">12 endpoints / 96 shards; exact replay and fencing</text>
+  <rect x="659" y="952" width="482" height="62" rx="6" fill="#ffffff" stroke="#70a89a" stroke-width="2"/>
+  <text x="681" y="978" class="label">Live capability</text>
+  <text x="681" y="1002" class="small">4 ranks; Revoke / Shrink / Agree on duplicate comm</text>
+  <rect x="1225" y="952" width="482" height="62" rx="6" fill="#ffffff" stroke="#70a89a" stroke-width="2"/>
+  <text x="1247" y="978" class="label">Physical failure</text>
+  <text x="1247" y="1002" class="small">rank exits; 4 → 3; identical survivor receipts</text>
+
+  <text x="62" y="1091" class="small">Fail closed: malformed/duplicate attestation, non-dense rank map, extra disappearance, stale generation, queue overflow, timeout, or receipt/state mismatch produces no committed generation.</text>
+</svg>

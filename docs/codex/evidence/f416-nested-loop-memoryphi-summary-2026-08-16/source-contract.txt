@@ -1,0 +1,21 @@
+F416 production contract
+
+schema=symcc-loop-memoryphi-byte-lane-induction-v6
+capability=bounded-nested-loop-memoryphi-summary-composition
+dependency=bounded-loop-memoryphi-byte-lane-induction
+outer_equation=H_outer=phi(entry,S_inner(H_outer))
+outer_backedge_kind=inner-memory-phi-summary
+inner_preheader_kind=outer-memory-phi
+inner_backedge_kind=ordered-writer-memory-def-chain
+summary_order=inner-to-outer
+summary_input=outer-memory-phi
+summary_output=inner-memory-phi
+fixed_point_algorithm=finite-monotone-byte-lane-union
+fixed_point_semantics=inner-to-outer-ordered-writer-summary
+writer_identity=writer ordinal plus address/lane/inner-induction value
+topology_boundary=exactly two reducible single-header/single-latch loop levels
+bound_boundary=both bounds outer-loop invariant and bounded; whole-domain no-wrap
+runtime_authority=path-local byte-init bitmap; certificates never initialize bytes
+value_boundary=store values and last-write expressions are not summarized
+failure_boundary=unknown or unrecorded MemorySSA effects fail closed
+claim_boundary=no LLVM latency, solver throughput, coverage, defect yield, general LoopSCC, or end-to-end speedup claim

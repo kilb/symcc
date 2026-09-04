@@ -1,0 +1,2 @@
+<?xml version="YP1.0" encoding="UTF-8"?><!DOCTYPE t [<!ENTITY f "bar">]><root a="v"><c>&f;</c></root>
+ a="OCTYPE t [<!ENTITY f "bar">

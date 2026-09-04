@@ -1,0 +1,42 @@
+F328 path-specific filesystem contract checks
+date_utc=2026-08-07T00:59:17Z
+kernel=Linux 7.0.0-28-generic x86_64
+python=Python 3.12.3
+pytest=pytest 9.1.1
+ruff=ruff 0.15.20
+filesystem=overlayfs
+feature_ids=329
+configuration_unique_symcc_names=407
+top_level_test_files=245
+directed_pytest=17_passed_143_deselected
+integration_pytest=216_passed_21_subtests
+full_pytest_test_scope=673_passed_41_subtests
+pytest_warnings_as_errors=pass
+benchmark_profiles=3
+benchmark_interleaved_runs_per_profile=40
+benchmark_total_measured_runs=120
+benchmark_invalid_snapshots=0
+benchmark_operation_count_mismatches=0
+benchmark_probe_residue=0
+full_median_ms=51.763
+lease_median_ms=42.038
+coverage_median_ms=36.918
+proof_scope=same-host-subprocess-v1
+cluster_lock_verified=false
+cross_host_lock_tested=false
+physical_power_cut_tested=false
+network_partition_tested=false
+dse_throughput_benchmarked=false
+latency_is_startup_cost_not_dse_speedup=true
+$ ruff check F328 Python sources and tests
+All checks passed!
+$ python3 -m py_compile F328 Python sources and tests
+py_compile=pass
+$ git diff --check
+git_diff_check=pass
+$ SVG structural check
+svg_width=1900
+svg_height=1320
+svg_parse=pass
+$ HTML mirror check
+html_mirror=pass

@@ -1,0 +1,2 @@
+$ clean Python 3.12 venv collect-only identity gate
+python-test-gate: PASS (collected=787, skipped=0, xfailed=0, deselected=0, missing-nodeids=0, unexpected-nodeids=0)

@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1400" viewBox="0 0 1900 1400" role="img" aria-labelledby="title desc">
+  <title id="title">F340 bounded streaming standalone result admission</title>
+  <desc id="desc">Rank-zero budget consensus, bounded worker discovery and streaming staging, independent master verification, commit publication, fail-closed overflow, and crash replay semantics.</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#10243e" flood-opacity="0.13"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#35546f"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#b43c45"/>
+    </marker>
+    <style>
+      text { font-family: Inter, "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; letter-spacing: 0; }
+      .title { font-size: 42px; font-weight: 700; fill: #ffffff; }
+      .subtitle { font-size: 21px; fill: #d9e6ef; }
+      .lane { font-size: 24px; font-weight: 700; fill: #18324a; }
+      .step { font-size: 20px; font-weight: 700; fill: #102d45; }
+      .body { font-size: 16px; fill: #314b5f; }
+      .small { font-size: 14px; fill: #4b6172; }
+      .metric { font-size: 20px; font-weight: 700; fill: #173b36; }
+      .white { fill: #ffffff; }
+      .line { stroke: #35546f; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .fail { stroke: #b43c45; stroke-width: 3; stroke-dasharray: 10 8; fill: none; marker-end: url(#arrow-red); }
+    </style>
+  </defs>
+
+  <rect width="1900" height="1400" fill="#f5f8fa"/>
+  <rect width="1900" height="150" fill="#15324a"/>
+  <rect x="0" y="142" width="1900" height="8" fill="#2ca6a4"/>
+  <text x="70" y="68" class="title">F340  有界流式结果准入与可恢复提交</text>
+  <text x="70" y="108" class="subtitle">每个父任务的对象数 + 逻辑总字节硬预算；worker 与 master 独立验证；超限不截断、不提交</text>
+
+  <rect x="55" y="185" width="1790" height="145" rx="8" fill="#e8f3f6" stroke="#8bbac5" stroke-width="2" filter="url(#shadow)"/>
+  <text x="82" y="222" class="lane">0  启动期配置共识</text>
+  <rect x="82" y="242" width="470" height="62" rx="6" fill="#ffffff" stroke="#76a8b5"/>
+  <text x="102" y="268" class="step">Rank 0 严格解析</text>
+  <text x="102" y="291" class="small">MAX_OBJECTS=4096；MAX_BYTES=256 MiB（默认）</text>
+  <path d="M572 273 H760" class="line"/>
+  <rect x="780" y="242" width="390" height="62" rx="6" fill="#ffffff" stroke="#76a8b5"/>
+  <text x="800" y="268" class="step">MPI broadcast</text>
+  <text x="800" y="291" class="small">一对权威值发送给所有 ranks</text>
+  <path d="M1190 273 H1375" class="line"/>
+  <rect x="1395" y="242" width="410" height="62" rx="6" fill="#ffffff" stroke="#76a8b5"/>
+  <text x="1415" y="268" class="step">一致执行</text>
+  <text x="1415" y="291" class="small">非法配置在共享状态创建前 Abort(68)</text>
+
+  <text x="55" y="382" class="lane">Worker：发现与暂存均有界</text>
+  <rect x="55" y="405" width="1040" height="545" rx="8" fill="#ffffff" stroke="#b6c5cf" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="85" y="440" width="285" height="130" rx="6" fill="#eef6ef" stroke="#82ad87" stroke-width="2"/>
+  <text x="105" y="474" class="step">1  Target 输出目录</text>
+  <text x="105" y="505" class="body">每个父输入独立 run 目录</text>
+  <text x="105" y="532" class="body">期望为扁平 regular files</text>
+  <path d="M390 505 H455" class="line"/>
+
+  <rect x="475" y="420" width="565" height="170" rx="6" fill="#eef6ef" stroke="#82ad87" stroke-width="2"/>
+  <text x="500" y="454" class="step">2  单遍 scandir 准入</text>
+  <text x="500" y="486" class="body">第 limit+1 个条目立即失败并关闭 iterator</text>
+  <text x="500" y="514" class="body">stat(follow_symlinks=False)；只接受 regular inode</text>
+  <text x="500" y="542" class="body">累计 st_size ≤ MAX_BYTES；路径集合 ≤ MAX_OBJECTS</text>
+  <text x="500" y="570" class="small">没有 os.listdir 全量快照；symlink / FIFO / 目录不进入 corpus</text>
+
+  <path d="M758 610 V665" class="line"/>
+  <rect x="185" y="685" width="855" height="225" rx="6" fill="#eaf2fb" stroke="#6f9bc6" stroke-width="2"/>
+  <text x="215" y="722" class="step">3  固定块流式 content-addressed staging</text>
+  <text x="215" y="759" class="body">O_NOFOLLOW open → same-fd fstat(S_ISREG) → 1 MiB os.read</text>
+  <text x="215" y="791" class="body">同一字节流：SHA-256.update + 有界 os.write → fsync(temp)</text>
+  <text x="215" y="823" class="body">durable_replace(temp, stage/SHA256) → digest + size 再验证</text>
+  <text x="215" y="855" class="body">重复内容：每个源文件仍计对象/逻辑字节，stage 只保留一个 hash inode</text>
+  <rect x="215" y="873" width="790" height="20" rx="4" fill="#b9d7ee"/>
+  <rect x="215" y="873" width="98" height="20" rx="4" fill="#277da1"/>
+  <text x="620" y="890" text-anchor="middle" class="small">常量内存窗口；不再构造整文件 bytes</text>
+
+  <text x="1150" y="382" class="lane">Master：独立重算后才提交</text>
+  <rect x="1130" y="405" width="715" height="545" rx="8" fill="#ffffff" stroke="#b6c5cf" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1170" y="438" width="635" height="105" rx="6" fill="#fff6df" stroke="#c39b42" stroke-width="2"/>
+  <text x="1195" y="472" class="step">4  有界 RESULT 控制记录</text>
+  <text x="1195" y="504" class="body">ordered new_hashes + num_generated + staged_bytes + staging_id</text>
+  <text x="1195" y="530" class="small">hash vector 长度、generated 和声明字节先做协议级预算检查</text>
+  <path d="M1488 560 V610" class="line"/>
+
+  <rect x="1170" y="630" width="635" height="155" rx="6" fill="#fff6df" stroke="#c39b42" stroke-width="2"/>
+  <text x="1195" y="664" class="step">5  Expected-first 独立 inventory</text>
+  <text x="1195" y="696" class="body">逐个 unique hash：no-follow open、same-fd SHA-256 + size</text>
+  <text x="1195" y="726" class="body">ordered hash vector 重新展开重复项，计算 logical bytes</text>
+  <text x="1195" y="756" class="body">exact set、声明值和两个预算必须同时成立</text>
+  <path d="M1488 803 V840" class="line"/>
+
+  <rect x="1170" y="858" width="635" height="65" rx="6" fill="#e7f4ec" stroke="#4a9a69" stroke-width="2"/>
+  <text x="1195" y="885" class="step">6  begin_commit fence → promotion → finish_commit</text>
+  <text x="1195" y="912" class="small">只有验证通过的完整结果可以令 child 对公众可见并完成 parent</text>
+
+  <path d="M1042 790 C1100 790,1090 490,1150 490" class="line"/>
+  <text x="1080" y="612" transform="rotate(-90 1080 612)" class="small">MPI：只传有界身份与计数，不传文件内容</text>
+
+  <rect x="55" y="995" width="1115" height="250" rx="8" fill="#fff0f0" stroke="#c7555d" stroke-width="2" filter="url(#shadow)"/>
+  <text x="82" y="1035" class="lane" fill="#8d2630">超限或 master 复算不一致：失败关闭</text>
+  <rect x="82" y="1062" width="275" height="125" rx="6" fill="#ffffff" stroke="#d78086"/>
+  <text x="102" y="1093" class="step">发现/复制超限</text>
+  <text x="102" y="1123" class="body">删除未提交 stage</text>
+  <text x="102" y="1151" class="body">结构化 resource/observed/limit</text>
+  <path d="M375 1125 H455" class="fail"/>
+  <rect x="475" y="1062" width="300" height="125" rx="6" fill="#ffffff" stroke="#d78086"/>
+  <text x="495" y="1093" class="step">Master 确认失败</text>
+  <text x="495" y="1123" class="body">不 begin_commit，不发布 child</text>
+  <text x="495" y="1151" class="body">不重试确定性超大结果</text>
+  <path d="M793 1125 H873" class="fail"/>
+  <rect x="893" y="1062" width="245" height="125" rx="6" fill="#ffffff" stroke="#d78086"/>
+  <text x="913" y="1093" class="step">保留恢复边界</text>
+  <text x="913" y="1123" class="body">parent lease 未完成</text>
+  <text x="913" y="1151" class="body">bounded shutdown + Abort(70)</text>
+
+  <rect x="1210" y="995" width="635" height="250" rx="8" fill="#f2f0f7" stroke="#8c7aa8" stroke-width="2" filter="url(#shadow)"/>
+  <text x="1237" y="1035" class="lane">Crash replay 的有意例外</text>
+  <text x="1237" y="1076" class="body">已持久化 v1 commit manifest = 过去已经准入</text>
+  <text x="1237" y="1109" class="body">staged ∪ public 逐对象重验并补做 promotion</text>
+  <text x="1237" y="1142" class="body">当前运维预算即使降低，也不能阻断 irreversible commit redo</text>
+  <line x1="1237" y1="1170" x2="1812" y2="1170" stroke="#b4a8c6"/>
+  <text x="1237" y="1200" class="small">预算只作用于 live pre-commit admission；恢复仍严格验证 hash/regular inode</text>
+
+  <rect x="55" y="1280" width="1790" height="82" rx="8" fill="#173b36"/>
+  <text x="82" y="1313" class="metric white">32 MiB 微基准：Python traced peak 35,653,086 → 2,099,636 B（16.98x）</text>
+  <text x="82" y="1343" class="body white">RSS 中位 70,600 → 37,252 KiB（1.90x）；时间中位 65.323 → 71.958 ms（新路径慢 10.16%）｜机制证据，不是 campaign 提速</text>
+</svg>

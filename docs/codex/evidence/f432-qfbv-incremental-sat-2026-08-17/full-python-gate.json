@@ -1,0 +1,73 @@
+{
+  "capabilities": {
+    "commands": {},
+    "libraries": {},
+    "python_modules": {}
+  },
+  "details": {
+    "collection_errors": [],
+    "skipped": [],
+    "subtests_skipped": [],
+    "xfailed": []
+  },
+  "gate": {
+    "failures": [],
+    "limits": {
+      "max_deselected": 0,
+      "max_missing_nodeids": 0,
+      "max_skips": 0,
+      "max_unexpected_nodeids": 0,
+      "max_xfails": 0,
+      "max_xpasses": 0,
+      "min_collected": 1236
+    },
+    "passed": true
+  },
+  "inventory": {
+    "details_truncated": false,
+    "duplicate_observed": [],
+    "duplicate_observed_count": 0,
+    "expected": 1236,
+    "manifest_error": null,
+    "manifest_path": "test/pytest-nodeids.json",
+    "manifest_schema": "symcc-pytest-nodeid-manifest-v1",
+    "manifest_sha256": "1beedd424d0c213aa7f17bd13c02ac4d06c826014a0b96a32e557c5a185d496c",
+    "matched": true,
+    "missing": [],
+    "missing_count": 0,
+    "observed": 1236,
+    "observed_sha256": "1beedd424d0c213aa7f17bd13c02ac4d06c826014a0b96a32e557c5a185d496c",
+    "required": true,
+    "unexpected": [],
+    "unexpected_count": 0
+  },
+  "missing_capabilities": [],
+  "outcomes": {
+    "collected": 1236,
+    "collection_errors": 0,
+    "deselected": 0,
+    "failed": 0,
+    "passed": 1236,
+    "skipped": 0,
+    "subtests_failed": 0,
+    "subtests_passed": 291,
+    "subtests_skipped": 0,
+    "xfailed": 0,
+    "xpassed": 0
+  },
+  "pytest": {
+    "arguments": [
+      "-q",
+      "-W",
+      "error"
+    ],
+    "exit_code": 0,
+    "plugin_autoload_disabled": true,
+    "version": "9.1.1"
+  },
+  "python": {
+    "executable": "/home/ubuntu/venv/symcc/bin/python3",
+    "version": "3.12.3"
+  },
+  "schema": "symcc-python-test-gate-v2"
+}

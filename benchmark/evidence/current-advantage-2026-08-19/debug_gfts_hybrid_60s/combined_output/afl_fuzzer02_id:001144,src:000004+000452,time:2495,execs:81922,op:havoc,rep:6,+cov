@@ -1,0 +1,1 @@
+<xml version="1.0"?><!DOCTYPE note [<!!!!!!!!!!!!!!!ÿÿ!!!!!!!!!!!!ELEMENT note (to,from,body)><!ELEMENT to (#PCDATA)><!ELEMENT from (#=CDTA)><!ELEMENT body (#PCDATA)>]><note><to>A</to><from>B</from><body>C</body></note>#PCDATA)><!ELEMENT from (#PC

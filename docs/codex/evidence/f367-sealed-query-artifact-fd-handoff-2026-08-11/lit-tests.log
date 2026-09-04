@@ -1,0 +1,9 @@
+$ lit -sv --filter=query_|string_solver|string_backend_conformance build/test
+-- Testing: 10 of 226 tests, 10 workers --
+Testing:  0.. 10.. 20.. 30.. 40.. 50.. 60.. 70.. 80.. 90.. 
+
+Testing Time: 3.87s
+
+Total Discovered Tests: 226
+  Excluded: 216 (95.58%)
+  Passed  :  10 (4.42%)

@@ -1,0 +1,18 @@
+F373 static and delivery verification (2026-08-11 UTC)
+ruff: PASS
+py_compile: PASS
+git diff --check: PASS
+diagram render and visual inspection: PASS
+historical F363-F372 replay: PASS
+F373 consecutive byte-equivalent replay: PASS
+HTML twins: PASS
+nested SHA-256: PASS
+top-level SHA-256: PASS
+delivery verifier: PASS
+
+Boundaries retained:
+- report-only; no unlink, database-row deletion, or sweep authorization
+- physical inventory validates namespace shape and metadata, not content digests
+- incomplete scans encode absence as unknown and return CLI exit 2
+- no GitHub-hosted, cross-host, power-loss, MPI, public benchmark, LAVA-M,
+  coverage, performance, or uplift result was produced by F373

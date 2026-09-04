@@ -1,0 +1,58 @@
+F420 sealed source contract
+
+Schema:
+  symcc-loop-memoryphi-byte-lane-induction-v10
+
+Capability:
+  bounded-nested-loop-memoryphi-piecewise-affine-value-summary
+
+Dependencies:
+  bounded-symbolic-alias
+  bounded-loop-memoryphi-byte-lane-induction
+  bounded-strided-loop-memoryphi-byte-lane-induction when required
+  bounded-nested-loop-memoryphi-summary-composition
+  bounded-nested-loop-memoryphi-last-write-value-summary
+  bounded-nested-loop-memoryphi-two-dimensional-affine-summary
+  bounded-nested-loop-memoryphi-affine-symbolic-value-summary
+
+Address form:
+  the exact finite F418 two-dimensional affine address domain
+
+Value form:
+  guard = icmp P (outer_iv or inner_iv), constant
+  V(o,i,x) = select(guard, affine_true(o,i,x), affine_false(o,i,x))
+  each selected arm is interpreted modulo 2^bits
+
+Guard domain:
+  P in eq, ne, ugt, uge, ult, ule
+  constant may be on either operand side
+  induction is the exact outer or inner IV
+  direct scalar icmp in the inner body before the direct select
+  input-dependent, signed, vector, pointer, nested, and branch guards rejected
+
+Arm domain:
+  byte-complete integer store width 8..64 bits
+  same-width ConstantInt, outer IV, inner IV, or at most one shared entry input
+  add or multiplication by a direct positive constant
+  expression depth <= 4 and inner-body definitions before the store
+  source nuw/nsw, unsupported opcodes, different inputs, and deep DAGs rejected
+  arms must differ after coefficient normalization modulo 2^bits
+
+Specialization:
+  guard result is recomputed for every finite writer instance
+  selected arm IV terms are specialized modulo 2^bits
+  target-endian byte extraction is recorded with guard result and arm identity
+
+Last-write order:
+  descending outer induction
+  descending inner induction
+  descending writer ordinal
+
+Fallback:
+  uninitialized when no case is active, never implicit zero
+  no partial v10 capability when any writer lacks a complete proof
+
+Runtime boundary:
+  no loop skipping, memory prefill, select replacement, or store replacement
+  real loop/select/store execution and path-local byte-init bitmap are authority
+

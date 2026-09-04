@@ -1,0 +1,288 @@
+{
+  "schema": "symcc-showcase-case-registry-v1",
+  "date": "2026-08-19",
+  "purpose": "Public and local testcase registry for demonstrating the current parallel symbolic execution and hybrid fuzzing optimizations.",
+  "cases": [
+    {
+      "id": "synthetic-parallel_scaling",
+      "status": "measured-positive",
+      "evidence_kind": "local-measured",
+      "local_target": "synthetic-parallel_scaling",
+      "recommended_use": "primary parallel symbolic execution scaling case",
+      "shows": [
+        "MPI worker scaling",
+        "task dispatch",
+        "coverage triage",
+        "candidate deduplication"
+      ],
+      "headline_result": "np=16 vs np=2: 21.18% vs 16.67% edge coverage; candidates 2688 vs 974.",
+      "evidence": [
+        "benchmark/evidence/current-advantage-2026-08-19/synthetic_scaling_mpi_r3/benchmark_report.txt"
+      ],
+      "command": "python3 benchmark/run_benchmark.py --no-default --public --targets synthetic-parallel_scaling --np-list 2,4,8,16 --rounds 3 --timeout 20 --output benchmark/evidence/current-advantage-2026-08-19/synthetic_scaling_mpi_r3 --skip-build --no-serial --timeseries 5"
+    },
+    {
+      "id": "gfts-xml_read_fuzzer",
+      "status": "measured-positive",
+      "evidence_kind": "mixed",
+      "local_target": "gfts-xml_read_fuzzer",
+      "recommended_use": "public real-parser parallel symbolic execution case",
+      "shows": [
+        "structured input exploration",
+        "parallel symbolic execution on a public target",
+        "XML parser path expansion"
+      ],
+      "headline_result": "seed to np=16: 2310 -> 3441 edges; np=2 to np=16: 3110 -> 3441 edges.",
+      "evidence": [
+        "benchmark/evidence/public-xml-parallel-r3-2026-08-19/benchmark_report.txt"
+      ],
+      "sources": [
+        "https://github.com/google/fuzzer-test-suite",
+        "https://google.github.io/fuzzbench/reference/benchmarks/"
+      ],
+      "command": "python3 benchmark/run_benchmark.py --no-default --public --targets gfts-xml_read_fuzzer --np-list 2,4,8,16 --rounds 3 --timeout 30 --output benchmark/evidence/public-xml-parallel-r3-2026-08-19 --skip-build --no-serial --timeseries 15"
+    },
+    {
+      "id": "lava-base64",
+      "status": "measured-positive",
+      "evidence_kind": "mixed",
+      "local_target": "lava-base64",
+      "recommended_use": "primary hybrid beats AFL-only mechanism case",
+      "shows": [
+        "precise constraint solving",
+        "symbolic-heavy hybrid fuzzing",
+        "AFL-only vs hybrid coverage gap"
+      ],
+      "headline_result": "hybrid 21.14% / 230 edges vs AFL-only 14.06% / 153 edges.",
+      "evidence": [
+        "benchmark/evidence/hybrid-advantage-lava-base64-symbolic-heavy-r3-2026-08-19/benchmark_report.txt"
+      ],
+      "sources": [
+        "https://www.usenix.org/conference/usenixsecurity18/presentation/yun"
+      ],
+      "command": "python3 benchmark/run_benchmark.py --no-default --public --targets lava-base64 --np-list 8 --rounds 3 --timeout 60 --output benchmark/evidence/hybrid-advantage-lava-base64-symbolic-heavy-r3-2026-08-19 --skip-build --no-serial --no-mpi --afl-only --hybrid --hybrid-afl-instances 1 --aflpp-profiles off --timeseries 20"
+    },
+    {
+      "id": "pcre2-pcre2_fuzzer",
+      "status": "measured-positive",
+      "evidence_kind": "mixed",
+      "local_target": "pcre2-pcre2_fuzzer",
+      "recommended_use": "real persistent target for SOTA orchestration ablation",
+      "shows": [
+        "AFL++ profile orchestration",
+        "adaptive AFL/SymCC split",
+        "persistent-aware data coverage gating",
+        "worker diversity and density balance"
+      ],
+      "headline_result": "tuned adaptive hybrid 50.20% vs legacy hybrid 47.01%; AFL execs 21.58M vs 2.28M.",
+      "evidence": [
+        "benchmark/evidence/current-advantage-2026-08-19/pcre2_hybrid_adaptive_default_tuned_r3/benchmark_report.txt",
+        "benchmark/evidence/current-advantage-2026-08-19/pcre2_hybrid_legacy_r3/benchmark_report.txt",
+        "benchmark/evidence/current-advantage-2026-08-19/pcre2_afl_only_full_r3/benchmark_report.txt"
+      ],
+      "sources": [
+        "https://github.com/google/fuzzer-test-suite",
+        "https://google.github.io/fuzzbench/reference/benchmarks/"
+      ]
+    },
+    {
+      "id": "libarchive-archive_fuzzer",
+      "status": "measured-weak-positive",
+      "evidence_kind": "mixed",
+      "local_target": "libarchive-archive_fuzzer",
+      "recommended_use": "weak real-parser ablation for persistent-aware gating",
+      "shows": [
+        "persistent-aware gating",
+        "old forced data coverage regression",
+        "real parser hybrid feedback"
+      ],
+      "headline_result": "tuned hybrid 20.94% vs AFL-only 20.87%; old adaptive full 13.46%.",
+      "evidence": [
+        "benchmark/evidence/current-advantage-2026-08-19/libarchive_hybrid_adaptive_default_tuned_r1/benchmark_report.txt",
+        "benchmark/evidence/current-advantage-2026-08-19/libarchive_afl_only_full_r1/benchmark_report.txt"
+      ],
+      "sources": [
+        "https://github.com/google/fuzzer-test-suite",
+        "https://arxiv.org/pdf/2601.10068"
+      ]
+    },
+    {
+      "id": "jhead-jhead",
+      "status": "available-candidate",
+      "evidence_kind": "mixed",
+      "local_target": "jhead-jhead",
+      "recommended_use": "repair-and-long-run high-potential real-program hybrid case",
+      "shows": [
+        "JPEG metadata parsing",
+        "comparison-heavy syntax checks",
+        "solver robustness gap"
+      ],
+      "headline_result": "locally negative at 60s today; literature reports strong hybrid coverage signal.",
+      "evidence": [
+        "benchmark/evidence/hybrid-advantage-jhead-screen-2026-08-19/benchmark_report.txt",
+        "benchmark/evidence/hybrid-advantage-jhead-fullprofiles-2026-08-19/benchmark_report.txt"
+      ],
+      "sources": [
+        "https://shadowmydx.github.io/papers/icse23main-p966.pdf",
+        "https://wcventure.github.io/FuzzingPaper/Paper/SP20_PANGOLIN.pdf",
+        "https://arxiv.org/pdf/2601.10068"
+      ],
+      "next_action": "Fix the non-relational branch solver assertion, align seed corpus, and run 10min/1h AFL-only vs hybrid."
+    },
+    {
+      "id": "gfts-png_read_fuzzer",
+      "status": "measured-weak-positive",
+      "evidence_kind": "mixed",
+      "local_target": "gfts-png_read_fuzzer",
+      "recommended_use": "weak short-run image/parser comparison-data-coverage candidate",
+      "shows": [
+        "PNG chunk structure",
+        "wide integer length fields",
+        "comparison/data coverage hints"
+      ],
+      "headline_result": "25s one-round screen: hybrid 18.52% / 569 edges vs AFL-only 16.60% / 510 edges; needs multi-round confirmation.",
+      "evidence": [
+        "benchmark/evidence/showcase-supplement-screen-2026-08-19/benchmark_report.txt"
+      ],
+      "sources": [
+        "https://shadowmydx.github.io/papers/icse23main-p966.pdf",
+        "https://wcventure.github.io/FuzzingPaper/Paper/SP20_PANGOLIN.pdf",
+        "https://google.github.io/fuzzbench/reference/benchmarks/"
+      ],
+      "next_action": "Run 3-10 rounds and 10min/1h windows because older 30s screening was not consistently positive."
+    },
+    {
+      "id": "sqlite-sqlite_fuzzer",
+      "status": "available-candidate",
+      "evidence_kind": "mixed",
+      "local_target": "sqlite-sqlite_fuzzer",
+      "recommended_use": "long-run structured grammar and AUC case",
+      "shows": [
+        "SQL grammar",
+        "dictionary/grammar seed effects",
+        "persistent target gating"
+      ],
+      "headline_result": "available locally; short-run AFL persistent throughput dominates edge coverage.",
+      "sources": [
+        "https://google.github.io/fuzzbench/reference/benchmarks/",
+        "https://hexhive.epfl.ch/magma/"
+      ]
+    },
+    {
+      "id": "freetype2-freetype2_fuzzer",
+      "status": "available-candidate",
+      "evidence_kind": "mixed",
+      "local_target": "freetype2-freetype2_fuzzer",
+      "recommended_use": "font parser seed-stratification case",
+      "shows": [
+        "font parser states",
+        "seed corpus quality",
+        "real target boundary condition"
+      ],
+      "headline_result": "available locally; current short-run coverage does not move enough for a strong claim.",
+      "sources": [
+        "https://github.com/google/fuzzer-test-suite",
+        "https://google.github.io/fuzzbench/reference/benchmarks/"
+      ]
+    },
+    {
+      "id": "lava-md5sum-uniq-who",
+      "status": "available-candidate",
+      "evidence_kind": "mixed",
+      "local_target": "lava-md5sum,lava-uniq,lava-who",
+      "recommended_use": "bug-trigger-count and time-to-trigger case, not plain edge coverage",
+      "shows": [
+        "LAVA-M listed bug oracle",
+        "coverage metric limitations",
+        "target-specific evaluation"
+      ],
+      "headline_result": "available locally; use listed bug replay rather than ordinary edge coverage for future claims.",
+      "sources": [
+        "https://www.usenix.org/conference/usenixsecurity18/presentation/yun"
+      ]
+    },
+    {
+      "id": "tcpdump",
+      "status": "integration-candidate",
+      "evidence_kind": "literature",
+      "recommended_use": "P1 real syntax-checking case for hybrid over pure fuzzing",
+      "shows": [
+        "PCAP syntax checking",
+        "S2F action seed",
+        "target distance scheduling"
+      ],
+      "sources": [
+        "https://wcventure.github.io/FuzzingPaper/Paper/SP20_PANGOLIN.pdf",
+        "https://arxiv.org/pdf/2601.10068"
+      ],
+      "next_action": "Finish source build and AFL/SymCC wrappers for tcpdump -r @@ with PCAP seeds."
+    },
+    {
+      "id": "binutils-readelf-nm-objdump-strip",
+      "status": "integration-candidate",
+      "evidence_kind": "literature",
+      "recommended_use": "P1 ELF parser matrix for parallel scheduling and solver reuse",
+      "shows": [
+        "ELF multi-layer parsing",
+        "prefix DAG scheduling",
+        "polyhedral/Z3 context reuse"
+      ],
+      "sources": [
+        "https://shadowmydx.github.io/papers/icse23main-p966.pdf",
+        "https://wcventure.github.io/FuzzingPaper/Paper/SP20_PANGOLIN.pdf",
+        "https://arxiv.org/pdf/2601.10068"
+      ],
+      "next_action": "Add binutils-2.37 build, ELF seed corpus, AFL variants, and coverage binaries."
+    },
+    {
+      "id": "bento",
+      "status": "integration-candidate",
+      "evidence_kind": "literature",
+      "recommended_use": "P1 structured binary container hybrid case",
+      "shows": [
+        "MP4 box hierarchy",
+        "deep parser state",
+        "global path planning"
+      ],
+      "sources": [
+        "https://shadowmydx.github.io/papers/icse23main-p966.pdf",
+        "https://wcventure.github.io/FuzzingPaper/Paper/SP20_PANGOLIN.pdf"
+      ],
+      "next_action": "Add Bento4 build and MP4 seed corpus; track box-type coverage in addition to edges."
+    },
+    {
+      "id": "pngfix-pngimage-openjpeg-libjpeg-libtiff",
+      "status": "integration-candidate",
+      "evidence_kind": "literature",
+      "recommended_use": "P2 image parser expansion matrix",
+      "shows": [
+        "image format state machines",
+        "comparison/data coverage",
+        "wide integer and memcmp constraints"
+      ],
+      "sources": [
+        "https://shadowmydx.github.io/papers/icse23main-p966.pdf",
+        "https://wcventure.github.io/FuzzingPaper/Paper/SP20_PANGOLIN.pdf",
+        "https://arxiv.org/pdf/2601.10068",
+        "https://google.github.io/fuzzbench/reference/benchmarks/"
+      ],
+      "next_action": "Prioritize pngfix/pngimage and openjpeg, then add libjpeg/libtiff with seed stratification."
+    },
+    {
+      "id": "magma-and-fuzzbench-expansion",
+      "status": "integration-candidate",
+      "evidence_kind": "literature",
+      "recommended_use": "P2 standardized long-run and ground-truth benchmark expansion",
+      "shows": [
+        "reached/triggered ground truth",
+        "coverage AUC",
+        "statistical comparison"
+      ],
+      "sources": [
+        "https://hexhive.epfl.ch/magma/",
+        "https://google.github.io/fuzzbench/reference/benchmarks/"
+      ],
+      "next_action": "Add Magma libpng/libxml2/sqlite3 first, then FuzzBench harfbuzz/jsoncpp/lcms/libjpeg-turbo/libpcap/openssl_x509/php/re2/woff2/zlib."
+    }
+  ]
+}

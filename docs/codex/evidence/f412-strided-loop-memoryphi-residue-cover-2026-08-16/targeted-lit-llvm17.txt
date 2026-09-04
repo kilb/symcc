@@ -1,0 +1,6 @@
+-- Testing: 1 of 275 tests, 1 workers --
+PASS: compiler :: live_strided_loop_memoryphi_byte_lane_induction.ll (1 of 1)
+
+Testing Time: 4.82s
+  Excluded: 274
+  Passed  :   1

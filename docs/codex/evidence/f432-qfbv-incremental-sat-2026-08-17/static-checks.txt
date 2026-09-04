@@ -1,0 +1,10 @@
+F432 static checks
+
+python3 -m py_compile: passed for F432 implementation, oracle, benchmark, and tests
+python3 -m ruff check: passed for F432 implementation, integration, and tests
+bash -n benchmark/install_cadical_3_0_1.sh: passed
+git diff --check (F432 implementation/documentation scope): passed
+Actual CaDiCaL CLI/shared-library QueryStore smoke: passed
+Canonical pytest inventory: 1236 entries, exact match
+Related Python regression: 116 passed + 58 passed subtests
+LLVM 17/18 lit: 320 discovered each, no failure or unresolved result

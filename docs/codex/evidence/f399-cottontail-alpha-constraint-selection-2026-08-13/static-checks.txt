@@ -1,0 +1,11 @@
+static checks: PASS
+ruff check (F399 Python files): PASS
+ruff format check (F399 Python files): PASS
+py_compile: PASS
+git diff check (F399 files): PASS
+diagram SVG/PNG parse, 2700x1620 dimensions, nonblank and visual inspection: PASS
+randomized properties: 3 x 1000/1000 PASS
+full Python exact-identity gate: 989 passed + 235 subtests, zero degradation
+full LLVM 17 lit: 261 discovered, 259 passed, 2 unsupported, 0 failed
+clang-format: not applicable (F399 has no C/C++ source change)
+coverage/speedup/public-target claim: intentionally absent

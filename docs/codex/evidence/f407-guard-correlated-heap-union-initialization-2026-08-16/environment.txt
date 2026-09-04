@@ -1,0 +1,12 @@
+date_utc=2026-08-16
+kernel=Linux 7.0.0-28-generic x86_64
+python=3.12.3
+cpu=AMD Ryzen Threadripper PRO 9995WX 96-Cores
+logical_cpus=192
+llvm17=17.0.6
+llvm18=18.1.3
+pytest=pytest 9.1.1
+z3=4.8.12
+implementation_scope=bounded acyclic guard-correlated ordinary-heap initialization proof
+producer_bounds=64 paths; 64 blocks/path; decision depth 8; 4096 referenced blocks
+claim_boundary=mechanism only; no general MemorySSA/AA, complete POSE, public coverage, solver throughput, bug yield, or end-to-end speedup claim

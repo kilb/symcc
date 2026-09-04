@@ -1,0 +1,3 @@
+multi-arm LLVM 18 checker: PASS
+multi-arm LLVM 17 checker: PASS
+forwarded multi-arm LLVM 18 checker: PASS

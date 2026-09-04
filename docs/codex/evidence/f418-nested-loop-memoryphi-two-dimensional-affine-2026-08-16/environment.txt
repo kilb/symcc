@@ -1,0 +1,8 @@
+kernel=Linux cuda-ke 7.0.0-28-generic #28~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Wed Jul 1 15:50:57 UTC 2026 x86_64
+python=Python 3.12.3
+pytest=pytest 9.1.1
+lit=lit 18.1.8
+llvm17=Ubuntu LLVM version 17.0.6
+llvm18=Ubuntu LLVM version 18.1.3
+cmake=cmake version 3.28.3
+test_date_utc=2026-08-16

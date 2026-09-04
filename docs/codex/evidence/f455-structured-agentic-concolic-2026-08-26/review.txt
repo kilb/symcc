@@ -1,0 +1,45 @@
+F455 review log, 2026-08-26 UTC
+
+R1 - Architecture audit: separated the new structured controller from the
+legacy hint manager and kept the model outside the execution/correctness root.
+
+R2 - Budget audit: changed backend retries from per-provider resources to one
+portfolio-wide request/token/time/cost reservation, including failed attempts.
+
+R3 - Proposal audit: delayed candidate identity construction until the source
+input digest/path had been validated; routed bytes through VerifiedProposal.
+
+R4 - Persistence audit: fixed ledger descriptor/lock cleanup when construction
+or replay fails; bounded canonical JSONL and required O_NOFOLLOW/regular files.
+
+R5 - Restart audit: made orphan cancellation terminal and one-shot; restored
+episode iteration, campaign budgets and verified outcome history.
+
+R6 - Protocol audit: rejected duplicate JSON members, non-finite numbers,
+unknown fields, noncanonical hex and wrong request/task echoes fail closed.
+
+R7 - Reproducibility audit: bound provider/model/prompt/transport identities;
+command identities include executable and wrapper/script content digests.
+
+R8 - Execution-attribution audit: renamed an eligible hint record that implied
+execution, added a separate one-shot selection event, and left actual execution
+to the later outcome record.
+
+R9 - Feedback audit: deferred agent submission until after master AFL triage;
+duplicate local edge reports now receive authoritative deltas 1 then 0.
+
+R10 - Trigger audit: added persistent reactive gating for solver barriers,
+symbolic zero-yield and global-coverage plateaus; productive results suppress
+model calls. Online/shadow/fallback share the same trigger policy.
+
+R11 - Identity audit: made fallback decision IDs iteration-bound and unique;
+bound hint selections and outcomes to source/candidate digests and routed
+candidate outcomes back to the originating episode.
+
+R12 - Resource/input audit: bounded command and HTTP output streams to 1 MiB
+before parsing, killed timed-out command process groups, added overflow tests,
+and visually revised the schematic to remove misleading action dependencies.
+
+Residual boundary: the deterministic command oracle tests mechanisms, not LLM
+quality or public-target coverage. Source-level slicing and long-duration
+online/shadow/fallback experiments remain R-track work.

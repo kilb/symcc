@@ -1,0 +1,1 @@
+<?t><item>ot><item>tesote [<!ELEMENT note (to,from,body)><!ELEMENT to (#PCDATA)><!ELEMENT from (#PCDATA)><!ELEMENT body (#PCDATA)>]><note><to>A</to><from>B</from><body>C</body></note>

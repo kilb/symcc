@@ -1,0 +1,9 @@
+command=PYTHONDONTWRITEBYTECODE=1 python3 benchmark/check_qfbv_proof_receipt_oracles.py --repetitions 5 --output OUTPUT.json
+independent_runs=2
+stable_schema=symcc-f427-qfbv-proof-receipt-oracle-v1
+stable_semantics=generated_checked_unsat:1,cross_worker_reuses:5,reference_tamper_rejected:1,cas_tamper_rejected:1,false_authorizations:0,unique_receipts:1
+stable_store=proofs:1,receipts:1,result_keys:1,proof_bytes:356
+run_1_us=generation:7719,backend_checker:31826,reuse_total_median:538953
+run_2_us=generation:7681,backend_checker:31737,reuse_total_median:542303
+timing_boundary=reuse_total includes fresh QueryStore/SQLite setup, executable and signature hashing, backend Ethos, QueryStore Ethos, and process startup; it is not a speedup measurement.
+

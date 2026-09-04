@@ -1,0 +1,16 @@
+feature=F353
+scope=local production-controller mechanism evidence
+actual_mpi_transport=false
+actual_multihost_filesystem=false
+solver_or_campaign_executed=false
+integration_checks=10/10
+malformed_completion_cases=5
+unexpected_exception_cases=2
+exact_generation_type_cases=1
+committed_invariant=attempts == successes + failures
+unexpected_failure_invariant=controller snapshot byte-for-byte unchanged
+directed_tests=2 passed, 7 subtests passed, 31 deselected
+qualification_lifecycle_tests=92 passed, 75 subtests passed
+related_tests=375 passed, 101 subtests passed
+full_tests=768 passed, 121 subtests passed
+uplift_claim=none

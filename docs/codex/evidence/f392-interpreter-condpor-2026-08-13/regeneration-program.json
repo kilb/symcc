@@ -1,0 +1,54 @@
+{
+  "bit_width": 8,
+  "memory": {
+    "x": 0
+  },
+  "name": "f392-control-regeneration-evidence",
+  "schema": "symcc-condpor-program-v1",
+  "threads": {
+    "0": [
+      {
+        "dst": "r",
+        "object": "x",
+        "op": "read"
+      },
+      {
+        "condition": {
+          "args": [
+            "r",
+            1
+          ],
+          "op": "eq"
+        },
+        "else": "done",
+        "op": "branch",
+        "then": "failure"
+      },
+      {
+        "name": "failure",
+        "op": "label"
+      },
+      {
+        "condition": false,
+        "op": "assert"
+      },
+      {
+        "name": "done",
+        "op": "label"
+      },
+      {
+        "op": "halt"
+      }
+    ],
+    "1": [
+      {
+        "object": "x",
+        "op": "write",
+        "value": 1
+      },
+      {
+        "op": "halt"
+      }
+    ]
+  }
+}

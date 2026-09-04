@@ -1,0 +1,3 @@
+$ PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q -W error test/test_mpi_filesystem_qualification.py -k qualification_input_observation_totalizes_ordinary_failures
+.                                                                        [100%]
+1 passed, 35 deselected in 0.55s

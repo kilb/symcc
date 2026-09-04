@@ -1,0 +1,13 @@
+benchmark=post-file-fsync rename publication
+rounds=5 samples_per_round=100 payload_bytes=4096
+round_1_rename_us=17.181 durable_us=2896.296 added_us=2879.115
+round_2_rename_us=17.161 durable_us=2899.855 added_us=2882.694
+round_3_rename_us=17.296 durable_us=2879.284 added_us=2861.988
+round_4_rename_us=17.532 durable_us=2885.139 added_us=2867.607
+round_5_rename_us=17.160 durable_us=2918.943 added_us=2901.783
+aggregate_samples=500
+rename_only_median_us=17.236
+durable_replace_median_us=2897.566
+durable_replace_p95_us=2991.771
+median_added_us=2880.331
+filesystem=overlayfs

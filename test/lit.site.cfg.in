@@ -29,6 +29,11 @@ except OSError:
     pass
 
 config.environment["SYMCC_OUTPUT_DIR"] = outputDir
+config.environment["SYMCC_PASS_DIR"] = "@CMAKE_BINARY_DIR@"
+config.environment["PATH"] = os.pathsep.join(filter(None, [
+    "@LLVM_TOOLS_BINARY_DIR@",
+    config.environment.get("PATH", ""),
+]))
 
 # Delegate to the generic configuration file
 lit_config.load_config(config, path.join(config.test_source_root, "lit.cfg"))
@@ -36,7 +41,24 @@ lit_config.load_config(config, path.join(config.test_source_root, "lit.cfg"))
 # Depending on the backend, the tests have to look for different output
 config.substitutions += [
     ("%filecheck", "FileCheck @SYM_TEST_FILECHECK_ARGS@"),
+    ("%querysolver",
+     "@SYMCC_RUNTIME_DIR@/src/backends/qsym/symcc-query-solver"),
+    ("%queryservice",
+     "python3 @CMAKE_SOURCE_DIR@/util/symcc_query_service.py"),
+    ("%schedrt", "@CMAKE_BINARY_DIR@/libsymcc_schedule_rt.so"),
+    ("%qfbvforkserver",
+     "@CMAKE_BINARY_DIR@/symcc-qfbv-z3-forkserver"),
+    ("%opt", "@LLVM_TOOLS_BINARY_DIR@/opt"),
+    ("%passlib", "@CMAKE_BINARY_DIR@/libsymcc.so"),
 ]
+
+if "@SYMCC_HAVE_QFBV_Z3_FORKSERVER@" == "ON":
+    config.available_features.add("qfbv-z3-forkserver")
 
 if "@TARGET_32BIT@" == "ON":
     config.suffixes.add(".test32")
+
+if "@SYMCC_RT_BACKEND@" == "qsym":
+    config.available_features.add("qsym")
+elif "@SYMCC_RT_BACKEND@" == "simple":
+    config.available_features.add("simple")

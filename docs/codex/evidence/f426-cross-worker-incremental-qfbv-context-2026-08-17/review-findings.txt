@@ -1,0 +1,28 @@
+Review finding 1: releasing a lease by deleting its row let a stale lease from
+the same textual owner collide with a later token. Resolution: retain a token
+tombstone, increment on reclaim, and require context/owner/token on every state
+change.
+
+Review finding 2: every exact publication initially rewrote and fsynced a
+temporary object. Resolution: stable-read the exact pathname first; only create
+a temporary object on a miss, while retaining byte-for-byte collision checking.
+
+Review finding 3: separate workers could interpret the same store with different
+quotas. Resolution: persist schema, protocol, max_contexts, and
+max_active_materializations in store metadata and reject drift at startup.
+
+Review finding 4: pathname reads could follow a symlink or race replacement.
+Resolution: require O_NOFOLLOW and a bounded regular file, then compare
+device/inode/size/mtime before and after reading and against the final directory
+entry. Read and write loops retry InterruptedError.
+
+Review finding 5: a busy materialization slot was initially treated as a cold
+fallback, defeating the quota. Resolution: wait within the query deadline, make
+the wait cancellable, return unknown/quota-timeout, and verify that an invalid
+solver command is never launched on timeout or cancellation.
+
+Review finding 6: backend telemetry alone could claim an arbitrary shared hit.
+Resolution: QueryStore reloads the bound Query IR, deterministically lowers it,
+and recomputes certificate, terminal digest, parent digest, and depth before
+committing the already model-validated SAT result.
+

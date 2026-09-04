@@ -1,0 +1,13 @@
+F418 full-gate concurrency audit
+
+initial_execution=LLVM17 full lit with default 192-worker fanout
+initial_result=287 passed, 2 unsupported, 1 failed out of 290 tests
+initial_failure=test_qf_bv_campaign.py
+initial_observation=QF_BV conformance artifact was reported invalid
+initial_raw_log_sealed=yes
+isolated_rerun=1 passed, 0 failed
+final_execution=LLVM17 full lit with controlled 8-worker fanout
+final_result=288 passed, 2 unsupported, 0 failed out of 290 tests
+f418_focused_both_versions=3 passed, 0 failed per version
+interpretation=the isolated pass and controlled complete pass identify concurrency sensitivity in an existing QF_BV campaign, not an F418 regression
+claim_boundary=this chronology does not identify one proven root cause for the initial artifact rejection

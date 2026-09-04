@@ -1,0 +1,7 @@
+experiment_id,run_id,pair_id,target,configuration,mode,np,round,timestamp_sec,edge_cov_pct,edges_found,edges_total,total_cases
+symcc-091785ad3f8443ce,9f96a716c2419c60f005fef7,828be8f6b1a0afbb9fd1a9af,libarchive-archive_fuzzer,hybrid,hybrid,16,1,0.0,6.1,835,13696,13
+symcc-091785ad3f8443ce,9f96a716c2419c60f005fef7,828be8f6b1a0afbb9fd1a9af,libarchive-archive_fuzzer,hybrid,hybrid,16,1,10.0,12.92,1770,13696,2289
+symcc-091785ad3f8443ce,9f96a716c2419c60f005fef7,828be8f6b1a0afbb9fd1a9af,libarchive-archive_fuzzer,hybrid,hybrid,16,1,20.0,12.92,1770,13696,2289
+symcc-091785ad3f8443ce,9f96a716c2419c60f005fef7,828be8f6b1a0afbb9fd1a9af,libarchive-archive_fuzzer,hybrid,hybrid,16,1,30.0,12.92,1770,13696,2289
+symcc-091785ad3f8443ce,9f96a716c2419c60f005fef7,828be8f6b1a0afbb9fd1a9af,libarchive-archive_fuzzer,hybrid,hybrid,16,1,40.0,12.92,1770,13696,2289
+symcc-091785ad3f8443ce,9f96a716c2419c60f005fef7,828be8f6b1a0afbb9fd1a9af,libarchive-archive_fuzzer,hybrid,hybrid,16,1,45.0,12.92,1770,13696,2289

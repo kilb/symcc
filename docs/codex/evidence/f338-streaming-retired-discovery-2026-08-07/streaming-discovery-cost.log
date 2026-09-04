@@ -1,0 +1,411 @@
+{
+  "configuration": {
+    "candidate_counts": [
+      128,
+      1024,
+      4096
+    ],
+    "memory_interleaved_and_alternating": true,
+    "memory_samples_per_mechanism_and_size": 10,
+    "selection_limit": 8,
+    "timing_interleaved_and_alternating": true,
+    "timing_samples_per_mechanism_and_size": 30,
+    "tree_creation_excluded": true,
+    "unrelated_entries_per_namespace": 16,
+    "warmups_per_mechanism_and_size": 3
+  },
+  "filesystem": "overlayfs",
+  "measurements": {
+    "1024": {
+      "comparison": {
+        "materialized_to_streaming_median_memory_ratio": 137.66757940854328,
+        "materialized_to_streaming_median_time_ratio": 0.9610157383323865,
+        "streaming_to_materialized_median_memory_ratio": 0.007263874358046153,
+        "streaming_to_materialized_median_time_ratio": 1.0405656849442044
+      },
+      "materialized": {
+        "memory_bytes": {
+          "maximum": 502762.0,
+          "mean": 502762.0,
+          "median": 502762.0,
+          "minimum": 502762.0,
+          "p95": 502762.0
+        },
+        "peak_traced_bytes": [
+          502762,
+          502762,
+          502762,
+          502762,
+          502762,
+          502762,
+          502762,
+          502762,
+          502762,
+          502762
+        ],
+        "samples_us": [
+          2207.776,
+          2195.387,
+          2200.405,
+          2193.364,
+          2192.152,
+          2194.106,
+          2191.632,
+          2198.021,
+          2189.148,
+          2193.704,
+          2197.23,
+          2189.748,
+          2195.467,
+          2203.319,
+          2195.747,
+          2200.284,
+          2197.159,
+          2189.929,
+          2196.458,
+          2184.731,
+          2195.297,
+          2190.039,
+          2191.351,
+          2190.049,
+          2194.425,
+          2238.141,
+          2199.293,
+          2203.019,
+          2203.189,
+          2198.762
+        ],
+        "timing_us": {
+          "maximum": 2238.141,
+          "mean": 2196.977733333333,
+          "median": 2195.427,
+          "minimum": 2184.731,
+          "p95": 2205.77035
+        }
+      },
+      "namespace_entries": 1040,
+      "streaming": {
+        "memory_bytes": {
+          "maximum": 3652.0,
+          "mean": 3652.0,
+          "median": 3652.0,
+          "minimum": 3652.0,
+          "p95": 3652.0
+        },
+        "peak_traced_bytes": [
+          3652,
+          3652,
+          3652,
+          3652,
+          3652,
+          3652,
+          3652,
+          3652,
+          3652,
+          3652
+        ],
+        "samples_us": [
+          2284.08,
+          2280.605,
+          2280.164,
+          2280.605,
+          2286.985,
+          2274.165,
+          2291.611,
+          2282.568,
+          2279.854,
+          2281.436,
+          2284.311,
+          2299.513,
+          2284.831,
+          2284.19,
+          2291.551,
+          2287.395,
+          2286.995,
+          2281.317,
+          2282.438,
+          2284.661,
+          2286.253,
+          2286.213,
+          2290.46,
+          2270.6,
+          2291.552,
+          2277.711,
+          2283.329,
+          2288.147,
+          2290.009,
+          2285.872
+        ],
+        "timing_us": {
+          "maximum": 2299.513,
+          "mean": 2284.6473666666666,
+          "median": 2284.486,
+          "minimum": 2270.6,
+          "p95": 2291.5844500000003
+        }
+      }
+    },
+    "128": {
+      "comparison": {
+        "materialized_to_streaming_median_memory_ratio": 18.441160066926937,
+        "materialized_to_streaming_median_time_ratio": 0.9393702713893177,
+        "streaming_to_materialized_median_memory_ratio": 0.05422652351429003,
+        "streaming_to_materialized_median_time_ratio": 1.0645429501627848
+      },
+      "materialized": {
+        "memory_bytes": {
+          "maximum": 66130.0,
+          "mean": 66130.0,
+          "median": 66130.0,
+          "minimum": 66130.0,
+          "p95": 66130.0
+        },
+        "peak_traced_bytes": [
+          66130,
+          66130,
+          66130,
+          66130,
+          66130,
+          66130,
+          66130,
+          66130,
+          66130,
+          66130
+        ],
+        "samples_us": [
+          299.91,
+          299.82,
+          301.363,
+          301.854,
+          298.809,
+          301.402,
+          299.129,
+          299.369,
+          299.309,
+          299.33,
+          301.402,
+          301.753,
+          299.189,
+          304.307,
+          299.45,
+          298.708,
+          298.198,
+          298.899,
+          302.705,
+          301.243,
+          299.089,
+          304.217,
+          298.849,
+          299.29,
+          298.578,
+          299.5,
+          302.133,
+          298.919,
+          302.515,
+          302.555
+        ],
+        "timing_us": {
+          "maximum": 304.307,
+          "mean": 300.3931333333333,
+          "median": 299.475,
+          "minimum": 298.198,
+          "p95": 303.5366
+        }
+      },
+      "namespace_entries": 144,
+      "streaming": {
+        "memory_bytes": {
+          "maximum": 3586.0,
+          "mean": 3586.0,
+          "median": 3586.0,
+          "minimum": 3586.0,
+          "p95": 3586.0
+        },
+        "peak_traced_bytes": [
+          3586,
+          3586,
+          3586,
+          3586,
+          3586,
+          3586,
+          3586,
+          3586,
+          3586,
+          3586
+        ],
+        "samples_us": [
+          324.628,
+          319.219,
+          319.46,
+          319.039,
+          319.209,
+          318.608,
+          319.199,
+          349.995,
+          320.662,
+          318.178,
+          318.308,
+          317.767,
+          318.659,
+          317.758,
+          317.757,
+          321.653,
+          321.493,
+          317.707,
+          318.809,
+          318.429,
+          317.937,
+          318.799,
+          318.408,
+          321.082,
+          320.852,
+          318.028,
+          318.649,
+          318.889,
+          318.919,
+          318.448
+        ],
+        "timing_us": {
+          "maximum": 349.995,
+          "mean": 320.2182666666667,
+          "median": 318.804,
+          "minimum": 317.707,
+          "p95": 323.28925
+        }
+      }
+    },
+    "4096": {
+      "comparison": {
+        "materialized_to_streaming_median_memory_ratio": 546.3773274917853,
+        "materialized_to_streaming_median_time_ratio": 0.988141765890994,
+        "streaming_to_materialized_median_memory_ratio": 0.0018302369986518791,
+        "streaming_to_materialized_median_time_ratio": 1.012000539313621
+      },
+      "materialized": {
+        "memory_bytes": {
+          "maximum": 1995370.0,
+          "mean": 1995370.0,
+          "median": 1995370.0,
+          "minimum": 1995370.0,
+          "p95": 1995370.0
+        },
+        "peak_traced_bytes": [
+          1995370,
+          1995370,
+          1995370,
+          1995370,
+          1995370,
+          1995370,
+          1995370,
+          1995370,
+          1995370,
+          1995370
+        ],
+        "samples_us": [
+          9269.892,
+          9239.566,
+          9250.603,
+          9229.331,
+          9324.283,
+          9255.19,
+          9283.622,
+          9286.957,
+          9298.995,
+          9309.231,
+          9289.231,
+          9295.25,
+          9278.284,
+          9238.455,
+          9285.876,
+          9315.28,
+          9304.603,
+          9234.759,
+          9190.002,
+          9216.201,
+          9178.324,
+          9118.194,
+          9143.281,
+          9222.14,
+          9202.12,
+          9174.228,
+          9178.865,
+          9417.834,
+          9191.954,
+          9213.186
+        ],
+        "timing_us": {
+          "maximum": 9417.834,
+          "mean": 9247.8579,
+          "median": 9245.0845,
+          "minimum": 9118.194,
+          "p95": 9320.23165
+        }
+      },
+      "namespace_entries": 4112,
+      "streaming": {
+        "memory_bytes": {
+          "maximum": 3652.0,
+          "mean": 3652.0,
+          "median": 3652.0,
+          "minimum": 3652.0,
+          "p95": 3652.0
+        },
+        "peak_traced_bytes": [
+          3652,
+          3652,
+          3652,
+          3652,
+          3652,
+          3652,
+          3652,
+          3652,
+          3652,
+          3652
+        ],
+        "samples_us": [
+          9355.6,
+          9351.293,
+          9390.853,
+          9352.436,
+          9391.484,
+          9370.903,
+          9415.65,
+          9397.974,
+          9422.982,
+          9394.94,
+          9429.221,
+          9402.601,
+          9417.153,
+          9379.997,
+          9404.073,
+          9387.939,
+          9419.516,
+          9356.461,
+          9212.074,
+          9207.719,
+          9237.483,
+          9194.658,
+          9223.502,
+          9239.105,
+          9277.092,
+          9258.044,
+          9269.551,
+          9221.058,
+          9260.127,
+          9225.976
+        ],
+        "timing_us": {
+          "maximum": 9429.221,
+          "mean": 9328.915500000001,
+          "median": 9356.0305,
+          "minimum": 9194.658,
+          "p95": 9421.4223
+        }
+      }
+    }
+  },
+  "platform": "Linux-7.0.0-28-generic-x86_64-with-glibc2.39",
+  "proof_boundary": "Local discovery-only timing and Python tracemalloc peak on one filesystem. Both paths still perform a complete namespace scan and type validation. Tracemalloc does not measure kernel buffers, filesystem caches, or all native allocations. This is not a hard startup-time bound, multi-host storage result, DSE throughput, solver, coverage, bug-discovery, or LAVA-M result.",
+  "python": "3.12.3",
+  "schema": "symcc-f338-streaming-retired-discovery-cost-v1"
+}

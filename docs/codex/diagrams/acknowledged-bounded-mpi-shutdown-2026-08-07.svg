@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">F318 acknowledged bounded MPI shutdown</title>
+  <desc id="desc">READY, tokenized nonblocking STOP, exact acknowledgement, bounded barrier, and explicit abort paths.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#b42318"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .title { font: 700 34px Arial, sans-serif; fill: #f8fafc; }
+      .subtitle { font: 400 17px Arial, sans-serif; fill: #cbd5e1; }
+      .lane { font: 700 20px Arial, sans-serif; fill: #172554; }
+      .head { font: 700 18px Arial, sans-serif; fill: #0f172a; }
+      .body { font: 400 15px Arial, sans-serif; fill: #334155; }
+      .small { font: 400 13px Arial, sans-serif; fill: #475569; }
+      .mono { font: 700 14px Consolas, monospace; fill: #1e293b; }
+      .white { fill: #ffffff; }
+      .line { stroke: #334155; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+      .dash { stroke: #64748b; stroke-width: 2; stroke-dasharray: 8 7; fill: none; marker-end: url(#arrow); }
+      .danger { stroke: #b42318; stroke-width: 2.6; fill: none; marker-end: url(#arrow-red); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1000" fill="#f8fafc"/>
+  <rect width="1600" height="110" fill="#172554"/>
+  <text x="64" y="52" class="title">F318  Acknowledged, Bounded MPI Shutdown</text>
+  <text x="64" y="82" class="subtitle">READY evidence gates STOP; exact ACK proves cleanup; every collective wait has a deadline</text>
+
+  <rect x="58" y="132" width="1484" height="62" rx="6" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
+  <text x="82" y="158" class="head">Core safety rule</text>
+  <text x="250" y="158" class="body">Never send STOP merely because a rank exists. Send only after observed READY or authoritative idle state.</text>
+  <text x="82" y="181" class="mono">shutdown_token(r) = SHA256("symcc-shutdown-v1" || random_epoch || rank)</text>
+
+  <!-- Lane headers -->
+  <rect x="58" y="222" width="360" height="52" rx="5" fill="#dbeafe" stroke="#2563eb"/>
+  <rect x="438" y="222" width="360" height="52" rx="5" fill="#dcfce7" stroke="#16a34a"/>
+  <rect x="818" y="222" width="360" height="52" rx="5" fill="#fef3c7" stroke="#d97706"/>
+  <rect x="1198" y="222" width="344" height="52" rx="5" fill="#ede9fe" stroke="#7c3aed"/>
+  <text x="238" y="255" text-anchor="middle" class="lane">Rank 0 / Master</text>
+  <text x="618" y="255" text-anchor="middle" class="lane">Healthy Worker</text>
+  <text x="998" y="255" text-anchor="middle" class="lane">Busy / Parked Worker</text>
+  <text x="1370" y="255" text-anchor="middle" class="lane">MPI Job Exit</text>
+
+  <line x1="238" y1="274" x2="238" y2="875" stroke="#93c5fd" stroke-width="2" stroke-dasharray="7 7"/>
+  <line x1="618" y1="274" x2="618" y2="875" stroke="#86efac" stroke-width="2" stroke-dasharray="7 7"/>
+  <line x1="998" y1="274" x2="998" y2="875" stroke="#fcd34d" stroke-width="2" stroke-dasharray="7 7"/>
+  <line x1="1370" y1="274" x2="1370" y2="875" stroke="#c4b5fd" stroke-width="2" stroke-dasharray="7 7"/>
+
+  <!-- Healthy protocol -->
+  <rect x="78" y="302" width="320" height="74" rx="6" fill="#ffffff" stroke="#2563eb" filter="url(#shadow)"/>
+  <text x="98" y="330" class="head">1. Freeze and compensate</text>
+  <text x="98" y="354" class="body">Rollback active transactions; persist state</text>
+
+  <rect x="458" y="302" width="320" height="74" rx="6" fill="#ffffff" stroke="#16a34a" filter="url(#shadow)"/>
+  <text x="478" y="330" class="head">Worker reaches receive boundary</text>
+  <text x="478" y="354" class="body">RESULT completed, then TAG_READY</text>
+
+  <path d="M458 389 C390 389, 360 405, 300 405" class="line"/>
+  <rect x="84" y="391" width="244" height="42" rx="4" fill="#e0f2fe" stroke="#0284c7"/>
+  <text x="206" y="417" text-anchor="middle" class="mono">READY(source = r)</text>
+
+  <rect x="78" y="455" width="320" height="84" rx="6" fill="#ffffff" stroke="#2563eb" filter="url(#shadow)"/>
+  <text x="98" y="483" class="head">2. Establish READY evidence</text>
+  <text x="98" y="507" class="body">observed READY or prior idle_ranks</text>
+  <text x="98" y="527" class="small">No evidence: do not issue STOP</text>
+
+  <path d="M398 497 L458 497" class="line"/>
+  <rect x="458" y="455" width="320" height="84" rx="6" fill="#ffffff" stroke="#16a34a" filter="url(#shadow)"/>
+  <text x="478" y="483" class="head">3. Tokenized STOP</text>
+  <text x="478" y="507" class="mono">isend(TAG_STOP, token[r])</text>
+  <text x="478" y="527" class="small">One send per rank; Request.Test only</text>
+
+  <path d="M618 539 L618 576" class="line"/>
+  <rect x="458" y="582" width="320" height="112" rx="6" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.6" filter="url(#shadow)"/>
+  <text x="478" y="612" class="head">4. Validate and clean locally</text>
+  <text x="478" y="638" class="body">Validate schema + 64-hex token</text>
+  <text x="478" y="662" class="body">Flush profile, close showmap/live state</text>
+  <text x="478" y="684" class="body">Remove worker temporary directory</text>
+
+  <path d="M458 715 C385 715, 350 710, 300 710" class="line"/>
+  <rect x="84" y="696" width="272" height="46" rx="4" fill="#dcfce7" stroke="#16a34a"/>
+  <text x="220" y="724" text-anchor="middle" class="mono">ACK(rank = r, exact token[r])</text>
+
+  <rect x="78" y="766" width="320" height="86" rx="6" fill="#ffffff" stroke="#2563eb" filter="url(#shadow)"/>
+  <text x="98" y="795" class="head">5. Exact ACK gate</text>
+  <text x="98" y="819" class="body">Source, payload rank and token match</text>
+  <text x="98" y="840" class="small">Missing / stale / malformed: quarantine</text>
+
+  <!-- Silent path -->
+  <rect x="838" y="302" width="320" height="96" rx="6" fill="#fff7ed" stroke="#d97706" filter="url(#shadow)"/>
+  <text x="858" y="331" class="head">No READY evidence</text>
+  <text x="858" y="357" class="body">Still executing, parked, or lost</text>
+  <text x="858" y="379" class="body">Master sends no STOP to this rank</text>
+
+  <path d="M998 398 L998 455" class="dash"/>
+  <rect x="838" y="461" width="320" height="92" rx="6" fill="#fffbeb" stroke="#d97706"/>
+  <text x="858" y="490" class="head">Bounded grace expires</text>
+  <text x="858" y="515" class="mono">pending = workers - exact_ACK</text>
+  <text x="858" y="537" class="small">No rank reuse and no false completion</text>
+
+  <path d="M1158 507 L1225 507" class="danger"/>
+  <rect x="1225" y="461" width="290" height="92" rx="6" fill="#fef2f2" stroke="#b42318" stroke-width="1.7" filter="url(#shadow)"/>
+  <text x="1245" y="491" class="head">Explicit incomplete-job exit</text>
+  <text x="1245" y="518" class="mono">rank 0: comm.Abort(70)</text>
+  <text x="1245" y="540" class="small">Non-zero, bounded, not recovery</text>
+
+  <!-- Final barrier path -->
+  <path d="M398 809 C790 809, 920 650, 1225 650" class="line"/>
+  <rect x="1225" y="606" width="290" height="92" rx="6" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.6" filter="url(#shadow)"/>
+  <text x="1245" y="636" class="head">All workers exact-ACKed</text>
+  <text x="1245" y="661" class="mono">Ibarrier() + Request.Test()</text>
+  <text x="1245" y="683" class="small">Independent finalize deadline</text>
+
+  <path d="M1370 698 L1370 746" class="line"/>
+  <rect x="1225" y="752" width="290" height="86" rx="6" fill="#ecfdf5" stroke="#16a34a" filter="url(#shadow)"/>
+  <text x="1245" y="784" class="head">Barrier completed</text>
+  <text x="1245" y="813" class="mono">MPI.Finalize()</text>
+
+  <path d="M1515 652 C1550 652, 1550 880, 1450 880" class="danger"/>
+  <rect x="1225" y="858" width="290" height="74" rx="6" fill="#fef2f2" stroke="#b42318"/>
+  <text x="1245" y="888" class="head">Barrier deadline expired</text>
+  <text x="1245" y="916" class="mono">comm.Abort(71)</text>
+
+  <!-- Footer legend -->
+  <rect x="58" y="952" width="1484" height="30" fill="#e2e8f0"/>
+  <circle cx="82" cy="967" r="7" fill="#16a34a"/><text x="96" y="972" class="small">proved completion</text>
+  <circle cx="252" cy="967" r="7" fill="#2563eb"/><text x="266" y="972" class="small">master protocol state</text>
+  <circle cx="465" cy="967" r="7" fill="#d97706"/><text x="479" y="972" class="small">suspected / pending endpoint</text>
+  <circle cx="735" cy="967" r="7" fill="#b42318"/><text x="749" y="972" class="small">bounded abort path</text>
+  <text x="1518" y="972" text-anchor="end" class="small">Application-level lifecycle fencing; not ULFM communicator repair</text>
+</svg>

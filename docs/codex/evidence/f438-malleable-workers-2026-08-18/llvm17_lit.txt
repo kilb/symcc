@@ -1,0 +1,12 @@
+Command: ninja -C build-llvm17 check
+Execution mode: serial with respect to the LLVM 18 full gate
+
+Testing Time: 278.74s
+
+Total Discovered Tests: 328
+  Unsupported:   2 (0.61%)
+  Passed     : 326 (99.39%)
+
+Failed: 0
+Unresolved: 0
+Exit status: 0

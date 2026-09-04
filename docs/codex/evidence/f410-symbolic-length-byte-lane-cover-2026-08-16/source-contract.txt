@@ -1,0 +1,39 @@
+Producer
+  compiler/ContinuationLowering.cpp
+  SymbolicRegionEffect
+  DynamicByteLaneCoverLane
+  DynamicByteLaneCoverCertificate
+  symbolicRegionEffect
+  boundedSymbolicRegionExtent
+  lowerBoundedRegionOperands
+  dynamicByteLaneCoverInitialization
+  dynamicByteLaneCoverRecord
+  bounded-symbolic-length-region-effect
+  bounded-symbolic-length-byte-lane-cover
+  initialization_dynamic_byte_lane
+  symcc-symbolic-length-byte-lane-cover-v1
+
+Consumer and runtime trust boundary
+  util/live_continuation.py
+  _symbolic_region_effect_sites
+  _dynamic_byte_lane_cover_initialization
+  exact region bound/guard/read/write site closure
+  exact dynamic alias/index domain and lane Cartesian product
+  stack/heap owner, CFG dominance, operation order, and skipped-store identity
+  LLVM producer remains authoritative for MemorySSA and NoAlias facts
+  runtime guarded writes and byte-init markers remain authoritative
+
+Production-chain tests
+  test/live_symbolic_length_byte_lane_cover.ll
+  util/check_live_continuation_lowering.py
+  benchmark/generate_symbolic_length_byte_lane_fixture.py
+
+Independent evidence
+  benchmark/check_symbolic_length_byte_lane_oracles.py
+  benchmark/benchmark_symbolic_length_byte_lane_cover.py
+  test/test_symbolic_length_byte_lane_cover.py
+
+Documentation
+  docs/codex/research-progress/Symbolic_Length_Byte_Lane_Cover_F410_2026-08-16.md
+  docs/codex/diagrams/symbolic-length-byte-lane-cover-f410.svg
+  docs/codex/diagrams/symbolic-length-byte-lane-cover-f410.png

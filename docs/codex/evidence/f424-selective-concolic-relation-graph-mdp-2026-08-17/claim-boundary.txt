@@ -1,0 +1,16 @@
+This evidence establishes a bounded implementation result for the current
+persistent QF_BV query helper and PrefixDAG scheduler:
+
+- a weighted input-byte relation graph produces non-empty PC_c and PC_r sides;
+- PC_c is solved independently and its shared model is combined with bounded
+  random-only completions;
+- only SAT from the original full prefix+target formula is authoritative;
+- partial UNSAT, unknown, timeout, completion miss, exceptions, and all
+  partition rejections fall back to the ordinary full solver;
+- Laplace-smoothed branch transitions and synchronous bounded value iteration
+  produce finite, auditable values for cyclic PrefixDAG state;
+- the independent finite oracle has zero false SAT and zero false UNSAT.
+
+This is not a reproduction of the FM 2026 KLEE/JFS/METIS/LIBSVM stack, its
+QF_BVFP domain, 535 GSL/Cephes functions, 41 FDLIBM functions, or reported
+coverage/time improvements. It is not a >=20-run equal-CPU public campaign.

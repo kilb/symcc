@@ -1,0 +1,68 @@
+{
+  "actual_mpi_transport": true,
+  "actual_multi_host": false,
+  "all_checks_passed": true,
+  "case": {
+    "active_epoch_after_run": false,
+    "all_checks_passed": true,
+    "checks": {
+      "clean_mpi_exit": true,
+      "epoch_retired_cleanly": true,
+      "generated_count_is_one": true,
+      "no_staging_residue": true,
+      "only_generated_object_executed": true,
+      "phantom_hash_never_published": true,
+      "phantom_removed_before_delayed_owner": true,
+      "present_external_is_zero": true,
+      "public_namespace_exact": true,
+      "root_observed_phantom": true
+    },
+    "command": [
+      "/usr/bin/mpirun",
+      "--oversubscribe",
+      "-np",
+      "7",
+      "/usr/bin/python3",
+      "/tmp/symcc-f342-provenance-wdeyscos/rank-wrapper.py",
+      "-i",
+      "/tmp/symcc-f342-provenance-wdeyscos/input",
+      "-o",
+      "/tmp/symcc-f342-provenance-wdeyscos/output",
+      "-t",
+      "1",
+      "--max-idle",
+      "1",
+      "--wall-timeout",
+      "25",
+      "--workers-per-master",
+      "3",
+      "--",
+      "/tmp/symcc-f342-provenance-wdeyscos/input-observer.py"
+    ],
+    "elapsed_seconds": 7.875546280993149,
+    "generated_public_hash": "ad307c85a5adbaca5260cd497924f01869ed2b6db47cc0dd391c453b97ef2b6c",
+    "master_one_delay_seconds": 6.0,
+    "mode": "delayed-owner-phantom-external",
+    "observed_target_hashes": [
+      "ad307c85a5adbaca5260cd497924f01869ed2b6db47cc0dd391c453b97ef2b6c"
+    ],
+    "output": "SymCC MPI Parallel Concolic Execution\n  Processes:     7\n  Mode:          multi-master (2 masters, auto-scaled at 3 workers/master)\n    Master 0: 3 workers\n    Master 1: 2 workers\n  Shared dir:    /tmp/symcc-f342-provenance-wdeyscos/output\n  Input dir:     /tmp/symcc-f342-provenance-wdeyscos/input\n  Target:        /tmp/symcc-f342-provenance-wdeyscos/input-observer.py\n  Timeout:       1s per execution\n  Result budget: 2 objects, 1024 bytes per parent\n  Input budget:  1024 bytes per object\n  Work epoch:    f342f342f342f342f342f342f342f342f342f342f342f342f342f342f342f342 (configured recovery)\n  Retired GC:    0 root(s) reclaimed, 0 entry(s) removed, stop=disabled\n  Retired budget: roots=0, entries=4096, time=0.05s\n  Retired scan:   entries=0, candidates=0, selected=0\n  Retirement:    renameat2(RENAME_NOREPLACE) qualified\n  Wall timeout:  25s total\n\n[Master] Observed 1 initial inputs from /tmp/symcc-f342-provenance-wdeyscos/input\n[Master] Using 2 master(s), 3 workers in this group\n[Master] Durable work ownership: rendezvous + 64 fenced shards, lease=12s\n[Master] Shared filesystem capabilities: {'schema': 'symcc-shared-filesystem-capabilities-v1', 'root': '/tmp/symcc-f342-provenance-wdeyscos/output/.standalone-work-f342f342f342f342f342f342f342f342f342f342f342f342f342f342f342f342', 'publication_root': '/tmp/symcc-f342-provenance-wdeyscos/output', 'device': 92, 'filesystem_id': 18395215968828387670, 'publication_device': 92, 'publication_filesystem_id': 18395215968828387670, 'filesystem_type': 'overlay', 'mount_point': '/', 'mount_source': 'overlay', 'distributed_filesystem': False, 'cluster_lock_verified': False, 'probe_scope': 'same-host-subprocess-v1', 'cluster_lock_members': [{'rank': 0, 'processor': 'cuda-ke'}, {'rank': 1, 'processor': 'cuda-ke'}], 'cluster_lock_representatives': [0], 'cluster_lock_rounds': 0, 'cluster_lock_contention_checks': 0, 'cluster_lock_release_checks': 0, 'file_fsync': True, 'directory_fsync': True, 'same_directory_replace': True, 'cross_directory_replace': True, 'publication_replace': True, 'hard_link': True, 'durable_unlink': True, 'advisory_lock_exclusion': True, 'advisory_lock_release': True}\n[Master] 0 generated, 0 interesting, 0 analyzed, 0 busy (0 tc/s)\n[Master] 0 generated, 0 interesting, 0 analyzed, 0 busy (0 tc/s)\n[Master] 0 generated, 0 interesting, 0 analyzed, 0 busy (0 tc/s)\n[Master] Global quiescence commit proposed after 1.054s (limit 1s).\n[Master 1] Worker shutdown: acked=2/2 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s\n[Master] Global quiescence committed by all masters.\n[Master 0] Worker shutdown: acked=3/3 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s\n\n[Master] === Final Statistics ===\n[Master] Total analysis observations:       1\n[Master] Total test cases generated:  0\n[Master] External input objects:      0\n[Master] New interesting test cases:  1\n[Master] Throughput:                  0.0 tc/s\n[Master] Masters used:               2\n[Master] Workers used:               5\n[Master] Analysis by master:         0=0, 1=1\n",
+    "phantom_external_hash": "c4ff24a13bdc13733c58df00f01f594ec251ae63f9dd08ef5be4ec7137e48ccf",
+    "phantom_owner": 1,
+    "retired_epoch_count": 1,
+    "returncode": 0,
+    "staged_residue": [],
+    "valid_public_objects": [
+      "ad307c85a5adbaca5260cd497924f01869ed2b6db47cc0dd391c453b97ef2b6c"
+    ]
+  },
+  "configuration": {
+    "masters": 2,
+    "ranks": 7,
+    "workers": 5
+  },
+  "deterministic_rank_delay_injection": true,
+  "proof_boundary": "Actual Open MPI transport on one physical host with an explicitly injected rank-1 master delay and a synthetic observer target. The artifact proves final public/external set-intersection accounting; it does not invoke SymCC's solver and does not establish campaign, coverage, throughput, multi-host, storage-failover, or bug-finding uplift.",
+  "schema": "symcc-f342-public-provenance-intersection-mpi-v1",
+  "synthetic_input_observer_target": true
+}

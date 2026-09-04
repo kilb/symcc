@@ -202,15 +202,21 @@ workload 设计）不适用的区间。要兑现它们需换到**难约束目标
 - 效果：约束求解时间比 SymQEMU 快 50x
 - **适用性**：升级现有 SYMCC_FOCUS_BYTES，使用运行时污点追踪
 
-**PSCache - Partial Solution Based Constraint Solving Cache (FSE'24)**
+**PSCache - Partial Solution Based Constraint Solving Cache (FSE'24，历史判断已被F32/F35/F236修订)**
 - 核心思想：缓存 Z3 的部分解，相似约束复用已有解
 - 效果：相同路径数下 1.07-2.3x 加速
-- **评估后未采用**：negatePath 的可满足性依赖于已同步的**路径前缀约束**，
+- **早期评估结论（不再代表当前实现）**：negatePath 的可满足性依赖于已同步的**路径前缀约束**，
   仅凭分支表达式（或其依赖集合）做缓存会忽略路径上下文，误跳过可满足约束
   而丢失覆盖率。且 QSYM 已有 `trace_.isInterestingBranch(pc, taken)` 提供
   基于覆盖率的分支级去重，识别到重复分支时上游即不再调用 negatePath，
   内容缓存与之高度冗余。正确的 PSCache 需对**完整查询**（前缀∧¬分支）哈希，
   但其收益主要出现在循环内相同符号状态，而该场景已被上游去重覆盖，收益有限。
+- **当前修订**：上述论证只排除了错误的branch-only result cache，没有排除论文的
+  conflict assignment + prefix/off-path solution-set方法。F32已实现QueryStore
+  partial model reuse，F35实现persistent helper probe，F236实现Z3
+  assumption-UNSAT-core-verified conflict assignment、signed literal relevance和
+  Query IR二次验证。逐次CDCL trail hook仍需由同CPU实验决定是否值得开发；详见
+  `New_Implementation_Archive.md` 231节和SOTA差距审计G07。
 
 **Fuzzy-Sat 快速求解（已有）**
 - 改进：修复了 ZExt/SExt 截断 bug、跳过与输入相同的输出、fastSolve 成功后不再走 Z3

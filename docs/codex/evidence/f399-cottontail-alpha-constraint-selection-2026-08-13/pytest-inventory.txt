@@ -1,0 +1,6 @@
+schema=symcc-f399-pytest-inventory-v1
+count=989
+nodeids_sha256=26164f3dacd3c1df835b34ecbfb2fc3fa98ee66dff239a03f8f7145384d913d4
+file_sha256=886740b8fc8f7373abca4a77ba53315d14d17cd5dcf64ebb965c4c171a6b9da2
+status=PASS
+

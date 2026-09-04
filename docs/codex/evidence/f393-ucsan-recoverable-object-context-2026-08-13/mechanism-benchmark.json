@@ -1,0 +1,21 @@
+{
+  "canonical_outputs": true,
+  "claim_boundary": "whole-process native mechanism timing with two durable snapshot publications per sample; not a coverage, solver, or cross-system speedup",
+  "distinct_output_digests": 1,
+  "elapsed_ms": {
+    "maximum": 19.202554,
+    "median": 16.84979,
+    "minimum": 14.220805,
+    "p95": 17.862703
+  },
+  "environment": {
+    "platform": "Linux-7.0.0-28-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3"
+  },
+  "input_bytes": 184,
+  "output_sizes": [
+    184
+  ],
+  "samples": 31,
+  "schema": "symcc-ucsan-snapshot-benchmark-v1"
+}

@@ -1,0 +1,7 @@
+schema=f326-kernel-lock-syscall-trace-v1
+openat(AT_FDCWD, "/tmp/symcc-f326-strace.NZIqP5/record.lock", O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC, 0600) = 3
+flock(3, LOCK_EX|LOCK_NB)               = 0
+flock(3, LOCK_UN)                       = 0
+openat(AT_FDCWD, "/tmp/symcc-f326-strace.NZIqP5/record.lock", O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC, 0600) = 3
+flock(3, LOCK_EX|LOCK_NB)               = 0
+flock(3, LOCK_UN)                       = 0

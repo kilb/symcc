@@ -1,0 +1,72 @@
+F331 deterministic bounded renewal jitter checks
+Date: 2026-08-07 UTC
+Host: cuda-ke
+Kernel: Linux 7.0.0-28-generic x86_64
+Python: 3.12.3
+MPI: Open MPI 4.1.6 / mpi4py 4.1.1 / MPI 3.1
+
+Static and syntax checks
+- ruff touched production/test/evidence Python: pass
+- AST parse touched Python files: pass
+- git diff --check: pass
+- evidence-directory __pycache__ residue: none
+
+Tests
+- directed protocol/jitter/cache tests: 17 passed, 5 subtests in 1.28 s
+- related MPI/distributed/hybrid tests: 296 passed, 26 subtests in 15.91 s
+- full warnings-as-errors Python regression: 692 passed, 46 subtests in 96.73 s
+
+Synthetic cohort schedule
+- jobs/generations/events: 1024/12/12288
+- base interval/jitter/window: 60 s / 0.1 / [60, 66) s
+- bucket width: 100 ms
+- fixed peak/nonempty buckets: 1024/12
+- jittered peak/nonempty buckets: 26/2232
+- peak reduction: 97.4609375%
+- observed delay range: 60.000907865..65.999094696 s
+- per-generation peaks: 26/26/20/22/18/18/15/13/13/14/14/15
+- event conservation and all JSON assertions: pass
+- scheduling cost warm-ups/repetitions: 2/20
+- fixed/jittered median: 1.102851/1.766609 us per generation decision
+- production due/snapshot hash cache across completion: covered by directed test
+
+Real MPI transport with synthetic topology
+- MPI ranks: 7
+- standalone masters/workers: 2/5
+- processor identity source: test wrapper injection
+- configured interval/jitter: 0.12 s / 0.5
+- actual MPI communicator and worker lifecycle: true
+- actual remote filesystem clients: false
+- generations per master: 5/5
+- attempts/successes/failures per master: 5/5/0
+- identical last/next schedules for this epoch: 0.145894947/0.126152756 s
+- cross-run schedule values are epoch-dependent; equality and bounds are invariants
+- return code: 0
+- worker shutdown ACKs: 5/5
+
+Real same-host anti-false-positive
+- MPI ranks and masters/workers: 7 and 2/5
+- configured interval/jitter: 0.05 s / 0.5
+- cluster_lock_verified: false
+- cross-host rounds: 0
+- runtime renewal metrics emitted: false
+- return code and worker ACKs: 0 and 5/5
+
+Strict evidence boundaries
+- synthetic_schedule=true
+- synthetic_topology=true
+- deployment_evidence=false
+- actual_multi_host=false
+- filesystem_io_measured=false
+- real_shared_storage_backend_tested=false
+- server_failover_tested=false
+- network_partition_tested=false
+- mpi_rank_failure_recovery_tested=false
+- physical_power_cut_tested=false
+- dse_throughput_benchmarked=false
+- solver_or_coverage_uplift_measured=false
+- lava_m_campaign_run=false
+
+Repository inventory after F331
+- documented SYMCC configuration names: 410
+- top-level test files: 246

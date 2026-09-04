@@ -1,0 +1,10 @@
+<?xml version="1.0"?><!DOCTYPE root [<!ELEMENT root
+
+
+
+
+
+
+
+
+<item (#PCDATA)><!ATTLIST root id I[ CTYPE ro#IMPLIED>]><root id="a">cOntent</root>

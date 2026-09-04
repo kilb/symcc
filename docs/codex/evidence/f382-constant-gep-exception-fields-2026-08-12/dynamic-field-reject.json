@@ -1,0 +1,15 @@
+{
+  "diagnostics": [
+    "bad_exception_object_dynamic_field:landing: landingpad has unsupported exception-object uses [landingpad]",
+    "bad_exception_object_dynamic_field:landing: landingpad extractvalue requires the i32 type selector [extractvalue]",
+    "bad_exception_object_dynamic_field:landing: __cxa_begin_catch object materialization is unsupported [call]",
+    "bad_exception_object_dynamic_field:landing: pointer is not rooted in a supported memory object [getelementptr]",
+    "bad_exception_object_dynamic_field:landing: pointer is not rooted in a supported memory object [getelementptr]",
+    "bad_exception_object_dynamic_field:landing: pointer is not rooted in a supported memory object [load]"
+  ],
+  "entry": "bad_exception_object_dynamic_field",
+  "llvm_version": "18.1.3",
+  "schema": "symcc-llvm-continuation-lowering-v1",
+  "source_module": "/home/ubuntu/code/symcc/test/live_continuation_lowering.ll",
+  "status": "rejected"
+}

@@ -1,0 +1,11 @@
+paper_title=Compatible Branch Coverage Driven Symbolic Execution for Efficient Bug Finding
+authors=Qiuping Yi; Yifan Yu; Guowei Yang
+venue=Proceedings of the ACM on Programming Languages, PLDI 2024, volume 8, article 213, pages 1633-1655
+paper_doi=https://doi.org/10.1145/3656443
+conference_page=https://pldi24.sigplan.org/details/pldi-2024-papers/67/Compatible-Branch-Coverage-Driven-Symbolic-Execution-for-Efficient-Bug-Finding
+artifact_title=PLDI-CBC/CBC-SE: CBC-V2.1
+artifact_doi=https://doi.org/10.5281/zenodo.10960926
+artifact_zip_md5=18dae051b4afff7087b5d43fb007534a
+artifact_inspected_symbols=ExecutionState.brSet; branchSet; computeBranchDependence; judgeDependence; devideBranch; checkStates
+artifact_algorithm=latest branch outcome map; greedy pairwise compatible groups; reject states with mixed outcomes inside one group; prune only at states_limit pressure
+adaptation_boundary=function-local continuation CFG; conservative fail-open for memory, calls/callees, cycles, unknown assumptions, ambiguous tokens, and graph budgets

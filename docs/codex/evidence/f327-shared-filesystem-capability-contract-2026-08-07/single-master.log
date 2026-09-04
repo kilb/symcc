@@ -1,0 +1,25 @@
+SymCC MPI Parallel Concolic Execution
+  Processes:     3
+  Mode:          single-master (2 workers)
+  Shared dir:    /tmp/symcc-f327-mpi-o9p4shvj/single-master
+  Input dir:     /tmp/symcc-f327-mpi-o9p4shvj/input
+  Target:        /bin/true
+  Timeout:       1s per execution
+  Work epoch:    5a0f130648c9f64ae3b761e57041730a0efdd2f7a9736c4aa4c158de02c52251 (new)
+
+[Master] Imported 2 initial inputs from /tmp/symcc-f327-mpi-o9p4shvj/input
+[Master] Using 1 master(s), 2 workers in this group
+[Master] Durable work ownership: rendezvous + 64 fenced shards, lease=120s
+[Master] Shared filesystem capabilities: {'schema': 'symcc-shared-filesystem-capabilities-v1', 'root': '/tmp/symcc-f327-mpi-o9p4shvj/single-master/.standalone-work-5a0f130648c9f64ae3b761e57041730a0efdd2f7a9736c4aa4c158de02c52251', 'publication_root': '/tmp/symcc-f327-mpi-o9p4shvj/single-master', 'device': 92, 'filesystem_id': 18395215968828387670, 'publication_device': 92, 'publication_filesystem_id': 18395215968828387670, 'filesystem_type': 'overlay', 'mount_point': '/', 'mount_source': 'overlay', 'distributed_filesystem': False, 'cluster_lock_verified': False, 'probe_scope': 'same-host-subprocess-v1', 'file_fsync': True, 'directory_fsync': True, 'same_directory_replace': True, 'cross_directory_replace': True, 'publication_replace': True, 'hard_link': True, 'durable_unlink': True, 'advisory_lock_exclusion': True, 'advisory_lock_release': True}
+[Master 0] Waiting for inputs... (0 generated, 0 interesting, 2 analyzed)
+[Master] No more inputs after 1.001s (limit 1s). Shutting down.
+[Master 0] Worker shutdown: acked=2/2 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+
+[Master] === Final Statistics ===
+[Master] Total analysis observations:       2
+[Master] Total test cases generated:  0
+[Master] New interesting test cases:  0
+[Master] Throughput:                  0.0 tc/s
+[Master] Masters used:               1
+[Master] Workers used:               2
+[Master] Analysis by master:         0=2

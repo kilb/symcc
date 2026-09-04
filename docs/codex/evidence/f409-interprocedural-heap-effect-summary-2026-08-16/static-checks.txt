@@ -1,0 +1,35 @@
+ruff check: PASS
+py_compile: PASS
+LLVM 18 SymCC build: PASS
+LLVM 17 SymCC build: PASS
+generated technology index check: PASS
+git diff --check: PASS
+F409 trailing whitespace scan: PASS
+SVG ElementTree parse 1920x1080: PASS
+PNG dimensions/mode 2880x1620 RGB: PASS
+diagram visual inspection: PASS
+caller MemoryUse linear MemoryDef traversal: PASS
+static-disjoint and LLVM NoAlias skip: PASS
+direct internal call NoModRef skip: PASS
+malloc/store and calloc/zero returned effects: PASS
+formal-relative argument effect instantiation: PASS
+finite returned heap-pool per-object certificate set: PASS (2/2)
+load/allocator/store alias-domain equality: PASS
+consumer caller/callee operation-identity replay: PASS
+consumer extra load/store alias-case mutations: PASS
+consumer zero-initialization mutation: PASS
+consumer capability dependency and use-point closure: PASS
+runtime live/size/byte-init authority preserved: PASS
+64-callsite producer boundary: PASS (64 certificates)
+independent interval oracle: PASS (182196 instantiations)
+cover/non-cover/wrong-callsite checks: PASS (49896/132300/49896)
+independent certificate mutations: PASS (8/8)
+full Python exact-identity gate: PASS (1046 + 250 subtests)
+full LLVM 17 gate: PASS (267 passed + 2 existing unsupported)
+LLVM 17 focused F409 fixture: PASS (1 lit file; 21 RUN commands)
+LLVM 18 focused F409 fixture: PASS (1 lit file; 21 RUN commands)
+LLVM 17 related F406-F409 fixtures: PASS (4 lit files)
+LLVM 18 related F406-F409 fixtures: PASS (4 lit files)
+initial TMPDIR=/dev/shm full-gate attempt: INVALID TEST ENVIRONMENT (noexec)
+corrective full-gate rerun with default executable TMPDIR: PASS
+public coverage/solver/bug-yield/end-to-end speedup claim: intentionally absent

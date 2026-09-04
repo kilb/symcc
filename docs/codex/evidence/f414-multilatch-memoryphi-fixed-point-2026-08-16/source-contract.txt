@@ -1,0 +1,37 @@
+F414 production and verification contract
+
+Producer
+- compiler/ContinuationLowering.cpp
+- MultiLatchLoopMemoryPhiCertificate
+- multiLatchLoopMemoryPhiInitialization
+- multiLatchLoopMemoryPhiRecord
+- bounded-multilatch-loop-memoryphi-byte-lane-fixed-point
+- symcc-loop-memoryphi-byte-lane-induction-v4
+- mutually-exclusive-backedge-transfer
+
+Consumer and runtime
+- util/live_continuation.py
+- LiveContinuationExecutor._multilatch_loop_memoryphi_fixed_point_initialization
+- exact base/strided/multi-latch capability closure
+- direct CFG, true-first decision-tree, dominance, and scalar PHI edge-copy replay
+- closed scalar guard-expression provenance and exact integer width/range replay
+- header MemoryPhi incoming block/access/kind identity
+- complete versus recurrence-reachable writer aliases
+- finite monotone byte-lane union, stability round, and complete alternatives
+- bound capacity and whole-domain no-wrap proof
+- path-local byte-init bitmap authority
+
+Production fixtures and checker
+- test/live_multilatch_loop_memoryphi_fixed_point.ll
+- util/check_live_continuation_lowering.py
+- benchmark/generate_multilatch_loop_memoryphi_fixture.py
+
+Independent semantics and mechanism cost
+- benchmark/check_multilatch_loop_memoryphi_oracles.py
+- benchmark/benchmark_multilatch_loop_memoryphi.py
+- test/test_multilatch_loop_memoryphi_fixed_point.py
+
+Documentation and diagram
+- docs/codex/research-progress/Multi_Latch_MemoryPhi_Fixed_Point_F414_2026-08-16.md
+- docs/codex/diagrams/multilatch-memoryphi-fixed-point-f414.svg
+- docs/codex/diagrams/multilatch-memoryphi-fixed-point-f414.png

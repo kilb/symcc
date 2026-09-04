@@ -1,0 +1,65 @@
+F454 multi-round review record (2026-08-26)
+
+R1 - Architecture and trust boundary
+Separated the native solver helper, structural parser, official checker, and
+durable publisher. The parser can reject malformed output but cannot authorize
+UNSAT. Every published root requires official local/redistribute/confirm.
+
+R2 - Official checker compatibility
+The first real confirm failed on a communication clause. Inspection showed that
+the checker performs a semi-sorted lookup and Mallob sorts shared clauses before
+delivery. ClauseBus now numeric-sorts literals and rejects zero, INT_MIN,
+duplicates, and tautologies. The official pipeline then passed.
+
+R3 - Parallelism and namespace
+Replaced independent single-rank child processes with one native N-rank pool and
+a bounded per-rank clause bus. Enforced the exact [0,N) namespace and made
+max_parallel bound the actual solver count.
+
+R4 - Evidence binding
+Added three-way checks for CNF content/header, worker statistics, and parent
+recomputation. Rejected Python bool values where strict integer counts are
+required, unexpected artifacts, and re-sealed metadata tampering.
+
+R5 - Failure closure
+Added SAT, nonzero exit, real SIGSEGV, wrong namespace, and capacity-one
+backpressure tests. All negative cases leave no published proof root. Impossible
+native source states abort inside the isolated helper instead of fabricating a
+clause.
+
+R6 - Publication and replay
+Changed publication to fsync plus renameat2(RENAME_NOREPLACE), followed by an
+official recheck of the published tree. Wrapper shared libraries are compiled to
+same-filesystem temporary names before atomic replacement.
+
+R7 - Determinism boundary
+Removed UNSAT witness-rank equality from exact recheck because valid parallel
+races can select different witnesses. Each witness receipt remains independently
+validated and bound to the same formula/tool identities.
+
+R8 - Tests and claim calibration
+Ran focused and coupled tests, strict lint/compile checks, a wrapper-boundary
+ASan/UBSan run, and a 1/2/4-rank three-round official oracle. The final report
+claims native production and confirmation only; it explicitly does not claim SAT
+speedup, coverage gain, defect yield, or multi-node scaling.
+
+R9 - Pool-wide terminal telemetry
+Source review found that each rank sampled its pending inbox before peer threads
+necessarily stopped publishing. The pool now joins all ranks and then takes one
+terminal pending snapshot for every inbox. The installed wrapper, official
+oracle, sanitizer boundary, focused tests and coupled tests were rerun; reports
+use the new terminal medians and maximum.
+
+R10 - Production completion boundary
+Review found that post-publication official recheck was performed by tests and
+the acceptance oracle but was not part of produce() itself. Production now
+writes and fsyncs the complete receipt, validates the staging layout and replays
+the official proof a second time, and only then performs no-replace publication.
+The acceptance oracle still rechecks the final published path independently.
+
+R11 - Queue-capacity semantic bound
+The pending field was type-bounded but not checked against the configured
+per-rank queue capacity. Initial helper parsing and persisted receipt validation
+now reject impossible pending values. Both a malformed helper response and a
+re-sealed persisted receipt above capacity are covered without adding a new test
+identity.

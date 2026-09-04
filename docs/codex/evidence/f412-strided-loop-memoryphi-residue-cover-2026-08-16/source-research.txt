@@ -1,0 +1,28 @@
+F412 primary and official sources (retrieved 2026-08-16)
+
+LLVM MemorySSA
+https://llvm.org/docs/MemorySSA.html
+Relevant boundary: MemoryPhi is a may-reach merge of memory definitions and is
+not proof that the backedge writer executed on the current path.
+
+LLVM Loop Terminology and Canonical Forms
+https://llvm.org/docs/LoopTerminology.html
+Relevant boundary: loop header, preheader, latch, backedge, exiting edge, and
+exit block terminology used by the producer's structural admission checks.
+
+LLVM ScalarEvolution source documentation
+https://llvm.org/doxygen/ScalarEvolution_8h_source.html
+Relevant boundary: affine AddRec expressions and no-self-wrap reasoning. F412
+uses an independently replayable bounded inequality rather than trusting a
+non-portable analysis object in the serialized artifact.
+
+LLVM InductionDescriptor documentation
+https://www.llvm.org/docs/doxygen/classllvm_1_1InductionDescriptor.html
+Relevant boundary: integer induction PHIs may have constant non-unit steps and
+need explicit overflow predicates.
+
+Array-Carrying Symbolic Execution for Function Contract Generation (2026)
+https://arxiv.org/abs/2602.23216
+Relevant direction: segment-level loop memory effects and assigns invariants.
+F412 is only a bounded constant-stride residue-class slice and does not claim a
+complete implementation of ACSE, ScalarEvolution, or array invariant synthesis.

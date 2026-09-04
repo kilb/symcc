@@ -1,0 +1,30 @@
+{
+  "cases": [
+    {
+      "capability_snapshot_reported": true,
+      "global_quiescence_reported": true,
+      "hidden_epoch_state_after_finalize": [],
+      "name": "single-master",
+      "probe_residue": [],
+      "processes": 3,
+      "returncode": 0,
+      "shutdown_ack_marker": "acked=2/2",
+      "shutdown_ack_reported": true,
+      "workers_per_master": 0
+    },
+    {
+      "capability_snapshot_reported": true,
+      "global_quiescence_reported": true,
+      "hidden_epoch_state_after_finalize": [],
+      "name": "two-master",
+      "probe_residue": [],
+      "processes": 8,
+      "returncode": 0,
+      "shutdown_ack_marker": "acked=3/3",
+      "shutdown_ack_reported": true,
+      "workers_per_master": 3
+    }
+  ],
+  "schema": "symcc-f327-mpi-preflight-evidence-v1",
+  "scope": "/bin/true orchestration smoke; not DSE throughput"
+}

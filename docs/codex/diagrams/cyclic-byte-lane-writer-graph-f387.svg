@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#132238" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#315b78"/>
+    </marker>
+    <style>
+      text { font-family: "WenQuanYi Zen Hei", "Unifont", sans-serif; fill: #172334; letter-spacing: 0; }
+      .title { font-size: 38px; font-weight: 700; }
+      .subtitle { font-size: 20px; fill: #4b6073; }
+      .panel-title { font-size: 25px; font-weight: 700; }
+      .body { font-size: 18px; }
+      .small { font-size: 16px; fill: #4b6073; }
+      .code { font-family: "DejaVu Sans Mono", monospace; font-size: 16px; }
+      .light { fill: #ffffff; }
+      .light-sub { fill: #c9d7e3; }
+      .box { fill: #ffffff; stroke: #c9d4de; stroke-width: 2; rx: 8; filter: url(#shadow); }
+      .flow { fill: none; stroke: #315b78; stroke-width: 4; marker-end: url(#arrow); }
+      .dash { fill: none; stroke: #8496a6; stroke-width: 3; stroke-dasharray: 9 8; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1000" fill="#f4f7f9"/>
+  <rect x="0" y="0" width="1600" height="112" fill="#17324a"/>
+  <text x="70" y="58" class="title light">F387 Proof-Carrying Cyclic Byte-Lane Writer Graph</text>
+  <text x="70" y="90" class="subtitle light-sub">把循环 definedness 声明升级为逐 endpoint、可机械重放的 last-writer 证明</text>
+
+  <rect x="55" y="145" width="470" height="785" class="box"/>
+  <text x="85" y="190" class="panel-title">1  原有可信缺口</text>
+  <rect x="90" y="230" width="400" height="125" rx="8" fill="#fff4dc" stroke="#d59626" stroke-width="2"/>
+  <text x="115" y="265" class="body">合同声明</text>
+  <text x="115" y="300" class="code">lane 0 := store S_old</text>
+  <text x="115" y="330" class="code">lane 1 := carry</text>
+
+  <path d="M290 355 L290 410" class="flow"/>
+  <rect x="90" y="420" width="400" height="130" rx="8" fill="#ffe9e7" stroke="#c7544d" stroke-width="2"/>
+  <text x="115" y="460" class="body">实际路径可能存在</text>
+  <text x="115" y="495" class="code">S_old → S_new → endpoint</text>
+  <text x="115" y="525" class="small">结构校验无法发现 shadowed writer</text>
+
+  <rect x="90" y="600" width="400" height="245" rx="8" fill="#f7f9fb" stroke="#aab8c4" stroke-width="2"/>
+  <text x="115" y="640" class="body">风险</text>
+  <text x="115" y="680" class="small">1  store ID 与实际最后写者不一致</text>
+  <text x="115" y="720" class="small">2  地址或 byte offset 漂移</text>
+  <text x="115" y="760" class="small">3  carry 被当成任意兜底</text>
+  <text x="115" y="800" class="small">4  poison sidecar 未绑定来源</text>
+
+  <rect x="565" y="145" width="590" height="785" class="box"/>
+  <text x="595" y="190" class="panel-title">2  F387 逐路径逆向证明</text>
+
+  <rect x="615" y="230" width="490" height="85" rx="8" fill="#e8f3fb" stroke="#3a7ca5" stroke-width="2"/>
+  <text x="645" y="265" class="body">endpoint edge：从 terminal 之前开始</text>
+  <text x="645" y="295" class="small">预算：≤ 64 blocks；分段内唯一前驱</text>
+  <path d="M860 315 L860 365" class="flow"/>
+
+  <rect x="615" y="375" width="490" height="115" rx="8" fill="#e9f7ee" stroke="#3f8f5b" stroke-width="2"/>
+  <text x="645" y="410" class="body">逆序扫描覆盖写</text>
+  <text x="645" y="442" class="code">aS ≤ aL + lane &lt; aS + width</text>
+  <text x="645" y="472" class="small">第一个覆盖 store 必须匹配 ID / offset / width</text>
+  <path d="M860 490 L860 540" class="flow"/>
+
+  <rect x="615" y="550" width="225" height="135" rx="8" fill="#eef1ff" stroke="#6374b5" stroke-width="2"/>
+  <text x="640" y="590" class="body">遇到 merge load</text>
+  <text x="640" y="625" class="code">unresolved := carry</text>
+  <text x="640" y="657" class="small">唯一合法循环边界</text>
+
+  <rect x="880" y="550" width="225" height="135" rx="8" fill="#f2f6e8" stroke="#718a35" stroke-width="2"/>
+  <text x="905" y="590" class="body">路径无前驱</text>
+  <text x="905" y="625" class="code">unresolved := initial</text>
+  <text x="905" y="657" class="small">仅允许已定义初值</text>
+
+  <path d="M840 615 L875 615" class="dash"/>
+  <rect x="615" y="735" width="490" height="120" rx="8" fill="#17324a"/>
+  <text x="645" y="775" class="body light">接纳不变量</text>
+  <text x="645" y="810" class="code light-sub">actual last writer = declared writer</text>
+  <text x="645" y="838" class="code light-sub">carry only at the same merge load</text>
+
+  <rect x="1195" y="145" width="350" height="785" class="box"/>
+  <text x="1225" y="190" class="panel-title">3  能力与失败闭包</text>
+
+  <rect x="1235" y="235" width="270" height="105" rx="8" fill="#e9f7ee" stroke="#3f8f5b" stroke-width="2"/>
+  <text x="1260" y="272" class="body">基础循环合同</text>
+  <text x="1260" y="307" class="code">writer_graph = true</text>
+  <path d="M1370 340 L1370 390" class="flow"/>
+
+  <rect x="1235" y="400" width="270" height="125" rx="8" fill="#e8f3fb" stroke="#3a7ca5" stroke-width="2"/>
+  <text x="1260" y="438" class="body">图引用 store</text>
+  <text x="1260" y="472" class="small">poison source</text>
+  <text x="1260" y="502" class="small">= identity sidecar source</text>
+  <path d="M1370 525 L1370 575" class="flow"/>
+
+  <rect x="1235" y="585" width="270" height="125" rx="8" fill="#fff4dc" stroke="#d59626" stroke-width="2"/>
+  <text x="1260" y="622" class="body">明确不外推</text>
+  <text x="1260" y="655" class="small">conditional / multi-arm</text>
+  <text x="1260" y="685" class="small">recursive / 多 latch</text>
+
+  <rect x="1235" y="765" width="270" height="95" rx="8" fill="#ffe9e7" stroke="#c7544d" stroke-width="2"/>
+  <text x="1260" y="803" class="body">任一不一致</text>
+  <text x="1260" y="837" class="body" fill="#9f2924">Fail closed，拒绝 artifact</text>
+
+  <text x="70" y="975" class="small">机制证据：LLVM 17/18 producer + runtime replay + checker tamper + identity-exact Python/lit gates</text>
+</svg>

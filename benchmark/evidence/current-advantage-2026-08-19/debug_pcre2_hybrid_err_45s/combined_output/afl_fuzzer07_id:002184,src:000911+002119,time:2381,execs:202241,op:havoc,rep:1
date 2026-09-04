@@ -1,0 +1,2 @@
+(foo|bad)*a.*.*?Z?Z
+(foo|bad)*

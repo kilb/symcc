@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU General Public License along with
 // SymCC. If not, see <https://www.gnu.org/licenses/>.
 
+#include <llvm/ADT/StringRef.h>
 #include <llvm/IR/LegacyPassManager.h>
 #if LLVM_VERSION_MAJOR <= 15
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
@@ -37,8 +38,32 @@ using OptimizationLevel = llvm::PassBuilder::OptimizationLevel;
 #endif
 
 #include "Pass.h"
+#include "ContinuationLowering.h"
+#include "HydraTransformation.h"
+#include "IFSSContinuationLowering.h"
+#include "IFSSContinuationMemory.h"
+#include "IFSSExitLowering.h"
+#include "IFSSLoopSummary.h"
+#include "IFSSSwitchLowering.h"
+
+#include <cstdlib>
 
 using namespace llvm;
+
+namespace {
+
+bool scheduleOnlyEnabled() {
+  const char *raw = std::getenv("SYMCC_DPOR_SCHEDULE_ONLY");
+  if (raw == nullptr || *raw == '\0')
+    return false;
+  StringRef value(raw);
+  return !value.equals_insensitive("0") &&
+         !value.equals_insensitive("false") &&
+         !value.equals_insensitive("off") &&
+         !value.equals_insensitive("no");
+}
+
+} // namespace
 
 //
 // Legacy pass registration (up to LLVM 13)
@@ -48,13 +73,44 @@ using namespace llvm;
 
 void addSymbolizeLegacyPass(const PassManagerBuilder & /* unused */,
                             legacy::PassManagerBase &PM) {
+  PM.add(new symcc::IFSSSwitchLoweringLegacyPass());
+  PM.add(new symcc::IFSSLoopSummaryLegacyPass());
+  PM.add(new symcc::IFSSExitLoweringLegacyPass());
+  PM.add(new symcc::IFSSContinuationLoweringLegacyPass());
+  PM.add(new symcc::IFSSContinuationMemoryLegacyPass());
+  PM.add(new symcc::HydraTransformationLegacyPass());
+  PM.add(new symcc::LiveContinuationExportLegacyPass());
   PM.add(createScalarizerPass());
-  PM.add(createLowerAtomicPass());
+  if (!scheduleOnlyEnabled())
+    PM.add(createLowerAtomicPass());
   PM.add(new SymbolizeLegacyPass());
 }
 
 // Make the pass known to opt.
 static RegisterPass<SymbolizeLegacyPass> X("symbolize", "Symbolization Pass");
+static RegisterPass<symcc::LiveContinuationExportLegacyPass>
+    LiveContinuationExportX("live-continuation-export",
+                            "LLVM to SymCC live continuation IR");
+static RegisterPass<symcc::HydraTransformationLegacyPass>
+    HydraTransformationX("hydra-transform",
+                         "Hydra targeted control-flow transformation");
+static RegisterPass<symcc::IFSSExitLoweringLegacyPass>
+    IFSSExitLoweringX("ifss-exit-lowering",
+                      "Bounded IFSS return-exit state lowering");
+static RegisterPass<symcc::IFSSSwitchLoweringLegacyPass>
+    IFSSSwitchLoweringX("ifss-switch-lowering",
+                        "Bounded IFSS switch-chain lowering");
+static RegisterPass<symcc::IFSSLoopSummaryLegacyPass>
+    IFSSLoopSummaryX("ifss-loop-summary",
+                     "Bounded affine IFSS loop summary");
+static RegisterPass<symcc::IFSSContinuationLoweringLegacyPass>
+    IFSSContinuationLoweringX(
+        "ifss-continuation-lowering",
+        "Bounded IFSS continuation tuple lowering");
+static RegisterPass<symcc::IFSSContinuationMemoryLegacyPass>
+    IFSSContinuationMemoryX(
+        "ifss-continuation-memory",
+        "MemorySSA-proven IFSS continuation memory tuple");
 // Tell frontends to run the pass automatically.
 static struct RegisterStandardPasses Y(PassManagerBuilder::EP_VectorizerStart,
                                        addSymbolizeLegacyPass);
@@ -79,12 +135,62 @@ PassPluginLibraryInfo getSymbolizePluginInfo() {
             // module passes at the start of the vectorizer, hence the split.)
             PB.registerPipelineStartEPCallback(
                 [](ModulePassManager &PM, OptimizationLevel) {
+                  PM.addPass(symcc::IFSSSwitchLoweringPass());
+                  PM.addPass(symcc::IFSSLoopSummaryPass());
+                  PM.addPass(symcc::IFSSExitLoweringPass());
+                  PM.addPass(symcc::IFSSContinuationLoweringPass());
+                  PM.addPass(createModuleToFunctionPassAdaptor(
+                      symcc::IFSSContinuationMemoryPass()));
+                  PM.addPass(symcc::HydraTransformationPass());
+                  PM.addPass(symcc::LiveContinuationExportPass());
                   PM.addPass(SymbolizePass());
+                });
+            PB.registerPipelineParsingCallback(
+                [](StringRef name, ModulePassManager &PM,
+                   ArrayRef<PassBuilder::PipelineElement>) {
+                  if (name == "ifss-switch-lowering") {
+                    PM.addPass(symcc::IFSSSwitchLoweringPass());
+                    return true;
+                  }
+                  if (name == "ifss-loop-summary") {
+                    PM.addPass(symcc::IFSSLoopSummaryPass());
+                    return true;
+                  }
+                  if (name == "ifss-exit-lowering") {
+                    PM.addPass(symcc::IFSSExitLoweringPass());
+                    return true;
+                  }
+                  if (name == "ifss-continuation-lowering") {
+                    PM.addPass(symcc::IFSSContinuationLoweringPass());
+                    return true;
+                  }
+                  if (name == "ifss-continuation-memory") {
+                    PM.addPass(createModuleToFunctionPassAdaptor(
+                        symcc::IFSSContinuationMemoryPass()));
+                    return true;
+                  }
+                  if (name == "hydra-transform") {
+                    PM.addPass(symcc::HydraTransformationPass());
+                    return true;
+                  }
+                  if (name != "live-continuation-export")
+                    return false;
+                  PM.addPass(symcc::LiveContinuationExportPass());
+                  return true;
+                });
+            PB.registerPipelineParsingCallback(
+                [](StringRef name, FunctionPassManager &PM,
+                   ArrayRef<PassBuilder::PipelineElement>) {
+                  if (name != "ifss-continuation-memory")
+                    return false;
+                  PM.addPass(symcc::IFSSContinuationMemoryPass());
+                  return true;
                 });
             PB.registerVectorizerStartEPCallback(
                 [](FunctionPassManager &PM, OptimizationLevel) {
                   PM.addPass(ScalarizerPass());
-                  PM.addPass(LowerAtomicPass());
+                  if (!scheduleOnlyEnabled())
+                    PM.addPass(LowerAtomicPass());
                   PM.addPass(SymbolizePass());
                 });
           }};

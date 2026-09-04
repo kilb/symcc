@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">F350 component-wise anchored CAS root</title>
+  <desc id="desc">Comparison of pathname-based root creation with component-wise no-follow directory capabilities, followed by the publication race closure timeline.</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#18212b" flood-opacity="0.10"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1769aa"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b42318"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#16794a"/>
+    </marker>
+    <style>
+      .title { font-family: "WenQuanYi Zen Hei", "Noto Sans CJK SC", sans-serif; font-size: 34px; font-weight: 700; fill: #15212d; }
+      .subtitle { font-family: "WenQuanYi Zen Hei", "Noto Sans CJK SC", sans-serif; font-size: 17px; font-weight: 400; fill: #526170; }
+      .section { font-family: "WenQuanYi Zen Hei", "Noto Sans CJK SC", sans-serif; font-size: 21px; font-weight: 700; fill: #15212d; }
+      .label { font-family: "WenQuanYi Zen Hei", "Noto Sans CJK SC", sans-serif; font-size: 17px; font-weight: 650; fill: #182431; }
+      .body { font-family: "WenQuanYi Zen Hei", "Noto Sans CJK SC", sans-serif; font-size: 15px; font-weight: 400; fill: #3f4d5a; }
+      .small { font-family: "WenQuanYi Zen Hei", "Noto Sans CJK SC", sans-serif; font-size: 13px; font-weight: 500; fill: #526170; }
+      .mono { font-family: "WenQuanYi Zen Hei Mono", "Noto Sans Mono", monospace; font-size: 14px; font-weight: 600; fill: #183149; }
+      .white { fill: #ffffff; }
+      .danger { fill: #b42318; }
+      .success { fill: #16794a; }
+      .blue { fill: #1769aa; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1000" fill="#f5f7f9"/>
+  <rect x="0" y="0" width="1600" height="112" fill="#ffffff"/>
+  <rect x="0" y="0" width="14" height="112" fill="#1769aa"/>
+  <text x="54" y="53" class="title">F350 · Component-wise Anchored CAS Root</text>
+  <text x="54" y="83" class="subtitle">从路径字符串信任，升级为逐组件 directory capability 与提交前 ancestry closure</text>
+  <rect x="1315" y="30" width="225" height="48" rx="6" fill="#e7f4ed" stroke="#8bc9a8"/>
+  <text x="1427" y="51" text-anchor="middle" class="small success">LOCAL MECHANISM EVIDENCE</text>
+  <text x="1427" y="69" text-anchor="middle" class="label success">11 / 11 checks</text>
+
+  <g filter="url(#shadow)">
+    <rect x="48" y="142" width="484" height="350" rx="6" fill="#ffffff" stroke="#e2a7a2" stroke-width="2"/>
+  </g>
+  <rect x="48" y="142" width="484" height="54" rx="6" fill="#fcebea"/>
+  <rect x="48" y="190" width="484" height="6" fill="#fcebea"/>
+  <circle cx="79" cy="169" r="12" fill="#b42318"/>
+  <path d="M73 163 L85 175 M85 163 L73 175" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+  <text x="103" y="176" class="section danger">F349 遗留缺口：多分量 pathname</text>
+
+  <rect x="78" y="221" width="424" height="52" rx="5" fill="#f7f9fb" stroke="#c9d1d9"/>
+  <text x="290" y="244" text-anchor="middle" class="mono">/tmp/alias/missing/objects</text>
+  <text x="290" y="263" text-anchor="middle" class="small">配置根包含多个尚未绑定的父组件</text>
+  <line x1="290" y1="274" x2="290" y2="306" stroke="#b42318" stroke-width="3" marker-end="url(#arrow-red)"/>
+
+  <rect x="104" y="311" width="170" height="65" rx="5" fill="#fff4e5" stroke="#e6a23c"/>
+  <text x="189" y="337" text-anchor="middle" class="label">makedirs(path)</text>
+  <text x="189" y="359" text-anchor="middle" class="small">重新解析完整路径</text>
+  <rect x="306" y="311" width="170" height="65" rx="5" fill="#fcebea" stroke="#d96c64"/>
+  <text x="391" y="337" text-anchor="middle" class="label danger">alias → outside</text>
+  <text x="391" y="359" text-anchor="middle" class="small">祖先 symlink 被跟随</text>
+  <line x1="275" y1="343" x2="301" y2="343" stroke="#b42318" stroke-width="3" marker-end="url(#arrow-red)"/>
+  <line x1="391" y1="377" x2="391" y2="406" stroke="#b42318" stroke-width="3" marker-end="url(#arrow-red)"/>
+
+  <rect x="104" y="411" width="372" height="52" rx="5" fill="#fcebea" stroke="#d96c64"/>
+  <text x="290" y="434" text-anchor="middle" class="label danger">outside/missing/objects 已产生副作用</text>
+  <text x="290" y="454" text-anchor="middle" class="small">末级 O_NOFOLLOW 检查发生得太晚</text>
+
+  <g filter="url(#shadow)">
+    <rect x="562" y="142" width="990" height="350" rx="6" fill="#ffffff" stroke="#86b8d9" stroke-width="2"/>
+  </g>
+  <rect x="562" y="142" width="990" height="54" rx="6" fill="#eaf4fb"/>
+  <rect x="562" y="190" width="990" height="6" fill="#eaf4fb"/>
+  <circle cx="594" cy="169" r="12" fill="#1769aa"/>
+  <path d="M588 169 L593 174 L601 163" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="618" y="176" class="section blue">F350：从 / 开始逐组件建立能力链</text>
+
+  <g>
+    <rect x="600" y="229" width="112" height="74" rx="5" fill="#edf6fc" stroke="#7db4d8"/>
+    <text x="656" y="257" text-anchor="middle" class="label">/</text>
+    <text x="656" y="280" text-anchor="middle" class="mono">fd₀</text>
+
+    <rect x="759" y="229" width="150" height="74" rx="5" fill="#edf6fc" stroke="#7db4d8"/>
+    <text x="834" y="253" text-anchor="middle" class="label">component 1</text>
+    <text x="834" y="278" text-anchor="middle" class="mono">openat(fd₀)</text>
+
+    <rect x="956" y="229" width="150" height="74" rx="5" fill="#edf6fc" stroke="#7db4d8"/>
+    <text x="1031" y="253" text-anchor="middle" class="label">component k</text>
+    <text x="1031" y="278" text-anchor="middle" class="mono">O_NOFOLLOW</text>
+
+    <rect x="1153" y="217" width="154" height="98" rx="5" fill="#e7f4ed" stroke="#72ba92" stroke-width="2"/>
+    <text x="1230" y="247" text-anchor="middle" class="label success">CAS root</text>
+    <text x="1230" y="273" text-anchor="middle" class="mono">Rfd</text>
+    <text x="1230" y="297" text-anchor="middle" class="small">dev + inode</text>
+
+    <rect x="1354" y="217" width="160" height="98" rx="5" fill="#e7f4ed" stroke="#72ba92" stroke-width="2"/>
+    <text x="1434" y="247" text-anchor="middle" class="label success">digest shard</text>
+    <text x="1434" y="273" text-anchor="middle" class="mono">Sfd</text>
+    <text x="1434" y="297" text-anchor="middle" class="small">leaf I/O anchor</text>
+
+    <line x1="713" y1="266" x2="751" y2="266" stroke="#1769aa" stroke-width="3" marker-end="url(#arrow-blue)"/>
+    <line x1="910" y1="266" x2="948" y2="266" stroke="#1769aa" stroke-width="3" marker-end="url(#arrow-blue)"/>
+    <line x1="1107" y1="266" x2="1145" y2="266" stroke="#1769aa" stroke-width="3" marker-end="url(#arrow-blue)"/>
+    <line x1="1308" y1="266" x2="1346" y2="266" stroke="#16794a" stroke-width="3" marker-end="url(#arrow-green)"/>
+  </g>
+
+  <text x="759" y="338" class="small">仅当 openat 返回 ENOENT：</text>
+  <rect x="759" y="354" width="194" height="84" rx="5" fill="#fff8e8" stroke="#ddb45c"/>
+  <text x="856" y="379" text-anchor="middle" class="mono">mkdirat(parent_fd)</text>
+  <text x="856" y="402" text-anchor="middle" class="small">mode 0777 &amp; umask</text>
+  <text x="856" y="423" text-anchor="middle" class="small">不经过 symlink ancestor</text>
+
+  <rect x="989" y="354" width="194" height="84" rx="5" fill="#edf6fc" stroke="#7db4d8"/>
+  <text x="1086" y="379" text-anchor="middle" class="mono">openat + fstat</text>
+  <text x="1086" y="402" text-anchor="middle" class="small">目录 + no-follow</text>
+  <text x="1086" y="423" text-anchor="middle" class="small">关闭 parent fd</text>
+  <line x1="954" y1="396" x2="981" y2="396" stroke="#1769aa" stroke-width="3" marker-end="url(#arrow-blue)"/>
+
+  <rect x="1219" y="354" width="295" height="84" rx="5" fill="#e7f4ed" stroke="#72ba92"/>
+  <text x="1366" y="379" text-anchor="middle" class="mono">fsync(child_fd)</text>
+  <text x="1366" y="402" text-anchor="middle" class="mono">fsync(parent_fd)</text>
+  <text x="1366" y="423" text-anchor="middle" class="small">新目录 entry 获得耐久边界</text>
+  <line x1="1184" y1="396" x2="1211" y2="396" stroke="#16794a" stroke-width="3" marker-end="url(#arrow-green)"/>
+
+  <text x="598" y="470" class="small">每个组件均使用 O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC；任何 symlink 立即失败，后续组件不创建。</text>
+
+  <g filter="url(#shadow)">
+    <rect x="48" y="526" width="1504" height="258" rx="6" fill="#ffffff" stroke="#c9d1d9"/>
+  </g>
+  <text x="78" y="565" class="section">并发祖先替换：I/O 不重定向，提交不误报</text>
+  <line x1="115" y1="652" x2="1469" y2="652" stroke="#aab4be" stroke-width="4"/>
+
+  <g>
+    <circle cx="170" cy="652" r="16" fill="#1769aa"/>
+    <text x="170" y="658" text-anchor="middle" class="white label">1</text>
+    <rect x="80" y="586" width="180" height="48" rx="5" fill="#edf6fc" stroke="#7db4d8"/>
+    <text x="170" y="607" text-anchor="middle" class="label">strict walk</text>
+    <text x="170" y="626" text-anchor="middle" class="mono">Rfd + Sfd</text>
+    <text x="170" y="691" text-anchor="middle" class="small">公开 root identity = R</text>
+  </g>
+
+  <g>
+    <circle cx="510" cy="652" r="16" fill="#b42318"/>
+    <text x="510" y="658" text-anchor="middle" class="white label">2</text>
+    <rect x="397" y="586" width="226" height="48" rx="5" fill="#fcebea" stroke="#d96c64"/>
+    <text x="510" y="607" text-anchor="middle" class="label danger">ancestor rename</text>
+    <text x="510" y="626" text-anchor="middle" class="mono">stable → detached</text>
+    <text x="510" y="691" text-anchor="middle" class="small">alias → outside（可含相同摘要）</text>
+  </g>
+
+  <g>
+    <circle cx="850" cy="652" r="16" fill="#16794a"/>
+    <text x="850" y="658" text-anchor="middle" class="white label">3</text>
+    <rect x="735" y="586" width="230" height="48" rx="5" fill="#e7f4ed" stroke="#72ba92"/>
+    <text x="850" y="607" text-anchor="middle" class="label success">descriptor-relative I/O</text>
+    <text x="850" y="626" text-anchor="middle" class="mono">Sfd / fixed leaf</text>
+    <text x="850" y="691" text-anchor="middle" class="small">字节只进入 detached 原目录</text>
+  </g>
+
+  <g>
+    <circle cx="1190" cy="652" r="16" fill="#e6a23c"/>
+    <text x="1190" y="658" text-anchor="middle" class="white label">4</text>
+    <rect x="1072" y="586" width="236" height="48" rx="5" fill="#fff8e8" stroke="#ddb45c"/>
+    <text x="1190" y="607" text-anchor="middle" class="label">strict re-walk from /</text>
+    <text x="1190" y="626" text-anchor="middle" class="mono">observed root ≠ R</text>
+    <text x="1190" y="691" text-anchor="middle" class="small">检测 ancestry drift</text>
+  </g>
+
+  <g>
+    <circle cx="1450" cy="652" r="16" fill="#b42318"/>
+    <text x="1450" y="658" text-anchor="middle" class="white label">5</text>
+    <rect x="1341" y="586" width="178" height="48" rx="5" fill="#fcebea" stroke="#d96c64"/>
+    <text x="1430" y="607" text-anchor="middle" class="label danger">fail closed</text>
+    <text x="1430" y="626" text-anchor="middle" class="mono">cache = ∅</text>
+    <text x="1450" y="691" text-anchor="middle" class="small">不返回公开成功</text>
+  </g>
+
+  <rect x="80" y="721" width="1438" height="38" rx="5" fill="#f7f9fb" stroke="#d8dee4"/>
+  <text x="799" y="746" text-anchor="middle" class="mono">success ⇒ I(Rfd) = resolve_no_symlinks(public_root, t_commit) ∧ I(Sfd) = name(Rfd, shard)</text>
+
+  <rect x="48" y="818" width="932" height="134" rx="6" fill="#e7f4ed" stroke="#72ba92"/>
+  <text x="76" y="852" class="section success">本地证据闭环</text>
+  <text x="76" y="882" class="body">1. 11/11 生产原语检查；external side effects = 0；failed positive cache = 0</text>
+  <text x="76" y="909" class="body">2. 同摘要 leaf 竞争保持一次 fallback hash 收敛；跨 chdir 返回绝对稳定路径</text>
+  <text x="76" y="936" class="body">3. 完整 Python 回归：759 passed + 101 subtests；历史 F346–F349 驱动全部保持通过</text>
+
+  <rect x="1008" y="818" width="544" height="134" rx="6" fill="#fff8e8" stroke="#ddb45c"/>
+  <text x="1036" y="852" class="section">不扩大结论</text>
+  <text x="1036" y="882" class="body">当前是 Python dir_fd / openat-family 逐组件方案。</text>
+  <text x="1036" y="909" class="body">未证明 openat2 原子解析、mount confinement、NFS/Lustre、</text>
+  <text x="1036" y="936" class="body">真实 MPI、吞吐、覆盖率、漏洞发现或 LAVA-M 提升。</text>
+
+  <text x="48" y="982" class="small">SymCC-Parallel · F350 · 2026-08-10 · Evidence scope: local overlayfs correctness mechanism</text>
+</svg>

@@ -1,0 +1,120 @@
+{
+  "all_checks_passed": true,
+  "checks": {
+    "current_generation_result_is_accepted": true,
+    "foreign_capability_splice_is_rejected": true,
+    "normal_production_proof_commits": true,
+    "normal_transcript_equal_all_masters": true,
+    "normal_transcript_recomputes": true,
+    "previous_generation_result_replay_is_rejected": true,
+    "renewal_metrics_conserve_attempt_outcomes": true,
+    "transcript_binds_every_declared_field": true,
+    "transcript_disagreement_fails_every_master": true,
+    "zero_round_result_splice_is_rejected": true
+  },
+  "configuration": {
+    "contention_checks": 4,
+    "epoch": "f8da1440b44a15299155d355118eb89486bde47e5c57a62cc1885c9528c4e9ba",
+    "generation": 7,
+    "identity_checks": 3,
+    "members": [
+      [
+        0,
+        "synthetic-node-a"
+      ],
+      [
+        1,
+        "synthetic-node-b"
+      ],
+      [
+        2,
+        "synthetic-node-b"
+      ]
+    ],
+    "release_checks": 2,
+    "representatives": [
+      0,
+      1
+    ],
+    "rounds": 2
+  },
+  "divergent": {
+    "errors": [
+      "cluster qualification transcript mismatch",
+      "cluster qualification transcript mismatch",
+      "cluster qualification transcript mismatch"
+    ],
+    "identity_checks": [
+      3,
+      3,
+      3
+    ],
+    "rounds": [
+      2,
+      2,
+      2
+    ],
+    "transcripts": [
+      "68221f41e69257ddf948a8c53b352ff6cec164978d108341514c4cd66bac2e8d",
+      "08221f41e69257ddf948a8c53b352ff6cec164978d108341514c4cd66bac2e8d",
+      "68221f41e69257ddf948a8c53b352ff6cec164978d108341514c4cd66bac2e8d"
+    ]
+  },
+  "environment": {
+    "actual_mpi_transport": false,
+    "actual_multi_host": false,
+    "filesystem_type": "overlay",
+    "kernel": "7.0.0-28-generic",
+    "machine": "x86_64",
+    "python": "3.12.3",
+    "synthetic_processor_names": true
+  },
+  "normal": {
+    "clean": [
+      true,
+      true,
+      true
+    ],
+    "result_generations": [
+      7,
+      7,
+      7
+    ],
+    "transcript": "68221f41e69257ddf948a8c53b352ff6cec164978d108341514c4cd66bac2e8d",
+    "transcripts": [
+      "68221f41e69257ddf948a8c53b352ff6cec164978d108341514c4cd66bac2e8d",
+      "68221f41e69257ddf948a8c53b352ff6cec164978d108341514c4cd66bac2e8d",
+      "68221f41e69257ddf948a8c53b352ff6cec164978d108341514c4cd66bac2e8d"
+    ],
+    "verified": [
+      true,
+      true,
+      true
+    ]
+  },
+  "proof_boundary": "local production-mechanism evidence with a thread control plane and synthetic processor names; no real MPI, multi-host storage, Byzantine-resistance, throughput, coverage, bug-discovery, or LAVA-M uplift claim",
+  "renewal": {
+    "current_generation_accepted": true,
+    "foreign_capability_splice_accepted": false,
+    "metrics": {
+      "attempts": 2,
+      "failures": 1,
+      "generation": 8,
+      "in_flight_generation": 0,
+      "interval": 5.0,
+      "jitter_fraction": 0.0,
+      "last_elapsed": 0.02003676095046103,
+      "last_scheduled_interval": 5.0,
+      "maximum_interval": 5.0,
+      "next_scheduled_interval": 5.0,
+      "schema": "symcc-cluster-lock-renewal-metrics-v2",
+      "successes": 1,
+      "timeout": 2.0,
+      "total_elapsed": 0.04007352190092206
+    },
+    "previous_generation_replay_accepted": false,
+    "zero_round_splice_accepted": false
+  },
+  "schema": "symcc-f352-generation-bound-lock-proof-v1",
+  "transcript_mutation_cardinality": 8
+}

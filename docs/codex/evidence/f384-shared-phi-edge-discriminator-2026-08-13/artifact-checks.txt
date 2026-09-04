@@ -1,0 +1,4 @@
+ordered_checker=PASS
+reordered_checker=PASS
+reordered_llvm17_checker=PASS
+function_pointer_checker=PASS

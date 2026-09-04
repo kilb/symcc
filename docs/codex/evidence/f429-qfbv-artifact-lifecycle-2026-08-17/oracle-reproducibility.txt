@@ -1,0 +1,8 @@
+schema=symcc-f429-oracle-reproducibility-v1
+run1=python3 benchmark/check_qfbv_artifact_lifecycle_oracles.py --graphs 64 --output /tmp/f429-oracle-a-20260817.json
+run2=python3 benchmark/check_qfbv_artifact_lifecycle_oracles.py --graphs 64 --output /tmp/f429-oracle-b-20260817.json
+stable_fields=schema,claim,finite_graphs,toolchain,live excluding elapsed_us
+stable_result=equal
+run1_elapsed_us=464704
+run2_elapsed_us=436942
+timing_status=observed mechanism cost only; intentionally excluded from semantic equality and speedup claims

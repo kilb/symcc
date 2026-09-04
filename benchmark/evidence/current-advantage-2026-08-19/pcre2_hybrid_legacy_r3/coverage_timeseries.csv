@@ -1,0 +1,13 @@
+experiment_id,run_id,pair_id,target,configuration,mode,np,round,timestamp_sec,edge_cov_pct,edges_found,edges_total,total_cases
+symcc-62a6c7498a0de88a,76f20076187c172149d07a03,0546f85983bd95492048edd5,pcre2-pcre2_fuzzer,hybrid,hybrid,16,1,0.0,7.22,702,9728,8
+symcc-62a6c7498a0de88a,76f20076187c172149d07a03,0546f85983bd95492048edd5,pcre2-pcre2_fuzzer,hybrid,hybrid,16,1,15.0,40.22,3913,9728,7074
+symcc-62a6c7498a0de88a,76f20076187c172149d07a03,0546f85983bd95492048edd5,pcre2-pcre2_fuzzer,hybrid,hybrid,16,1,30.0,45.52,4428,9728,11672
+symcc-62a6c7498a0de88a,76f20076187c172149d07a03,0546f85983bd95492048edd5,pcre2-pcre2_fuzzer,hybrid,hybrid,16,1,45.0,46.24,4498,9728,12687
+symcc-62a6c7498a0de88a,3d74eacee74c9015e73ffba3,61375c40aecba0544bf2cc18,pcre2-pcre2_fuzzer,hybrid,hybrid,16,2,0.0,7.22,702,9728,8
+symcc-62a6c7498a0de88a,3d74eacee74c9015e73ffba3,61375c40aecba0544bf2cc18,pcre2-pcre2_fuzzer,hybrid,hybrid,16,2,15.0,39.47,3840,9728,7217
+symcc-62a6c7498a0de88a,3d74eacee74c9015e73ffba3,61375c40aecba0544bf2cc18,pcre2-pcre2_fuzzer,hybrid,hybrid,16,2,30.0,45.93,4468,9728,10842
+symcc-62a6c7498a0de88a,3d74eacee74c9015e73ffba3,61375c40aecba0544bf2cc18,pcre2-pcre2_fuzzer,hybrid,hybrid,16,2,45.0,47.85,4655,9728,13204
+symcc-62a6c7498a0de88a,a97519502e7e8b0b5c6bfc23,9b55f7a8cdb9e8b176e7ff90,pcre2-pcre2_fuzzer,hybrid,hybrid,16,3,0.0,7.22,702,9728,8
+symcc-62a6c7498a0de88a,a97519502e7e8b0b5c6bfc23,9b55f7a8cdb9e8b176e7ff90,pcre2-pcre2_fuzzer,hybrid,hybrid,16,3,15.0,40.27,3917,9728,8397
+symcc-62a6c7498a0de88a,a97519502e7e8b0b5c6bfc23,9b55f7a8cdb9e8b176e7ff90,pcre2-pcre2_fuzzer,hybrid,hybrid,16,3,30.0,45.81,4456,9728,11733
+symcc-62a6c7498a0de88a,a97519502e7e8b0b5c6bfc23,9b55f7a8cdb9e8b176e7ff90,pcre2-pcre2_fuzzer,hybrid,hybrid,16,3,45.0,46.72,4545,9728,12571

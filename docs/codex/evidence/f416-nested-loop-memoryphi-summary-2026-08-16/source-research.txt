@@ -1,0 +1,29 @@
+F416 primary-source research basis
+
+LLVM MemorySSA
+https://llvm.org/docs/MemorySSA.html
+- MemoryDef represents a memory-modifying operation in an ordered def-use
+  chain; MemoryPhi merges versions that may reach a CFG join.
+- A MemoryPhi is not by itself a must-write or must-initialize proof.
+
+LLVM Loop Terminology
+https://llvm.org/docs/LoopTerminology.html
+- LoopInfo defines natural-loop nesting, headers, latches, preheaders, exits,
+  and parent/subloop relationships used by the F416 admission proof.
+- Reducible natural-loop structure is narrower than arbitrary CFG SCCs.
+
+LoopSCC, ICSE 2026 research-track page
+https://conf.researchr.org/details/icse-2026/icse-2026-research-track/127/LoopSCC-Summarizing-Complex-Multi-branch-Nested-Loops-via-Periodic-Oscillation-Inter
+
+LoopSCC preprint
+https://arxiv.org/abs/2411.02863
+- The paper studies inner-to-outer summary application for more general
+  complex multi-branch nested loops and periodic behavior.
+
+Local engineering inference
+- For initializedness, repeated outer application of an inner byte-lane union
+  is idempotent, so the proof can avoid a static outer-by-inner expansion while
+  the runtime bitmap still decides concrete trip-count coverage.
+- The v6 contract is a project-specific proof-carrying adaptation of the
+  inner-to-outer direction. It is not a reproduction of LoopSCC, a general
+  value summary, periodic-oscillation analysis, or arbitrary SCC reasoning.

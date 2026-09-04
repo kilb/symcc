@@ -1,0 +1,605 @@
+{
+  "endianness": "little",
+  "entry": "exception_object_fields_source",
+  "functions": {
+    "exception_object_fields_source": {
+      "blocks": {
+        "bb0": [
+          {
+            "dst": "input_raw_0",
+            "offset": 0,
+            "op": "input"
+          },
+          {
+            "bits": 1,
+            "dst": "input_ext_1",
+            "op": "unary",
+            "operator": "zext",
+            "value": {
+              "var": "input_raw_0"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "arg0",
+            "op": "unary",
+            "operator": "trunc",
+            "value": {
+              "var": "input_ext_1"
+            }
+          },
+          {
+            "condition": {
+              "var": "arg0"
+            },
+            "false": "bb1",
+            "op": "branch",
+            "site": "2267559801241142634",
+            "true": "bb2"
+          }
+        ],
+        "bb1": [
+          {
+            "op": "jump",
+            "target": "edge_bb1_bb7"
+          }
+        ],
+        "bb2": [
+          {
+            "addresses": [
+              64,
+              80,
+              96,
+              112
+            ],
+            "bits": 64,
+            "capacity": 4,
+            "dst": "v0",
+            "op": "exception_alloc",
+            "site": "5138353378408354514",
+            "size": 12
+          },
+          {
+            "address": {
+              "var": "v0"
+            },
+            "alias_cases": [
+              {
+                "addresses": [
+                  64
+                ],
+                "guards": [
+                  {
+                    "bits": 64,
+                    "equals": 64,
+                    "value": {
+                      "var": "v0"
+                    }
+                  }
+                ]
+              },
+              {
+                "addresses": [
+                  80
+                ],
+                "guards": [
+                  {
+                    "bits": 64,
+                    "equals": 80,
+                    "value": {
+                      "var": "v0"
+                    }
+                  }
+                ]
+              },
+              {
+                "addresses": [
+                  96
+                ],
+                "guards": [
+                  {
+                    "bits": 64,
+                    "equals": 96,
+                    "value": {
+                      "var": "v0"
+                    }
+                  }
+                ]
+              },
+              {
+                "addresses": [
+                  112
+                ],
+                "guards": [
+                  {
+                    "bits": 64,
+                    "equals": 112,
+                    "value": {
+                      "var": "v0"
+                    }
+                  }
+                ]
+              }
+            ],
+            "bits": 32,
+            "bytes": 4,
+            "op": "store",
+            "value": {
+              "bits": 32,
+              "const": 5
+            }
+          },
+          {
+            "bits": 64,
+            "dst": "v1",
+            "left": {
+              "var": "v0"
+            },
+            "op": "binary",
+            "operator": "add",
+            "right": {
+              "bits": 64,
+              "const": 4
+            }
+          },
+          {
+            "address": {
+              "var": "v1"
+            },
+            "alias_cases": [
+              {
+                "addresses": [
+                  68
+                ],
+                "guards": [
+                  {
+                    "bits": 64,
+                    "equals": 64,
+                    "value": {
+                      "var": "v0"
+                    }
+                  }
+                ]
+              },
+              {
+                "addresses": [
+                  84
+                ],
+                "guards": [
+                  {
+                    "bits": 64,
+                    "equals": 80,
+                    "value": {
+                      "var": "v0"
+                    }
+                  }
+                ]
+              },
+              {
+                "addresses": [
+                  100
+                ],
+                "guards": [
+                  {
+                    "bits": 64,
+                    "equals": 96,
+                    "value": {
+                      "var": "v0"
+                    }
+                  }
+                ]
+              },
+              {
+                "addresses": [
+                  116
+                ],
+                "guards": [
+                  {
+                    "bits": 64,
+                    "equals": 112,
+                    "value": {
+                      "var": "v0"
+                    }
+                  }
+                ]
+              }
+            ],
+            "bits": 32,
+            "bytes": 4,
+            "op": "store",
+            "value": {
+              "bits": 32,
+              "const": 19
+            }
+          },
+          {
+            "bits": 64,
+            "dst": "v2",
+            "left": {
+              "var": "v0"
+            },
+            "op": "binary",
+            "operator": "add",
+            "right": {
+              "bits": 64,
+              "const": 8
+            }
+          },
+          {
+            "address": {
+              "var": "v2"
+            },
+            "alias_cases": [
+              {
+                "addresses": [
+                  72
+                ],
+                "guards": [
+                  {
+                    "bits": 64,
+                    "equals": 64,
+                    "value": {
+                      "var": "v0"
+                    }
+                  }
+                ]
+              },
+              {
+                "addresses": [
+                  88
+                ],
+                "guards": [
+                  {
+                    "bits": 64,
+                    "equals": 80,
+                    "value": {
+                      "var": "v0"
+                    }
+                  }
+                ]
+              },
+              {
+                "addresses": [
+                  104
+                ],
+                "guards": [
+                  {
+                    "bits": 64,
+                    "equals": 96,
+                    "value": {
+                      "var": "v0"
+                    }
+                  }
+                ]
+              },
+              {
+                "addresses": [
+                  120
+                ],
+                "guards": [
+                  {
+                    "bits": 64,
+                    "equals": 112,
+                    "value": {
+                      "var": "v0"
+                    }
+                  }
+                ]
+              }
+            ],
+            "bits": 32,
+            "bytes": 4,
+            "op": "store",
+            "value": {
+              "bits": 32,
+              "const": 23
+            }
+          },
+          {
+            "address": {
+              "var": "v0"
+            },
+            "addresses": [
+              64,
+              80,
+              96,
+              112
+            ],
+            "arena_site": "5138353378408354514",
+            "bits": 64,
+            "op": "exception_throw",
+            "site": "8060766559800432649",
+            "type_id": 971173141,
+            "unwind": "bb3"
+          }
+        ],
+        "bb3": [
+          {
+            "catch_all": false,
+            "cleanup": false,
+            "op": "exception_match",
+            "types": [
+              971173141
+            ]
+          },
+          {
+            "bits": 64,
+            "dst": "v4",
+            "op": "exception_token"
+          },
+          {
+            "op": "jump",
+            "target": "bb4"
+          }
+        ],
+        "bb4": [
+          {
+            "bits": 32,
+            "dst": "v5",
+            "op": "exception_type"
+          },
+          {
+            "bits": 32,
+            "dst": "v6",
+            "op": "const",
+            "value": 971173141
+          },
+          {
+            "bits": 1,
+            "dst": "v7",
+            "left": {
+              "var": "v5"
+            },
+            "op": "binary",
+            "operator": "eq",
+            "right": {
+              "var": "v6"
+            }
+          },
+          {
+            "condition": {
+              "var": "v7"
+            },
+            "false": "bb8",
+            "op": "branch",
+            "site": "3109110758355029805",
+            "true": "bb5"
+          }
+        ],
+        "bb5": [
+          {
+            "op": "exception_begin_catch",
+            "token": {
+              "var": "v4"
+            },
+            "token_bits": 64
+          },
+          {
+            "bits": 32,
+            "bytes": 4,
+            "dst": "v9",
+            "offset": 0,
+            "op": "exception_object_load"
+          },
+          {
+            "bits": 32,
+            "bytes": 4,
+            "dst": "v11",
+            "offset": 4,
+            "op": "exception_object_load"
+          },
+          {
+            "bits": 32,
+            "dst": "v12",
+            "left": {
+              "var": "v9"
+            },
+            "op": "binary",
+            "operator": "add",
+            "right": {
+              "var": "v11"
+            }
+          },
+          {
+            "bits": 32,
+            "bytes": 4,
+            "dst": "v14",
+            "offset": 8,
+            "op": "exception_object_load"
+          },
+          {
+            "bits": 32,
+            "dst": "v15",
+            "left": {
+              "var": "v12"
+            },
+            "op": "binary",
+            "operator": "add",
+            "right": {
+              "var": "v14"
+            }
+          },
+          {
+            "bits": 64,
+            "dst": "v16",
+            "op": "unary",
+            "operator": "zext",
+            "value": {
+              "var": "v15"
+            }
+          },
+          {
+            "op": "exception_end_catch"
+          },
+          {
+            "op": "jump",
+            "target": "edge_bb5_bb7"
+          }
+        ],
+        "bb7": [
+          {
+            "op": "return",
+            "value": {
+              "var": "v17"
+            }
+          }
+        ],
+        "bb8": [
+          {
+            "op": "throw"
+          }
+        ],
+        "bb9": [
+          {
+            "condition": {
+              "bits": 1,
+              "const": 0
+            },
+            "op": "assume"
+          },
+          {
+            "op": "halt",
+            "value": {
+              "bits": 1,
+              "const": 0
+            }
+          }
+        ],
+        "edge_bb1_bb7": [
+          {
+            "bits": 64,
+            "dst": "phi_in_2",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "bits": 64,
+              "const": 7
+            }
+          },
+          {
+            "bits": 64,
+            "dst": "v17",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "phi_in_2"
+            }
+          },
+          {
+            "op": "jump",
+            "target": "bb7"
+          }
+        ],
+        "edge_bb5_bb7": [
+          {
+            "bits": 64,
+            "dst": "phi_in_3",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "v16"
+            }
+          },
+          {
+            "bits": 64,
+            "dst": "v17",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "phi_in_3"
+            }
+          },
+          {
+            "op": "jump",
+            "target": "bb7"
+          }
+        ]
+      },
+      "entry": "bb0",
+      "param_bits": [],
+      "params": [],
+      "return_bits": 64
+    }
+  },
+  "input_size": 1,
+  "lowering": {
+    "capabilities": [
+      "integer-ssa",
+      "scalar-mem2reg",
+      "phi-edge-copies",
+      "switch-chain",
+      "direct-internal-calls",
+      "bounded-bitvectors",
+      "static-global-memory",
+      "constant-gep",
+      "multi-byte-memory",
+      "bounded-heap-lifetime",
+      "bounded-multi-instance-heap",
+      "bounded-pointer-union",
+      "bounded-cleanup-exception-unwind",
+      "bounded-typed-exception-matching",
+      "bounded-exception-catch-lifecycle",
+      "bounded-exception-object-arena",
+      "bounded-exception-object-fields"
+    ],
+    "entry": "exception_object_fields_source",
+    "input_abi": "integer-arguments-little-endian",
+    "llvm_version": "17.0.6",
+    "schema": "symcc-llvm-continuation-lowering-v1",
+    "source_module": "/home/ubuntu/code/symcc/docs/codex/evidence/f382-constant-gep-exception-fields-2026-08-12/.symcc-live-lowering-osyzgfz5.bc",
+    "status": "lowered"
+  },
+  "memory_hex": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  "memory_objects": [
+    {
+      "address": 64,
+      "allocation": "bounded-exception-arena",
+      "capacity": 4,
+      "kind": "heap",
+      "lifetime": "exception-lifecycle",
+      "name": "exception:5138353378408354514:0",
+      "read_only": false,
+      "site": "5138353378408354514",
+      "size": 12,
+      "slot": 0
+    },
+    {
+      "address": 80,
+      "allocation": "bounded-exception-arena",
+      "capacity": 4,
+      "kind": "heap",
+      "lifetime": "exception-lifecycle",
+      "name": "exception:5138353378408354514:1",
+      "read_only": false,
+      "site": "5138353378408354514",
+      "size": 12,
+      "slot": 1
+    },
+    {
+      "address": 96,
+      "allocation": "bounded-exception-arena",
+      "capacity": 4,
+      "kind": "heap",
+      "lifetime": "exception-lifecycle",
+      "name": "exception:5138353378408354514:2",
+      "read_only": false,
+      "site": "5138353378408354514",
+      "size": 12,
+      "slot": 2
+    },
+    {
+      "address": 112,
+      "allocation": "bounded-exception-arena",
+      "capacity": 4,
+      "kind": "heap",
+      "lifetime": "exception-lifecycle",
+      "name": "exception:5138353378408354514:3",
+      "read_only": false,
+      "site": "5138353378408354514",
+      "size": 12,
+      "slot": 3
+    }
+  ],
+  "memory_size": 124,
+  "schema": "symcc-live-program-v1"
+}

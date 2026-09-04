@@ -1,0 +1,24 @@
+Primary research and official specifications consulted for F410
+
+1. A Bounded Symbolic-Size Model for Symbolic Execution, ESEC/FSE 2021.
+   https://www.cs.tau.ac.il/~maon/pubs/2021-fse.pdf
+   Used for the concrete-capacity bound and capacity-linear byte-effect model.
+
+2. MInt: Handling Memory-Intensive Operations in Symbolic Execution, ISEC 2022.
+   https://doi.org/10.1145/3511430.3511453
+   https://iris.uniroma1.it/handle/11573/1623944
+   Used for the symbolic-address/length memory-aware effect research context.
+   F410 is a bounded eager byte adaptation, not the complete MInt lazy model.
+
+3. LLVM MemorySSA official documentation.
+   https://llvm.org/docs/MemorySSA.html
+   Used for MemoryUse/MemoryDef semantics and the intraprocedural boundary.
+
+4. LLVM Alias Analysis official documentation.
+   https://llvm.org/docs/AliasAnalysis.html
+   Used for the NoAlias producer trust boundary.
+
+5. Memory-model-parametric compositional symbolic execution, 2025 preprint.
+   https://arxiv.org/abs/2508.15576
+   Used only to position explicit memory-model choice as an active research
+   direction; F410 does not claim to implement that complete framework.

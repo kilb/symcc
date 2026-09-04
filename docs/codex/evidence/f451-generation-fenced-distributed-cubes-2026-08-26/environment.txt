@@ -1,0 +1,18 @@
+evidence_cutoff=2026-08-26
+local_host=cuda-ke
+local_kernel=Linux 7.0.0-28-generic x86_64 GNU/Linux
+local_python=Python 3.12.3
+pytest=pytest 9.1.1
+ruff=ruff 0.15.20
+ssh=OpenSSH_9.6p1 Ubuntu-3ubuntu13.14, OpenSSL 3.0.13 30 Jan 2024
+remote_target=root@down.kew.ac
+remote_host=vultr
+remote_python=Python 3.14.4
+pytest_manifest_schema=symcc-pytest-nodeid-manifest-v1
+pytest_nodeids=1443
+pytest_nodeids_sha256=4916021ede507f6541d5ebd515ceb8444c8ea8f0e706cbfdddc37f309d2418bf
+logical_oracle_rounds=5
+logical_oracle_cubes=8
+physical_crosshost_rounds=3
+physical_hosts=2
+

@@ -1,0 +1,139 @@
+{
+  "cases": [
+    {
+      "bound_reasons": [],
+      "certificate_sha256": "b42c769b520d3f5b58d809432174d1c2c488d31a07b1cad4023e7107a600c251",
+      "maximum_ms": 20.355968,
+      "median_ms": 11.942891,
+      "minimum_ms": 11.422689,
+      "name": "1-writer-coherence-enumeration",
+      "p95_ms": 20.355968,
+      "samples": 11,
+      "statistics": {
+        "accepted_backward_revisits": 0,
+        "duplicate_graphs_suppressed": 0,
+        "graphs_generated": 2,
+        "pruned_by_reason": {},
+        "satisfiable_assertion_failures": 0,
+        "satisfiable_terminal_executions": 1,
+        "solver_checks": 2,
+        "unique_graphs_visited": 2
+      },
+      "status": "complete"
+    },
+    {
+      "bound_reasons": [],
+      "certificate_sha256": "a52843871564a81fbccb0ef8a651208846a74fc4ca73bce01cb0c14588df8d1d",
+      "maximum_ms": 24.939754,
+      "median_ms": 23.963338,
+      "minimum_ms": 23.298228,
+      "name": "2-writer-coherence-enumeration",
+      "p95_ms": 24.939754,
+      "samples": 11,
+      "statistics": {
+        "accepted_backward_revisits": 0,
+        "duplicate_graphs_suppressed": 0,
+        "graphs_generated": 4,
+        "pruned_by_reason": {},
+        "satisfiable_assertion_failures": 0,
+        "satisfiable_terminal_executions": 2,
+        "solver_checks": 4,
+        "unique_graphs_visited": 4
+      },
+      "status": "complete"
+    },
+    {
+      "bound_reasons": [],
+      "certificate_sha256": "243f6a96765da4ed66c4d8b5775f21b8e3d1dd85fbf302498e58a01e62fbd4e2",
+      "maximum_ms": 62.068759,
+      "median_ms": 60.146922,
+      "minimum_ms": 58.089592,
+      "name": "3-writer-coherence-enumeration",
+      "p95_ms": 62.068759,
+      "samples": 11,
+      "statistics": {
+        "accepted_backward_revisits": 0,
+        "duplicate_graphs_suppressed": 0,
+        "graphs_generated": 10,
+        "pruned_by_reason": {},
+        "satisfiable_assertion_failures": 0,
+        "satisfiable_terminal_executions": 6,
+        "solver_checks": 10,
+        "unique_graphs_visited": 10
+      },
+      "status": "complete"
+    },
+    {
+      "bound_reasons": [],
+      "certificate_sha256": "76e60b20cf482ce34c396cce0dc41f3ff1c72ee1b0879e2fab929c3675b4ee3d",
+      "maximum_ms": 208.872606,
+      "median_ms": 205.861873,
+      "minimum_ms": 203.886026,
+      "name": "4-writer-coherence-enumeration",
+      "p95_ms": 208.872606,
+      "samples": 11,
+      "statistics": {
+        "accepted_backward_revisits": 0,
+        "duplicate_graphs_suppressed": 0,
+        "graphs_generated": 34,
+        "pruned_by_reason": {},
+        "satisfiable_assertion_failures": 0,
+        "satisfiable_terminal_executions": 24,
+        "solver_checks": 34,
+        "unique_graphs_visited": 34
+      },
+      "status": "complete"
+    },
+    {
+      "bound_reasons": [],
+      "certificate_sha256": "011ebe86bd1f62d16b24e7dd96d054338bdac872f355ce4dddff1041d0a010a1",
+      "maximum_ms": 941.55425,
+      "median_ms": 934.887263,
+      "minimum_ms": 930.717858,
+      "name": "5-writer-coherence-enumeration",
+      "p95_ms": 941.55425,
+      "samples": 11,
+      "statistics": {
+        "accepted_backward_revisits": 0,
+        "duplicate_graphs_suppressed": 0,
+        "graphs_generated": 154,
+        "pruned_by_reason": {},
+        "satisfiable_assertion_failures": 0,
+        "satisfiable_terminal_executions": 120,
+        "solver_checks": 154,
+        "unique_graphs_visited": 154
+      },
+      "status": "complete"
+    },
+    {
+      "bound_reasons": [],
+      "certificate_sha256": "853d63e2e81e0c5f7da50c5e28fb2c3fa689690e5b4a4a57a7581b730e10f0a7",
+      "maximum_ms": 62.052819,
+      "median_ms": 61.236883,
+      "minimum_ms": 58.486581,
+      "name": "read-write-control-regeneration",
+      "p95_ms": 62.052819,
+      "samples": 11,
+      "statistics": {
+        "accepted_backward_revisits": 1,
+        "duplicate_graphs_suppressed": 0,
+        "graphs_generated": 10,
+        "pruned_by_reason": {
+          "path_unsat": 3
+        },
+        "satisfiable_assertion_failures": 1,
+        "satisfiable_terminal_executions": 1,
+        "solver_checks": 10,
+        "unique_graphs_visited": 10
+      },
+      "status": "complete"
+    }
+  ],
+  "claims": {
+    "coverage_or_bug_finding_improvement_claimed": false,
+    "cross_system_performance_claimed": false,
+    "mechanism_measurement_only": true
+  },
+  "clock": "time.perf_counter_ns",
+  "schema": "symcc-f392-condpor-mechanism-benchmark-v1"
+}

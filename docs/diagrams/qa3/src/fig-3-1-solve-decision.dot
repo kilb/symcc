@@ -1,0 +1,44 @@
+
+digraph G {
+  graph [
+    bgcolor="white", pad="0.28", nodesep="0.38", ranksep="0.58",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=24,
+    labelloc="t", labeljust="l"
+  ];
+  node [
+    shape=box, style="rounded,filled", margin="0.18,0.12",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=12,
+    color="#CBD5E1", penwidth=1.3, fillcolor="#F8FAFC"
+  ];
+  edge [
+    fontname="WenQuanYi Zen Hei", fontcolor="#64748B", fontsize=10,
+    color="#64748B", penwidth=1.5, arrowsize=0.75
+  ];
+
+  label="图 3-1  negatePath 求解决策与回退路径";
+  rankdir=TB;
+
+  branch [label="符号分支 e + 具体方向 taken", fillcolor="#FEF3C7", color="#D97706"];
+  interesting [shape=diamond, label="B3 判定\ninteresting?", fillcolor="#FFEDD5", color="#C2410C"];
+  skip [label="不求解", fillcolor="#F1F5F9"];
+  gates [label="可选前置路径\nspool → fastSolve → poly/core cache\noptimistic-first", fillcolor="#EDE9FE", color="#6D28D9"];
+  strictsolve [label="默认：严格求解\nreset + 依赖切片 + ¬branch\nZ3 timeout 10 s", fillcolor="#CCFBF1", color="#0F766E", penwidth=2.4];
+  strictsat [shape=diamond, label="strict SAT?", fillcolor="#CCFBF1", color="#0F766E"];
+  nominal [label="保存 nominal\n无策略后缀", fillcolor="#DCFCE7", color="#15803D"];
+  ite [shape=diamond, label="目标表达式\n包含 Ite?", fillcolor="#FFEDD5", color="#C2410C"];
+  back [label="tryBacksolve\n具体枚举优先；失败后\n仅丢 ITE 控制字节相关前缀", fillcolor="#FFEDD5", color="#C2410C"];
+  optimistic [label="乐观回退\nreset 后只保留 ¬branch\n保存 -optimistic", fillcolor="#FEE2E2", color="#B91C1C"];
+  replay [label="目标重放 + AFL bitmap triage\n过滤不可达或无新覆盖候选", fillcolor="#DBEAFE", color="#2563EB"];
+
+  branch -> interesting;
+  interesting -> skip [label="否"];
+  interesting -> gates [label="是"];
+  gates -> strictsolve [label="默认开关均关闭时"];
+  strictsolve -> strictsat;
+  strictsat -> nominal [label="是", color="#15803D"];
+  strictsat -> ite [label="否 / unknown", color="#B91C1C"];
+  ite -> back [label="是"];
+  ite -> optimistic [label="否"];
+  {nominal back optimistic} -> replay;
+
+}

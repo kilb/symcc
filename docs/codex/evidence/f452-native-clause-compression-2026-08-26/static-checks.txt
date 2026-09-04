@@ -1,0 +1,16 @@
++ python3 -m py_compile util/qfbv_clause_compression.py util/qfbv_realtime_stream.py util/cadical_qfbv_backend.py util/symcc_query_service.py util/query_store.py benchmark/check_qfbv_clause_compression_oracles.py test/test_qfbv_clause_compression.py
++ bash -n benchmark/install_cadical_3_0_1.sh
++ python3 -c 'import xml.etree.ElementTree as E; E.parse('\''docs/codex/diagrams/f452-native-clause-compression.svg'\'')'
++ g++ -std=c++17 -fPIC -shared -fvisibility=hidden -Wall -Wextra -Werror -O2 util/qfbv_clause_compression.cpp -o /tmp/libsymcc_qfbv_clause_compression-static.so
++ clang++ -std=c++17 -fPIC -shared -fvisibility=hidden -Wall -Wextra -Werror -pthread -I/tmp/f432.IGCKMF/cadical-shared/src util/qfbv_cadical_realtime.cpp util/qfbv_clause_compression.cpp -L/tmp/f432.IGCKMF/cadical-shared/build -lcadical -Wl,-rpath,/tmp/f432.IGCKMF/cadical-shared/build -o /tmp/libsymcc_qfbv_cadical_realtime-static.so
++ nm -D /tmp/libsymcc_qfbv_cadical_realtime-static.so
++ grep -E ' symcc_qfbv_(realtime_compression_protocol|clause_compress|clause_decompress)$'
+0000000000039e90 T symcc_qfbv_clause_compress
+000000000003a100 T symcc_qfbv_clause_decompress
+000000000001eff0 T symcc_qfbv_realtime_compression_protocol
++ ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
++ UBSAN_OPTIONS=halt_on_error=1
++ /tmp/f452-sanitize
++ printf 'asan_ubsan_random_roundtrips=100000 PASS\n'
+asan_ubsan_random_roundtrips=100000 PASS
++ git diff --check -- util/qfbv_clause_compression.hpp util/qfbv_clause_compression.cpp util/qfbv_clause_compression.py util/qfbv_cadical_realtime.cpp util/qfbv_realtime_stream.py util/cadical_qfbv_backend.py util/symcc_query_service.py util/query_store.py test/test_qfbv_clause_compression.py test/test_qfbv_realtime_stream.py benchmark/check_qfbv_clause_compression_oracles.py benchmark/install_cadical_3_0_1.sh docs/codex/research-progress/Native_Checker_Clause_Compression_F452_2026-08-26.md docs/codex/diagrams/f452-native-clause-compression.svg

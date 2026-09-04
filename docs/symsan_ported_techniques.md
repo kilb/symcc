@@ -1,9 +1,12 @@
 # 移植到 SymSan(DFSan 后端)的 SymCC 自研技术
 
-本文记录把 SymCC 侧的 3 个自研优化移植到可切换的 **SymSan(DFSan)引擎**:
-**④ 选择性符号化**(运行时 taint 源门控)、**③ 字典引导** 与 **① 多字段解组合**(driver 层)。
-三者都经与 SymCC 同名的环境变量通道下发(`SYMCC_FOCUS_BYTES` / `SYMCC_DICT` / `SYMCC_MULTI_SOLVE`),
-故编排层与 SymCC 一致、无需改动。补丁:`scripts/symsan_patches/symsan_ported_techniques.patch`
+本文记录把 SymCC 侧的 4 个自研优化直接移植到可切换的
+**SymSan(DFSan)引擎**:**④ 选择性符号化**(运行时 taint 源门控)、
+**③ 字典引导**、**① 多字段解组合**(driver 层)与**② hint 旁车输出**。
+第五项 fast-solve 在 SymSan 的 task/JIGSAW 快速路径中已有等价能力,因此记录为
+等价性分析而不重复实现。四项直接移植分别通过 `SYMCC_FOCUS_BYTES`、
+`SYMCC_DICT`、`SYMCC_MULTI_SOLVE` 和 `SYMCC_EMIT_HINTS` 下发,编排层保持共用。
+补丁:`scripts/symsan_patches/symsan_ported_techniques.patch`
 (`build_symsan.sh` 幂等应用)。
 
 ---
@@ -280,13 +283,20 @@ AFL(3)+ SymSan concolic(2)→ **边覆盖 41.34%(4022/9728),concolic 贡献 120 
 ---
 
 ## 复现
-三项改动共落在 5 个 SymSan 源文件,已存为 `scripts/symsan_patches/symsan_ported_techniques.patch`,
+技术移植共落在 SymSan runtime、launcher 与两个 driver，已存为 `scripts/symsan_patches/symsan_ported_techniques.patch`,
 `scripts/build_symsan.sh` 在构建前幂等应用(dfsan_flags.inc 已含 `focus_bytes` 则视为已打补丁)。
 - `runtime/dfsan/dfsan_flags.inc`:④ 新 `focus_bytes` flag。
 - `runtime/dfsan/dfsan_custom.cpp`:④ `get_label_for` 按偏移门控 taint 源。
 - `driver/launcher/launch.c` + `include/launch.h`:④ config 字段 + `symsan_set_focus_bytes` setter + 目标 env 模板。
 - `driver/fgtest.cpp`:④ 解析 `focus_bytes` 下发;③ `load_dictionary`/`save_dict_variants`;
   ① `__combined_sets` 累积 + `flush_combined_input`;② `emit_hints` 写 `.hints` 旁车。
+
+目标 argv 的正确性由独立的
+`scripts/symsan_patches/symsan_target_argv.patch` 保证。旧 driver 固定向目标传
+`[program, input]`，会丢掉 benchmark 的额外选项和 `@@` 位置。新协议为
+`fgtest target taint-input -- target-arg ...`；`fgtest` 与 `fgtest_rgd` 均构造完整目标
+argv，无额外参数时保留旧行为。Python 单测覆盖 `@@`、空参数和含空格参数，补丁还在
+对应上游基线加完技术补丁后执行 `patch --dry-run` 验证。
 
 公开目标构建:`scripts/build_public_symsan.sh`(base64_harness_symsan);发现层引擎感知在
 `benchmark/run_benchmark.py`(symsan 只挑 `*_symsan`、剥后缀复用种子目录)。

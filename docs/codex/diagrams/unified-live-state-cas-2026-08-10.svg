@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1200" viewBox="0 0 1900 1200" role="img" aria-labelledby="title desc">
+  <title id="title">F347 unified live-state CAS and stable snapshot reads</title>
+  <desc id="desc">A continuation object graph enters one suffix-aware content-addressed publication gate and is restored only through stable no-follow snapshots.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f5f7fa; }
+      .title { font: 700 40px Arial, sans-serif; fill: #102a43; }
+      .subtitle { font: 24px Arial, sans-serif; fill: #486581; }
+      .section { font: 700 27px Arial, sans-serif; fill: #102a43; }
+      .nodeTitle { font: 700 21px Arial, sans-serif; fill: #102a43; }
+      .body { font: 18px Arial, sans-serif; fill: #334e68; }
+      .small { font: 16px Arial, sans-serif; fill: #486581; }
+      .mono { font: 700 17px ui-monospace, SFMono-Regular, Consolas, monospace; fill: #243b53; }
+      .white { fill: #ffffff; }
+      .lane { font: 700 22px Arial, sans-serif; fill: #ffffff; }
+      .laneSmall { font: 16px Arial, sans-serif; fill: #ffffff; }
+      .laneTiny { font: 14px Arial, sans-serif; fill: #ffffff; }
+      .panel { fill: #ffffff; stroke: #bcccdc; stroke-width: 2; }
+      .group { fill: #fbfcfe; stroke: #8fa8bd; stroke-width: 2; stroke-dasharray: 8 7; }
+      .blue { fill: #e6f6ff; stroke: #0b7fab; stroke-width: 2; }
+      .green { fill: #e8f8f2; stroke: #008b70; stroke-width: 2; }
+      .purple { fill: #f1edff; stroke: #6f52c7; stroke-width: 2; }
+      .orange { fill: #fff5e6; stroke: #d97706; stroke-width: 2; }
+      .red { fill: #fff0f0; stroke: #d64545; stroke-width: 2; }
+      .arrow { stroke: #40566b; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .ref { stroke: #6f52c7; stroke-width: 3; fill: none; marker-end: url(#arrowPurple); }
+      .dash { stroke: #008b70; stroke-width: 4; stroke-dasharray: 10 8; fill: none; marker-end: url(#arrowGreen); }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#40566b"/>
+    </marker>
+    <marker id="arrowPurple" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#6f52c7"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#008b70"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1900" height="1200"/>
+  <rect x="0" y="0" width="1900" height="14" fill="#0f7c82"/>
+  <text class="title" x="88" y="76">F347 - Unified Live-State CAS</text>
+  <text class="subtitle" x="88" y="112">One publication proof and one stable read boundary for the complete continuation graph</text>
+
+  <text class="section" x="88" y="166">Executable continuation object graph</text>
+  <rect class="panel" x="88" y="190" width="1724" height="278" rx="8"/>
+  <rect x="88" y="190" width="170" height="278" fill="#35546f"/>
+  <text class="lane" x="132" y="245">LIVE</text>
+  <text class="lane" x="108" y="276">CHECKPOINT</text>
+  <text class="laneSmall" x="108" y="422">all edges are</text>
+  <text class="laneSmall" x="108" y="444">SHA-256 refs</text>
+
+  <rect class="purple" x="302" y="226" width="270" height="198" rx="8"/>
+  <text class="nodeTitle" x="332" y="268">Continuation root</text>
+  <text class="body" x="332" y="305">frames + next instruction</text>
+  <text class="body" x="332" y="338">target + parent identity</text>
+  <text class="mono" x="332" y="378">checkpoint_id</text>
+
+  <rect class="group" x="630" y="202" width="1100" height="238" rx="8"/>
+  <text class="small" x="650" y="224">Referenced roots and content leaves; arrows below are stored digest references</text>
+
+  <rect class="blue" x="670" y="238" width="246" height="80" rx="8"/>
+  <text class="nodeTitle" x="700" y="273">Solver frames</text>
+  <text class="small" x="700" y="299">parent chain + assertions</text>
+  <rect class="green" x="670" y="338" width="246" height="80" rx="8"/>
+  <text class="nodeTitle" x="700" y="373">Symbolic store</text>
+  <text class="small" x="700" y="399">names to expressions</text>
+
+  <rect class="green" x="1030" y="260" width="330" height="142" rx="8"/>
+  <text class="nodeTitle" x="1062" y="298">Expression leaves</text>
+  <text class="body" x="1062" y="334">immutable semantic nodes</text>
+  <text class="mono" x="1062" y="368">objects/xx/...json</text>
+
+  <rect class="orange" x="1430" y="238" width="270" height="80" rx="8"/>
+  <text class="nodeTitle" x="1456" y="273">Memory + program</text>
+  <text class="small" x="1456" y="299">roots: COW pages + immutable IR</text>
+  <rect class="blue" x="1430" y="338" width="270" height="80" rx="8"/>
+  <text class="nodeTitle" x="1456" y="373">Memory pages</text>
+  <text class="small" x="1456" y="399">concrete + symbolic cells</text>
+
+  <path class="ref" d="M572 325 L650 325"/>
+  <path class="ref" d="M916 278 C970 278, 980 294, 1030 302"/>
+  <path class="ref" d="M916 378 C970 378, 980 362, 1030 354"/>
+  <path class="ref" d="M1565 318 L1565 338"/>
+  <path class="ref" d="M1430 278 C1402 278, 1390 296, 1360 306"/>
+  <path class="ref" d="M1430 378 C1402 378, 1390 362, 1360 354"/>
+
+  <text class="section" x="88" y="520">Unified write and read proof gates</text>
+  <rect class="panel" x="88" y="544" width="1724" height="380" rx="8"/>
+  <rect x="88" y="544" width="170" height="380" fill="#6f52a8"/>
+  <text class="lane" x="128" y="612">ONE CAS</text>
+  <text class="laneTiny" x="103" y="858">suffix changes layout,</text>
+  <text class="laneTiny" x="103" y="880">not proof semantics</text>
+
+  <rect class="orange" x="302" y="582" width="292" height="144" rx="8"/>
+  <text class="nodeTitle" x="334" y="621">Canonical JSON write</text>
+  <text class="body" x="334" y="657">hash + bounded payload</text>
+  <text class="mono" x="334" y="694">suffix = ".json"</text>
+
+  <rect class="green" x="690" y="574" width="350" height="160" rx="8"/>
+  <text class="nodeTitle" x="724" y="613">Descriptor-bound publish</text>
+  <text class="body" x="724" y="649">write + fsync + durable replace</text>
+  <text class="mono" x="724" y="684">fd-after = public path</text>
+  <text class="small" x="724" y="713">exact competitors converge</text>
+
+  <rect class="blue" x="302" y="764" width="292" height="124" rx="8"/>
+  <text class="nodeTitle" x="334" y="803">Stable read snapshot</text>
+  <text class="body" x="334" y="839">O_NOFOLLOW regular fd</text>
+  <text class="mono" x="334" y="869">before = after = path</text>
+
+  <rect class="purple" x="690" y="756" width="350" height="140" rx="8"/>
+  <text class="nodeTitle" x="724" y="795">Digest then parse</text>
+  <text class="mono" x="724" y="831">SHA256(snapshot) = id</text>
+  <text class="body" x="724" y="863">same retained bytes feed JSON</text>
+
+  <rect class="green" x="1140" y="574" width="572" height="154" rx="8"/>
+  <text class="nodeTitle" x="1174" y="614">ACCEPT: verified identity</text>
+  <text class="body" x="1174" y="651">cache published/read inode; restore graph node</text>
+  <text class="mono" x="1174" y="689">next put: O(1) metadata fast path</text>
+
+  <rect class="red" x="1140" y="756" width="572" height="140" rx="8"/>
+  <text class="nodeTitle" x="1174" y="795">REJECT: no positive knowledge</text>
+  <text class="body" x="1174" y="831">symlink, wrong digest, unstable path, non-regular, oversized</text>
+  <text class="mono" x="1174" y="868">drop identity cache fact</text>
+
+  <path class="arrow" d="M594 654 L690 654"/>
+  <path class="arrow" d="M1040 654 L1140 654"/>
+  <path class="arrow" d="M594 826 L690 826"/>
+  <path class="dash" d="M1040 826 C1090 826, 1090 684, 1140 660"/>
+  <path class="arrow" d="M1040 846 C1090 846, 1090 846, 1140 846"/>
+
+  <text class="section" x="88" y="978">Observed mechanism evidence</text>
+  <rect class="green" x="88" y="1004" width="490" height="122" rx="8"/>
+  <text class="nodeTitle" x="120" y="1044">8 / 8 integration checks</text>
+  <text class="body" x="120" y="1080">6-object graph + repair + race + symlink</text>
+
+  <rect class="purple" x="610" y="1004" width="490" height="122" rx="8"/>
+  <text class="nodeTitle" x="642" y="1044">745 + 97 full regression</text>
+  <text class="body" x="642" y="1080">2 tests and 3 subtests added, no failures</text>
+
+  <rect class="orange" x="1132" y="1004" width="680" height="122" rx="8"/>
+  <text class="nodeTitle" x="1164" y="1044">Bounded claim</text>
+  <text class="body" x="1164" y="1080">local mechanism proof; no MPI, solver, campaign, or uplift claim</text>
+
+  <text class="small" x="88" y="1172">Every reference names canonical bytes; every consumed node crosses a stable no-follow digest and identity boundary.</text>
+</svg>

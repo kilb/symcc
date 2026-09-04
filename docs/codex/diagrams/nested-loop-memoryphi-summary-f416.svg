@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900">
+  <defs>
+    <style>
+      .title{font:700 34px 'WenQuanYi Zen Hei',Arial,sans-serif;fill:#102a43}.sub{font:400 17px 'WenQuanYi Zen Hei',Arial,sans-serif;fill:#486581}
+      .h{font:700 20px 'WenQuanYi Zen Hei',Arial,sans-serif;fill:#102a43}.t{font:400 16px 'WenQuanYi Zen Hei',Arial,sans-serif;fill:#243b53}
+      .small{font:400 14px 'WenQuanYi Zen Hei',Arial,sans-serif;fill:#486581}.mono{font:600 15px 'WenQuanYi Zen Hei','DejaVu Sans Mono',monospace;fill:#102a43}
+      .box{fill:#fff;stroke:#9fb3c8;stroke-width:2}.outer{fill:#e6f6ff;stroke:#1570a6;stroke-width:3}
+      .inner{fill:#e8f8f1;stroke:#16866b;stroke-width:3}.effect{fill:#fff5db;stroke:#c77c09;stroke-width:2}
+      .proof{fill:#f3efff;stroke:#7656b5;stroke-width:2}.runtime{fill:#fce8ec;stroke:#b4234d;stroke-width:2}
+      .arrow{fill:none;stroke:#486581;stroke-width:3;marker-end:url(#end)}
+      .loop{fill:none;stroke:#1570a6;stroke-width:3;stroke-dasharray:8 6;marker-end:url(#blue)}
+      .innerloop{fill:none;stroke:#16866b;stroke-width:3;stroke-dasharray:8 6;marker-end:url(#green)}
+    </style>
+    <marker id="end" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#486581"/></marker>
+    <marker id="blue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#1570a6"/></marker>
+    <marker id="green" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#16866b"/></marker>
+  </defs>
+  <rect width="1440" height="900" fill="#f7fafc"/>
+  <text x="64" y="62" class="title">F416  Nested-loop MemoryPhi summary composition</text>
+  <text x="64" y="94" class="sub">真实 LLVM 结构 → inner effect summary → outer recurrence → 严格重放 → path-local runtime bitmap</text>
+
+  <rect x="55" y="135" width="520" height="555" rx="8" class="outer"/>
+  <text x="82" y="173" class="h">1  两层可归约 CFG / MemorySSA</text>
+  <rect x="88" y="200" width="188" height="62" rx="6" class="box"/>
+  <text x="111" y="227" class="mono">outer.header</text><text x="111" y="249" class="small">outer_iv &lt; outer_bound</text>
+  <rect x="330" y="200" width="188" height="62" rx="6" class="box"/>
+  <text x="352" y="227" class="mono">outer.exit</text><text x="352" y="249" class="small">dynamic load</text>
+  <path d="M276 231 L330 231" class="arrow"/>
+
+  <rect x="92" y="295" width="420" height="278" rx="8" class="inner"/>
+  <text x="114" y="328" class="h">inner loop</text>
+  <rect x="120" y="350" width="172" height="62" rx="6" class="box"/>
+  <text x="141" y="377" class="mono">inner.header</text><text x="141" y="399" class="small">inner_iv &lt; inner_bound</text>
+  <rect x="338" y="350" width="146" height="62" rx="6" class="box"/>
+  <text x="369" y="377" class="mono">outer.latch</text><text x="369" y="399" class="small">outer_next</text>
+  <path d="M292 381 L338 381" class="arrow"/>
+  <rect x="120" y="450" width="364" height="88" rx="6" class="effect"/>
+  <text x="143" y="478" class="mono">W0 → W1 → … → Wm-1</text>
+  <text x="143" y="503" class="t">1–4 个同 inner.body 的有序 store</text>
+  <text x="143" y="526" class="small">width / affine alias / reachable domain / ordinal</text>
+  <path d="M205 412 L205 450" class="arrow"/><path d="M484 494 C526 494 526 381 484 381" class="innerloop"/>
+  <path d="M411 412 L411 450" class="arrow"/>
+  <path d="M182 262 L182 295" class="arrow"/>
+  <path d="M411 573 C411 640 180 640 180 262" class="loop"/>
+  <text x="82" y="618" class="mono">H_outer = φ(entry, S_inner(H_outer))</text>
+  <text x="82" y="646" class="small">outer incoming 指向 inner MemoryPhi；inner incoming 指向有序 MemoryDef 链</text>
+
+  <rect x="615" y="135" width="770" height="260" rx="8" class="proof"/>
+  <text x="642" y="173" class="h">2  从内到外生成 v6 proof-carrying summary</text>
+  <rect x="646" y="205" width="202" height="132" rx="6" class="box"/>
+  <text x="668" y="234" class="mono">Inner transfer</text>
+  <text x="668" y="264" class="t">按 inner_iv 域重放</text><text x="668" y="288" class="t">保持 writer 顺序</text>
+  <text x="668" y="316" class="small">S_inner : lanes → lanes</text>
+  <rect x="913" y="205" width="202" height="132" rx="6" class="box"/>
+  <text x="935" y="234" class="mono">Finite closure</text>
+  <text x="935" y="264" class="t">逐轮 new / total lanes</text><text x="935" y="288" class="t">显式 +0 稳定轮</text>
+  <text x="935" y="316" class="small">≤ 2,048 lanes</text>
+  <rect x="1180" y="205" width="170" height="132" rx="6" class="box"/>
+  <text x="1202" y="234" class="mono">Witnesses</text>
+  <text x="1202" y="264" class="t">load address × lane</text><text x="1202" y="288" class="t">→ writer / inner_iv</text>
+  <text x="1202" y="316" class="small">≤ 8,192 alternatives</text>
+  <path d="M848 271 L913 271" class="arrow"/><path d="M1115 271 L1180 271" class="arrow"/>
+
+  <rect x="615" y="430" width="370" height="260" rx="8" class="box"/>
+  <text x="642" y="469" class="h">3  Consumer 独立重建</text>
+  <text x="646" y="510" class="t">- 两层 successor / predecessor 与 edge-copy</text>
+  <text x="646" y="543" class="t">- 两组 PHI、ult guard、bound 支配与 no-wrap 域</text>
+  <text x="646" y="576" class="t">- 两个 MemoryPhi 的方程与 incoming kind</text>
+  <text x="646" y="609" class="t">- 真实 store 顺序、pointer、owner 与 alias</text>
+  <text x="646" y="642" class="t">- fixed point 与完整 witness 重新计算</text>
+  <text x="646" y="670" class="small">任一不一致：executor create 前 fail-closed</text>
+
+  <rect x="1015" y="430" width="370" height="260" rx="8" class="runtime"/>
+  <text x="1042" y="469" class="h">4  Runtime 最终裁决</text>
+  <text x="1046" y="510" class="t">实际 outer trip 是否大于 0？</text>
+  <text x="1046" y="543" class="t">实际 inner prefix 覆盖该 lane？</text>
+  <text x="1046" y="576" class="t">真实 writer 是否执行并更新 init bit？</text>
+  <line x1="1046" y1="603" x2="1352" y2="603" stroke="#d99aae" stroke-width="2"/>
+  <text x="1046" y="636" class="mono">static summary ≠ must-initialized</text>
+  <text x="1046" y="664" class="small">zero-trip / 短前缀仍 infeasible；bitmap 是权威</text>
+  <path d="M985 560 L1015 560" class="arrow"/>
+
+  <rect x="55" y="735" width="1330" height="112" rx="8" fill="#102a43"/>
+  <text x="82" y="774" style="font:700 19px 'WenQuanYi Zen Hei',Arial,sans-serif;fill:#fff">严格支持边界</text>
+  <text x="82" y="808" style="font:400 16px 'WenQuanYi Zen Hei',Arial,sans-serif;fill:#d9e2ec">两层、各单 header/latch、inner bound 对 outer invariant、1–4 simple stores、同一有限对象、正 affine inner writer；无额外 MemorySSA effect</text>
+  <text x="82" y="833" style="font:400 15px 'WenQuanYi Zen Hei',Arial,sans-serif;fill:#9fb3c8">不宣称：一般 LoopSCC、二维 outer×inner 地址、value summary、pointer union、多对象、跨过程或非可归约循环</text>
+</svg>

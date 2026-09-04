@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1100" viewBox="0 0 1800 1100">
+  <defs>
+    <style>
+      .title { font: 700 42px 'DejaVu Sans', sans-serif; fill: #17212b; }
+      .subtitle { font: 400 24px 'DejaVu Sans', sans-serif; fill: #52606d; }
+      .heading { font: 700 28px 'DejaVu Sans', sans-serif; fill: #17212b; }
+      .body { font: 400 23px 'DejaVu Sans Mono', monospace; fill: #293845; }
+      .small { font: 400 20px 'DejaVu Sans', sans-serif; fill: #52606d; }
+      .chip { font: 700 19px 'DejaVu Sans', sans-serif; fill: #ffffff; }
+      .box { stroke-width: 2.5; rx: 8; }
+      .arrow { stroke: #52606d; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .edge { stroke: #177e89; stroke-width: 5; fill: none; }
+      .reject { stroke: #c63c3c; stroke-width: 4; fill: none; stroke-dasharray: 12 9; }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#52606d"/>
+    </marker>
+  </defs>
+
+  <rect width="1800" height="1100" fill="#f7f9fb"/>
+  <text x="80" y="78" class="title">F383: Proof-Carrying Multi-Cell Alias Graph</text>
+  <text x="80" y="116" class="subtitle">Rebuild the bounded address domain at admission; trust no multicell label by itself</text>
+
+  <rect x="80" y="165" width="430" height="305" class="box" fill="#ffffff" stroke="#2f6f9f"/>
+  <rect x="80" y="165" width="430" height="58" rx="8" fill="#2f6f9f"/>
+  <text x="110" y="203" class="chip">LLVM producer proof</text>
+  <text x="110" y="266" class="heading">MemorySSA + provenance</text>
+  <text x="110" y="312" class="body">load A : domain D(A)</text>
+  <text x="110" y="352" class="body">load B : domain D(B)</text>
+  <text x="110" y="402" class="small">DataLayout intervals</text>
+  <text x="110" y="435" class="small">object identity / select guards</text>
+
+  <path d="M510 317 L635 317" class="arrow"/>
+
+  <rect x="640" y="165" width="520" height="305" class="box" fill="#ffffff" stroke="#177e89"/>
+  <rect x="640" y="165" width="520" height="58" rx="8" fill="#177e89"/>
+  <text x="670" y="203" class="chip">Portable continuation artifact</text>
+  <text x="670" y="265" class="body">A.neighbors = [B]</text>
+  <text x="670" y="305" class="body">B.neighbors = [A]</text>
+  <text x="670" y="355" class="body">aliases = [64,65,...]</text>
+  <text x="670" y="395" class="body">index_values = [0,1,...]</text>
+  <text x="670" y="438" class="small">Symmetric edge + exact per-address witness</text>
+
+  <path d="M1160 317 L1285 317" class="arrow"/>
+
+  <rect x="1290" y="165" width="430" height="305" class="box" fill="#ffffff" stroke="#7656a7"/>
+  <rect x="1290" y="165" width="430" height="58" rx="8" fill="#7656a7"/>
+  <text x="1320" y="203" class="chip">Runtime admission oracle</text>
+  <text x="1320" y="265" class="body">object bounds</text>
+  <text x="1320" y="305" class="body">width + interval</text>
+  <text x="1320" y="345" class="body">guard compatibility</text>
+  <text x="1320" y="385" class="body">edge symmetry</text>
+  <text x="1320" y="430" class="small">Reconstruct, compare, fail closed</text>
+
+  <rect x="80" y="530" width="500" height="400" class="box" fill="#ffffff" stroke="#2f6f9f"/>
+  <text x="115" y="580" class="heading">Case 1: disjoint cells</text>
+  <rect x="130" y="645" width="150" height="90" rx="6" fill="#d7e9f5" stroke="#2f6f9f" stroke-width="3"/>
+  <rect x="380" y="645" width="150" height="90" rx="6" fill="#d9f0e8" stroke="#177e89" stroke-width="3"/>
+  <text x="170" y="700" class="body">A [0,4)</text>
+  <text x="420" y="700" class="body">B [8,12)</text>
+  <path d="M280 690 L380 690" class="edge"/>
+  <text x="125" y="800" class="small">Static object, fixed heap, finite domains</text>
+  <text x="125" y="840" class="small">No address pair overlaps: edge admitted</text>
+
+  <rect x="650" y="530" width="500" height="400" class="box" fill="#ffffff" stroke="#177e89"/>
+  <text x="685" y="580" class="heading">Case 2: correlated overlap</text>
+  <rect x="710" y="645" width="180" height="90" rx="6" fill="#d7e9f5" stroke="#2f6f9f" stroke-width="3"/>
+  <rect x="900" y="645" width="180" height="90" rx="6" fill="#d9f0e8" stroke="#177e89" stroke-width="3"/>
+  <text x="745" y="685" class="body">addr 64</text>
+  <text x="735" y="718" class="small">guard g = 0</text>
+  <text x="935" y="685" class="body">addr 64</text>
+  <text x="925" y="718" class="small">guard g = 1</text>
+  <path d="M890 690 L900 690" class="edge"/>
+  <text x="695" y="800" class="small">Ranges overlap, but guard conjunction is UNSAT</text>
+  <text x="695" y="840" class="small">Same rule applies to exact BV index values</text>
+
+  <rect x="1220" y="530" width="500" height="400" class="box" fill="#ffffff" stroke="#c63c3c"/>
+  <text x="1255" y="580" class="heading">Fail-closed counterexamples</text>
+  <text x="1260" y="650" class="body">A -> B, B -/> A</text>
+  <text x="1260" y="705" class="body">overlap + compatible guards</text>
+  <text x="1260" y="760" class="body">index map / min-max drift</text>
+  <text x="1260" y="815" class="body">cell escapes object bounds</text>
+  <path d="M1260 855 L1665 855" class="reject"/>
+  <text x="1260" y="895" class="small">Reject before checkpoint execution</text>
+
+  <rect x="80" y="975" width="1640" height="70" rx="8" fill="#17212b"/>
+  <text x="110" y="1018" class="chip">Boundary: PHI-correlated domains remain on the older contract until edge relations can be replayed independently.</text>
+</svg>

@@ -1,0 +1,55 @@
+F321 real-MPI checks, 2026-08-07 UTC
+
+environment:
+  uid=1000
+  mpirun=Open MPI 4.1.6
+  execution_timeout_sec=1
+  max_idle_sec=1
+  shutdown_grace_sec=5
+  finalize_grace_sec=5
+
+automated-gates:
+  py_compile=pass
+  ruff=pass
+  targeted_pytest=107_passed_10_subtests_5.51s
+  full_pytest=618_passed_38_subtests_82.66s
+
+healthy-two-master:
+  temp_dir=/tmp/symcc-f321-normal.Pg2OYy
+  exit_code=0
+  corpus_regular_files=12
+  standalone_work_directories=0
+  analysis_observations=12
+  master_0_observations=6
+  master_1_observations=6
+  worker_shutdown_acks=6/6
+
+staged-child-two-master:
+  temp_dir=/tmp/symcc-f321-irreversible-commit.ybteXh
+  exit_code=0
+  corpus_regular_files=13
+  standalone_work_directories=0
+  analysis_observations=13
+  generated_unique_children=1
+  master_0_observations=7
+  master_1_observations=6
+  worker_shutdown_acks=6/6
+
+staged-child-single-master:
+  temp_dir=/tmp/symcc-f321-single-stage.UE3wwN
+  exit_code=0
+  corpus_regular_files=3
+  standalone_work_directories=0
+  analysis_observations=3
+  generated_unique_children=1
+  master_0_observations=3
+  worker_shutdown_acks=2/2
+
+corrupt-corpus-fail-closed:
+  temp_dir=/tmp/symcc-f321-corrupt.hm0mz1
+  exit_code=70
+  expected_sha256=296d2b7cf9b0b70d9d915f72ce7b993a0f564838fa7576bb82faf20fcbebad47
+  observed_sha256=1b5a2d2c5f5dce29936736a63fb08b39a3f6fadc5a36a4e9b19d229de13f781f
+  standalone_work_directories=0
+  analysis_observations=0
+  worker_shutdown_acks=2/2

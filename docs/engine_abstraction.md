@@ -23,8 +23,9 @@ python3 benchmark/run_benchmark.py --engine symsan --targets ... --hybrid
   插桩检测(`_has_symcc_instrumentation`)也按 `engine.detect_symbols` 走(symcc `__sym_ctor` / symsan `__taint`)。
   (已验证:微目标 `parser.c` 两引擎均正确编译 + 检测。)
 
-> 注:目前引擎化覆盖 `benchmark/targets/*.c` 微目标的**编译流程**;公开套件(base64/xml…)的 `*_symcc`
-> 二进制是预编译的,用 ko-clang 批量重编是后续工作(其 setup 脚本 + C++ 目标的 FastGen 接入)。
+> 注:引擎化已覆盖 `benchmark/targets/*.c` 微目标和 base64、libxml2、libpng、PCRE2、
+> SQLite、coreutils/uniq 等公开目标的编译与发现。C++ libFuzzer harness 的外部
+> FastGen 链接仍是独立的未完成边界。
 
 ## 实现
 - **`util/concolic_engine.py`**:`ConcolicEngine` 接口 + `SymCCEngine` / `SymSanEngine`,`get_engine()` 工厂。
@@ -42,7 +43,12 @@ python3 benchmark/run_benchmark.py --engine symsan --targets ... --hybrid
 
 **SymSan 适配的关键**:`R-Fuzz/symsan` 的 `driver/fgtest.cpp` 是一个独立 driver——加载 DFSan 插桩目标、
 跑取 label、进程内 Z3 求解(30s)、把新输入写进 `TAINT_OPTIONS` 指定的 `output_dir/id-*`。这**正好复现
-SymCC 的目录契约**,故 `SymSanEngine.wrap_run` 只需生成 `fgtest <binary> <input>` 命令 + 设 `TAINT_OPTIONS`。
+SymCC 的目录契约**。无额外目标参数时，`SymSanEngine.wrap_run` 生成
+`fgtest <binary> <input>`；有参数时使用
+`fgtest <binary> <taint-input> -- <target-argv[1:]>`。编排层逐参数替换 `@@`，
+两个 driver 再把 `--` 后的参数原样交给目标。该协议不经过 shell，空参数、空格和标点不会被重解析。
+补丁位于 `scripts/symsan_patches/symsan_target_argv.patch`，构建脚本应用失败时终止，
+避免目标实际少参数而实验仍被记录为成功。
 
 ## 构建 SymSan(`scripts/build_symsan.sh`)
 ```
@@ -70,13 +76,14 @@ apt-get install -y libc++-18-dev libc++abi-18-dev libunwind-18-dev libboost-cont
 - 验证:一个 4 字节 magic 守卫(`b[0..3]=="SYMS"`)的目标,种子 `"AAAAAAAA"` → `fgtest` **求解首个分支、
   把字节 0 从 'A' 翻成 'S'、输出 `id-0-0-0="SAAAAAAA"`**。逐次喂回即迭代解出全部 magic——正是 SymCC 的目录契约。
 
-## 尚未完成(引擎已跑通,剩余为整体的多人周工程,见 `SymSan_迁移评估.md`)
+## 当前状态与剩余边界
 - [x] SymSan 构建 + fgtest 契约端到端验证(见上,已跑通)。
 - [x] 引擎抽象 + `--engine` + SymSanEngine 按 fgtest 契约实现(`TAINT_OPTIONS="taint_file=<in> output_dir=<out>"`)。
-- [ ] 用 ko-clang(**FastGen 模式**)批量重编各 benchmark 目标为 `*_symsan`;`build_targets`/编译脚本按引擎选 wrapper;
-      `_has_symsan_instrumentation`(检测 `__taint`/dfsan 符号)。
-- 5 个自研技术点在 SymSan 侧重写(都写在 SymCC 的 qsym 表达式/solver 内部,在 SymSan 的
-  DFSan-label + fgtest/Z3 框架里重做)。**已移植 3 个**(见 `docs/symsan_ported_techniques.md`,
+- [x] 用 ko-clang(**FastGen 模式**)编译微目标和多类公开 benchmark 为 `*_symsan`;
+      `build_targets`/公开目标脚本按引擎选 wrapper,发现层按后缀和
+      `_has_symsan_instrumentation` 过滤。
+- 5 个自研技术点在 SymSan 侧完成四项直接移植和一项等价性分析(见
+  `docs/symsan_ported_techniques.md`,
   补丁 `scripts/symsan_patches/symsan_ported_techniques.patch`,`build_symsan.sh` 幂等应用):
   - [x] **④选择性符号化**——DFSan 运行时 `get_label_for` 单一枢纽按偏移门控(非 focus 字节返回 label 0),
         经 `SYMCC_FOCUS_BYTES` → `TAINT_OPTIONS focus_bytes=` → fgtest/launcher → 目标 DFSan flags。
@@ -98,8 +105,12 @@ apt-get install -y libc++-18-dev libc++abi-18-dev libunwind-18-dev libboost-cont
   级联(SymSan/JIGSAW USENIX'22),保留 fgtest one-shot 契约。`SYMSAN_SOLVER=rgd` 切换、`SYMSAN_USE_JIGSAW=1`
   开梯度。实测已集成+功能正确+鲁棒,微目标上与 Z3 持平(base64 112=112,吞吐更高);优势需大目标体现。
 - [ ] C++ 目标(libFuzzer harness):SymSan 的进程内 Z3 对 C++ 目标有链接问题 → 需接 FastGen(进程外)。
-- [ ] fgtest 单遍只解一个嵌套分支——编排层的"输出喂回"循环(现成)会迭代解深;确认与 showmap 去重路径对齐
-      (SymSan 输出即普通输入文件,应可直接复用)。
+- [x] fgtest 单遍只解一个嵌套分支时,编排层通过"输出喂回"循环迭代解深,并与
+      showmap 去重路径对齐;parser dogfight 和 full hybrid 已验证。
+- [ ] 离散 `SYMCC_FOCUS_SET` 尚未迁移;当前 SymSan 选择性符号化只支持单个连续
+      `focus_bytes=s-e` 区间。
+- [ ] F00-F16 的统一 telemetry、data coverage 与新 scheduler 需要逐项定义
+      SymSan capability/conformance,不能只依赖 SymCC 默认路径。
 
 ## 引擎对拍(`scripts/engine_dogfight.py`,实测)
 把 `benchmark/targets/parser.c`(嵌套 4 字节魔数 `"SYM\x01"`)分别用 `build/symcc` 与 ko-clang(FastGen)编成
@@ -137,5 +148,7 @@ apt-get install -y libc++-18-dev libc++abi-18-dev libunwind-18-dev libboost-cont
 → **完整 hybrid 流水线两引擎均跑通、覆盖一致**(SymCC concolic 贡献 39 个 interesting,SymSan 25 个)。
 为此 `mpi_concolic_execution.py` 也引擎化了,且 `build_targets`/hybrid 现支持微目标(自动编 `*_afl`)。
 
-**当前状态**:引擎抽象 + `--engine` + SymCC 默认(逐字节等价)+ **SymSan 构建 & fgtest & 真实目标对拍均已跑通验证**;
-剩下的是"用 ko-clang 批量重编全部 benchmark 目标"和"5 个技术点在 DFSan 侧重写"这两块真正的工作量。
+**当前状态**:引擎抽象、引擎感知构建/发现、SymCC 默认兼容、SymSan fgtest、
+四项技术迁移、RGD/I2S/JIGSAW/Z3 和多类真实目标 full-hybrid 均已跑通。剩余工作
+集中在 C++ harness 的外部 FastGen 链接、离散 focus set、F00-F16 capability 对齐
+以及等 CPU 多轮统计验证,不再是早期文档所述的"公开目标尚未重编/技术点尚未移植"。

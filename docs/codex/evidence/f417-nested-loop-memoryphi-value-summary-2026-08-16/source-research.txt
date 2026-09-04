@@ -1,0 +1,26 @@
+F417 primary-source research basis
+
+LLVM Language Reference Manual
+https://llvm.org/docs/LangRef.html
+- The store instruction writes its first operand through the pointer operand.
+- The module data layout declares target byte order. The F417 producer uses
+  LLVM DataLayout rather than host byte order.
+
+LLVM MemorySSA
+https://llvm.org/docs/MemorySSA.html
+- MemoryDef records memory-modifying operations in a def-use chain and
+  MemoryPhi merges memory versions at CFG joins.
+- MemorySSA alone is a may-reach representation, not a last-value proof.
+
+LoopSCC preprint
+https://arxiv.org/abs/2411.02863
+- LoopSCC studies summaries for more general complex multi-branch nested loops
+  and motivates inner-to-outer composition.
+
+Local engineering inference
+- For outer-invariant inner bounds and constant writers, every positive outer
+  trip repeats the same inner memory effect; the final byte is selected by the
+  greatest executed inner induction and then the greatest writer ordinal.
+- The v7 format is a project-specific proof-carrying constant-byte summary. It
+  is not a reproduction of LoopSCC, symbolic-value recurrence solving,
+  periodic-oscillation analysis, or arbitrary SCC summarization.

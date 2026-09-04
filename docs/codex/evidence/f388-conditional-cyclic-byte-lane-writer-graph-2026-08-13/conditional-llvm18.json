@@ -1,0 +1,579 @@
+{
+  "endianness": "little",
+  "entry": "freeze_memory_conditional_cyclic_byte_lane_carry",
+  "functions": {
+    "freeze_memory_conditional_cyclic_byte_lane_carry": {
+      "blocks": {
+        "bb0": [
+          {
+            "dst": "input_raw_3",
+            "offset": 0,
+            "op": "input"
+          },
+          {
+            "bits": 1,
+            "dst": "input_ext_4",
+            "op": "unary",
+            "operator": "zext",
+            "value": {
+              "var": "input_raw_3"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "arg0",
+            "op": "unary",
+            "operator": "trunc",
+            "value": {
+              "var": "input_ext_4"
+            }
+          },
+          {
+            "bits": 64,
+            "dst": "v0",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "bits": 64,
+              "const": 64
+            }
+          },
+          {
+            "address": {
+              "bits": 64,
+              "const": 64
+            },
+            "bits": 16,
+            "byte_lane_store": "byte_lane_store_0",
+            "bytes": 2,
+            "op": "store",
+            "value": {
+              "bits": 16,
+              "const": 42
+            }
+          },
+          {
+            "op": "jump",
+            "target": "edge_bb0_bb1"
+          }
+        ],
+        "bb1": [
+          {
+            "address": {
+              "bits": 64,
+              "const": 64
+            },
+            "bits": 16,
+            "bytes": 2,
+            "dst": "v2",
+            "op": "load"
+          },
+          {
+            "bits": 1,
+            "dst": "v2__cyclic_byte_defined",
+            "left": {
+              "var": "v2__lane_0_defined"
+            },
+            "op": "binary",
+            "operator": "and",
+            "right": {
+              "var": "v2__lane_1_defined"
+            }
+          },
+          {
+            "bits": 16,
+            "dst": "deferred_poison_choice_5",
+            "op": "nondet",
+            "site": "1806775335786722138"
+          },
+          {
+            "bits": 16,
+            "condition": {
+              "var": "v2__cyclic_byte_defined"
+            },
+            "dst": "v3",
+            "false": {
+              "var": "deferred_poison_choice_5"
+            },
+            "op": "select",
+            "true": {
+              "var": "v2"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "v4",
+            "left": {
+              "var": "v1"
+            },
+            "op": "binary",
+            "operator": "eq",
+            "right": {
+              "bits": 8,
+              "const": 0
+            }
+          },
+          {
+            "condition": {
+              "var": "v4"
+            },
+            "false": "bb6",
+            "op": "branch",
+            "site": "6109384066027777725",
+            "true": "bb2"
+          }
+        ],
+        "bb2": [
+          {
+            "condition": {
+              "var": "arg0"
+            },
+            "false": "bb4",
+            "op": "branch",
+            "site": "2361203149411153690",
+            "true": "bb3"
+          }
+        ],
+        "bb3": [
+          {
+            "bits": 8,
+            "dst": "v5",
+            "left": {
+              "bits": 8,
+              "const": 127
+            },
+            "op": "binary",
+            "operator": "add",
+            "right": {
+              "bits": 8,
+              "const": 1
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "llvm_signed_left_6",
+            "left": {
+              "bits": 8,
+              "const": 127
+            },
+            "op": "binary",
+            "operator": "lshr",
+            "right": {
+              "bits": 8,
+              "const": 7
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "llvm_signed_right_7",
+            "left": {
+              "bits": 8,
+              "const": 1
+            },
+            "op": "binary",
+            "operator": "lshr",
+            "right": {
+              "bits": 8,
+              "const": 7
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "llvm_signed_result_8",
+            "left": {
+              "var": "v5"
+            },
+            "op": "binary",
+            "operator": "lshr",
+            "right": {
+              "bits": 8,
+              "const": 7
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "llvm_signed_risky_9",
+            "left": {
+              "var": "llvm_signed_left_6"
+            },
+            "op": "binary",
+            "operator": "eq",
+            "right": {
+              "var": "llvm_signed_right_7"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "llvm_signed_result_same_10",
+            "left": {
+              "var": "llvm_signed_result_8"
+            },
+            "op": "binary",
+            "operator": "eq",
+            "right": {
+              "var": "llvm_signed_left_6"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "llvm_signed_not_risky_11",
+            "op": "unary",
+            "operator": "not",
+            "value": {
+              "var": "llvm_signed_risky_9"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "llvm_signed_defined_12",
+            "left": {
+              "var": "llvm_signed_not_risky_11"
+            },
+            "op": "binary",
+            "operator": "or",
+            "right": {
+              "var": "llvm_signed_result_same_10"
+            }
+          },
+          {
+            "address": {
+              "bits": 64,
+              "const": 64
+            },
+            "bits": 8,
+            "byte_lane_defined": "byte_lane_store_defined_2",
+            "byte_lane_poison_source": "llvm_signed_defined_12",
+            "byte_lane_store": "byte_lane_store_1",
+            "bytes": 1,
+            "op": "store",
+            "value": {
+              "var": "v5"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "byte_lane_store_defined_2",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "llvm_signed_defined_12"
+            }
+          },
+          {
+            "op": "jump",
+            "target": "edge_bb3_bb5"
+          }
+        ],
+        "bb4": [
+          {
+            "op": "jump",
+            "target": "edge_bb4_bb5"
+          }
+        ],
+        "bb5": [
+          {
+            "op": "jump",
+            "target": "edge_bb5_bb1"
+          }
+        ],
+        "bb6": [
+          {
+            "bits": 1,
+            "dst": "v6",
+            "left": {
+              "var": "v3"
+            },
+            "op": "binary",
+            "operator": "eq",
+            "right": {
+              "bits": 16,
+              "const": 42
+            }
+          },
+          {
+            "condition": {
+              "var": "v6"
+            },
+            "false": "bb8",
+            "op": "branch",
+            "site": "747993878194043103",
+            "true": "bb7"
+          }
+        ],
+        "bb7": [
+          {
+            "op": "return",
+            "value": {
+              "bits": 8,
+              "const": 1
+            }
+          }
+        ],
+        "bb8": [
+          {
+            "op": "return",
+            "value": {
+              "bits": 8,
+              "const": 2
+            }
+          }
+        ],
+        "edge_bb0_bb1": [
+          {
+            "bits": 8,
+            "dst": "phi_in_13",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "bits": 8,
+              "const": 0
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "v1",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "phi_in_13"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "v2__lane_0_defined",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "bits": 1,
+              "const": 1
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "v2__lane_1_defined",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "bits": 1,
+              "const": 1
+            }
+          },
+          {
+            "op": "jump",
+            "target": "bb1"
+          }
+        ],
+        "edge_bb3_bb5": [
+          {
+            "bits": 1,
+            "dst": "v2__lane_0_defined",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "byte_lane_store_defined_2"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "v2__lane_1_defined",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "v2__lane_1_defined"
+            }
+          },
+          {
+            "op": "jump",
+            "target": "bb5"
+          }
+        ],
+        "edge_bb4_bb5": [
+          {
+            "bits": 1,
+            "dst": "v2__lane_0_defined",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "v2__lane_0_defined"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "v2__lane_1_defined",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "v2__lane_1_defined"
+            }
+          },
+          {
+            "op": "jump",
+            "target": "bb5"
+          }
+        ],
+        "edge_bb5_bb1": [
+          {
+            "bits": 8,
+            "dst": "phi_in_14",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "bits": 8,
+              "const": 1
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "v1",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "phi_in_14"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "v2__lane_0_defined",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "v2__lane_0_defined"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "v2__lane_1_defined",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "v2__lane_1_defined"
+            }
+          },
+          {
+            "op": "jump",
+            "target": "bb1"
+          }
+        ]
+      },
+      "conditional_cyclic_byte_lane_memory_definedness_phis": [
+        {
+          "block": "bb1",
+          "bytes": 2,
+          "conditional_transfers": [
+            {
+              "branch": "bb2",
+              "carry_arm": "bb4",
+              "carry_edge": "edge_bb4_bb5",
+              "carry_successor": "bb4",
+              "join": "bb5",
+              "lanes": [
+                {
+                  "defined": "byte_lane_store_defined_2",
+                  "lane": 0,
+                  "source": "store",
+                  "store": "byte_lane_store_1",
+                  "store_byte": 0,
+                  "store_bytes": 1
+                },
+                {
+                  "lane": 1,
+                  "source": "carry"
+                }
+              ],
+              "store_arm": "bb3",
+              "store_edge": "edge_bb3_bb5",
+              "store_successor": "bb3",
+              "store_when_true": true
+            }
+          ],
+          "defined": "v2__cyclic_byte_defined",
+          "incoming": [
+            {
+              "block": "edge_bb5_bb1",
+              "lanes": [
+                {
+                  "lane": 0,
+                  "source": "carry"
+                },
+                {
+                  "lane": 1,
+                  "source": "carry"
+                }
+              ]
+            },
+            {
+              "block": "edge_bb0_bb1",
+              "lanes": [
+                {
+                  "lane": 0,
+                  "source": "store",
+                  "store": "byte_lane_store_0",
+                  "store_byte": 0,
+                  "store_bytes": 2
+                },
+                {
+                  "lane": 1,
+                  "source": "store",
+                  "store": "byte_lane_store_0",
+                  "store_byte": 1,
+                  "store_bytes": 2
+                }
+              ]
+            }
+          ],
+          "lane_defined": [
+            "v2__lane_0_defined",
+            "v2__lane_1_defined"
+          ],
+          "load": "v2",
+          "writer_graph": true
+        }
+      ],
+      "entry": "bb0",
+      "param_bits": [],
+      "params": [],
+      "return_bits": 8
+    }
+  },
+  "input_size": 1,
+  "lowering": {
+    "capabilities": [
+      "integer-ssa",
+      "scalar-mem2reg",
+      "phi-edge-copies",
+      "switch-chain",
+      "direct-internal-calls",
+      "bounded-bitvectors",
+      "static-global-memory",
+      "constant-gep",
+      "multi-byte-memory",
+      "stable-nondeterministic-freeze",
+      "bounded-deferred-poison-freeze",
+      "bounded-transitive-deferred-poison",
+      "bounded-memory-deferred-poison",
+      "canonical-address-memory-deferred-poison",
+      "bounded-cross-block-memory-deferred-poison",
+      "bounded-branch-memory-deferred-poison",
+      "bounded-conditional-cyclic-byte-lane-memory-definedness-phi",
+      "bounded-conditional-cyclic-byte-lane-writer-graph"
+    ],
+    "entry": "freeze_memory_conditional_cyclic_byte_lane_carry",
+    "input_abi": "integer-arguments-little-endian",
+    "llvm_version": "18.1.3",
+    "schema": "symcc-llvm-continuation-lowering-v1",
+    "source_module": "/home/ubuntu/code/symcc/test/live_continuation_lowering.ll",
+    "status": "lowered"
+  },
+  "memory_hex": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  "memory_objects": [
+    {
+      "address": 64,
+      "kind": "static",
+      "name": "poison_memory_array",
+      "read_only": false,
+      "size": 4
+    }
+  ],
+  "memory_size": 68,
+  "schema": "symcc-live-program-v1"
+}

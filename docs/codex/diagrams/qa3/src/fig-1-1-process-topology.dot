@@ -1,0 +1,58 @@
+
+digraph G {
+  graph [
+    bgcolor="white", pad="0.28", nodesep="0.38", ranksep="0.58",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=26,
+    labelloc="t", labeljust="l"
+  ];
+  node [
+    shape=box, style="rounded,filled", margin="0.18,0.12",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=13,
+    color="#CBD5E1", penwidth=1.3, fillcolor="#F8FAFC"
+  ];
+  edge [
+    fontname="WenQuanYi Zen Hei", fontcolor="#64748B", fontsize=11,
+    color="#64748B", penwidth=1.5, arrowsize=0.75
+  ];
+
+  label="图 1-1  SymCC-Parallel 进程拓扑与共享边界";
+  rankdir=LR;
+
+  launcher [label="benchmark/run_benchmark.py\nrun_hybrid()", fillcolor="#FEF3C7", color="#D97706"];
+
+  subgraph cluster_afl {
+    label="AFL++ 实例群（独立进程，非 MPI）";
+    color="#93C5FD"; style="rounded,filled"; fillcolor="#EFF6FF";
+    afl_m [label="fuzzer01\n-M · CmpLog", fillcolor="#DBEAFE", color="#2563EB"];
+    afl_s [label="fuzzer02…N\n-S · 多调度 profile", fillcolor="#DBEAFE", color="#2563EB"];
+  }
+
+  subgraph cluster_mpi {
+    label="MPI 通信域（mpirun -np N）";
+    color="#5EEAD4"; style="rounded,filled"; fillcolor="#F0FDFA";
+    master [label="rank 0\nMaster\n调度 · B1 仲裁", fillcolor="#CCFBF1", color="#0F766E"];
+    workers [label="rank 1…N-1\nConcolic workers\nB2 / B3 · 求解", fillcolor="#CCFBF1", color="#0F766E"];
+    master -> workers [dir=both, label="TAG_READY / WORK /\nRESULT / STOP", color="#0F766E"];
+  }
+
+  subgraph cluster_fs {
+    label="共享输出目录 afl_out/";
+    color="#FDBA74"; style="rounded,filled"; fillcolor="#FFF7ED";
+    fqueue [label="fuzzer01/queue\nAFL 种子来源", fillcolor="#FFEDD5", color="#C2410C"];
+    squeue [label="symcc01/queue\n被接受的 concolic 产出", fillcolor="#FFEDD5", color="#C2410C"];
+    extras [label="symcc01/extras\nhint token 字典", fillcolor="#FFEDD5", color="#C2410C"];
+  }
+
+  launcher -> afl_m [label="先启动"];
+  launcher -> master [label="等待 fuzzer_stats 后启动"];
+  afl_m -> fqueue [dir=both, label="生成 / 读取"];
+  afl_s -> fqueue [style=dashed, label="AFL sync"];
+  master -> fqueue [dir=both, label="扫描取种子 / 直写产出\n（运行中 AFL 不重扫）"];
+  master -> squeue [label="原子写入"];
+  master -> extras [label="写 hint"];
+  squeue -> afl_m [style=dashed, color="#B91C1C", fontcolor="#B91C1C",
+                   label="默认 10 min 后兄弟同步\n短轮次内未送达"];
+  note [shape=note, label="核数分配\nSymCC worker 上限 12\n其余核分给 AFL", fillcolor="#F1F5F9"];
+  launcher -> note [style=dotted, arrowhead=none];
+
+}

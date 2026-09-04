@@ -1,0 +1,70 @@
+{
+  "admitted": {
+    "artifact_sha256": "dd9c63bd5e6c5a6b2c4d6a488f1c8a0b09df9eb7252f7f2063da78fd969a5af2",
+    "runtime_profiles": 2,
+    "suppressed_profiles": 0
+  },
+  "compiler": "/home/ubuntu/code/symcc/build/symcc",
+  "coordinator": {
+    "checkpoint_truncations": 0,
+    "current_profiles": 2,
+    "current_suppressed": 0,
+    "current_version": "ac2f8083fb4afd21e3018e6b50ad0de0073962355ce3cb471152e2c10854e58a",
+    "empirical_domain_attempts": 2,
+    "empirical_domain_context_skips": 0,
+    "empirical_domain_parse_failures": 0,
+    "empirical_domain_prefilter_rejects": 0,
+    "empirical_domain_profiles_loaded": 6,
+    "empirical_domain_sat": 0,
+    "empirical_domain_solver_queries": 2,
+    "empirical_domain_unknown_fallbacks": 0,
+    "empirical_domain_unsat_fallbacks": 2,
+    "empirical_domain_validated": 0,
+    "empirical_domain_validation_failures": 0,
+    "generations_published": 3,
+    "profiles_suppressed": 1,
+    "publication_failures": 0,
+    "records_observed": 6,
+    "semantic_noops": 0,
+    "suppression_generations": 1,
+    "window_records": 2
+  },
+  "exact_domain": {
+    "bits": 32,
+    "site": 3562788607769723438,
+    "values": [
+      1,
+      2
+    ]
+  },
+  "feedback_min_solver_queries": 2,
+  "feedback_min_validated_ratio_ppm": 125000,
+  "probe_feedback": {
+    "attempts": 2,
+    "prefilter_rejects": 0,
+    "rows": 2,
+    "sat": 0,
+    "solver_queries": 2,
+    "solver_unsat": 2,
+    "unknown": 0,
+    "validated": 0,
+    "validation_failures": 0
+  },
+  "readmitted": {
+    "artifact_sha256": "dd9c63bd5e6c5a6b2c4d6a488f1c8a0b09df9eb7252f7f2063da78fd969a5af2",
+    "reprobe_exact_rows": 1,
+    "reprobe_solver_queries": 1,
+    "runtime_profiles": 2,
+    "suppressed_profiles": 0
+  },
+  "schema": "symcc-evp-admission-smoke-v1",
+  "source": "/home/ubuntu/code/symcc/test/empirical_value_profile_feedback.c",
+  "suppressed": {
+    "artifact_sha256": "612bf0ad50d1e853d9bfca0adcbb864708bcd2271e7b7c5d92a613ad2d5a00f8",
+    "post_suppression_exact_rows": 0,
+    "runtime_profiles": 1,
+    "suppressed_profiles": 1
+  },
+  "target_sha256": "9da36117c2b0bafbc55836a484e34d8d609e7dc7fa1ea1363b4de4eb5d3b1a03",
+  "window": 2
+}

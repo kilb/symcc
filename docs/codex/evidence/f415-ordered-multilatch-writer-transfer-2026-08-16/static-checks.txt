@@ -1,0 +1,17 @@
+[1/3] Performing build step for 'SymCCRuntime'
+ninja: no work to do.
+[2/3] No install step for 'SymCCRuntime'
+[3/3] Completed 'SymCCRuntime'
+build LLVM 18 SymCC: PASS
+[1/3] Performing build step for 'SymCCRuntime'
+ninja: no work to do.
+[2/3] No install step for 'SymCCRuntime'
+[3/3] Completed 'SymCCRuntime'
+build LLVM 17 SymCC: PASS
+All checks passed!
+ruff check: PASS
+py_compile: PASS
+git diff --check: PASS
+technology index: PASS
+diagram render and structural inspection: PASS
+9 RUN commands: PASS

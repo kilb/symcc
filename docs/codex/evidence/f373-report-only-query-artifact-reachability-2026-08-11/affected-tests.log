@@ -1,0 +1,6 @@
+$ PYTHONDONTWRITEBYTECODE=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider test/test_distributed_state.py test/test_query_store.py
+.............................................................. [ 33%]
+................................................................ [ 68%]
+........................................................ [ 99%]
+.                                                                        [100%]
+183 passed, 34 subtests passed in 20.14s

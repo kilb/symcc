@@ -1,0 +1,40 @@
+F438 multi-round review findings
+
+Round 1: Protocol identity and conservation
+- Finding: allocation counts alone did not prove the deterministic physical
+  worker mapping; a re-sealed permutation could preserve counts.
+- Repair: the verifier now recomputes exact worker-to-job mapping, including
+  busy-worker retention. Added re-sealed tamper and initial/live/retired lease
+  partition checks.
+
+Round 2: Production scheduling semantics
+- Finding: fixed physical shard_count left modulo holes while slots were
+  standby, and the first mapping policy could drain a busy slot while keeping
+  an idle peer.
+- Repair: active workers are dynamically renumbered for every claim; retained
+  same-job workers sort by live lease count before worker identity. Added a
+  busy-worker retention regression.
+
+Round 3: Persistence, cost, and ownership
+- Finding: polling full QueryStore stats parsed historical result JSON; two
+  processes could instantiate the same logical pool.
+- Repair: introduced the grouped-SQL `work_counts()` scheduler view and a
+  lifetime, nonblocking, O_NOFOLLOW, stable-inode flock keyed by pool ID.
+  Checkpoint commits reject same-ordinal forks and generation rollback.
+
+Round 4: Lease and physical-call lifetime
+- Finding: QueryStore lease expiry permits re-claim but does not prove the old
+  in-process backend call returned. A drain could otherwise recycle its
+  assignment early.
+- Repair: the adapter tracks process-local live lease IDs. Online drain waits
+  for the actual backend return; restart recovery, where no local call exists,
+  uses the durable query token. Added an expired-store-lease/live-call test and
+  guaranteed `--once` pool-lock cleanup on exceptions.
+
+Round 5: Acceptance-gate isolation and documentation
+- Finding: LLVM 17 and LLVM 18 complete lit gates run simultaneously polluted
+  shared runtime resources and produced transient backend/poly-cache failures.
+- Repair: all affected cases passed isolated `-j1`; acceptance gates now run
+  serially and both complete suites pass. Documentation distinguishes logical
+  malleability from dynamic MPI spawn and mechanism evidence from performance,
+  coverage, defect-yield, and multi-node claims.

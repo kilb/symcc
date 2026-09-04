@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1100" viewBox="0 0 1800 1100" role="img" aria-labelledby="title desc">
+  <title id="title">F439 LIDRUP and PalRUP proof wire interoperability</title>
+  <desc id="desc">An internally checked LRUP proof DAG is flattened into matched ICNF and LIDRUP artifacts, checked by a pinned independent checker, persisted in an immutable sidecar store, and checked again by QueryStore. A separate lane implements the actual PalRUP binary fragment format and validates it with the official converter.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M1 1 L11 6 L1 11 Z" fill="#334155"/></marker>
+    <marker id="tealArrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M1 1 L11 6 L1 11 Z" fill="#0f766e"/></marker>
+    <marker id="amberArrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M1 1 L11 6 L1 11 Z" fill="#b45309"/></marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#0f172a" flood-opacity="0.12"/></filter>
+    <style>
+      .title{font:700 38px 'WenQuanYi Zen Hei','Noto Sans CJK SC','Microsoft YaHei',sans-serif;fill:#102a43}.subtitle{font:400 19px 'WenQuanYi Zen Hei','Noto Sans CJK SC','Microsoft YaHei',sans-serif;fill:#486581}.h{font:700 22px 'WenQuanYi Zen Hei','Noto Sans CJK SC','Microsoft YaHei',sans-serif;fill:#102a43}.b{font:600 17px 'WenQuanYi Zen Hei','Noto Sans CJK SC','Microsoft YaHei',sans-serif;fill:#243b53}.s{font:400 15px 'WenQuanYi Zen Hei','Noto Sans CJK SC','Microsoft YaHei',sans-serif;fill:#486581}.mono{font:600 15px 'DejaVu Sans Mono',monospace;fill:#243b53}.white{fill:#fff}.line{fill:none;stroke:#334155;stroke-width:3;marker-end:url(#arrow)}.teal{fill:none;stroke:#0f766e;stroke-width:4;marker-end:url(#tealArrow)}.amber{fill:none;stroke:#b45309;stroke-width:4;marker-end:url(#amberArrow)}
+    </style>
+  </defs>
+  <rect width="1800" height="1100" fill="#f8fafc"/>
+  <rect width="1800" height="108" fill="#fff"/><rect y="104" width="1800" height="4" fill="#0f766e"/>
+  <text x="70" y="54" class="title">F439 可复验的证明线协议互操作</text>
+  <text x="70" y="84" class="subtitle">内部 LRUP DAG → canonical LIDRUP 双文件 → 固定 checker → sidecar CAS → QueryStore 二次裁决</text>
+  <rect x="1515" y="28" width="215" height="48" rx="8" fill="#102a43"/><text x="1622" y="58" text-anchor="middle" class="b white">I / T / E-local</text>
+
+  <rect x="55" y="145" width="430" height="485" rx="8" fill="#fff" stroke="#9fb3c8" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="55" y="145" width="430" height="62" rx="8" fill="#d9eaf7"/><rect x="55" y="199" width="430" height="8" fill="#d9eaf7"/>
+  <text x="82" y="183" class="h">1 内部授权链</text>
+  <rect x="88" y="235" width="364" height="76" rx="8" fill="#eef6fb" stroke="#69a3c4" stroke-width="2"/>
+  <text x="270" y="266" text-anchor="middle" class="b">QF_BV bit-blast + activation assumptions</text><text x="270" y="292" text-anchor="middle" class="mono">CNF formula / query core identity</text>
+  <rect x="88" y="343" width="168" height="108" rx="8" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+  <text x="172" y="375" text-anchor="middle" class="b">child record</text><text x="172" y="402" text-anchor="middle" class="mono">local id 4</text><text x="172" y="427" text-anchor="middle" class="s">RUP hints 3</text>
+  <rect x="284" y="343" width="168" height="108" rx="8" fill="#e8f5f2" stroke="#0f766e" stroke-width="2"/>
+  <text x="368" y="375" text-anchor="middle" class="b">parent record</text><text x="368" y="402" text-anchor="middle" class="mono">import → local 4</text><text x="368" y="427" text-anchor="middle" class="s">final core clause</text>
+  <path d="M256 397 H282" class="teal"/>
+  <rect x="88" y="485" width="364" height="112" rx="8" fill="#ecfdf5" stroke="#22c55e" stroke-width="2"/>
+  <text x="270" y="518" text-anchor="middle" class="b">IncrementalProofChecker</text><text x="270" y="546" text-anchor="middle" class="s">重算 prefix / 递归导入 / ordered LRUP</text><text x="270" y="574" text-anchor="middle" class="mono">UNSAT receipt → authorized</text>
+  <path d="M270 311 V331" class="line"/><path d="M270 451 V483" class="line"/>
+
+  <rect x="535" y="145" width="430" height="485" rx="8" fill="#fff" stroke="#9fb3c8" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="535" y="145" width="430" height="62" rx="8" fill="#e8f5f2"/><rect x="535" y="199" width="430" height="8" fill="#e8f5f2"/>
+  <text x="562" y="183" class="h">2 DAG 展平与 canonical 化</text>
+  <rect x="570" y="235" width="360" height="76" rx="8" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+  <text x="750" y="266" text-anchor="middle" class="b">先 child，后 parent；相同 digest 只发射一次</text><text x="750" y="292" text-anchor="middle" class="mono">global IDs = N+1, N+2, ...</text>
+  <rect x="570" y="340" width="360" height="108" rx="8" fill="#fff8e6" stroke="#d8a72e" stroke-width="2"/>
+  <text x="750" y="373" text-anchor="middle" class="b">局部 ID → 全局 ID 翻译</text><text x="750" y="401" text-anchor="middle" class="mono">base: same · import: child-final</text><text x="750" y="426" text-anchor="middle" class="mono">step: fresh monotonic ID</text>
+  <rect x="570" y="479" width="165" height="112" rx="8" fill="#eef6fb" stroke="#69a3c4" stroke-width="2"/>
+  <text x="652" y="512" text-anchor="middle" class="b">interaction.icnf</text><text x="652" y="541" text-anchor="middle" class="mono">i / q / s / u</text><text x="652" y="568" text-anchor="middle" class="s">无 proof IDs</text>
+  <rect x="765" y="479" width="165" height="112" rx="8" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+  <text x="847" y="512" text-anchor="middle" class="b">proof.lidrup</text><text x="847" y="541" text-anchor="middle" class="mono">i / q / l / s / u</text><text x="847" y="568" text-anchor="middle" class="s">LRUP antecedents</text>
+  <path d="M485 392 H533" class="teal"/><path d="M750 311 V338" class="line"/><path d="M750 448 V463 H652 V477" class="line"/><path d="M750 463 H847 V477" class="line"/>
+
+  <rect x="1015" y="145" width="730" height="485" rx="8" fill="#fff" stroke="#9fb3c8" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1015" y="145" width="730" height="62" rx="8" fill="#ede9fe"/><rect x="1015" y="199" width="730" height="8" fill="#ede9fe"/>
+  <text x="1042" y="183" class="h">3 独立检查、持久化与提交复验</text>
+  <rect x="1050" y="235" width="255" height="130" rx="8" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+  <text x="1177" y="268" text-anchor="middle" class="b">lidrup-check 0.0.7</text><text x="1177" y="297" text-anchor="middle" class="mono">--strict ICNF LIDRUP</text><text x="1177" y="325" text-anchor="middle" class="s">binary SHA + Git commit</text><text x="1177" y="348" text-anchor="middle" class="s">bounded output / timeout</text>
+  <rect x="1340" y="235" width="365" height="130" rx="8" fill="#fff8e6" stroke="#d8a72e" stroke-width="2"/>
+  <text x="1522" y="268" text-anchor="middle" class="b">LidrupWireStore</text><text x="1522" y="297" text-anchor="middle" class="s">ICNF + proof + metadata + receipt</text><text x="1522" y="325" text-anchor="middle" class="mono">immutable CAS · SQLite quota</text><text x="1522" y="348" text-anchor="middle" class="s">duplicate-key / symlink / tamper closed</text>
+  <rect x="1050" y="410" width="655" height="160" rx="8" fill="#ecfdf5" stroke="#22c55e" stroke-width="3"/>
+  <text x="1377" y="445" text-anchor="middle" class="b">QueryStore commit-time independent replay</text><text x="1377" y="477" text-anchor="middle" class="s">重建 Query IR → bit-blast plan → 内部 receipt → CAS artifact</text><text x="1377" y="507" text-anchor="middle" class="s">重验 checker policy / artifact identity / lemma count，并再次运行 strict checker</text><text x="1377" y="541" text-anchor="middle" class="b">只有两条授权链都闭合，UNSAT 才能提交</text>
+  <path d="M965 535 H995 V300 H1048" class="teal"/><path d="M1305 300 H1338" class="line"/><path d="M1522 365 V392 H1377 V408" class="line"/><path d="M1177 365 V392 H1377" class="line"/>
+
+  <rect x="55" y="680" width="1690" height="350" rx="8" fill="#fff" stroke="#9fb3c8" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="55" y="680" width="1690" height="62" rx="8" fill="#fff1df"/><rect x="55" y="734" width="1690" height="8" fill="#fff1df"/>
+  <text x="82" y="718" class="h">4 真正的 PalRUP binary fragment lane（与全局 UNSAT 确认明确分层）</text>
+  <rect x="90" y="780" width="350" height="180" rx="8" fill="#fff8e6" stroke="#d8a72e" stroke-width="2"/>
+  <text x="265" y="815" text-anchor="middle" class="b">项目指令对象</text><text x="265" y="848" text-anchor="middle" class="mono">Import(i) · Produce(a) · Delete(d)</text><text x="265" y="882" text-anchor="middle" class="s">signed int / signed long 边界</text><text x="265" y="914" text-anchor="middle" class="s">canonical、非冗余编码</text>
+  <rect x="505" y="780" width="360" height="180" rx="8" fill="#fef3c7" stroke="#b45309" stroke-width="3"/>
+  <text x="685" y="815" text-anchor="middle" class="b">SAT 2026 tracer wire bytes</text><text x="685" y="850" text-anchor="middle" class="mono">directive + signed base-128</text><text x="685" y="884" text-anchor="middle" class="mono">lits 0 · hints/ids 0</text><text x="685" y="918" text-anchor="middle" class="s">decode(encode(x)) = x</text>
+  <rect x="930" y="780" width="360" height="180" rx="8" fill="#eef6fb" stroke="#69a3c4" stroke-width="2"/>
+  <text x="1110" y="815" text-anchor="middle" class="b">官方 proof_fragment_to_txt</text><text x="1110" y="850" text-anchor="middle" class="s">固定 commit + binary SHA</text><text x="1110" y="884" text-anchor="middle" class="s">独立 converter 输出逐字节对拍</text><text x="1110" y="918" text-anchor="middle" class="mono">fragment syntax interoperable</text>
+  <rect x="1355" y="780" width="350" height="180" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+  <text x="1530" y="815" text-anchor="middle" class="b">严格科研边界</text><text x="1530" y="850" text-anchor="middle" class="s">当前证明 fragment 语法互操作</text><text x="1530" y="884" text-anchor="middle" class="s">不等于多 worker redistribute + confirm</text><text x="1530" y="918" text-anchor="middle" class="mono">not global PalRUP UNSAT yet</text>
+  <path d="M440 870 H503" class="amber"/><path d="M865 870 H928" class="amber"/><path d="M1290 870 H1353" class="amber"/>
+  <text x="900" y="1004" text-anchor="middle" class="s">两个协议共享 LRUP 思想，但 LIDRUP 文本与 PalRUP 二进制是不同 wire contract；历史 JSON schema 不再被误称为外部 PalRUP。</text>
+</svg>

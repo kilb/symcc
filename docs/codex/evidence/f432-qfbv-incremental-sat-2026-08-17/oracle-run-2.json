@@ -1,0 +1,64 @@
+{
+  "artifact_sha256": "65754616e594ff64783d2fd60fe73981012a7ec7fe3ec530f0c1b6215e3c6444",
+  "cadical": {
+    "sha256": "c2377de6ce6310cc5fd85fc5a5a86679eda6dbb4eb4a3ff960d8aa9fa1be7bae",
+    "version": "3.0.1"
+  },
+  "cases": 512,
+  "cvc5": {
+    "sha256": "f2f4cc5eea252833c4645072c3de46f2c3d4d56f3107f099383516ee885cee10",
+    "version_output": "This is cvc5 version 1.1.2\ncompiled with GCC version 13.2.0\non Mar 31 2024 17:58:39\n\nCopyright (c) 2009-2023 by the authors and their institutional\naffiliations listed at https://cvc5.github.io/people.html\n\nThis build of cvc5 uses GPLed libraries, and is thus covered by\nthe GNU General Public License (GPL) version 3.  Versions of cvc5\nare available that are covered by the (modified) BSD license. If\nyou want to license cvc5 under this license, please configure cvc5\nwith the \"--no-gpl\" option before building "
+  },
+  "elapsed_us": 1686276,
+  "mismatches": [],
+  "operator_counts": {
+    "add": 23,
+    "and": 22,
+    "ashr": 22,
+    "lshr": 22,
+    "mul": 23,
+    "or": 22,
+    "rol": 22,
+    "ror": 22,
+    "sdiv": 23,
+    "sge": 22,
+    "sgt": 22,
+    "shl": 22,
+    "sle": 22,
+    "slt": 22,
+    "srem": 22,
+    "sub": 23,
+    "udiv": 23,
+    "uge": 22,
+    "ugt": 22,
+    "ule": 22,
+    "ult": 22,
+    "urem": 23,
+    "xor": 22
+  },
+  "operator_matrix": {
+    "all_38_operators": true,
+    "cadical_assignments": {
+      "0": 66,
+      "1": 3
+    },
+    "cadical_status": "sat",
+    "cvc5_assignments": {
+      "0": 66,
+      "1": 3
+    },
+    "cvc5_status": "sat"
+  },
+  "passed": true,
+  "proof": {
+    "failed_assumptions": [
+      17,
+      25
+    ],
+    "propagations": 22,
+    "status": "unsat",
+    "steps": 24
+  },
+  "schema": "symcc-f432-bitblast-oracle-v1",
+  "seed": 62514
+}

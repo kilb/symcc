@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">F406 collective heap-union initialization proof</title>
+  <desc id="desc">A three-stage schematic from LLVM dominance proof through a canonical artifact certificate to single-state survivor loading after symbolic free.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#344054"/>
+    </marker>
+    <style>
+      .title { font: 700 46px "WenQuanYi Zen Hei", Arial, sans-serif; fill: #101828; }
+      .subtitle { font: 400 22px "WenQuanYi Zen Hei", Arial, sans-serif; fill: #475467; }
+      .stage { font: 700 24px "WenQuanYi Zen Hei", Arial, sans-serif; fill: #ffffff; }
+      .head { font: 700 27px "WenQuanYi Zen Hei", Arial, sans-serif; fill: #101828; }
+      .body { font: 400 20px "WenQuanYi Zen Hei", Arial, sans-serif; fill: #344054; }
+      .small { font: 500 17px "WenQuanYi Zen Hei", Arial, sans-serif; fill: #475467; }
+      .mono { font: 600 19px "WenQuanYi Zen Hei Mono", monospace; fill: #182230; }
+      .mono-small { font: 600 16px "WenQuanYi Zen Hei Mono", monospace; fill: #182230; }
+      .metric { font: 700 28px "WenQuanYi Zen Hei", Arial, sans-serif; fill: #101828; }
+      .box { fill: #ffffff; stroke: #d0d5dd; stroke-width: 2; rx: 8; }
+      .arrow { fill: none; stroke: #344054; stroke-width: 4; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#f8fafc"/>
+  <rect x="0" y="0" width="1920" height="12" fill="#0f766e"/>
+  <text x="90" y="86" class="title">F406  集合支配证明闭合幸存堆对象读取</text>
+  <text x="90" y="126" class="subtitle">从“单条 store 必须覆盖所有候选”扩展为“多条支配 store 的有限集合完整覆盖”，仍保持失败关闭</text>
+
+  <rect x="90" y="175" width="510" height="565" class="box"/>
+  <rect x="90" y="175" width="510" height="58" fill="#175cd3" rx="8"/>
+  <rect x="90" y="225" width="510" height="8" fill="#175cd3"/>
+  <text x="120" y="213" class="stage">1  LLVM 生产者证明</text>
+
+  <text x="120" y="280" class="head">有限 points-to 域</text>
+  <rect x="120" y="306" width="195" height="92" fill="#eff8ff" stroke="#84caff" stroke-width="2" rx="8"/>
+  <text x="142" y="342" class="mono">left @ 64</text>
+  <text x="142" y="375" class="small">store 11  PASS 支配</text>
+  <rect x="345" y="306" width="195" height="92" fill="#ecfdf3" stroke="#6ce9a6" stroke-width="2" rx="8"/>
+  <text x="367" y="342" class="mono">right @ 80</text>
+  <text x="367" y="375" class="small">store 22  PASS 支配</text>
+
+  <path d="M217 410 L217 456" class="arrow"/>
+  <path d="M442 410 L442 456" class="arrow"/>
+  <rect x="120" y="466" width="420" height="106" fill="#fff7ed" stroke="#fdba74" stroke-width="2" rx="8"/>
+  <text x="145" y="503" class="mono">Cover = {left, right}</text>
+  <text x="145" y="536" class="body">每个候选区间都有完整写入见证</text>
+  <text x="145" y="561" class="small">至少 2 个对象 · 至少 2 条支配 store</text>
+
+  <rect x="120" y="604" width="420" height="96" fill="#fef3f2" stroke="#fda29b" stroke-width="2" rx="8"/>
+  <text x="145" y="640" class="body">拒绝：缺失对象、分支内非支配写入、</text>
+  <text x="145" y="670" class="body">动态索引、栈/堆混合、路径相关写入</text>
+
+  <path d="M620 458 L690 458" class="arrow"/>
+
+  <rect x="710" y="175" width="500" height="565" class="box"/>
+  <rect x="710" y="175" width="500" height="58" fill="#7f56d9" rx="8"/>
+  <rect x="710" y="225" width="500" height="8" fill="#7f56d9"/>
+  <text x="740" y="213" class="stage">2  Proof-carrying artifact</text>
+
+  <text x="740" y="280" class="head">规范初始化证书</text>
+  <rect x="740" y="306" width="440" height="184" fill="#f9f5ff" stroke="#bdb4fe" stroke-width="2" rx="8"/>
+  <text x="765" y="345" class="mono">"op": "load"</text>
+  <text x="765" y="380" class="mono">"initialization_bases":</text>
+  <text x="765" y="415" class="mono">  [64,80]</text>
+  <text x="765" y="450" class="mono">"alias_cases": guarded left/right</text>
+  <text x="765" y="480" class="mono">"bits": 8, "bytes": 1</text>
+
+  <text x="740" y="535" class="head">消费者闭合检查</text>
+  <text x="755" y="573" class="small">PASS  capability 依赖 heap + pointer union</text>
+  <text x="755" y="607" class="small">PASS  升序、唯一、2..256 个普通堆基址</text>
+  <text x="755" y="641" class="small">PASS  证书集合 = alias cases 的对象归属集合</text>
+  <text x="755" y="675" class="small">PASS  capability 必须至少有一个合同使用点</text>
+
+  <path d="M1230 458 L1300 458" class="arrow"/>
+
+  <rect x="1320" y="175" width="510" height="565" class="box"/>
+  <rect x="1320" y="175" width="510" height="58" fill="#0f766e" rx="8"/>
+  <rect x="1320" y="225" width="510" height="8" fill="#0f766e"/>
+  <text x="1350" y="213" class="stage">3  单状态运行语义</text>
+
+  <text x="1350" y="280" class="head">符号释放 + 反向幸存选择</text>
+  <rect x="1350" y="306" width="450" height="86" fill="#f0fdfa" stroke="#5eead4" stroke-width="2" rx="8"/>
+  <text x="1375" y="341" class="mono">victim   = choose ? left : right</text>
+  <text x="1375" y="374" class="mono">survivor = choose ? right : left</text>
+
+  <rect x="1350" y="425" width="450" height="120" fill="#eff8ff" stroke="#84caff" stroke-width="2" rx="8"/>
+  <text x="1375" y="461" class="mono-small">release_i = (victim = base_i) AND live_i</text>
+  <text x="1375" y="496" class="mono-small">live_i'   = live_i AND NOT release_i</text>
+  <text x="1375" y="531" class="mono-small">init_i'   = init_i AND NOT release_i</text>
+
+  <path d="M1575 558 L1575 598" class="arrow"/>
+  <rect x="1350" y="610" width="450" height="90" fill="#ecfdf3" stroke="#6ce9a6" stroke-width="2" rx="8"/>
+  <text x="1375" y="648" class="body">load(survivor)：运行时 live/init guard 成立</text>
+  <text x="1375" y="679" class="mono">choose=0 → 11   choose=1 → 22</text>
+
+  <rect x="90" y="790" width="1740" height="200" fill="#ffffff" stroke="#d0d5dd" stroke-width="2" rx="8"/>
+  <text x="125" y="836" class="head">验证结论与声明边界</text>
+  <line x1="690" y1="817" x2="690" y2="960" stroke="#d0d5dd" stroke-width="2"/>
+  <line x1="1260" y1="817" x2="1260" y2="960" stroke="#d0d5dd" stroke-width="2"/>
+
+  <text x="125" y="886" class="metric">10,912</text>
+  <text x="265" y="886" class="body">有限域 lifetime assignments</text>
+  <text x="125" y="927" class="metric">4,216</text>
+  <text x="245" y="927" class="body">区间覆盖检查，全部通过</text>
+  <text x="125" y="963" class="small">LLVM 17/18 聚焦 fixture 均通过</text>
+
+  <text x="725" y="875" class="metric">992 → 1</text>
+  <text x="875" y="875" class="body">32 对象的解析状态基数</text>
+  <text x="725" y="916" class="metric">3.986 μs</text>
+  <text x="885" y="916" class="body">Python 参考证明中位成本</text>
+  <text x="725" y="957" class="small">均为机制/分析量，不是端到端实测加速比</text>
+
+  <text x="1295" y="870" class="small">不包含：任意符号堆、跨过程 MemorySSA、</text>
+  <text x="1295" y="902" class="small">路径相关 branch-local store、公开目标 campaign。</text>
+  <text x="1295" y="938" class="small">结构校验保证合同闭合；</text>
+  <text x="1295" y="966" class="small">穷尽性仍由可信 lowering 生产者证明。</text>
+
+  <text x="90" y="1044" class="small">SymCC research artifact · F406 · 2026-08-15 · POSE-inspired finite heap reasoning with LLVM dominance</text>
+</svg>

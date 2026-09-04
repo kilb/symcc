@@ -1,0 +1,235 @@
+=== healthy stdout ===
+SymCC MPI Parallel Concolic Execution
+  Processes:     7
+  Mode:          multi-master (2 masters, auto-scaled at 3 workers/master)
+    Master 0: 3 workers
+    Master 1: 2 workers
+  Shared dir:    /tmp/symcc-f332-config-mpi-p36yefz2/healthy-output
+  Input dir:     /tmp/symcc-f332-config-mpi-p36yefz2/healthy-input
+  Target:        /bin/true
+  Timeout:       1s per execution
+  Work epoch:    f332f332f332f332f332f332f332f332f332f332f332f332f332f332f332f332 (configured recovery)
+  Wall timeout:  3s total
+
+[Master] Imported 1 initial inputs from /tmp/symcc-f332-config-mpi-p36yefz2/healthy-input
+[Master] Using 2 master(s), 3 workers in this group
+[Master] Durable work ownership: rendezvous + 64 fenced shards, lease=120s
+[Master] Shared filesystem capabilities: {'schema': 'symcc-shared-filesystem-capabilities-v1', 'root': '/tmp/symcc-f332-config-mpi-p36yefz2/healthy-output/.standalone-work-f332f332f332f332f332f332f332f332f332f332f332f332f332f332f332f332', 'publication_root': '/tmp/symcc-f332-config-mpi-p36yefz2/healthy-output', 'device': 92, 'filesystem_id': 18395215968828387670, 'publication_device': 92, 'publication_filesystem_id': 18395215968828387670, 'filesystem_type': 'overlay', 'mount_point': '/', 'mount_source': 'overlay', 'distributed_filesystem': False, 'cluster_lock_verified': True, 'probe_scope': 'cross-host-mpi-lock-v1', 'cluster_lock_members': [{'rank': 0, 'processor': 'synthetic-node-0'}, {'rank': 1, 'processor': 'synthetic-node-1'}], 'cluster_lock_representatives': [0, 1], 'cluster_lock_rounds': 2, 'cluster_lock_contention_checks': 2, 'cluster_lock_release_checks': 2, 'file_fsync': True, 'directory_fsync': True, 'same_directory_replace': True, 'cross_directory_replace': True, 'publication_replace': True, 'hard_link': True, 'durable_unlink': True, 'advisory_lock_exclusion': True, 'advisory_lock_release': True}
+[Master] Runtime lock renewal configuration consensus: 776bc9da6db7e0bc761c601280a75eee31c1bc3ee392aa759e2b9b4288ac9a94
+[Master] 0 generated, 0 interesting, 0 analyzed, 0 busy (0 tc/s)
+[Master] Wall-clock timeout (3s) reached. Shutting down.
+[Master 0] Runtime cluster lock renewal: {'schema': 'symcc-cluster-lock-renewal-metrics-v2', 'interval': 0.12, 'jitter_fraction': 0.1, 'maximum_interval': 0.132, 'last_scheduled_interval': 0.12776521347694228, 'next_scheduled_interval': 0.12225121000883078, 'timeout': 0.4, 'generation': 3, 'in_flight_generation': 0, 'attempts': 3, 'successes': 3, 'failures': 0, 'total_elapsed': 1.0483600471634418, 'last_elapsed': 0.365988943958655}
+[Master 0] Worker shutdown: acked=3/3 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+[Master 1] Runtime cluster lock renewal: {'schema': 'symcc-cluster-lock-renewal-metrics-v2', 'interval': 0.12, 'jitter_fraction': 0.1, 'maximum_interval': 0.132, 'last_scheduled_interval': 0.12776521347694228, 'next_scheduled_interval': 0.12225121000883078, 'timeout': 0.4, 'generation': 3, 'in_flight_generation': 0, 'attempts': 3, 'successes': 3, 'failures': 0, 'total_elapsed': 1.0324589170049876, 'last_elapsed': 0.35435845400206745}
+[Master 1] Worker shutdown: acked=2/2 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+[Master 1] Lease heartbeat group commit: batches=3 renewals=3 directory_syncs=3 directory_syncs_avoided=0 failures=0
+
+[Master] === Final Statistics ===
+[Master] Total analysis observations:       0
+[Master] Total test cases generated:  0
+[Master] New interesting test cases:  0
+[Master] Throughput:                  0.0 tc/s
+[Master] Masters used:               2
+[Master] Workers used:               5
+[Master] Analysis by master:         0=0, 1=0
+=== drift stdout ===
+SymCC MPI Parallel Concolic Execution
+  Processes:     7
+  Mode:          multi-master (2 masters, auto-scaled at 3 workers/master)
+    Master 0: 3 workers
+    Master 1: 2 workers
+  Shared dir:    /tmp/symcc-f332-config-mpi-p36yefz2/drift-output
+  Input dir:     /tmp/symcc-f332-config-mpi-p36yefz2/drift-input
+  Target:        /bin/true
+  Timeout:       1s per execution
+  Work epoch:    f332f332f332f332f332f332f332f332f332f332f332f332f332f332f332f332 (configured recovery)
+  Wall timeout:  3s total
+
+[Master] Imported 1 initial inputs from /tmp/symcc-f332-config-mpi-p36yefz2/drift-input
+[Master] Using 2 master(s), 3 workers in this group
+[Master] Durable work ownership: rendezvous + 64 fenced shards, lease=120s
+[Master] Shared filesystem capabilities: {'schema': 'symcc-shared-filesystem-capabilities-v1', 'root': '/tmp/symcc-f332-config-mpi-p36yefz2/drift-output/.standalone-work-f332f332f332f332f332f332f332f332f332f332f332f332f332f332f332f332', 'publication_root': '/tmp/symcc-f332-config-mpi-p36yefz2/drift-output', 'device': 92, 'filesystem_id': 18395215968828387670, 'publication_device': 92, 'publication_filesystem_id': 18395215968828387670, 'filesystem_type': 'overlay', 'mount_point': '/', 'mount_source': 'overlay', 'distributed_filesystem': False, 'cluster_lock_verified': True, 'probe_scope': 'cross-host-mpi-lock-v1', 'cluster_lock_members': [{'rank': 0, 'processor': 'synthetic-node-0'}, {'rank': 1, 'processor': 'synthetic-node-1'}], 'cluster_lock_representatives': [0, 1], 'cluster_lock_rounds': 2, 'cluster_lock_contention_checks': 2, 'cluster_lock_release_checks': 2, 'file_fsync': True, 'directory_fsync': True, 'same_directory_replace': True, 'cross_directory_replace': True, 'publication_replace': True, 'hard_link': True, 'durable_unlink': True, 'advisory_lock_exclusion': True, 'advisory_lock_release': True}
+[Master 0] Runtime cluster lock renewal: {'schema': 'symcc-cluster-lock-renewal-metrics-v2', 'interval': 0.12, 'jitter_fraction': 0.1, 'maximum_interval': 0.132, 'last_scheduled_interval': 0.0, 'next_scheduled_interval': 0.12869066615001992, 'timeout': 0.4, 'generation': 0, 'in_flight_generation': 0, 'attempts': 0, 'successes': 0, 'failures': 0, 'total_elapsed': 0.0, 'last_elapsed': 0.0}
+[Master 0] Global work control failure: runtime cluster lock setup failed: runtime cluster lock configuration consensus failed: cluster lock renewal configuration mismatch (0:776bc9da6db7,1:3e11b750f0d7)
+[Master 1] Runtime cluster lock renewal: {'schema': 'symcc-cluster-lock-renewal-metrics-v2', 'interval': 0.12, 'jitter_fraction': 0.25, 'maximum_interval': 0.15, 'last_scheduled_interval': 0.0, 'next_scheduled_interval': 0.14172666537504985, 'timeout': 0.4, 'generation': 0, 'in_flight_generation': 0, 'attempts': 0, 'successes': 0, 'failures': 0, 'total_elapsed': 0.0, 'last_elapsed': 0.0}
+[Master 1] Global work control failure: runtime cluster lock setup failed: runtime cluster lock configuration consensus failed: cluster lock renewal configuration mismatch (0:776bc9da6db7,1:3e11b750f0d7)
+[Master 0] Worker shutdown: acked=3/3 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+[Master 0] Control failure during worker shutdown: runtime cluster lock setup failed: runtime cluster lock configuration consensus failed: cluster lock renewal configuration mismatch (0:776bc9da6db7,1:3e11b750f0d7)
+[Master 1] Control failure during worker shutdown: runtime cluster lock setup failed: runtime cluster lock configuration consensus failed: cluster lock renewal configuration mismatch (0:776bc9da6db7,1:3e11b750f0d7)
+[Master 1] Incomplete MPI lifecycle after bounded master rendezvous; aborting job.
+[Master 1] Worker shutdown: acked=2/2 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+--------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 1 in communicator MPI_COMM_WORLD
+with errorcode 70.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------
+[Master 0] Incomplete MPI lifecycle after bounded master rendezvous; aborting job.
+[cuda-ke:2048850] 1 more process has sent help message help-mpi-api.txt / mpi-abort
+[cuda-ke:2048850] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
+=== result ===
+{
+  "actual_mpi_transport": true,
+  "actual_multi_host": false,
+  "all_checks_passed": true,
+  "checks": {
+    "drift_detected_on_both_masters": true,
+    "drift_detection_is_bounded": true,
+    "drift_exits_fail_closed": true,
+    "drift_never_attempts_renewal": true,
+    "drift_never_reaches_consensus": true,
+    "drift_workers_acknowledge_before_abort": true,
+    "healthy_exact_consensus_fingerprint": true,
+    "healthy_exit_zero": true,
+    "healthy_runtime_renewal_progresses": true,
+    "healthy_workers_acknowledge": true
+  },
+  "configuration": {
+    "injected_peer_jitter_fraction": 0.25,
+    "interval": 0.12,
+    "masters": 2,
+    "ranks": 7,
+    "root_jitter_fraction": 0.1,
+    "work_epoch": "f332f332f332f332f332f332f332f332f332f332f332f332f332f332f332f332",
+    "workers": 5
+  },
+  "deployment_evidence": false,
+  "drift": {
+    "command": [
+      "mpirun",
+      "--oversubscribe",
+      "-np",
+      "7",
+      "python3",
+      "/tmp/symcc-f332-config-mpi-p36yefz2/configuration_consensus_wrapper.py",
+      "-i",
+      "/tmp/symcc-f332-config-mpi-p36yefz2/drift-input",
+      "-o",
+      "/tmp/symcc-f332-config-mpi-p36yefz2/drift-output",
+      "-t",
+      "1",
+      "--max-idle",
+      "10",
+      "--wall-timeout",
+      "3",
+      "--workers-per-master",
+      "3",
+      "--simulate",
+      "--",
+      "/bin/true"
+    ],
+    "consensus_fingerprints": [],
+    "elapsed": 0.9124025641940534,
+    "mismatch_summaries": [
+      "cluster lock renewal configuration mismatch (0:776bc9da6db7,1:3e11b750f0d7)",
+      "cluster lock renewal configuration mismatch (0:776bc9da6db7,1:3e11b750f0d7)",
+      "cluster lock renewal configuration mismatch (0:776bc9da6db7,1:3e11b750f0d7)",
+      "cluster lock renewal configuration mismatch (0:776bc9da6db7,1:3e11b750f0d7)"
+    ],
+    "renewal_metrics": [
+      {
+        "attempts": 0,
+        "failures": 0,
+        "generation": 0,
+        "in_flight_generation": 0,
+        "interval": 0.12,
+        "jitter_fraction": 0.1,
+        "last_elapsed": 0.0,
+        "last_scheduled_interval": 0.0,
+        "maximum_interval": 0.132,
+        "next_scheduled_interval": 0.12869066615001992,
+        "schema": "symcc-cluster-lock-renewal-metrics-v2",
+        "successes": 0,
+        "timeout": 0.4,
+        "total_elapsed": 0.0
+      },
+      {
+        "attempts": 0,
+        "failures": 0,
+        "generation": 0,
+        "in_flight_generation": 0,
+        "interval": 0.12,
+        "jitter_fraction": 0.25,
+        "last_elapsed": 0.0,
+        "last_scheduled_interval": 0.0,
+        "maximum_interval": 0.15,
+        "next_scheduled_interval": 0.14172666537504985,
+        "schema": "symcc-cluster-lock-renewal-metrics-v2",
+        "successes": 0,
+        "timeout": 0.4,
+        "total_elapsed": 0.0
+      }
+    ],
+    "returncode": 70
+  },
+  "healthy": {
+    "command": [
+      "mpirun",
+      "--oversubscribe",
+      "-np",
+      "7",
+      "python3",
+      "/tmp/symcc-f332-config-mpi-p36yefz2/configuration_consensus_wrapper.py",
+      "-i",
+      "/tmp/symcc-f332-config-mpi-p36yefz2/healthy-input",
+      "-o",
+      "/tmp/symcc-f332-config-mpi-p36yefz2/healthy-output",
+      "-t",
+      "1",
+      "--max-idle",
+      "10",
+      "--wall-timeout",
+      "3",
+      "--workers-per-master",
+      "3",
+      "--simulate",
+      "--",
+      "/bin/true"
+    ],
+    "consensus_fingerprints": [
+      "776bc9da6db7e0bc761c601280a75eee31c1bc3ee392aa759e2b9b4288ac9a94"
+    ],
+    "elapsed": 3.9781698149163276,
+    "mismatch_summaries": [],
+    "renewal_metrics": [
+      {
+        "attempts": 3,
+        "failures": 0,
+        "generation": 3,
+        "in_flight_generation": 0,
+        "interval": 0.12,
+        "jitter_fraction": 0.1,
+        "last_elapsed": 0.365988943958655,
+        "last_scheduled_interval": 0.12776521347694228,
+        "maximum_interval": 0.132,
+        "next_scheduled_interval": 0.12225121000883078,
+        "schema": "symcc-cluster-lock-renewal-metrics-v2",
+        "successes": 3,
+        "timeout": 0.4,
+        "total_elapsed": 1.0483600471634418
+      },
+      {
+        "attempts": 3,
+        "failures": 0,
+        "generation": 3,
+        "in_flight_generation": 0,
+        "interval": 0.12,
+        "jitter_fraction": 0.1,
+        "last_elapsed": 0.35435845400206745,
+        "last_scheduled_interval": 0.12776521347694228,
+        "maximum_interval": 0.132,
+        "next_scheduled_interval": 0.12225121000883078,
+        "schema": "symcc-cluster-lock-renewal-metrics-v2",
+        "successes": 3,
+        "timeout": 0.4,
+        "total_elapsed": 1.0324589170049876
+      }
+    ],
+    "returncode": 0
+  },
+  "proof_boundary": "One physical host with test-only processor/configuration injection proves production MPI protocol wiring and fail-closed drift detection, not remote filesystem semantics.",
+  "schema": "symcc-f332-renewal-configuration-consensus-mpi-v1",
+  "synthetic_topology": true
+}

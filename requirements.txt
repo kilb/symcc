@@ -8,5 +8,15 @@ mpi4py>=3.1
 # 运行 SymCC 的 LLVM lit 测试套件（ninja check）所需；某些 LLVM 发行版未自带 lit。
 lit>=15.0
 
+# F227 native incremental parser service. JSON is the executable conformance
+# grammar; other targets install their own tree-sitter-<language> provider.
+tree-sitter>=0.25,<0.27
+tree-sitter-json>=0.24,<0.26
+
+# F229 complete ambiguous-forest provider. Earley with
+# ambiguity="forest" exposes the native Lark SPPF without enumerating trees.
+lark>=1.3,<1.4
+parglare>=0.21,<0.22
+
 # 代码风格检查与格式化（可选，仅开发时需要）。
 ruff>=0.4

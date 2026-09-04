@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="950" viewBox="0 0 1600 950" role="img" aria-labelledby="title desc">
+  <title id="title">F422 executable nested-loop memory summary transfer</title>
+  <desc id="desc">Producer proof, strict consumer reconstruction, opt-in control flow, transactional ITE memory transformation, coverage boundary, and differential evidence.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#4b5b6b"/>
+    </marker>
+    <marker id="green-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#16856f"/>
+    </marker>
+    <style>
+      .title { font: 700 30px sans-serif; fill: #172b4d; letter-spacing: 0; }
+      .subtitle { font: 400 15px sans-serif; fill: #52606d; letter-spacing: 0; }
+      .section { font: 700 18px sans-serif; fill: #172b4d; letter-spacing: 0; }
+      .label { font: 700 14px sans-serif; fill: #172b4d; letter-spacing: 0; }
+      .small { font: 400 13px sans-serif; fill: #344563; letter-spacing: 0; }
+      .mono { font: 500 13px monospace; fill: #172b4d; letter-spacing: 0; }
+      .neutral { fill: #f7f9fb; stroke: #9aa8b5; stroke-width: 1.5; }
+      .producer { fill: #e8f0ff; stroke: #3f67c6; stroke-width: 2; }
+      .consumer { fill: #ffece6; stroke: #c95642; stroke-width: 2; }
+      .runtime { fill: #dff7f1; stroke: #16856f; stroke-width: 2; }
+      .proof { fill: #fff4d2; stroke: #ba8500; stroke-width: 2; }
+      .coverage { fill: #f2eafd; stroke: #7b54b3; stroke-width: 2; }
+      .edge { fill: none; stroke: #4b5b6b; stroke-width: 2; marker-end: url(#arrow); }
+      .active { fill: none; stroke: #16856f; stroke-width: 3; marker-end: url(#green-arrow); }
+      .dashed { fill: none; stroke: #7b54b3; stroke-width: 2; stroke-dasharray: 8 6; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="950" fill="#ffffff"/>
+  <rect x="42" y="28" width="1516" height="76" rx="8" class="neutral"/>
+  <text x="70" y="64" class="title">F422  Executable Nested-Loop Memory Summary Transfer</text>
+  <text x="70" y="90" class="subtitle">Proof-producing LLVM analysis + strict reconstruction + transactional ITE memory state merge</text>
+
+  <text x="55" y="145" class="section">1  Proof and normalization pipeline</text>
+  <rect x="55" y="165" width="350" height="235" rx="8" class="producer"/>
+  <text x="80" y="197" class="label">LLVM producer</text>
+  <text x="80" y="226" class="small">LoopInfo + MemorySSA + AA</text>
+  <text x="80" y="250" class="small">v11 Decision DAG value transcript</text>
+  <text x="80" y="274" class="small">actual stores == summarized stores</text>
+  <text x="80" y="298" class="small">closed effects / no scalar live-out</text>
+  <rect x="80" y="326" width="300" height="50" rx="6" class="proof"/>
+  <text x="98" y="347" class="mono">loop_summary_transfer</text>
+  <text x="98" y="367" class="small">fallback + target + proof + transcript</text>
+
+  <path d="M405 282 L475 282" class="edge"/>
+  <rect x="480" y="165" width="390" height="235" rx="8" class="consumer"/>
+  <text x="505" y="197" class="label">Strict consumer at create()</text>
+  <text x="505" y="226" class="small">rebuild CFG, IVs, stores and DAG</text>
+  <text x="505" y="250" class="small">recompute live-outs and object bounds</text>
+  <text x="505" y="274" class="small">exact source-load / capability closure</text>
+  <text x="505" y="298" class="small">reject altered or dangling proof fields</text>
+  <rect x="505" y="326" width="340" height="50" rx="6" class="proof"/>
+  <text x="523" y="347" class="mono">normalized write program</text>
+  <text x="523" y="367" class="small">max 1,024 writes / 8,192 bytes</text>
+
+  <path d="M870 282 L940 282" class="edge"/>
+  <rect x="945" y="165" width="600" height="235" rx="8" class="runtime"/>
+  <text x="970" y="197" class="label">Static writer specialization</text>
+  <text x="970" y="226" class="mono">active(o,i) = o &lt; outer_bound AND i &lt; inner_bound</text>
+  <text x="970" y="258" class="mono">M'[a] = ite(active, writer_byte, M[a])</text>
+  <text x="970" y="290" class="mono">I'[a] = I[a] OR active</text>
+  <text x="970" y="322" class="small">Order: outer -&gt; inner -&gt; writer ordinal -&gt; byte lane</text>
+  <text x="970" y="348" class="small">Constant, affine, piecewise and Decision-DAG values</text>
+  <text x="970" y="374" class="small">Target DataLayout controls byte extraction</text>
+
+  <text x="55" y="448" class="section">2  Explicit opt-in control flow</text>
+  <rect x="55" y="470" width="1490" height="195" rx="8" class="neutral"/>
+  <rect x="85" y="525" width="220" height="72" rx="8" class="producer"/>
+  <text x="110" y="554" class="label">Outer preheader edge</text>
+  <text x="110" y="578" class="mono">edge_bb0_bb1</text>
+  <path d="M305 561 L410 561" class="edge"/>
+  <rect x="415" y="510" width="250" height="102" rx="8" class="proof"/>
+  <text x="440" y="541" class="label">Configuration gate</text>
+  <text x="440" y="568" class="mono">enable_summary?</text>
+  <text x="440" y="592" class="small">exact boolean / default false</text>
+
+  <path d="M665 538 C760 482,830 482,925 525" class="edge"/>
+  <text x="744" y="488" class="small">false: fallback</text>
+  <rect x="930" y="485" width="250" height="72" rx="8" class="neutral"/>
+  <text x="955" y="514" class="label">Execute real loop</text>
+  <text x="955" y="538" class="small">baseline branches and stores</text>
+
+  <path d="M665 584 C760 640,830 640,925 595" class="active"/>
+  <text x="750" y="638" class="small">true: prepare + commit</text>
+  <rect x="930" y="575" width="250" height="72" rx="8" class="runtime"/>
+  <text x="955" y="604" class="label">Apply ITE transformer</text>
+  <text x="955" y="628" class="small">one merged state / zero fork</text>
+
+  <path d="M1180 521 C1265 521,1280 545,1330 558" class="edge"/>
+  <path d="M1180 611 C1265 611,1280 580,1330 565" class="active"/>
+  <rect x="1335" y="525" width="180" height="72" rx="8" class="producer"/>
+  <text x="1360" y="554" class="label">Unique loop exit</text>
+  <text x="1360" y="578" class="mono">bb6 / source load</text>
+
+  <text x="55" y="714" class="section">3  Authority boundary and evidence</text>
+  <rect x="55" y="735" width="445" height="165" rx="8" class="coverage"/>
+  <text x="80" y="767" class="label">Coverage remains concrete</text>
+  <text x="80" y="796" class="small">No synthetic branch token</text>
+  <text x="80" y="820" class="small">No AFL edge/data bitmap write</text>
+  <text x="80" y="844" class="small">CFG keeps fallback and target reachable</text>
+  <text x="80" y="868" class="small">Candidate inputs still require concrete replay</text>
+
+  <path d="M500 818 L565 818" class="dashed"/>
+  <rect x="570" y="735" width="455" height="165" rx="8" class="runtime"/>
+  <text x="595" y="767" class="label">Prepare / commit failure atomicity</text>
+  <text x="595" y="796" class="small">Build private memory root and value map</text>
+  <text x="595" y="820" class="small">Late invalid write triggers rejection</text>
+  <text x="595" y="844" class="small">Frames, solver root, values and memory unchanged</text>
+  <text x="595" y="868" class="mono">commit only after all checks pass</text>
+
+  <path d="M1025 818 L1090 818" class="edge"/>
+  <rect x="1095" y="735" width="450" height="165" rx="8" class="proof"/>
+  <text x="1120" y="767" class="label">Independent finite-domain evidence</text>
+  <text x="1120" y="796" class="mono">176 configurations / 0 forks / max 27 steps</text>
+  <text x="1120" y="820" class="mono">2,112 memory-byte equivalences</text>
+  <text x="1120" y="844" class="mono">2,112 initializedness equivalences</text>
+  <text x="1120" y="868" class="mono">33/33 defined-load values / LLVM 17 + 18</text>
+</svg>

@@ -1,0 +1,50 @@
+
+digraph G {
+  graph [
+    bgcolor="white", pad="0.28", nodesep="0.38", ranksep="0.58",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=26,
+    labelloc="t", labeljust="l"
+  ];
+  node [
+    shape=box, style="rounded,filled", margin="0.18,0.12",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=13,
+    color="#CBD5E1", penwidth=1.3, fillcolor="#F8FAFC"
+  ];
+  edge [
+    fontname="WenQuanYi Zen Hei", fontcolor="#64748B", fontsize=11,
+    color="#64748B", penwidth=1.5, arrowsize=0.75
+  ];
+
+  label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3"><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="26"><B>图 R-12　Query IR 作为跨层证据总线</B></FONT><BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="14" COLOR="#64748B">求解复用、字符串、语法补洞、schedule 与 holdout campaign 共享同一套内容身份</FONT><BR ALIGN="LEFT"/></TD></TR></TABLE>>;
+  rankdir=TB; ranksep=0.45;
+
+  subgraph cluster_p {
+    label="生产者：谁都可以提出查询"; fontsize=14;
+    color="#FDBA74"; style="rounded,filled"; fillcolor="#FFFBEB";
+    a1 [label="concolic 路径约束", fillcolor="#FFEDD5", color="#C2410C"];
+    a2 [label="字符串 / libc 语义", fillcolor="#FFEDD5", color="#C2410C"];
+    a3 [label="grammar hole 补全", fillcolor="#FFEDD5", color="#C2410C"];
+    a4 [label="schedule 约束", fillcolor="#FFEDD5", color="#C2410C"];
+  }
+
+  qir [label="Query IR：与具体 solver 解耦 · 内容寻址 · 结构特征 schema v2",
+       fillcolor="#EDE9FE", color="#6D28D9", penwidth=2.6, width=7.2];
+
+  subgraph cluster_c {
+    label="消费者：复用与调度"; fontsize=14;
+    color="#93C5FD"; style="rounded,filled"; fillcolor="#EFF6FF";
+    b1 [label="exact cache\n同一查询直接命中", fillcolor="#DBEAFE", color="#2563EB"];
+    b2 [label="prefix context 复用\n（Pangolin 式）", fillcolor="#DBEAFE", color="#2563EB"];
+    b3 [label="PSCache 部分解", fillcolor="#DBEAFE", color="#2563EB"];
+    b4 [label="QF_BV portfolio\ncvc5 / Bitwuzla / Z3", fillcolor="#DBEAFE", color="#2563EB"];
+    b5 [label="sealed holdout campaign", fillcolor="#DBEAFE", color="#2563EB"];
+  }
+
+  gate [label="复用的三条硬规则\n① 跨前缀复用不传播 UNSAT　② SAT 必须有可验证模型\n③ 命中后一律对当前完整 roots 重新求值",
+        fillcolor="#DCFCE7", color="#15803D", penwidth=2.4, width=7.2];
+
+  {a1 a2 a3 a4} -> qir [color="#CBD5E1"];
+  qir -> {b1 b2 b3 b4 b5} [color="#CBD5E1"];
+  {b1 b2 b3 b4} -> gate [color="#15803D"];
+
+}

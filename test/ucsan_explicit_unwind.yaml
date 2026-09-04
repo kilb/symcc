@@ -1,0 +1,6 @@
+entry: exercise_exception
+scope:
+  - exercise_exception
+  - cleanup_thrower
+  - naked_thrower
+external: passthrough

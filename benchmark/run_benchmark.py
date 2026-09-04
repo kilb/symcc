@@ -40,6 +40,7 @@ import typing
 import threading
 import time
 from collections import defaultdict
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
@@ -50,6 +51,10 @@ SEEDS_DIR = SCRIPT_DIR / "seeds"
 
 sys.path.insert(0, str(SYMCC_ROOT / "util"))
 from concolic_engine import get_engine  # noqa: E402  concolic 引擎抽象(symcc/symsan)
+try:  # CLI execution and package-style unit imports use different roots.
+    from research_protocol import content_digest, coverage_auc  # noqa: E402
+except ImportError:  # pragma: no cover - exercised by package import tests
+    from benchmark.research_protocol import content_digest, coverage_auc  # noqa: E402
 MPI_SCRIPT = SYMCC_ROOT / "util" / "mpi_concolic_execution.py"
 MPI_FUZZING_SCRIPT = SYMCC_ROOT / "util" / "mpi_fuzzing_helper.py"
 SERIAL_SCRIPT = SYMCC_ROOT / "util" / "pure_concolic_execution.sh"
@@ -75,6 +80,70 @@ MIN_SYMCC_SYMBOLS = 5  # threshold to consider a binary SymCC-instrumented
 # 超过此值后新增 SymCC worker 收益递减，核心更应给 AFL 并行实例。
 # 实验依据：np=16 时 7 workers 最优；np=64 时 31 workers 使 libarchive 回退。
 SYMCC_WORKER_CAP = 12
+
+
+@dataclass(frozen=True)
+class AflBuildVariant:
+    """AFL++ compile-time instrumentation variant."""
+
+    name: str
+    suffix: str
+    env: dict[str, str] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class AflRuntimeProfile:
+    """One AFL++ worker profile used by the hybrid ensemble."""
+
+    name: str
+    schedule: str
+    variant: str = "default"
+    use_mopt: bool = False
+    use_cmplog: bool = False
+    env: dict[str, str] = field(default_factory=dict)
+
+
+AFL_BUILD_VARIANTS = [
+    AflBuildVariant("default", "_afl", {}),
+    AflBuildVariant("laf", "_afl_laf", {"AFL_LLVM_LAF_ALL": "1"}),
+    AflBuildVariant("ctx", "_afl_ctx", {"AFL_LLVM_CTX": "1"}),
+    AflBuildVariant("ngram4", "_afl_ngram4", {"AFL_LLVM_NGRAM_SIZE": "4"}),
+    AflBuildVariant(
+        "laf_ctx",
+        "_afl_laf_ctx",
+        {"AFL_LLVM_LAF_ALL": "1", "AFL_LLVM_CTX": "1"},
+    ),
+]
+
+AFL_RUNTIME_PROFILES = [
+    AflRuntimeProfile("explore-cmplog", "explore", "default", use_cmplog=True),
+    AflRuntimeProfile("mopt-fast", "fast", "default", use_mopt=True),
+    AflRuntimeProfile(
+        "laf-exploit", "exploit", "laf", use_cmplog=True,
+        env={"AFL_DISABLE_TRIM": "1"}),
+    AflRuntimeProfile(
+        "ctx-rare", "rare", "ctx",
+        env={"AFL_EXPAND_HAVOC_NOW": "1"}),
+    AflRuntimeProfile("ngram-coe", "coe", "ngram4", use_mopt=True),
+    AflRuntimeProfile(
+        "laf-seek", "seek", "laf", use_cmplog=True,
+        env={"AFL_KEEP_TIMEOUTS": "1"}),
+    AflRuntimeProfile("ctx-mmopt", "mmopt", "ctx", use_mopt=True),
+    AflRuntimeProfile("ngram-lin", "lin", "ngram4", use_cmplog=True),
+    AflRuntimeProfile("lafctx-quad", "quad", "laf_ctx"),
+]
+
+
+def resolve_afl_profile_mode(raw_mode: str, hybrid: bool,
+                             adaptive: bool, afl_only: bool) -> str:
+    """Resolve --aflpp-profiles auto/basic/full/off."""
+    if raw_mode != "auto":
+        return raw_mode
+    if adaptive:
+        return "full"
+    if hybrid or afl_only:
+        return "basic"
+    return "off"
 
 
 def _has_symcc_instrumentation(binary_path, engine=None):
@@ -147,7 +216,34 @@ def _resolve_engine_compiler(engine):
     return os.environ.get("SYMCC_CC") or find_symcc()
 
 
-def build_targets(output_dir, engine=None):
+def directed_distance_map_has_rows(path: str) -> bool:
+    try:
+        with open(path, encoding="utf-8") as stream:
+            for line in stream:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    return True
+    except OSError:
+        return False
+    return False
+
+
+def merge_directed_distance_map(path: str) -> bool:
+    """Merge module-local SymCC coloration fragments in-place when possible."""
+    script = SYMCC_ROOT / "util" / "merge_directed_distance.py"
+    if not script.is_file() or not os.path.isfile(path):
+        return False
+    try:
+        result = subprocess.run(
+            [sys.executable, str(script), path, "--output", path],
+            capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return result.returncode == 0
+
+
+def build_targets(output_dir, engine=None, directed_targets: str | None = None,
+                  structural_tasks: bool = False):
     """用当前 concolic 引擎编译所有微目标(symcc→*_symcc / symsan→*_symsan,FastGen 模式)。"""
     engine = engine or get_engine()
     compiler = _resolve_engine_compiler(engine)
@@ -165,12 +261,33 @@ def build_targets(output_dir, engine=None):
         cmd, extra_env = engine.build_argv(compiler, str(src_path), str(bin_path))
         env = dict(os.environ)
         env.update(extra_env)
+        task_graph_path = Path(output_dir) / f"{name}.task_graph"
+        if structural_tasks and engine.name == "symcc":
+            try:
+                task_graph_path.unlink()
+            except OSError:
+                pass
+            env["SYMCC_TASK_GRAPH_OUT"] = str(task_graph_path)
+        if directed_targets and engine.name == "symcc":
+            distance_path = Path(output_dir) / f"{name}.directed_distance"
+            try:
+                distance_path.unlink()
+            except OSError:
+                pass
+            if "-g" not in cmd:
+                cmd.insert(1, "-g")
+            env["SYMCC_COLOR_TARGETS"] = directed_targets
+            env["SYMCC_COLORATION_OUT"] = str(distance_path)
         print(f"  Compiling {name}... ", end="", flush=True)
         start = time.monotonic()
         try:
             r = subprocess.run(cmd, capture_output=True, text=True, timeout=300, env=env)
             elapsed = time.monotonic() - start
             if r.returncode == 0:
+                if directed_targets and engine.name == "symcc":
+                    merge_directed_distance_map(str(distance_path))
+                if structural_tasks and engine.name == "symcc":
+                    merge_directed_distance_map(str(task_graph_path))
                 print(f"OK ({elapsed:.1f}s)")
                 binaries[name] = str(bin_path)
             else:
@@ -182,26 +299,87 @@ def build_targets(output_dir, engine=None):
     return binaries
 
 
-def build_afl_targets(output_dir):
-    """用 afl-clang-fast 编译微目标的 AFL 二进制(*_afl),供 hybrid 的 AFL 侧 + showmap 覆盖测量。
-    引擎无关(AFL 侧不随 concolic 引擎变);afl-clang-fast 不可用时返回空。"""
+def build_afl_targets(output_dir, profile_mode: str = "off"):
+    """Build AFL++ micro-target binaries.
+
+    The default variant keeps the historical *_afl path used for showmap and
+    simple hybrid runs. In profile mode we also build AFL++ instrumentation
+    variants (LAF/CompCov, CTX, Ngram) plus a CmpLog companion so the hybrid
+    runner can assemble an xFUZZ/KRAKEN-style ensemble without requiring users
+    to hand-wire binaries.
+    """
     afl_cc = shutil.which("afl-clang-fast")
-    binaries = {}
+    binaries: dict[str, str] = {}
+    variants: dict[str, dict[str, str]] = defaultdict(dict)
+    cmplog: dict[str, str] = {}
     if not afl_cc:
-        return binaries
+        return binaries, variants, cmplog
     os.makedirs(output_dir, exist_ok=True)
+    build_variants = profile_mode in {"basic", "full"}
+    selected_variants = AFL_BUILD_VARIANTS
+    if profile_mode == "basic":
+        selected_variants = AFL_BUILD_VARIANTS[:3]
+    elif not build_variants:
+        selected_variants = [AFL_BUILD_VARIANTS[0]]
     for name, (source, _, _, _) in TARGETS.items():
-        out = Path(output_dir) / f"{name}_afl"
-        try:
-            r = subprocess.run(
-                [afl_cc, "-O2", str(TARGETS_DIR / source), "-o", str(out)],
-                capture_output=True, text=True, timeout=180,
-                env={**os.environ, "AFL_QUIET": "1"})
-            if r.returncode == 0 and out.exists():
-                binaries[name] = str(out)
-        except (OSError, subprocess.SubprocessError):
-            pass
-    return binaries
+        src = str(TARGETS_DIR / source)
+        for variant in selected_variants:
+            out = Path(output_dir) / f"{name}{variant.suffix}"
+            env = {**os.environ, "AFL_QUIET": "1", **variant.env}
+            try:
+                r = subprocess.run(
+                    [afl_cc, "-O2", src, "-o", str(out)],
+                    capture_output=True, text=True, timeout=180, env=env)
+                if r.returncode == 0 and out.exists():
+                    variants[name][variant.name] = str(out)
+                    if variant.name == "default":
+                        binaries[name] = str(out)
+            except (OSError, subprocess.SubprocessError):
+                pass
+        if build_variants:
+            out = Path(output_dir) / f"{name}_afl_cmplog"
+            env = {**os.environ, "AFL_QUIET": "1", "AFL_LLVM_CMPLOG": "1"}
+            try:
+                r = subprocess.run(
+                    [afl_cc, "-O2", src, "-o", str(out)],
+                    capture_output=True, text=True, timeout=180, env=env)
+                if r.returncode == 0 and out.exists():
+                    cmplog[name] = str(out)
+            except (OSError, subprocess.SubprocessError):
+                pass
+    return binaries, variants, cmplog
+
+
+def build_afl_data_coverage_runtime(output_dir: str) -> str | None:
+    """Build the AFL_PRELOAD data-coverage runtime used by hybrid mode."""
+    src = SYMCC_ROOT / "util" / "afl_data_coverage_rt.c"
+    if not src.is_file():
+        return None
+    cc = os.environ.get("CC") or shutil.which("cc") or shutil.which("clang")
+    if not cc:
+        return None
+    out = Path(output_dir) / "libafl_data_coverage_rt.so"
+    cmd = [cc, "-O2", "-shared", "-fPIC", str(src), "-o", str(out), "-ldl"]
+    try:
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return str(out) if result.returncode == 0 and out.is_file() else None
+
+
+def afl_supports_python_mutators() -> bool:
+    """Return whether the installed afl-fuzz advertises Python mutator support."""
+    afl_fuzz = shutil.which("afl-fuzz")
+    if not afl_fuzz:
+        return False
+    try:
+        result = subprocess.run(
+            [afl_fuzz, "-hh"], capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    output = (result.stdout or "") + (result.stderr or "")
+    return "AFL_PYTHON_MODULE" in output and "Python" in output
 
 
 def build_targets_gcc(output_dir):
@@ -567,6 +745,73 @@ def measure_coverage(cov_binary, cov_dir, source_file, test_case_dir,
     }
 
 
+def parse_afl_showmap_coverage(output: str) -> dict[str, object]:
+    """Parse AFL++ corpus coverage without confusing capacity and universe."""
+    measurement: dict[str, object] = {
+        "edge_cov": 0.0,
+        "edges_found": 0,
+        "edges_total": 0,
+        "measure_ok": False,
+        "edge_count_ok": False,
+        "coverage_denominator_kind": "unavailable",
+        "coverage_map_size": 0,
+    }
+    summary = re.search(
+        r"coverage of (\d+) edges were achieved out of (\d+) existing "
+        r"\(([0-9.]+)%\)",
+        output,
+    )
+    if summary is not None:
+        found = int(summary.group(1))
+        total = int(summary.group(2))
+        percentage = float(summary.group(3))
+        if total <= 0 or found > total or not 0.0 <= percentage <= 100.0:
+            return measurement
+        measurement.update({
+            "edge_cov": percentage,
+            "edges_found": found,
+            "edges_total": total,
+            "measure_ok": True,
+            "edge_count_ok": True,
+            "coverage_denominator_kind": "existing_edges",
+        })
+        return measurement
+
+    captured = re.search(r"Captured (\d+) tuples \(map size (\d+)", output)
+    if captured is not None:
+        # map size is the bitmap capacity in bytes, not the number of
+        # instrumented edges. The tuple count remains useful, but no coverage
+        # percentage or saturation universe can be derived from this line.
+        measurement.update({
+            "edges_found": int(captured.group(1)),
+            "edge_count_ok": True,
+            "coverage_map_size": int(captured.group(2)),
+        })
+    return measurement
+
+
+def coverage_measurement_metadata(measurement: typing.Mapping[str, object]) -> dict:
+    """Return explicit coverage provenance for result and CSV records."""
+    return {
+        "coverage_measure_ok": bool(measurement.get("measure_ok", False)),
+        "coverage_edge_count_ok": bool(
+            measurement.get("edge_count_ok", False)
+        ),
+        "coverage_denominator_kind": str(
+            measurement.get("coverage_denominator_kind", "unavailable")
+        ),
+        "coverage_map_size": int(measurement.get("coverage_map_size", 0) or 0),
+        "coverage_sampled": bool(measurement.get("sampled", False)),
+        "coverage_sampled_cases": int(
+            measurement.get(
+                "sampled_cases", measurement.get("total_cases", 0)
+            )
+            or 0
+        ),
+        "coverage_total_cases": int(measurement.get("total_cases", 0) or 0),
+    }
+
+
 def measure_coverage_afl(afl_binary: str, test_case_dir: str,
                          uses_file: bool = True,
                          timeout_per_case: int = 5000,
@@ -587,25 +832,35 @@ def measure_coverage_afl(afl_binary: str, test_case_dir: str,
         max_cases: 最大测量用例数，超过时随机抽样（默认 20000）
 
     Returns:
-        dict with: edge_cov (%), edges_found, edges_total, crashes, total_cases, sampled
+        ``measure_ok`` is true only when AFL reports an existing-edge
+        denominator. ``edge_count_ok`` may still be true for tuple-only output.
     """
     import random
 
     if not os.path.isdir(test_case_dir):
         return {"edge_cov": 0.0, "edges_found": 0, "edges_total": 0,
-                "crashes": 0, "total_cases": 0, "sampled": False}
+                "crashes": 0, "total_cases": 0, "sampled": False,
+                "measure_ok": False, "edge_count_ok": False,
+                "coverage_denominator_kind": "unavailable",
+                "coverage_map_size": 0}
 
     test_files = [f for f in os.listdir(test_case_dir)
                   if os.path.isfile(os.path.join(test_case_dir, f))]
     total_cases = len(test_files)
     if total_cases == 0:
         return {"edge_cov": 0.0, "edges_found": 0, "edges_total": 0,
-                "crashes": 0, "total_cases": 0, "sampled": False}
+                "crashes": 0, "total_cases": 0, "sampled": False,
+                "measure_ok": False, "edge_count_ok": False,
+                "coverage_denominator_kind": "unavailable",
+                "coverage_map_size": 0}
 
     afl_showmap = shutil.which("afl-showmap")
     if not afl_showmap:
         return {"edge_cov": 0.0, "edges_found": 0, "edges_total": 0,
-                "crashes": 0, "total_cases": total_cases, "sampled": False}
+                "crashes": 0, "total_cases": total_cases, "sampled": False,
+                "measure_ok": False, "edge_count_ok": False,
+                "coverage_denominator_kind": "unavailable",
+                "coverage_map_size": 0}
 
     # 当 TC 数量超过上限时，创建临时目录并随机抽样
     sampled = False
@@ -642,7 +897,7 @@ def measure_coverage_afl(afl_binary: str, test_case_dir: str,
     if uses_file and not _afl_binary_uses_shmem(afl_binary):
         cmd.append("@@")
 
-    measure_ok = False  # 是否成功解析到覆盖率（区分"真 0 覆盖"与"showmap 失败"）
+    parsed_coverage = parse_afl_showmap_coverage("")
     try:
         # 仅按【实际测量】的 TC 数(抽样后 = max_cases)算超时,避免大语料(如 sqlite 百万级 TC)
         # 用 total_cases 导致 batch_timeout 溢出(poll() 的 ms 超 C int → OverflowError: timeout
@@ -661,44 +916,24 @@ def measure_coverage_afl(afl_binary: str, test_case_dir: str,
             shutil.rmtree(_shm_cwd, ignore_errors=True)
         stderr = result.stderr + result.stdout  # afl-showmap 输出到 stderr
 
-        # 解析 "A coverage of N edges were achieved out of M existing (X%)"
-        edge_cov = 0.0
-        edges_found = 0
-        edges_total = 0
-        m = re.search(
-            r"coverage of (\d+) edges were achieved out of (\d+) existing "
-            r"\(([0-9.]+)%\)",
-            stderr
-        )
-        if m:
-            edges_found = int(m.group(1))
-            edges_total = int(m.group(2))
-            edge_cov = float(m.group(3))
-            measure_ok = True
-        else:
-            # 备用：从 "Captured N tuples" 解析
-            m2 = re.search(r"Captured (\d+) tuples \(map size (\d+)", stderr)
-            if m2:
-                edges_found = int(m2.group(1))
-                edges_total = int(m2.group(2))
-                if edges_total > 0:
-                    edge_cov = edges_found / edges_total * 100.0
-                measure_ok = True
-        if not measure_ok:
+        parsed_coverage = parse_afl_showmap_coverage(stderr)
+        if not parsed_coverage["edge_count_ok"]:
             # 既无 coverage 行也无 Captured 行 → showmap 未正常完成（fork server 握手
             # 失败/启动即崩溃/map 不匹配等）。区别于"真 0 覆盖"：告警 + 返回码，供调用方据
             # measure_ok 丢弃该点，而非把 0.0 当真实数据污染均值/最佳配置选择。
             print(f"[warn] afl-showmap 未产出覆盖率 (rc={result.returncode}); "
                   f"输出尾部: {stderr[-300:]!r}", file=sys.stderr)
+        elif not parsed_coverage["measure_ok"]:
+            print(
+                "[warn] afl-showmap 只报告 tuple 数和 bitmap 容量；"
+                "缺少 existing-edge 分母，本次覆盖百分比不可用",
+                file=sys.stderr,
+            )
 
     except subprocess.TimeoutExpired:
-        edge_cov = 0.0
-        edges_found = 0
-        edges_total = 0
+        pass
     except (subprocess.SubprocessError, OSError, ValueError):
-        edge_cov = 0.0
-        edges_found = 0
-        edges_total = 0
+        pass
 
     try:
         os.remove(out_file)
@@ -710,13 +945,19 @@ def measure_coverage_afl(afl_binary: str, test_case_dir: str,
         shutil.rmtree(sample_dir, ignore_errors=True)
 
     return {
-        "edge_cov": round(edge_cov, 2),
-        "edges_found": edges_found,
-        "edges_total": edges_total,
+        "edge_cov": round(float(parsed_coverage["edge_cov"]), 2),
+        "edges_found": int(parsed_coverage["edges_found"]),
+        "edges_total": int(parsed_coverage["edges_total"]),
         "crashes": 0,  # afl-showmap -C 不单独报告 crash 数
         "total_cases": total_cases,
         "sampled": sampled,
-        "measure_ok": measure_ok,  # False = showmap 失败（非真 0 覆盖），调用方应丢弃
+        "sampled_cases": n_measured,
+        "measure_ok": bool(parsed_coverage["measure_ok"]),
+        "edge_count_ok": bool(parsed_coverage["edge_count_ok"]),
+        "coverage_denominator_kind": parsed_coverage[
+            "coverage_denominator_kind"
+        ],
+        "coverage_map_size": int(parsed_coverage["coverage_map_size"]),
     }
 
 
@@ -742,6 +983,147 @@ def measure_seed_coverage_afl(afl_binary: str, seed_dir: str,
     return measure_coverage_afl(afl_binary, seed_dir,
                                 uses_file=uses_file,
                                 extra_args=extra_args)
+
+
+CorpusSource = (
+    str
+    | os.PathLike
+    | typing.Iterable[str | os.PathLike]
+    | typing.Callable[
+        [], str | os.PathLike | typing.Iterable[str | os.PathLike]
+    ]
+)
+
+
+def _resolve_corpus_dirs(source: CorpusSource) -> list[str]:
+    """Resolve a static or live corpus provider into stable unique directories."""
+    value = source() if callable(source) else source
+    if isinstance(value, (str, os.PathLike)):
+        values = [value]
+    else:
+        values = list(value)
+
+    resolved: list[str] = []
+    seen: set[str] = set()
+    for item in values:
+        path = os.path.abspath(os.fspath(item))
+        if path not in seen and os.path.isdir(path):
+            seen.add(path)
+            resolved.append(path)
+    return resolved
+
+
+def _file_sha256(path: str) -> str:
+    digest = hashlib.sha256()
+    with open(path, "rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def measure_coverage_corpora_afl(
+    afl_binary: str,
+    corpus_source: CorpusSource,
+    uses_file: bool = True,
+    extra_args: list[str] | None = None,
+) -> dict:
+    """Measure the content-deduplicated union of one or more live corpora.
+
+    AFL, hybrid SymCC, and structural generators publish inputs into different
+    immutable queue directories. A content-addressed hard-link snapshot gives
+    afl-showmap one flat, point-in-time corpus without biasing capped sampling
+    toward duplicated seeds synchronized between queues.
+    """
+    corpus_dirs = _resolve_corpus_dirs(corpus_source)
+    snapshot_dir = tempfile.mkdtemp(prefix=".afl_cov_union_")
+    try:
+        seen_hashes: set[str] = set()
+        for corpus_dir in corpus_dirs:
+            try:
+                entries = sorted(os.scandir(corpus_dir), key=lambda e: e.name)
+            except OSError:
+                continue
+            for entry in entries:
+                try:
+                    if not entry.is_file(follow_symlinks=True):
+                        continue
+                    digest = _file_sha256(entry.path)
+                    if digest in seen_hashes:
+                        continue
+                    seen_hashes.add(digest)
+                    _link_or_copy(entry.path, os.path.join(snapshot_dir, digest))
+                except OSError:
+                    # Live queues may rotate an entry between scandir and open.
+                    continue
+        return measure_coverage_afl(
+            afl_binary,
+            snapshot_dir,
+            uses_file=uses_file,
+            extra_args=extra_args,
+        )
+    finally:
+        shutil.rmtree(snapshot_dir, ignore_errors=True)
+
+
+def _hybrid_live_corpora(seed_dir: str, work_dir: str) -> list[str]:
+    """Return all currently published hybrid corpora for one sampling tick."""
+    paths = [
+        seed_dir,
+        os.path.join(work_dir, "symcc_all_outputs"),
+        os.path.join(work_dir, "honggfuzz_out"),
+        os.path.join(work_dir, "grimoire_out"),
+    ]
+    afl_out_dir = os.path.join(work_dir, "afl_out")
+    try:
+        for entry in os.scandir(afl_out_dir):
+            if entry.is_dir() and (
+                entry.name.startswith("fuzzer")
+                or entry.name.startswith("symcc")
+            ):
+                paths.append(os.path.join(entry.path, "queue"))
+    except OSError:
+        pass
+    return paths
+
+
+def _snapshot_live_corpora(
+    corpus_source: CorpusSource,
+    snapshot_dir: str,
+) -> None:
+    """Hard-link one instantaneous corpus view without hashing file contents.
+
+    Content hashing and showmap replay are intentionally deferred until the
+    campaign is over. During the measured interval this performs directory
+    enumeration and metadata-only links on the common-filesystem fast path.
+    """
+    os.makedirs(snapshot_dir, exist_ok=True)
+    seen_inodes: set[tuple[int, int]] = set()
+    output_index = 0
+    for source_index, corpus_dir in enumerate(
+        _resolve_corpus_dirs(corpus_source)
+    ):
+        try:
+            entries = sorted(os.scandir(corpus_dir), key=lambda e: e.name)
+        except OSError:
+            continue
+        for entry in entries:
+            try:
+                if not entry.is_file(follow_symlinks=True):
+                    continue
+                stat = entry.stat(follow_symlinks=True)
+                inode = (stat.st_dev, stat.st_ino)
+                if inode in seen_inodes:
+                    continue
+                seen_inodes.add(inode)
+                destination = os.path.join(
+                    snapshot_dir,
+                    f"{source_index:04d}_{output_index:012d}",
+                )
+                _link_or_copy(entry.path, destination)
+                output_index += 1
+            except OSError:
+                # A producer may publish/retire an entry during enumeration.
+                continue
 
 
 def discover_afl_coverage_binaries() -> dict[str, str]:
@@ -778,45 +1160,99 @@ def discover_afl_coverage_binaries() -> dict[str, str]:
 
 def measure_coverage_timeseries_afl(
     afl_binary: str,
-    test_case_dir: str,
+    corpus_source: CorpusSource,
     interval: int = 30,
     max_duration: int = 600,
     uses_file: bool = True,
+    extra_args: list[str] | None = None,
+    stop_event: threading.Event | None = None,
+    wait_for_stop_before_replay: bool = False,
+    snapshot_parent: str | None = None,
 ) -> list[dict]:
-    """在后台线程中定期采样 AFL 边覆盖率，生成时间序列数据。
+    """Snapshot a live corpus periodically, then replay snapshots with showmap.
 
-    每隔 interval 秒运行一次 afl-showmap 覆盖率测量，记录当前时间点的覆盖率。
-    返回 [{timestamp_sec, edge_cov, edges_found, edges_total, total_cases}, ...] 列表。
+    The measured campaign only pays metadata/hard-link snapshot overhead.
+    Expensive content de-duplication and afl-showmap replay happen afterwards,
+    so coverage measurement cannot consume the CPU allocation under comparison.
     """
-    timeseries: list[dict] = []
+    snapshots: list[tuple[float, str]] = []
+    snapshot_root = tempfile.mkdtemp(
+        prefix=".afl_cov_series_",
+        dir=snapshot_parent,
+    )
     start_time = time.monotonic()
 
-    while time.monotonic() - start_time < max_duration:
-        elapsed = time.monotonic() - start_time
-        try:
-            cov_data = measure_coverage_afl(
-                afl_binary, test_case_dir, uses_file=uses_file,
+    def take_snapshot(elapsed: float) -> None:
+        snapshot_dir = os.path.join(
+            snapshot_root, f"sample_{len(snapshots):06d}")
+        _snapshot_live_corpora(corpus_source, snapshot_dir)
+        snapshots.append((round(elapsed, 1), snapshot_dir))
+
+    try:
+        first_sample = True
+        while (
+            time.monotonic() - start_time < max_duration
+            and (
+                first_sample
+                or stop_event is None
+                or not stop_event.is_set()
             )
-            if cov_data.get("measure_ok", True):   # 跳过 showmap 失败的采样点，不污染序列
+        ):
+            first_sample = False
+            take_snapshot(time.monotonic() - start_time)
+            now = time.monotonic()
+            next_tick = int((now - start_time) // interval) + 1
+            sleep_time = start_time + next_tick * interval - now
+            sleep_time = min(
+                sleep_time,
+                max(0.0, start_time + max_duration - now),
+            )
+            if sleep_time > 0:
+                if stop_event is None:
+                    time.sleep(sleep_time)
+                elif stop_event.wait(sleep_time):
+                    break
+
+        # Preserve the corpus at completion/budget even when it falls between
+        # ticks. Duplicate points are harmless and retain the final observation.
+        elapsed = min(float(max_duration), time.monotonic() - start_time)
+        take_snapshot(elapsed)
+
+        if (
+            wait_for_stop_before_replay
+            and stop_event is not None
+            and not stop_event.is_set()
+        ):
+            stop_event.wait()
+
+        timeseries: list[dict] = []
+        for timestamp, snapshot_dir in snapshots:
+            try:
+                cov_data = measure_coverage_corpora_afl(
+                    afl_binary,
+                    snapshot_dir,
+                    uses_file=uses_file,
+                    extra_args=extra_args,
+                )
+                if not cov_data.get("measure_ok", False):
+                    continue
                 timeseries.append({
-                    "timestamp_sec": round(elapsed, 1),
+                    "timestamp_sec": timestamp,
                     "edge_cov": cov_data["edge_cov"],
                     "edges_found": cov_data["edges_found"],
                     "edges_total": cov_data["edges_total"],
                     "total_cases": cov_data["total_cases"],
                 })
-        except (OSError, KeyError, ValueError, subprocess.SubprocessError):
-            pass
-        # 等到下一个 interval 边界（按墙钟对齐，而非样本计数）：采样失败或 showmap 慢于
-        # interval 时也照常前进到未来的边界，避免"失败→next_sample 不变→紧忙循环空转"
-        # 与"showmap 比 interval 慢→sleep<=0→背靠背采样、节奏塌陷"两种问题。
-        now = time.monotonic()
-        next_tick = int((now - start_time) // interval) + 1
-        sleep_time = start_time + next_tick * interval - now
-        if sleep_time > 0:
-            time.sleep(sleep_time)
-
-    return timeseries
+            except (
+                OSError,
+                KeyError,
+                ValueError,
+                subprocess.SubprocessError,
+            ):
+                continue
+        return timeseries
+    finally:
+        shutil.rmtree(snapshot_root, ignore_errors=True)
 
 
 def run_with_timeseries(
@@ -826,6 +1262,8 @@ def run_with_timeseries(
     interval: int = 30,
     uses_file: bool = True,
     timeout: int = 300,
+    corpus_source: CorpusSource | None = None,
+    extra_args: list[str] | None = None,
 ) -> tuple[dict, list[dict]]:
     """运行基准测试同时在后台采样 AFL 边覆盖率时间序列。
 
@@ -835,6 +1273,7 @@ def run_with_timeseries(
     """
     result_container = [None]
     error_container = [None]
+    benchmark_done = threading.Event()
 
     def run_benchmark() -> None:
         # 线程边界：必须捕获全部异常并转交主线程重新抛出（下方 raise error_container[0]），
@@ -844,45 +1283,214 @@ def run_with_timeseries(
             result_container[0] = run_fn(**run_kwargs)
         except Exception as e:  # noqa: BLE001 — 线程错误编组，见上
             error_container[0] = e
+        finally:
+            benchmark_done.set()
 
     bench_thread = threading.Thread(target=run_benchmark, daemon=True)
     bench_thread.start()
 
-    # 等待输出目录出现
-    output_dir = run_kwargs.get("work_dir", "")
-    np_val = run_kwargs.get("np")
-    if np_val:
-        candidate_dir = os.path.join(output_dir, f"mpi_np{np_val}_output")
-    else:
-        candidate_dir = os.path.join(output_dir, "output")
+    # Legacy/default source for MPI callers. Other modes pass an explicit live
+    # provider because their corpus is split across multiple queue directories.
+    if corpus_source is None:
+        output_dir = run_kwargs.get("work_dir", "")
+        np_val = run_kwargs.get("np")
+        if np_val:
+            corpus_source = os.path.join(
+                output_dir, f"mpi_np{np_val}_output")
+        else:
+            corpus_source = os.path.join(output_dir, "output")
 
     wait_start = time.monotonic()
-    while not os.path.isdir(candidate_dir) and time.monotonic() - wait_start < 10:
+    while (
+        not _resolve_corpus_dirs(corpus_source)
+        and time.monotonic() - wait_start < 10
+    ):
+        if benchmark_done.is_set():
+            break
         time.sleep(0.5)
 
-    if not os.path.isdir(candidate_dir):
-        bench_thread.join(timeout=timeout + 60)
+    if not _resolve_corpus_dirs(corpus_source):
+        _join_benchmark_thread(bench_thread, timeout + 60)
         result = result_container[0]
         if error_container[0]:
             raise error_container[0]
         return result, []
 
-    # 在后台采样 AFL 边覆盖率
+    # Capture cheap hard-link snapshots during the campaign. Showmap replay is
+    # deferred until benchmark_done, so it cannot steal the measured CPU share.
     timeseries = measure_coverage_timeseries_afl(
-        afl_binary, candidate_dir,
-        interval=interval, max_duration=timeout + 30,
+        afl_binary, corpus_source,
+        interval=interval, max_duration=timeout,
         uses_file=uses_file,
+        extra_args=extra_args,
+        stop_event=benchmark_done,
+        wait_for_stop_before_replay=True,
+        snapshot_parent=run_kwargs.get("work_dir"),
     )
 
     # 与上面的 join 一致用 timeout+60：run_hybrid 的清理最坏情况随 AFL 实例数递增
     # （每个存活进程 SIGTERM 等 10s + SIGKILL 等 5s），固定 60s 在高 np 下可能过短而
     # 丢弃/截断结果。
-    bench_thread.join(timeout=timeout + 60)
+    _join_benchmark_thread(bench_thread, timeout + 60)
     result = result_container[0]
     if error_container[0]:
         raise error_container[0]
 
     return result, timeseries
+
+
+def _join_benchmark_thread(
+    thread: threading.Thread,
+    timeout: float,
+) -> None:
+    """Reject a truncated benchmark instead of returning a partial result."""
+    thread.join(timeout=timeout)
+    if thread.is_alive():
+        raise TimeoutError(
+            "benchmark runner did not finish within its execution and cleanup budget"
+        )
+
+
+def annotate_research_results(
+    results: list[dict],
+    timeseries: list[dict],
+) -> None:
+    """Attach stable run/pair identity, failure state, CPU budget and AUC."""
+    external_experiment = os.environ.get("SYMCC_EXPERIMENT_ID", "")
+    external_run = os.environ.get("SYMCC_RUN_ID", "")
+    external_pair = os.environ.get("SYMCC_PAIR_ID", "")
+    phase = os.environ.get("SYMCC_RESEARCH_PHASE", "engineering")
+    configuration = os.environ.get("SYMCC_RESEARCH_CONFIGURATION", "")
+    try:
+        common_seed = int(os.environ.get("SYMCC_RANDOM_SEED", "0") or 0)
+    except ValueError:
+        common_seed = 0
+    experiment_id = external_experiment or (
+        "symcc-" + content_digest({
+            "created": datetime.now().isoformat(),
+            "rows": [
+                (row.get("target"), row.get("mode"), row.get("np"))
+                for row in results
+            ],
+        })[:16]
+    )
+    measured_rows = [
+        row for row in results if str(row.get("mode", "")) != "seed"
+    ]
+    if external_run and len(measured_rows) != 1:
+        raise ValueError(
+            "a research protocol cell must produce exactly one non-seed "
+            "benchmark row; use --rounds 1 and select one execution mode"
+        )
+
+    by_key: dict[tuple[str, str, int, int], dict] = {}
+    for row in results:
+        target = str(row.get("target", ""))
+        mode = str(row.get("mode", ""))
+        np_value = int(row.get("np", 0) or 0)
+        repeat = int(row.get("round", 0) or 0)
+        pair_id = external_pair or content_digest({
+            "experiment_id": experiment_id,
+            "target": target,
+            "np": np_value,
+            "repeat": repeat,
+        })[:24]
+        run_id = (
+            external_run
+            if external_run and mode != "seed"
+            else content_digest({
+                "pair_id": pair_id,
+                "mode": mode,
+            })[:24]
+        )
+        row["experiment_id"] = experiment_id
+        row["protocol_run_id"] = external_run
+        row["run_id"] = run_id
+        row["pair_id"] = pair_id
+        row["phase"] = phase
+        row["configuration"] = configuration or mode
+        row["random_seed"] = common_seed
+        row.setdefault("status", "success")
+        row.setdefault("failure_reason", "")
+        try:
+            allocated = int(os.environ.get("SYMCC_CPU_CORES", "") or 0)
+        except ValueError:
+            allocated = 0
+        if allocated <= 0:
+            allocated = (
+                max(1, np_value) if mode in {"mpi", "hybrid", "afl-only"}
+                else 1
+            )
+        row["allocated_cpu_cores"] = allocated
+        declared_budget = os.environ.get("SYMCC_CPU_BUDGET_SECONDS", "")
+        try:
+            cpu_budget = float(declared_budget)
+        except (TypeError, ValueError):
+            cpu_budget = float(row.get("wall_time", 0.0) or 0.0) * allocated
+        row["cpu_budget_seconds"] = cpu_budget
+        try:
+            row["wall_budget_seconds"] = (
+                cpu_budget / allocated if declared_budget else
+                float(row.get("wall_time", 0.0) or 0.0)
+            )
+        except (TypeError, ValueError, ZeroDivisionError):
+            row["wall_budget_seconds"] = 0.0
+        by_key[(target, mode, np_value, repeat)] = row
+
+    for entry in timeseries:
+        key = (
+            str(entry.get("target", "")),
+            str(entry.get("mode", "")),
+            int(entry.get("np", 0) or 0),
+            int(entry.get("round", 0) or 0),
+        )
+        row = by_key.get(key)
+        if row is None:
+            continue
+        entry["experiment_id"] = experiment_id
+        entry["run_id"] = row["run_id"]
+        entry["pair_id"] = row["pair_id"]
+        entry["configuration"] = row["configuration"]
+        points = entry.get("timeseries", ())
+        if points:
+            budget = max(
+                float(row.get("wall_budget_seconds", 0.0) or 0.0),
+                max(float(point.get("timestamp_sec", 0.0) or 0.0)
+                    for point in points),
+            )
+            if budget > 0:
+                row["coverage_auc"] = coverage_auc(points, budget)
+
+
+def benchmark_outcome(result: dict) -> dict[str, object]:
+    """Normalize subprocess completion without dropping failures/timeouts."""
+    if result.get("timed_out"):
+        # Fuzzing campaigns normally end at their declared time budget.  The
+        # final corpus is a valid observation, not a failed run.
+        return {
+            "status": "success",
+            "failure_reason": "",
+            "retcode": result.get("retcode"),
+            "budget_exhausted": True,
+        }
+    try:
+        returncode = int(result.get("retcode", 0) or 0)
+    except (TypeError, ValueError):
+        returncode = -1
+    return {
+        "status": "success" if returncode == 0 else "failed",
+        "failure_reason": "" if returncode == 0 else f"exit-{returncode}",
+        "retcode": returncode,
+        "budget_exhausted": False,
+    }
+
+
+def benchmark_matrix_exit_code(results: list[dict]) -> int:
+    """Propagate a measured child failure after preserving its report."""
+    return 3 if any(
+        row.get("mode") != "seed" and row.get("status") != "success"
+        for row in results
+    ) else 0
 
 
 def _compute_symcc_cpu_list(afl_instances: int, symcc_np: int) -> "str | None":
@@ -940,7 +1548,7 @@ def _afl_binary_uses_shmem(afl_binary: str) -> bool:
     return verdict
 
 
-def _link_or_copy(src: str, dst: str) -> None:
+def _link_or_copy(src: str, dst: str) -> bool:
     """将 src 硬链接到 dst（同一文件系统近乎零成本）；跨盘/已存在等失败时退回 copy2。
 
     覆盖率测量的合并语料只读，硬链接即可，避免对数万 queue 文件逐个整块复制
@@ -948,14 +1556,17 @@ def _link_or_copy(src: str, dst: str) -> None:
     """
     try:
         os.link(src, dst)
+        return True
     except OSError:
         # 跨文件系统 / 目标已存在 / 不支持硬链接 → 退回复制（copy2 覆盖既有）
         try:
             shutil.copy2(src, dst)
+            return True
         except OSError as e:
             # 硬链接与复制双双失败（源消失/磁盘满/权限）→ 该文件缺席会低估合并语料的
             # 覆盖率；告警而非静默吞掉，便于发现数据质量问题。
             print(f"[warn] _link_or_copy 跳过 {src}: {e}", file=sys.stderr)
+            return False
 
 
 def count_output_files(directory):
@@ -964,9 +1575,14 @@ def count_output_files(directory):
         return 0
     count = 0
     for f in os.listdir(directory):
-        if os.path.isfile(os.path.join(directory, f)):
+        if (_is_corpus_filename(f)
+                and os.path.isfile(os.path.join(directory, f))):
             count += 1
     return count
+
+
+def _is_corpus_filename(filename: str) -> bool:
+    return not filename.startswith(".") and not filename.endswith(".tmp")
 
 
 def get_unique_hashes(directory):
@@ -982,19 +1598,33 @@ def get_unique_hashes(directory):
     hex64_re = re.compile(r'^[0-9a-f]{64}$')
     for f in os.listdir(directory):
         fpath = os.path.join(directory, f)
-        if os.path.isfile(fpath):
+        if _is_corpus_filename(f) and os.path.isfile(fpath):
             if hex64_re.match(f):
                 # Filename is the hash — skip expensive re-read
                 hashes.add(f)
             else:
-                with open(fpath, "rb") as fh:
-                    h = hashlib.sha256(fh.read()).hexdigest()
-                    hashes.add(h)
+                try:
+                    with open(fpath, "rb") as fh:
+                        h = hashlib.sha256(fh.read()).hexdigest()
+                except OSError:
+                    # A live AFL queue may rotate an entry between listdir and
+                    # open. Missing it in this sample is preferable to aborting
+                    # the entire measurement.
+                    continue
+                hashes.add(h)
+    return hashes
+
+
+def get_unique_hashes_many(directories):
+    """Return the content-hash union of multiple corpus directories."""
+    hashes = set()
+    for directory in directories:
+        hashes.update(get_unique_hashes(directory))
     return hashes
 
 
 def _simulate_serial(binary, seed_dir, output_dir, timeout, uses_file,
-                     max_files=10000):
+                     extra_args=None, max_files=10000):
     """模拟模式的串行执行：运行目标二进制并生成随机变异测试用例。
 
     限制最大文件数以避免产生过多文件导致后续计数和清理太慢。
@@ -1029,9 +1659,12 @@ def _simulate_serial(binary, seed_dir, output_dir, timeout, uses_file,
 
         # 运行目标二进制
         if uses_file:
-            cmd = ["timeout", "-k", "2", "5", binary, input_file]
+            cmd = [
+                "timeout", "-k", "2", "5", binary,
+                *(extra_args or []), input_file,
+            ]
         else:
-            cmd = ["timeout", "-k", "2", "5", binary]
+            cmd = ["timeout", "-k", "2", "5", binary, *(extra_args or [])]
 
         try:
             if uses_file:
@@ -1065,7 +1698,8 @@ def _simulate_serial(binary, seed_dir, output_dir, timeout, uses_file,
 
 
 def run_serial(binary: str, target_name: str, seed_dir: str, timeout: int,
-               work_dir: str, simulate: bool = False):
+               work_dir: str, simulate: bool = False,
+               extra_args: list[str] | None = None):
     """Run the serial pure_concolic_execution.sh baseline."""
     output_dir = os.path.join(work_dir, "serial_output")
     os.makedirs(output_dir, exist_ok=True)
@@ -1077,7 +1711,10 @@ def run_serial(binary: str, target_name: str, seed_dir: str, timeout: int,
         timed_out = False
         start = time.monotonic()
         try:
-            _simulate_serial(binary, seed_dir, output_dir, timeout, uses_file)
+            _simulate_serial(
+                binary, seed_dir, output_dir, timeout, uses_file,
+                extra_args=extra_args,
+            )
         except (OSError, subprocess.SubprocessError, ValueError):
             pass
         elapsed = time.monotonic() - start
@@ -1089,14 +1726,14 @@ def run_serial(binary: str, target_name: str, seed_dir: str, timeout: int,
                 "bash", str(SERIAL_SCRIPT),
                 "-i", seed_dir,
                 "-o", output_dir,
-                binary, "@@"
+                binary, *(extra_args or []), "@@",
             ]
         else:
             cmd = [
                 "bash", str(SERIAL_SCRIPT),
                 "-i", seed_dir,
                 "-o", output_dir,
-                binary
+                binary, *(extra_args or []),
             ]
 
         # Set up environment: auto-detect magic.mgc for 'file' binary
@@ -1139,12 +1776,24 @@ def run_serial(binary: str, target_name: str, seed_dir: str, timeout: int,
     return {
         "wall_time": elapsed,
         "generated": num_generated,
+        "generated_kind": "symcc-candidates",
+        "symcc_generated": num_generated,
         "unique": len(unique),
         "throughput": num_generated / elapsed if elapsed > 0 else 0,
+        "throughput_kind": "symcc-candidates-per-second",
         "output_dir": output_dir,
         "retcode": retcode,
         "timed_out": timed_out,
     }
+
+
+def _mpi_timeout_budget(timeout: int) -> tuple[int, int, int]:
+    """Return (wall, per-exec, idle) limits that never exceed the campaign."""
+    budget = max(1, int(timeout))
+    wall_timeout = budget
+    per_exec_timeout = min(30, max(1, budget // 4), wall_timeout)
+    max_idle = min(max(1, budget // 6), wall_timeout)
+    return wall_timeout, per_exec_timeout, max_idle
 
 
 def run_mpi(binary: str, target_name: str, seed_dir: str, np: int, timeout: int,
@@ -1155,15 +1804,11 @@ def run_mpi(binary: str, target_name: str, seed_dir: str, np: int, timeout: int,
     os.makedirs(output_dir, exist_ok=True)
 
     uses_file = TARGETS[target_name][3] if target_name in TARGETS else True
-    max_idle = max(10, timeout // 6)  # shorter idle wait for benchmarks
-
-    # Give MPI script a wall timeout slightly less than the benchmark timeout
-    # so it can shut down gracefully before the outer subprocess kills it.
-    # 留 10% 或至少 5 秒余量给关闭过程
-    wall_timeout = max(10, int(timeout * 0.9) - 5)
-    # 每次执行的超时应远小于总超时，避免单次执行耗尽全部时间
-    # 保持较短以最大化探索的输入数量（广度优先优于深度优先）
-    per_exec_timeout = min(30, max(5, timeout // 4))
+    # The MPI exploration window is the full declared campaign. Teardown and
+    # post-run measurement belong to the protocol's separate wall grace.
+    # All nested limits remain bounded by the campaign; a historical 10s floor
+    # silently overran short engineering runs.
+    wall_timeout, per_exec_timeout, max_idle = _mpi_timeout_budget(timeout)
     cmd = [
         "mpirun", "--allow-run-as-root", "--oversubscribe",
         "-np", str(np),
@@ -1280,40 +1925,71 @@ def run_mpi(binary: str, target_name: str, seed_dir: str, np: int, timeout: int,
     return {
         "wall_time": elapsed,
         "generated": num_generated,
+        "generated_kind": "symcc-candidates",
+        "symcc_generated": num_generated,
         "unique": num_unique,
         "output_dir": output_dir,
+        "log_path": mpi_log_path,
         "stdout": stdout[-500:] if stdout else "",
         "stderr": stderr[-500:] if stderr else "",
         "retcode": retcode,
         "timed_out": timed_out,
         "num_masters": mpi_num_masters,
         "num_workers": mpi_num_workers,
+        # The standalone MPI driver has no compute pools outside its rank
+        # ledger. Measurement helpers run after the campaign window.
+        "auxiliary_compute_slots": 0,
         "throughput": mpi_throughput or (num_generated / elapsed if elapsed > 0 else 0),
+        "throughput_kind": "symcc-candidates-per-second",
     }
 
 
-def discover_public_afl_targets() -> dict[str, str]:
-    """发现所有 AFL-instrumented 二进制文件。
+def _public_suite_prefix(suite_name: str) -> str:
+    suite_prefixes = {"google-fts": "gfts-", "lava-m": "lava-"}
+    return suite_prefixes.get(suite_name, suite_name + "-")
 
-    扫描 public/bin/ 下所有 *-afl 目录（google-fts-afl、lava-m-afl 等）。
-    返回 {目标名: AFL 二进制路径} 字典。
-    """
-    afl_binaries: dict[str, str] = {}
+
+def discover_public_afl_variants() -> dict[str, dict[str, str]]:
+    """Discover public AFL++ instrumentation variants."""
+    variants: dict[str, dict[str, str]] = defaultdict(dict)
     pub_bin = PUBLIC_DIR / "bin"
     if not pub_bin.is_dir():
-        return afl_binaries
+        return variants
 
-    suite_prefixes = {"google-fts": "gfts-", "lava-m": "lava-"}
+    suffixes = [
+        ("-afl-laf-ctx", "laf_ctx"),
+        ("-afl-ngram4", "ngram4"),
+        ("-afl-ngram", "ngram4"),
+        ("-afl-laf", "laf"),
+        ("-afl-ctx", "ctx"),
+        ("-afl", "default"),
+    ]
     for suite_dir in sorted(pub_bin.iterdir()):
-        if not suite_dir.is_dir() or not suite_dir.name.endswith("-afl"):
+        if not suite_dir.is_dir():
             continue
-        suite_base = suite_dir.name[:-4]  # 去掉 -afl
-        prefix = suite_prefixes.get(suite_base, suite_base + "-")
+        suite_base = None
+        variant_name = None
+        for suffix, candidate in suffixes:
+            if suite_dir.name.endswith(suffix):
+                suite_base = suite_dir.name[: -len(suffix)]
+                variant_name = candidate
+                break
+        if not suite_base or not variant_name:
+            continue
+        prefix = _public_suite_prefix(suite_base)
         for binary in sorted(suite_dir.iterdir()):
             if binary.is_file() and not binary.suffix and os.access(str(binary), os.X_OK):
-                afl_binaries[prefix + binary.name] = str(binary)
+                variants[prefix + binary.name][variant_name] = str(binary)
+    return variants
 
-    return afl_binaries
+
+def discover_public_afl_targets() -> dict[str, str]:
+    """发现所有默认 AFL-instrumented 二进制文件。"""
+    return {
+        target: paths["default"]
+        for target, paths in discover_public_afl_variants().items()
+        if "default" in paths
+    }
 
 
 def discover_public_hfuzz_targets() -> dict[str, str]:
@@ -1322,12 +1998,11 @@ def discover_public_hfuzz_targets() -> dict[str, str]:
     pub_bin = PUBLIC_DIR / "bin"
     if not pub_bin.is_dir():
         return hf
-    suite_prefixes = {"google-fts": "gfts-", "lava-m": "lava-"}
     for suite_dir in sorted(pub_bin.iterdir()):
         if not suite_dir.is_dir() or not suite_dir.name.endswith("-hfuzz"):
             continue
         suite_base = suite_dir.name[:-6]  # 去掉 -hfuzz
-        prefix = suite_prefixes.get(suite_base, suite_base + "-")
+        prefix = _public_suite_prefix(suite_base)
         for binary in sorted(suite_dir.iterdir()):
             if binary.is_file() and not binary.suffix and os.access(str(binary), os.X_OK):
                 hf[prefix + binary.name] = str(binary)
@@ -1342,6 +2017,155 @@ def _read_symcc_stats(symcc_dir: str) -> tuple[int, int, int, int] | None:
         return (int(parts[0]), int(parts[1]), int(parts[2]), int(parts[3]))
     except (IOError, OSError, ValueError, IndexError):
         return None
+
+
+def _parse_symcc_interesting(stdout: str) -> int:
+    """Return the final cumulative interesting count from MPI master output."""
+    final = re.findall(
+        r"Final stats:[^\n]*?(\d+)\s+interesting\b", stdout
+    )
+    if final:
+        return int(final[-1])
+    progress = re.findall(r"(\d+)\s+interesting\b", stdout)
+    return int(progress[-1]) if progress else 0
+
+
+def _parse_symcc_generated(stdout: str) -> int:
+    """Return the final cumulative SymCC candidate count from master output."""
+    final = re.findall(r"Final stats:[^\n]*?/\s*(\d+)\s+total\b", stdout)
+    if final:
+        return int(final[-1])
+    progress = re.findall(
+        r"\d+\s+interesting\s*/\s*(\d+)\s+(?:generated|total)\b",
+        stdout,
+    )
+    return int(progress[-1]) if progress else 0
+
+
+def _parse_auxiliary_compute_slots(stdout: str) -> int | None:
+    """Return the hybrid master's declared non-rank compute concurrency."""
+    matches = re.findall(r"Auxiliary compute slots:\s*([^\s(]+)", stdout)
+    if not matches:
+        return None
+    token = matches[-1]
+    # The current producer is capped at 296 slots.  Keep a larger protocol
+    # ceiling for forward compatibility while rejecting corrupt/unbounded
+    # decimal fields before Python's integer parser sees them.
+    if (
+        not token.isascii()
+        or not token.isdecimal()
+        or len(token) > 4
+    ):
+        return None
+    value = int(token)
+    return value if value <= 4096 else None
+
+
+def _configure_hybrid_afl_sync(environment: dict[str, str]) -> int:
+    """Enable periodic and final AFL campaign synchronization.
+
+    Hybrid mode requires synchronization for the SymCC peer queue.  An
+    inherited AFL_NO_SYNC would silently break the feedback loop, so it cannot
+    remain active in this mode.
+    """
+    environment.pop("AFL_NO_SYNC", None)
+    raw = environment.get("AFL_SYNC_TIME", "1")
+    try:
+        minutes = int(raw)
+        if minutes < 1:
+            raise ValueError
+    except ValueError:
+        minutes = 1
+    environment["AFL_SYNC_TIME"] = str(minutes)
+    environment["AFL_FINAL_SYNC"] = "1"
+    return minutes
+
+
+def _existing_foreign_queues(paths: typing.Iterable[str]) -> list[str]:
+    """Return stable, deduplicated foreign queue directories."""
+    result: list[str] = []
+    seen: set[str] = set()
+    for raw in paths:
+        if not raw:
+            continue
+        path = os.path.abspath(raw)
+        identity = os.path.realpath(path)
+        if identity in seen or not os.path.isdir(path):
+            continue
+        seen.add(identity)
+        result.append(path)
+    return result
+
+
+def _read_afl_stat_fields(path: str) -> dict[str, str]:
+    fields: dict[str, str] = {}
+    try:
+        with open(path) as stream:
+            for line in stream:
+                key, separator, value = line.partition(":")
+                if separator:
+                    fields[key.strip()] = value.strip()
+    except OSError:
+        pass
+    return fields
+
+
+def _read_afl_sync_cursor(instance_dir: str, peer_name: str) -> int | None:
+    """Read AFL++'s native next-ID cursor for a campaign peer queue."""
+    path = os.path.join(instance_dir, ".synced", peer_name)
+    try:
+        with open(path, "rb") as stream:
+            data = stream.read(5)
+    except OSError:
+        return None
+    if len(data) != 4:
+        return None
+    return int.from_bytes(data, byteorder=sys.byteorder, signed=False)
+
+
+def _wait_for_afl_peer_sync(
+    instance_dir: str,
+    peer_name: str,
+    published: int,
+    process: subprocess.Popen | None,
+    timeout: float,
+    *,
+    cursor_reader: typing.Callable[[str, str], int | None] = (
+        _read_afl_sync_cursor
+    ),
+    monotonic: typing.Callable[[], float] = time.monotonic,
+    sleep: typing.Callable[[float], None] = time.sleep,
+) -> tuple[int | None, bool, float]:
+    """Give a live AFL master a bounded chance to consume a frozen peer tail."""
+    expected = max(0, int(published))
+    budget = max(0.0, float(timeout))
+    started = monotonic()
+    cursor = cursor_reader(instance_dir, peer_name)
+    if expected == 0:
+        return cursor, True, 0.0
+    while cursor is None or cursor < expected:
+        if process is None or process.poll() is not None:
+            break
+        elapsed = monotonic() - started
+        if elapsed >= budget:
+            break
+        sleep(min(0.05, budget - elapsed))
+        cursor = cursor_reader(instance_dir, peer_name)
+    elapsed = max(0.0, monotonic() - started)
+    return cursor, bool(cursor is not None and cursor >= expected), elapsed
+
+
+def _count_afl_sync_imports(queue_dir: str, peer_name: str) -> int:
+    """Count retained queue entries attributed to one AFL sync peer."""
+    marker = f"sync:{peer_name},"
+    try:
+        return sum(
+            marker in name
+            for name in os.listdir(queue_dir)
+            if os.path.isfile(os.path.join(queue_dir, name))
+        )
+    except OSError:
+        return 0
 
 
 def _read_afl_edges(afl_out_dir: str) -> int:
@@ -1364,6 +2188,73 @@ def _read_afl_edges(afl_out_dir: str) -> int:
     except OSError:
         pass
     return best
+
+
+def _count_jsonl_records(path: str) -> int:
+    count = 0
+    try:
+        with open(path, "rb") as stream:
+            for line in stream:
+                if line.strip():
+                    count += 1
+    except OSError:
+        return 0
+    return count
+
+
+def _read_json_object(path: str) -> dict:
+    try:
+        with open(path, encoding="utf-8") as stream:
+            raw = json.load(stream)
+    except (OSError, ValueError, TypeError):
+        return {}
+    return raw if isinstance(raw, dict) else {}
+
+
+def _read_policy_artifacts(symcc_dir: str) -> dict:
+    trajectory_path = os.path.join(symcc_dir, ".offline_trajectory.jsonl")
+    policy_path = os.path.join(symcc_dir, ".offline_policy.json")
+    algorithm_path = os.path.join(symcc_dir, ".smt_algorithm_state.json")
+    policy = _read_json_object(policy_path)
+    algorithm = _read_json_object(algorithm_path)
+    clusters = algorithm.get("clusters", ()) if algorithm else ()
+    prior_recommendations = int(
+        algorithm.get("prior_recommendations", 0) or 0
+    ) if algorithm else 0
+    prior_matches = int(
+        algorithm.get("prior_matches", 0) or 0
+    ) if algorithm else 0
+    return {
+        "offline_trajectory": (
+            trajectory_path if os.path.isfile(trajectory_path) else ""),
+        "offline_events": _count_jsonl_records(trajectory_path),
+        "offline_policy": policy_path if os.path.isfile(policy_path) else "",
+        "offline_approved_action": str(policy.get("approved_action", "")),
+        "offline_evaluations": int(policy.get("evaluations", 0) or 0)
+        if policy else 0,
+        "smt_algorithm_state": (
+            algorithm_path if os.path.isfile(algorithm_path) else ""),
+        "smt_algorithm_observations": int(
+            algorithm.get("observations", 0) or 0) if algorithm else 0,
+        "smt_algorithm_clusters": (
+            len(clusters) if isinstance(clusters, list) else 0),
+        "smt_sequence_prior_sha256": str(
+            algorithm.get("prior_artifact_sha256", ""))
+        if algorithm else "",
+        "smt_sequence_prior_kind": str(
+            algorithm.get("prior_kind", "")) if algorithm else "",
+        "smt_sequence_prior_recommendations": prior_recommendations,
+        "smt_sequence_prior_matches": prior_matches,
+        "smt_sequence_prior_budgeted_assignments": int(
+            algorithm.get("prior_budgeted_assignments", 0) or 0)
+        if algorithm else 0,
+        "smt_sequence_prior_schedule_completions": int(
+            algorithm.get("prior_schedule_completions", 0) or 0)
+        if algorithm else 0,
+        "smt_sequence_prior_match_rate": (
+            prior_matches / prior_recommendations
+            if prior_recommendations else 0.0),
+    }
 
 
 def _adaptive_controller(mpi_proc: "subprocess.Popen | None",
@@ -1502,6 +2393,10 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
                seed_dir: str, np: int, timeout: int, work_dir: str,
                extra_args: list[str] | None = None,
                cmplog_binary: str | None = None,
+               afl_variants: dict[str, str] | None = None,
+               afl_profile_mode: str = "auto",
+               directed_distance: str | None = None,
+               task_graph: str | None = None,
                afl_instances: int = 1,
                adaptive: bool = False,
                honggfuzz_binary: str | None = None,
@@ -1529,7 +2424,6 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
     # （DB、journal 等）。隔离到 work_dir 下的临时目录，避免污染仓库/benchmark。
     target_cwd = os.path.join(work_dir, "target_cwd")
     os.makedirs(target_cwd, exist_ok=True)
-
     # 异构集成成员：honggfuzz（不同引擎/反馈/变异，研究证实是唯一值得加的真异构引擎）。
     # 它把发现的语料写入 hf_out，AFL 主实例通过 -F 导入（见下方 foreign_dirs）。
     honggfuzz_proc = None
@@ -1576,81 +2470,155 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
         symcc_worker_launch = max(2, np // 2)              # 启动的 SymCC worker 数
         afl_instances = max(1, np - 1 - symcc_worker_launch)  # 初始 AFL 基数
 
+    # 检测默认 AFL 目标是否为持久模式 + 共享内存（dual-mode）。各 profile 若选择
+    # 其他编译变体，会在 spawn 时按实际 binary 重新判断是否需要 @@。
+    default_afl_persistent = _afl_binary_uses_shmem(afl_binary)
+    if default_afl_persistent:
+        print("      AFL target is persistent+shmem -> feeding via shared memory "
+              "(no @@); expect large exec/s gain")
+
     afl_env = os.environ.copy()
     afl_env["AFL_NO_UI"] = "1"  # 无 UI 模式，避免终端干扰
     afl_env["AFL_SKIP_CPUFREQ"] = "1"
     afl_env["AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES"] = "1"
     afl_env["AFL_AUTORESUME"] = "1"
+    afl_sync_minutes = _configure_hybrid_afl_sync(afl_env)
+    print(f"      AFL online sync ON (native symcc01 peer + final sync; "
+          f"AFL_SYNC_TIME={afl_sync_minutes} minute(s))")
+    default_data_cov = "1" if (adaptive and not default_afl_persistent) else "0"
+    afl_data_cov_enabled = (
+        os.environ.get("SYMCC_AFL_DATA_COVERAGE", default_data_cov) != "0")
+    if afl_data_cov_enabled:
+        data_rt = build_afl_data_coverage_runtime(work_dir)
+        if data_rt:
+            existing_preload = afl_env.get("AFL_PRELOAD", "")
+            afl_env["AFL_PRELOAD"] = (
+                data_rt if not existing_preload
+                else f"{data_rt}:{existing_preload}")
+            afl_env["SYMCC_AFL_DATA_COVERAGE"] = "1"
+            print("      AFL native data coverage ON (AFL_PRELOAD comparison map)")
+        else:
+            print("      WARNING: could not build AFL data coverage preload; "
+                  "continuing without native data map")
+    elif adaptive and default_afl_persistent:
+        print("      AFL native data coverage OFF by default for "
+              "persistent+shmem target (set SYMCC_AFL_DATA_COVERAGE=1 to force)")
 
-    # 集成（EnFuzz 风格）配置多样性：与其让从实例只换 power schedule，不如给每个
-    # 从实例一个差异明显的"策略画像"（MOpt vs 香草、explore vs exploit、CmpLog 深浅、
-    # 不同 havoc/trim 行为）——单引擎内尽量逼近异构集成的探索多样性。
-    # profile: (power_schedule, use_mopt, use_cmplog, extra_env)
-    ensemble_profiles = [
-        ("explore", False, True,  {}),                              # CmpLog + 广探索
-        ("fast",    True,  False, {}),                              # MOpt + fast
-        ("exploit", False, True,  {"AFL_DISABLE_TRIM": "1"}),       # 深挖 + 不裁剪
-        ("rare",    False, False, {"AFL_EXPAND_HAVOC_NOW": "1"}),   # 稀有边 + 强 havoc
-        ("coe",     True,  True,  {}),                              # MOpt + CmpLog + coe
-        ("seek",    False, False, {"AFL_KEEP_TIMEOUTS": "1"}),      # seek + 保留超时
-        ("mmopt",   True,  False, {}),                              # MOpt + mmopt
-        ("lin",     False, True,  {}),                              # CmpLog + lin
-        ("quad",    False, False, {}),                              # 香草 + quad
-    ]
+    default_hint_mutator = "1" if (adaptive and not default_afl_persistent) else "0"
+    hint_mutator_enabled = (
+        os.environ.get("SYMCC_AFL_HINT_MUTATOR", default_hint_mutator) != "0")
+    if hint_mutator_enabled:
+        if afl_supports_python_mutators():
+            existing_pythonpath = afl_env.get("PYTHONPATH", "")
+            afl_env["PYTHONPATH"] = (
+                str(SYMCC_ROOT) if not existing_pythonpath
+                else f"{SYMCC_ROOT}:{existing_pythonpath}")
+            afl_env.setdefault("AFL_PYTHON_MODULE", "util.afl_symcc_hint_mutator")
+            afl_env.setdefault(
+                "SYMCC_HINT_DIR", os.path.join(afl_out_dir, "symcc01", "extras"))
+            afl_env.setdefault(
+                "SYMCC_POLY_CACHE_MUTATOR",
+                os.path.join(afl_out_dir, "symcc01", ".poly_cache"))
+            print("      AFL SymCC hint/poly mutator ON (AFL_PYTHON_MODULE)")
+        else:
+            print("      WARNING: afl-fuzz lacks Python mutator support; "
+                  "continuing without hint mutator")
+    elif adaptive and default_afl_persistent:
+        print("      AFL SymCC hint/poly mutator OFF by default for "
+              "persistent+shmem target (set SYMCC_AFL_HINT_MUTATOR=1 to force)")
+
+    # xFUZZ/KRAKEN 风格 AFL++ profile 编排：不同实例不只换 power schedule，还可换
+    # 编译期反馈（LAF/CompCov、CTX、Ngram）、MOpt、CmpLog 和运行时 env。缺少某个
+    # 编译变体时回退到 default AFL 二进制，保证旧 benchmark 目录仍可运行。
+    default_profile_switch = (
+        "0" if afl_profile_mode == "off"
+        else "1" if adaptive or afl_profile_mode in {"basic", "full"}
+        else "0")
+    raw_profile_switch = os.environ.get(
+        "SYMCC_AFL_PROFILES", default_profile_switch)
+    afl_profile_enabled = raw_profile_switch.lower() not in {
+        "0", "false", "off", "no"
+    }
+    variant_binaries = {"default": afl_binary}
+    for variant, path in (afl_variants or {}).items():
+        if path and os.path.isfile(path):
+            variant_binaries[variant] = path
+    ensemble_profiles = (
+        AFL_RUNTIME_PROFILES if afl_profile_enabled else [
+            AflRuntimeProfile("explore-cmplog", "explore", "default",
+                              use_cmplog=True),
+            AflRuntimeProfile("mopt-fast", "fast", "default", use_mopt=True),
+            AflRuntimeProfile("exploit", "exploit", "default",
+                              use_cmplog=True,
+                              env={"AFL_DISABLE_TRIM": "1"}),
+        ])
+    if afl_profile_enabled:
+        variants_text = ",".join(sorted(variant_binaries))
+        profile_text = ",".join(p.name for p in ensemble_profiles)
+        print(f"      AFL++ strategy profiles ON "
+              f"(variants={variants_text}; profiles={profile_text})")
 
     # AFL++ 外部（异构）引擎共享目录：honggfuzz 等把种子写到这些目录，主实例通过
-    # -F 导入（需 -M）。honggfuzz 启用时自动加入其 -o 目录。
-    foreign_dirs = os.environ.get("AFL_FOREIGN_DIRS", "")
-    _ext_dirs = [d for d, on in ((honggfuzz_out, honggfuzz_proc is not None),
-                                 (grimoire_out, grimoire_proc is not None)) if on]
-    if _ext_dirs:
-        foreign_dirs = ":".join(_ext_dirs + ([foreign_dirs] if foreign_dirs else []))
+    # -F 导入（需 -M）。SymCC 不走这里：它使用 afl_out/symcc01/queue 这一原生
+    # campaign peer，由 AFL 的单调 ID 游标同步，避免 -F 秒级 mtime 的竞态。
+    requested_foreign_dirs = os.environ.get(
+        "AFL_FOREIGN_DIRS", "").split(":")
+    foreign_dirs = _existing_foreign_queues([
+        *[d for d, on in (
+            (honggfuzz_out, honggfuzz_proc is not None),
+            (grimoire_out, grimoire_proc is not None),
+        ) if on],
+        *requested_foreign_dirs,
+    ])
 
-    # 检测 AFL 目标是否为持久模式 + 共享内存（dual-mode）：若是，afl-fuzz 不带 @@ 运行，
-    # 经 shmem 喂输入并进入 __AFL_LOOP 持久循环（实测 ~35x 吞吐）；否则保持带 @@（fork/文件）。
-    afl_persistent = _afl_binary_uses_shmem(afl_binary)
-    if afl_persistent:
-        print("      AFL target is persistent+shmem -> feeding via shared memory "
-              "(no @@); expect large exec/s gain")
-    # cmplog 二进制的持久性必须与主二进制一致，否则 afl-fuzz 在 fork server 握手时
-    # PROGRAM ABORT。不一致则跳过 cmplog（保证不崩，代价是失去该目标的 RedQueen）。
-    cmplog_ok = bool(cmplog_binary) and (
-        _afl_binary_uses_shmem(cmplog_binary) == afl_persistent)
-    if cmplog_binary and not cmplog_ok:
-        print(f"      WARNING: cmplog binary persistence != main "
-              f"(main persistent={afl_persistent}) -> disabling cmplog to avoid "
-              f"fork-server-handshake abort (rebuild cmplog persistent to re-enable)")
+    cmplog_persistent = (
+        _afl_binary_uses_shmem(cmplog_binary) if cmplog_binary else None)
 
     afl_procs: list[subprocess.Popen] = []
+    used_afl_profiles: list[str] = []
+    warned_cmplog_mismatch: set[str] = set()
 
     def _spawn_afl(idx: int) -> subprocess.Popen:
         """启动第 idx 个 AFL 实例（idx=0 为主 -M，其余为差异化策略的从 -S）。"""
         fuzzer_name = f"fuzzer{idx + 1:02d}"
         is_master = (idx == 0)
         inst_env = dict(afl_env)
+        profile = (AflRuntimeProfile("master-cmplog", "explore", "default",
+                                     use_cmplog=True)
+                   if is_master
+                   else ensemble_profiles[(idx - 1) % len(ensemble_profiles)])
+        variant_name = (
+            profile.variant if profile.variant in variant_binaries else "default")
+        runner_binary = variant_binaries[variant_name]
+        runner_persistent = _afl_binary_uses_shmem(runner_binary)
         cmd = ["afl-fuzz"]
         if is_master:
             cmd += ["-M", fuzzer_name]
             # 主实例导入外部异构引擎的语料（集成共享）
-            for d in foreign_dirs.split(":"):
-                if d and os.path.isdir(d):
-                    cmd += ["-F", d]
-            use_cmplog = True
+            for directory in foreign_dirs:
+                cmd += ["-F", directory]
         else:
-            prof = ensemble_profiles[(idx - 1) % len(ensemble_profiles)]
-            sched, use_mopt, use_cmplog, extra_env = prof
-            cmd += ["-S", fuzzer_name, "-p", sched]
-            if use_mopt:
+            cmd += ["-S", fuzzer_name, "-p", profile.schedule]
+            if profile.use_mopt:
                 cmd += ["-L", "0"]  # 启用 MOpt 变异调度
-            inst_env.update(extra_env)
+            inst_env.update(profile.env)
         cmd += ["-i", seed_dir, "-o", afl_out_dir, "-m", "none"]
-        if cmplog_ok and use_cmplog:
+        cmplog_ok = bool(cmplog_binary) and cmplog_persistent == runner_persistent
+        if cmplog_ok and profile.use_cmplog:
             cmd += ["-c", cmplog_binary, "-l", "2AT"]
-        cmd += ["--", afl_binary]
+        elif cmplog_binary and profile.use_cmplog:
+            key = f"{variant_name}:{runner_persistent}"
+            if key not in warned_cmplog_mismatch:
+                warned_cmplog_mismatch.add(key)
+                print(f"      WARNING: cmplog persistence mismatch for "
+                      f"{variant_name} (main persistent={runner_persistent}); "
+                      f"skipping CmpLog for this profile")
+        cmd += ["--", runner_binary]
         if extra_args:
             cmd += extra_args
-        if not afl_persistent:
+        if not runner_persistent:
             cmd.append("@@")   # 非持久目标：文件输入
+        used_afl_profiles.append(f"{fuzzer_name}:{profile.name}:{variant_name}")
         return subprocess.Popen(cmd, stdout=subprocess.DEVNULL,
                                 stderr=subprocess.DEVNULL,
                                 start_new_session=True, env=inst_env,
@@ -1672,7 +2640,8 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
     stats_path = os.path.join(fuzzer_dir, "fuzzer_stats")
     start = time.monotonic()
     afl_ready = False
-    while time.monotonic() - start < 30:
+    initialization_budget = min(30.0, max(0.0, float(timeout)))
+    while time.monotonic() - start < initialization_budget:
         if os.path.isfile(stats_path):
             afl_ready = True
             break
@@ -1696,10 +2665,14 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
                 "throughput": 0, "stdout": "", "stderr": "",
                 "afl_generated": 0, "symcc_interesting": 0,
             }
-        time.sleep(0.5)
+        remaining_init = (
+            initialization_budget - (time.monotonic() - start))
+        if remaining_init > 0:
+            time.sleep(min(0.5, remaining_init))
 
     if not afl_ready:
-        print("      WARNING: AFL did not initialize in 30s, continuing anyway")
+        print(f"      WARNING: AFL did not initialize within "
+              f"{initialization_budget:g}s campaign allowance")
 
     # 保存所有 SymCC 输出（不经 afl-showmap 过滤）用于覆盖率测量
     symcc_all_dir = os.path.join(work_dir, "symcc_all_outputs")
@@ -1730,6 +2703,19 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
     print(f"      Starting MPI SymCC (np={symcc_np})...")
     mpi_env = os.environ.copy()
     mpi_env["PYTHONUNBUFFERED"] = "1"
+    mpi_env.setdefault("SYMCC_WORKER_POSTPROCESS_BUDGET_SEC", "2.0")
+    mpi_env.setdefault("SYMCC_BATCH_VERIFY_NEW", "0")
+    mpi_env.setdefault("SYMCC_COVERAGE_GOSSIP", "0")
+    mpi_env.setdefault("SYMCC_QUEUE_SCAN_BUDGET_SEC", "0.5")
+    mpi_env.setdefault("SYMCC_QUEUE_SCAN_MAX", "4096")
+    mpi_env.setdefault("SYMCC_AFL_SHOWMAP_TIMEOUT_MS", "1000")
+    mpi_env.setdefault("SYMCC_VERIFY_PROPOSAL_BITMAP", "0")
+    if directed_distance:
+        mpi_env["SYMCC_DIRECTED_DISTANCE"] = directed_distance
+        print(f"      Directed distance map: {directed_distance}")
+    if task_graph:
+        mpi_env["SYMCC_TASK_GRAPH"] = task_graph
+        print(f"      Structural task graph: {task_graph}")
     # 细粒度并行分解（opt-in）：每 worker 不同策略 + 不相交符号化区间，降低下游冗余、
     # 突破 ~12 worker 饱和点（尤其对大/难目标）。P×S 个不重复工作格，见 mpi_fuzzing_helper。
     if symcc_diversity or symcc_density_balance:
@@ -1753,24 +2739,28 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
               f"[0-{afl_instances - 1}] (disjoint)")
     symcc_dir = os.path.join(afl_out_dir, "symcc01")
     mpi_stdout_bytes = b""
+    mpi_stderr_bytes = b""
     # 两种模式都把 master stdout 重定向到日志文件（而非 PIPE）：helper 自身不会退出，
     # 会一直运行到被 SIGTERM。PIPE 在 64KB 写满后会死锁 master；且 communicate(timeout)
     # 因 helper 永不自退而必然超时、丢弃已产出的 stdout（导致 symcc_interesting 恒为 0）。
     # 写文件无容量上限、事后可完整读回。
     mpi_log_path = os.path.join(work_dir, "mpi_master.log")
+    mpi_err_path = os.path.join(work_dir, "mpi_worker.err")
     mpi_log_fh = open(mpi_log_path, "wb")
+    mpi_err_fh = open(mpi_err_path, "wb")
     mpi_proc = None
     try:
-        try:
-            mpi_proc = subprocess.Popen(
-                mpi_cmd, stdout=mpi_log_fh, stderr=subprocess.DEVNULL,
-                start_new_session=True, env=mpi_env, cwd=target_cwd,
-            )
-        except (OSError, subprocess.SubprocessError) as e:
-            # MPI helper 启动失败时不抛出（否则跳过下方统一清理 → 已启动的 AFL/ensemble
-            # 进程沦为占满 CPU 的孤儿）；置 None，走正常清理回收所有兄弟进程。
-            print(f"[error] run_hybrid 无法启动 MPI helper（{e}）；"
-                  f"将回收已启动的 AFL/ensemble 进程", file=sys.stderr)
+        if time.monotonic() - start < timeout:
+            try:
+                mpi_proc = subprocess.Popen(
+                    mpi_cmd, stdout=mpi_log_fh, stderr=mpi_err_fh,
+                    start_new_session=True, env=mpi_env, cwd=target_cwd,
+                )
+            except (OSError, subprocess.SubprocessError) as e:
+                # MPI helper 启动失败时不抛出（否则跳过下方统一清理 → 已启动的
+                # AFL/ensemble 进程沦为孤儿）；置 None，走正常清理。
+                print(f"[error] run_hybrid 无法启动 MPI helper（{e}）；"
+                      f"将回收已启动的 AFL/ensemble 进程", file=sys.stderr)
         if mpi_proc is not None and adaptive:
             # 不预建 symcc_dir：helper 若发现其已存在会判定为 resume 并立即退出。
             # 控制器会等待 helper 创建该目录后再写控制文件。
@@ -1781,27 +2771,25 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
         elif mpi_proc is not None:
             # helper 不会自退，让它运行满剩余时间，到时由下方统一 SIGTERM 终止；
             # 期间若意外早退则提前结束等待。
-            deadline = time.monotonic() + max(
-                10, timeout - (time.monotonic() - start))
+            deadline = start + timeout
             while time.monotonic() < deadline and mpi_proc.poll() is None:
-                time.sleep(1.0)
+                time.sleep(max(
+                    0.0, min(1.0, deadline - time.monotonic())))
     finally:
         # try/finally 确保控制器/等待循环即使抛异常也不泄漏文件句柄
         try:
             mpi_log_fh.close()
         except OSError:
             pass
-    try:
-        with open(mpi_log_path, "rb") as _f:
-            mpi_stdout_bytes = _f.read()
-    except OSError:
-        pass
-
-    # 终止进程：MPI + 所有 AFL 实例 + honggfuzz + GRIMOIRE
-    for proc in (afl_procs
-                 + [p for p in (mpi_proc, honggfuzz_proc, grimoire_proc)
-                    if p is not None]):
-        if proc.poll() is None:
+        try:
+            mpi_err_fh.close()
+        except OSError:
+            pass
+    def _stop_process_groups(
+            processes: typing.Iterable[subprocess.Popen]) -> None:
+        for proc in processes:
+            if proc.poll() is not None:
+                continue
             try:
                 os.killpg(proc.pid, signal.SIGTERM)
                 proc.wait(timeout=10)
@@ -1812,12 +2800,83 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
                 except (OSError, subprocess.TimeoutExpired):
                     proc.kill()
 
-    elapsed = time.monotonic() - start
+    # The experiment window ends before shutdown/drain.  Cleanup latency must
+    # not inflate campaign wall time or depress the reported throughput.
+    campaign_elapsed = time.monotonic() - start
+    cleanup_started = time.monotonic()
+
+    # 先冻结所有语料生产者，再给存活 AFL master 一个有界 drain 窗口，
+    # 然后停 secondary，最后停 master。AFL_FINAL_SYNC=1 仍在 master 退出时
+    # 执行最后同步；drain 窗口用来吸收结束边界刚发布的 SymCC ID 尾部。
+    producers = [
+        proc for proc in (mpi_proc, honggfuzz_proc, grimoire_proc)
+        if proc is not None
+    ]
+    _stop_process_groups(producers)
+    frozen_symcc_queue = os.path.join(afl_out_dir, "symcc01", "queue")
+    frozen_symcc_published = count_output_files(frozen_symcc_queue)
+    try:
+        sync_drain_budget = min(
+            30.0,
+            max(0.0, float(os.environ.get("SYMCC_AFL_SYNC_DRAIN_SEC", "5"))),
+        )
+    except ValueError:
+        sync_drain_budget = 5.0
+    afl_master_dir = os.path.join(afl_out_dir, "fuzzer01")
+    (
+        symcc_cursor_before_final_sync,
+        symcc_peer_pre_stop_complete,
+        symcc_sync_drain_seconds,
+    ) = _wait_for_afl_peer_sync(
+        afl_master_dir,
+        "symcc01",
+        frozen_symcc_published,
+        afl_procs[0] if afl_procs else None,
+        sync_drain_budget,
+    )
+    _stop_process_groups(afl_procs[1:])
+    _stop_process_groups(afl_procs[:1])
+    cleanup_elapsed = time.monotonic() - cleanup_started
+
+    # MPI 已退出并刷新日志后再读取，保留最后一批统计与 final stats。
+    try:
+        with open(mpi_log_path, "rb") as _f:
+            mpi_stdout_bytes = _f.read()
+    except OSError:
+        pass
+    try:
+        with open(mpi_err_path, "rb") as _f:
+            mpi_stderr_bytes = _f.read()
+    except OSError:
+        pass
+
+    # Worker profiling CSV files can already be redirected outside the
+    # temporary campaign directory via SYMCC_WPROF_DIR.  Preserve the master
+    # logs there as well: they contain the scan/dispatch/receive/triage timing
+    # summary needed to explain scaling bottlenecks after work_dir is removed.
+    profile_export_dir = mpi_env.get("SYMCC_WPROF_DIR", "")
+    if profile_export_dir:
+        try:
+            os.makedirs(profile_export_dir, exist_ok=True)
+            for source, name in (
+                    (mpi_log_path, "mpi_master.log"),
+                    (mpi_err_path, "mpi_worker.err")):
+                if os.path.isfile(source):
+                    shutil.copy2(source, os.path.join(profile_export_dir, name))
+        except OSError as e:
+            print(f"      WARNING: could not export MPI profile logs: {e}")
+
+    elapsed = campaign_elapsed
 
     # 读取 MPI 输出
     mpi_stdout = ""
     try:
         mpi_stdout = mpi_stdout_bytes.decode(errors="replace")
+    except (AttributeError, UnicodeDecodeError):
+        pass
+    mpi_stderr = ""
+    try:
+        mpi_stderr = mpi_stderr_bytes.decode(errors="replace")
     except (AttributeError, UnicodeDecodeError):
         pass
 
@@ -1836,7 +2895,8 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
     except OSError:
         pass
 
-    afl_count = sum(count_output_files(q) for q in afl_queues)
+    afl_retained_files = sum(count_output_files(q) for q in afl_queues)
+    afl_unique_hashes = get_unique_hashes_many(afl_queues)
 
     # 合并所有测试用例到一个目录用于覆盖率测量
     combined_dir = os.path.join(work_dir, "combined_output")
@@ -1853,14 +2913,14 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
         inst = os.path.basename(os.path.dirname(afl_queue))
         for f in os.listdir(afl_queue):
             src = os.path.join(afl_queue, f)
-            if os.path.isfile(src):
+            if _is_corpus_filename(f) and os.path.isfile(src):
                 _link_or_copy(src, os.path.join(combined_dir, f"afl_{inst}_{f}"))
 
     # 复制 SymCC queue (afl-showmap 过滤后的 interesting)
     if os.path.isdir(symcc_queue):
         for f in os.listdir(symcc_queue):
             src = os.path.join(symcc_queue, f)
-            if os.path.isfile(src):
+            if _is_corpus_filename(f) and os.path.isfile(src):
                 _link_or_copy(src, os.path.join(combined_dir, f"symcc_{f}"))
 
     # 复制所有 SymCC 输出（未过滤）— 这些可能有 lcov 覆盖率提升
@@ -1868,19 +2928,26 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
     if os.path.isdir(symcc_all_dir):
         for f in os.listdir(symcc_all_dir):
             src = os.path.join(symcc_all_dir, f)
-            if os.path.isfile(src):
+            if _is_corpus_filename(f) and os.path.isfile(src):
                 dest = os.path.join(combined_dir, f"symcc_all_{f}")
                 if not os.path.exists(dest):
-                    _link_or_copy(src, dest)
-                    symcc_all_count += 1
+                    if _link_or_copy(src, dest):
+                        symcc_all_count += 1
 
-    total_generated = afl_count + symcc_all_count
-
-    # 解析 MPI 输出中的 interesting count
-    symcc_interesting = 0
-    m = re.search(r"(\d+) interesting", mpi_stdout)
-    if m:
-        symcc_interesting = int(m.group(1))
+    # Parse the last cumulative value, not the first progress update.  The
+    # on-disk snapshot and accepted queue are conservative fallbacks when MPI
+    # is killed before its final log line is flushed.
+    symcc_interesting = _parse_symcc_interesting(mpi_stdout)
+    symcc_generated = _parse_symcc_generated(mpi_stdout)
+    auxiliary_compute_slots = _parse_auxiliary_compute_slots(mpi_stdout)
+    stats_snapshot = _read_symcc_stats(symcc_dir)
+    if stats_snapshot is not None:
+        symcc_interesting = max(symcc_interesting, stats_snapshot[0])
+        symcc_generated = max(symcc_generated, stats_snapshot[1])
+    symcc_generated = max(symcc_generated, symcc_all_count)
+    symcc_interesting = max(
+        symcc_interesting, count_output_files(symcc_queue)
+    )
 
     # 从各实例 fuzzer_stats 聚合 AFL 指标：
     # execs 累加（总吞吐），bitmap_cvg/edges 取最大（各实例 queue 已同步，覆盖近似一致）
@@ -1889,6 +2956,9 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
     afl_execs_per_sec = 0.0
     afl_edges_found = 0
     afl_total_edges = 0
+    afl_corpus_imported = 0
+    afl_master_corpus_imported = 0
+    afl_master_sync_time = 0
     _best_bitmap = -1.0
     for inst_dir in sorted(os.listdir(afl_out_dir)) if os.path.isdir(afl_out_dir) else []:
         if not inst_dir.startswith("fuzzer"):
@@ -1896,116 +2966,225 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
         sp = os.path.join(afl_out_dir, inst_dir, "fuzzer_stats")
         if not os.path.isfile(sp):
             continue
+        fields = _read_afl_stat_fields(sp)
         try:
-            with open(sp) as f:
-                for line in f:
-                    key, _, val = line.partition(":")
-                    key = key.strip()
-                    val = val.strip()
-                    if key == "bitmap_cvg":
-                        try:
-                            bc = float(val.rstrip("%"))
-                            if bc > _best_bitmap:
-                                _best_bitmap = bc
-                                afl_bitmap_cvg = val
-                        except ValueError:
-                            pass
-                    elif key == "execs_done":
-                        afl_execs_done += int(val)
-                    elif key == "execs_per_sec":
-                        afl_execs_per_sec += float(val)
-                    elif key == "edges_found":
-                        afl_edges_found = max(afl_edges_found, int(val))
-                    elif key == "total_edges":
-                        afl_total_edges = max(afl_total_edges, int(val))
-        except (OSError, ValueError):
+            bitmap = fields.get("bitmap_cvg", "")
+            if bitmap:
+                bc = float(bitmap.rstrip("%"))
+                if bc > _best_bitmap:
+                    _best_bitmap = bc
+                    afl_bitmap_cvg = bitmap
+            afl_execs_done += int(fields.get("execs_done", "0"))
+            afl_execs_per_sec += float(fields.get("execs_per_sec", "0"))
+            afl_edges_found = max(
+                afl_edges_found, int(fields.get("edges_found", "0")))
+            afl_total_edges = max(
+                afl_total_edges, int(fields.get("total_edges", "0")))
+            imported = int(fields.get("corpus_imported", "0"))
+            afl_corpus_imported += imported
+            if inst_dir == "fuzzer01":
+                afl_master_corpus_imported = imported
+                afl_master_sync_time = int(fields.get("sync_time", "0"))
+        except ValueError:
             pass
+
+    symcc_peer_published = count_output_files(symcc_queue)
+    symcc_cursor = _read_afl_sync_cursor(afl_master_dir, "symcc01")
+    symcc_peer_scanned = symcc_cursor if symcc_cursor is not None else 0
+    symcc_peer_imported = _count_afl_sync_imports(
+        os.path.join(afl_master_dir, "queue"), "symcc01")
+    symcc_peer_not_retained = max(
+        0, symcc_peer_scanned - symcc_peer_imported)
+    symcc_peer_sync_complete = int(
+        symcc_peer_published == 0
+        or (
+            symcc_cursor is not None
+            and symcc_peer_scanned >= symcc_peer_published
+        )
+    )
+
+    policy_artifacts = _read_policy_artifacts(symcc_dir)
+    retained_unique = len(get_unique_hashes(combined_dir))
+    total_executed_or_generated = afl_execs_done + symcc_generated
 
     return {
         "wall_time": elapsed,
-        "generated": total_generated,
-        "unique": total_generated,
+        # AFL does not expose a mutation-generation counter. execs_done is the
+        # reproducible execution numerator; SymCC reports produced candidates.
+        "generated": total_executed_or_generated,
+        "generated_kind": "afl-executions-plus-symcc-candidates",
+        "unique": retained_unique,
         "output_dir": combined_dir,
         "retcode": (mpi_proc.returncode or 0) if mpi_proc is not None else -1,
         "timed_out": elapsed >= timeout * 0.95,
-        "throughput": total_generated / elapsed if elapsed > 0 else 0,
+        "throughput": (
+            total_executed_or_generated / elapsed if elapsed > 0 else 0),
+        "throughput_kind": "afl-executions-plus-symcc-candidates-per-second",
         "stdout": mpi_stdout[-500:] if mpi_stdout else "",
-        "stderr": "",
-        "afl_generated": afl_count,
+        "stderr": mpi_stderr[-500:] if mpi_stderr else "",
+        "afl_generated": afl_execs_done,
+        "afl_executions": afl_execs_done,
+        "symcc_generated": symcc_generated,
+        "afl_retained_files": afl_retained_files,
+        "afl_retained_unique": len(afl_unique_hashes),
+        "symcc_output_files": symcc_all_count,
         "symcc_interesting": symcc_interesting,
         "afl_bitmap_cvg": afl_bitmap_cvg,
         "afl_execs_done": afl_execs_done,
         "afl_execs_per_sec": afl_execs_per_sec,
         "afl_edges_found": afl_edges_found,
         "afl_total_edges": afl_total_edges,
+        "afl_corpus_imported": afl_corpus_imported,
+        "afl_master_corpus_imported": afl_master_corpus_imported,
+        "afl_master_sync_time": afl_master_sync_time,
+        "symcc_peer_published": symcc_peer_published,
+        "symcc_peer_scanned": symcc_peer_scanned,
+        "symcc_peer_imported": symcc_peer_imported,
+        "symcc_peer_not_retained": symcc_peer_not_retained,
+        "symcc_peer_sync_complete": symcc_peer_sync_complete,
+        "symcc_peer_pre_stop_complete": int(symcc_peer_pre_stop_complete),
+        "symcc_peer_cursor_before_final_sync": (
+            symcc_cursor_before_final_sync
+            if symcc_cursor_before_final_sync is not None
+            else 0
+        ),
+        "symcc_peer_frozen_published": frozen_symcc_published,
+        "symcc_sync_drain_seconds": symcc_sync_drain_seconds,
+        "cleanup_time": cleanup_elapsed,
+        "afl_sync_time_minutes": afl_sync_minutes,
+        "num_masters": 1,
         "num_workers": symcc_np - 1,
+        "auxiliary_compute_slots": auxiliary_compute_slots,
+        "afl_instances": len(afl_procs),
+        "afl_profiles": ",".join(used_afl_profiles),
+        "afl_variants": ",".join(sorted(variant_binaries)),
+        **policy_artifacts,
     }
 
 
 def run_afl_only(afl_binary: str, target_name: str,
                  seed_dir: str, timeout: int, work_dir: str,
                  extra_args: list[str] | None = None,
-                 cmplog_binary: str | None = None) -> dict:
-    """运行 AFL-only 基准模式（无 SymCC）。
-
-    仅启动 AFL fuzzer，作为 hybrid 模式的对照基准。
-    """
+                 cmplog_binary: str | None = None,
+                 instances: int = 1,
+                 afl_variants: dict[str, str] | None = None,
+                 afl_profile_mode: str = "auto") -> dict:
+    """Run an AFL-only baseline using an explicit, reproducible core budget."""
     afl_out_dir = os.path.join(work_dir, "afl_out")
     os.makedirs(afl_out_dir, exist_ok=True)
-
-    afl_cmd = [
-        "afl-fuzz",
-        "-M", "fuzzer01",
-        "-i", seed_dir,
-        "-o", afl_out_dir,
-        "-m", "none",
-    ]
-    _persistent = _afl_binary_uses_shmem(afl_binary)
-    # cmplog 持久性须与主二进制一致，否则 afl-fuzz 握手 ABORT；不一致则跳过 cmplog
-    if cmplog_binary and _afl_binary_uses_shmem(cmplog_binary) == _persistent:
-        afl_cmd.extend(["-c", cmplog_binary, "-l", "2AT"])
-    afl_cmd.extend(["--", afl_binary])
-    if extra_args:
-        afl_cmd.extend(extra_args)
-    # 持久+shmem 目标不带 @@（经共享内存进入 __AFL_LOOP，~35x 吞吐）；否则文件输入
-    if not _persistent:
-        afl_cmd.append("@@")
-
-    print(f"      Starting AFL-only: {' '.join(afl_cmd[:8])}...")
+    target_cwd = os.path.join(work_dir, "target_cwd")
+    os.makedirs(target_cwd, exist_ok=True)
+    instances = max(1, int(instances))
     afl_env = os.environ.copy()
     afl_env["AFL_NO_UI"] = "1"
     afl_env["AFL_SKIP_CPUFREQ"] = "1"
     afl_env["AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES"] = "1"
+    afl_env["AFL_AUTORESUME"] = "1"
+
+    variant_binaries = {"default": afl_binary}
+    for variant, path in (afl_variants or {}).items():
+        if path and os.path.isfile(path):
+            variant_binaries[variant] = path
+    profiles = (
+        AFL_RUNTIME_PROFILES if afl_profile_mode != "off" else [
+            AflRuntimeProfile("explore", "explore", "default")])
+    cmplog_persistent = (
+        _afl_binary_uses_shmem(cmplog_binary) if cmplog_binary else None)
+    afl_procs: list[subprocess.Popen] = []
+    used_profiles: list[str] = []
+
+    def terminate_all() -> None:
+        for proc in afl_procs:
+            if proc.poll() is not None:
+                continue
+            try:
+                os.killpg(proc.pid, signal.SIGTERM)
+                proc.wait(timeout=10)
+            except (OSError, subprocess.TimeoutExpired):
+                try:
+                    os.killpg(proc.pid, signal.SIGKILL)
+                    proc.wait(timeout=5)
+                except (OSError, subprocess.TimeoutExpired):
+                    proc.kill()
+
+    for index in range(instances):
+        name = f"fuzzer{index + 1:02d}"
+        is_master = index == 0
+        profile = (
+            AflRuntimeProfile("master-cmplog", "explore", "default",
+                              use_cmplog=True)
+            if is_master else profiles[(index - 1) % len(profiles)])
+        variant = (
+            profile.variant if profile.variant in variant_binaries else "default")
+        runner = variant_binaries[variant]
+        persistent = _afl_binary_uses_shmem(runner)
+        cmd = ["afl-fuzz"]
+        if is_master:
+            cmd.extend(["-M", name])
+        else:
+            cmd.extend(["-S", name, "-p", profile.schedule])
+            if profile.use_mopt:
+                cmd.extend(["-L", "0"])
+        cmd.extend(["-i", seed_dir, "-o", afl_out_dir, "-m", "none"])
+        if (cmplog_binary and profile.use_cmplog
+                and cmplog_persistent == persistent):
+            cmd.extend(["-c", cmplog_binary, "-l", "2AT"])
+        cmd.extend(["--", runner])
+        if extra_args:
+            cmd.extend(extra_args)
+        if not persistent:
+            cmd.append("@@")
+        instance_env = dict(afl_env)
+        instance_env.update(profile.env)
+        try:
+            afl_procs.append(subprocess.Popen(
+                cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                start_new_session=True, env=instance_env, cwd=target_cwd))
+        except (OSError, subprocess.SubprocessError):
+            terminate_all()
+            return {
+                "wall_time": 0, "generated": 0, "unique": 0,
+                "output_dir": afl_out_dir, "retcode": -1,
+                "timed_out": False, "throughput": 0,
+                "stdout": "", "stderr": "AFL spawn failed",
+                "afl_execs_done": 0, "afl_execs_per_sec": 0,
+                "afl_instances": len(afl_procs),
+            }
+        used_profiles.append(f"{name}:{profile.name}:{variant}")
+
+    print(f"      Starting AFL-only with {instances} instance(s)...")
 
     start = time.monotonic()
-    afl_proc = subprocess.Popen(
-        afl_cmd,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        start_new_session=True,
-        env=afl_env,
-    )
+    afl_proc = afl_procs[0]
 
     # 等待 AFL 初始化
     fuzzer_dir = os.path.join(afl_out_dir, "fuzzer01")
     stats_path = os.path.join(fuzzer_dir, "fuzzer_stats")
     afl_ready = False
-    while time.monotonic() - start < 30:
+    initialization_budget = min(30.0, max(0.0, float(timeout)))
+    while time.monotonic() - start < initialization_budget:
         if os.path.isfile(stats_path):
             afl_ready = True
             break
         if afl_proc.poll() is not None:
             print(f"      AFL exited early (ret={afl_proc.returncode})")
+            terminate_all()
             return {
                 "wall_time": time.monotonic() - start,
                 "generated": 0, "unique": 0, "output_dir": afl_out_dir,
                 "retcode": afl_proc.returncode, "timed_out": False,
                 "throughput": 0, "stdout": "", "stderr": "",
+                "afl_execs_done": 0, "afl_execs_per_sec": 0,
+                "afl_instances": instances,
             }
-        time.sleep(0.5)
+        remaining_init = (
+            initialization_budget - (time.monotonic() - start))
+        if remaining_init > 0:
+            time.sleep(min(0.5, remaining_init))
 
     if not afl_ready:
-        print("      WARNING: AFL did not initialize in 30s, continuing anyway")
+        print(f"      WARNING: AFL did not initialize within "
+              f"{initialization_budget:g}s campaign allowance")
 
     # 等待 timeout
     remaining = timeout - (time.monotonic() - start)
@@ -2015,23 +3194,19 @@ def run_afl_only(afl_binary: str, target_name: str,
         except subprocess.TimeoutExpired:
             pass
 
-    # 终止 AFL
-    if afl_proc.poll() is None:
-        try:
-            os.killpg(afl_proc.pid, signal.SIGTERM)
-            afl_proc.wait(timeout=10)
-        except (OSError, subprocess.TimeoutExpired):
-            try:
-                os.killpg(afl_proc.pid, signal.SIGKILL)
-                afl_proc.wait(timeout=5)
-            except (OSError, subprocess.TimeoutExpired):
-                afl_proc.kill()
+    terminate_all()
 
     elapsed = time.monotonic() - start
 
     # 收集结果
-    afl_queue = os.path.join(afl_out_dir, "fuzzer01", "queue")
-    afl_count = count_output_files(afl_queue) if os.path.isdir(afl_queue) else 0
+    afl_queues = [
+        os.path.join(afl_out_dir, f"fuzzer{index + 1:02d}", "queue")
+        for index in range(instances)
+        if os.path.isdir(os.path.join(
+            afl_out_dir, f"fuzzer{index + 1:02d}", "queue"))
+    ]
+    afl_retained_files = sum(count_output_files(path) for path in afl_queues)
+    afl_unique_hashes = get_unique_hashes_many(afl_queues)
 
     # 合并种子和 AFL queue 用于覆盖率测量
     combined_dir = os.path.join(work_dir, "combined_output")
@@ -2042,11 +3217,13 @@ def run_afl_only(afl_binary: str, target_name: str,
         if os.path.isfile(src):
             shutil.copy2(src, os.path.join(combined_dir, f"seed_{f}"))
 
-    if os.path.isdir(afl_queue):
-        for f in os.listdir(afl_queue):
-            src = os.path.join(afl_queue, f)
-            if os.path.isfile(src):
-                shutil.copy2(src, os.path.join(combined_dir, f"afl_{f}"))
+    for queue in afl_queues:
+        instance = os.path.basename(os.path.dirname(queue))
+        for f in os.listdir(queue):
+            src = os.path.join(queue, f)
+            if _is_corpus_filename(f) and os.path.isfile(src):
+                _link_or_copy(
+                    src, os.path.join(combined_dir, f"afl_{instance}_{f}"))
 
     # 从 fuzzer_stats 解析关键指标
     afl_bitmap_cvg = ""
@@ -2055,36 +3232,38 @@ def run_afl_only(afl_binary: str, target_name: str,
     afl_corpus_count = 0
     afl_edges_found = 0
     afl_total_edges = 0
-    if os.path.isfile(stats_path):
+    best_bitmap = -1.0
+    for index in range(instances):
+        path = os.path.join(
+            afl_out_dir, f"fuzzer{index + 1:02d}", "fuzzer_stats")
+        if not os.path.isfile(path):
+            continue
+        fields = _read_afl_stat_fields(path)
         try:
-            with open(stats_path) as f:
-                for line in f:
-                    key, _, val = line.partition(":")
-                    key = key.strip()
-                    val = val.strip()
-                    if key == "bitmap_cvg":
-                        afl_bitmap_cvg = val
-                    elif key == "execs_done":
-                        afl_execs_done = int(val)
-                    elif key == "execs_per_sec":
-                        afl_execs_per_sec = float(val)
-                    elif key == "corpus_count":
-                        afl_corpus_count = int(val)
-                    elif key == "edges_found":
-                        afl_edges_found = int(val)
-                    elif key == "total_edges":
-                        afl_total_edges = int(val)
-        except (OSError, ValueError):
+            bitmap = fields.get("bitmap_cvg", "")
+            if bitmap and float(bitmap.rstrip("%")) > best_bitmap:
+                best_bitmap = float(bitmap.rstrip("%"))
+                afl_bitmap_cvg = bitmap
+            afl_execs_done += int(fields.get("execs_done", "0"))
+            afl_execs_per_sec += float(fields.get("execs_per_sec", "0"))
+            afl_corpus_count += int(fields.get("corpus_count", "0"))
+            afl_edges_found = max(
+                afl_edges_found, int(fields.get("edges_found", "0")))
+            afl_total_edges = max(
+                afl_total_edges, int(fields.get("total_edges", "0")))
+        except ValueError:
             pass
 
     return {
         "wall_time": elapsed,
-        "generated": afl_count,       # queue 中的 interesting 用例数
-        "unique": afl_count,
+        "generated": afl_execs_done,
+        "generated_kind": "afl-executions",
+        "unique": len(afl_unique_hashes),
         "output_dir": combined_dir,
         "retcode": afl_proc.returncode or 0,
         "timed_out": elapsed >= timeout * 0.95,
-        "throughput": afl_count / elapsed if elapsed > 0 else 0,
+        "throughput": afl_execs_done / elapsed if elapsed > 0 else 0,
+        "throughput_kind": "afl-executions-per-second",
         "stdout": "",
         "stderr": "",
         "afl_bitmap_cvg": afl_bitmap_cvg,
@@ -2093,6 +3272,13 @@ def run_afl_only(afl_binary: str, target_name: str,
         "afl_corpus_count": afl_corpus_count,
         "afl_edges_found": afl_edges_found,
         "afl_total_edges": afl_total_edges,
+        "afl_generated": afl_execs_done,
+        "afl_executions": afl_execs_done,
+        "afl_retained_files": afl_retained_files,
+        "afl_retained_unique": len(afl_unique_hashes),
+        "afl_instances": instances,
+        "afl_profiles": ",".join(used_profiles),
+        "afl_variants": ",".join(sorted(variant_binaries)),
     }
 
 
@@ -2115,21 +3301,105 @@ def generate_report(results, output_dir):
     with open(csv_path, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow([
-            "target", "mode", "np", "round",
-            "wall_time_sec", "generated", "unique", "throughput_tc_s",
-            "edge_cov_pct", "edges_found", "edges_total", "crashes",
+            "experiment_id", "run_id", "protocol_run_id", "pair_id",
+            "phase", "random_seed", "status", "failure_reason", "retcode",
+            "budget_exhausted",
+            "target", "configuration", "mode", "np", "round",
+            "allocated_cpu_cores", "num_masters", "num_workers",
+            "auxiliary_compute_slots", "cpu_budget_seconds",
+            "wall_budget_seconds", "coverage_auc",
+            "wall_time_sec", "generated", "generated_kind",
+            "afl_generated", "afl_executions",
+            "symcc_generated", "symcc_interesting",
+            "symcc_peer_published", "symcc_peer_scanned",
+            "symcc_peer_imported", "symcc_peer_not_retained",
+            "symcc_peer_sync_complete", "symcc_peer_pre_stop_complete",
+            "symcc_peer_cursor_before_final_sync",
+            "symcc_peer_frozen_published", "symcc_sync_drain_seconds",
+            "cleanup_time_sec", "afl_master_corpus_imported",
+            "afl_corpus_imported", "afl_master_sync_time",
+            "afl_sync_time_minutes",
+            "unique", "throughput_per_sec", "throughput_kind",
+            "afl_retained_files", "afl_retained_unique",
+            "symcc_output_files", "afl_instances",
+            "edge_cov_pct", "edges_found", "edges_total",
+            "coverage_measure_ok", "coverage_edge_count_ok",
+            "coverage_denominator_kind", "coverage_map_size",
+            "coverage_sampled", "coverage_sampled_cases",
+            "coverage_total_cases", "crashes",
             "speedup", "efficiency",
             "afl_bitmap_cvg", "afl_edges_found", "afl_total_edges",
-            "afl_execs_done", "afl_execs_per_sec"
+            "afl_execs_done", "afl_execs_per_sec",
+            "afl_profiles", "afl_variants",
+            "offline_events", "offline_approved_action",
+            "offline_evaluations", "offline_trajectory", "offline_policy",
+            "smt_algorithm_observations", "smt_algorithm_clusters",
+            "smt_algorithm_state", "smt_sequence_prior_sha256",
+            "smt_sequence_prior_kind",
+            "smt_sequence_prior_recommendations",
+            "smt_sequence_prior_matches",
+            "smt_sequence_prior_budgeted_assignments",
+            "smt_sequence_prior_schedule_completions",
+            "smt_sequence_prior_match_rate",
         ])
         for row in results:
             writer.writerow([
-                row["target"], row["mode"], row["np"], row["round"],
-                f"{row['wall_time']:.2f}", row["generated"], row["unique"],
+                row.get("experiment_id", ""),
+                row.get("run_id", ""),
+                row.get("protocol_run_id", ""),
+                row.get("pair_id", ""),
+                row.get("phase", ""),
+                row.get("random_seed", 0),
+                row.get("status", ""),
+                row.get("failure_reason", ""),
+                row.get("retcode", ""),
+                int(bool(row.get("budget_exhausted", False))),
+                row["target"], row.get("configuration", row["mode"]),
+                row["mode"], row["np"], row["round"],
+                row.get("allocated_cpu_cores", 1),
+                row.get("num_masters", 0),
+                row.get("num_workers", 0),
+                row.get("auxiliary_compute_slots", ""),
+                f"{row.get('cpu_budget_seconds', 0.0):.3f}",
+                f"{row.get('wall_budget_seconds', 0.0):.3f}",
+                f"{row.get('coverage_auc', 0.0):.6f}",
+                f"{row['wall_time']:.2f}", row["generated"],
+                row.get("generated_kind", "unspecified"),
+                row.get("afl_generated", 0),
+                row.get("afl_executions", row.get("afl_execs_done", 0)),
+                row.get("symcc_generated", 0),
+                row.get("symcc_interesting", 0),
+                row.get("symcc_peer_published", 0),
+                row.get("symcc_peer_scanned", 0),
+                row.get("symcc_peer_imported", 0),
+                row.get("symcc_peer_not_retained", 0),
+                row.get("symcc_peer_sync_complete", 0),
+                row.get("symcc_peer_pre_stop_complete", 0),
+                row.get("symcc_peer_cursor_before_final_sync", 0),
+                row.get("symcc_peer_frozen_published", 0),
+                f"{row.get('symcc_sync_drain_seconds', 0.0):.3f}",
+                f"{row.get('cleanup_time', 0.0):.3f}",
+                row.get("afl_master_corpus_imported", 0),
+                row.get("afl_corpus_imported", 0),
+                row.get("afl_master_sync_time", 0),
+                row.get("afl_sync_time_minutes", 0),
+                row["unique"],
                 f"{row.get('throughput', 0.0):.2f}",
+                row.get("throughput_kind", "unspecified"),
+                row.get("afl_retained_files", 0),
+                row.get("afl_retained_unique", 0),
+                row.get("symcc_output_files", 0),
+                row.get("afl_instances", 0),
                 f"{row.get('edge_cov', 0.0):.2f}",
                 row.get("edges_found", 0),
                 row.get("edges_total", 0),
+                int(bool(row.get("coverage_measure_ok", False))),
+                int(bool(row.get("coverage_edge_count_ok", False))),
+                row.get("coverage_denominator_kind", "unavailable"),
+                row.get("coverage_map_size", 0),
+                int(bool(row.get("coverage_sampled", False))),
+                row.get("coverage_sampled_cases", 0),
+                row.get("coverage_total_cases", 0),
                 row.get("crashes", 0),
                 f"{row.get('speedup', 1.0):.2f}",
                 f"{row.get('efficiency', 100.0):.1f}",
@@ -2138,6 +3408,23 @@ def generate_report(results, output_dir):
                 row.get("afl_total_edges", 0),
                 row.get("afl_execs_done", 0),
                 row.get("afl_execs_per_sec", 0),
+                row.get("afl_profiles", ""),
+                row.get("afl_variants", ""),
+                row.get("offline_events", 0),
+                row.get("offline_approved_action", ""),
+                row.get("offline_evaluations", 0),
+                row.get("offline_trajectory", ""),
+                row.get("offline_policy", ""),
+                row.get("smt_algorithm_observations", 0),
+                row.get("smt_algorithm_clusters", 0),
+                row.get("smt_algorithm_state", ""),
+                row.get("smt_sequence_prior_sha256", ""),
+                row.get("smt_sequence_prior_kind", ""),
+                row.get("smt_sequence_prior_recommendations", 0),
+                row.get("smt_sequence_prior_matches", 0),
+                row.get("smt_sequence_prior_budgeted_assignments", 0),
+                row.get("smt_sequence_prior_schedule_completions", 0),
+                row.get("smt_sequence_prior_match_rate", 0.0),
             ])
 
     # JSON output
@@ -2167,7 +3454,17 @@ def generate_report(results, output_dir):
             summaries = []
             for (mode, np_val), rows in sorted(configs.items()):
                 avg_time = sum(r["wall_time"] for r in rows) / len(rows)
-                avg_gen = sum(r["generated"] for r in rows) / len(rows)
+                avg_symcc_generated = sum(
+                    r.get(
+                        "symcc_generated",
+                        r["generated"] if mode in ("serial", "mpi") else 0,
+                    )
+                    for r in rows
+                ) / len(rows)
+                avg_afl_executions = sum(
+                    r.get("afl_executions", r.get("afl_execs_done", 0))
+                    for r in rows
+                ) / len(rows)
                 avg_uniq = sum(r["unique"] for r in rows) / len(rows)
                 avg_edge_cov = sum(r.get("edge_cov", 0) for r in rows) / len(rows)
                 avg_edges_found = sum(r.get("edges_found", 0) for r in rows) / len(rows)
@@ -2175,19 +3472,46 @@ def generate_report(results, output_dir):
                 total_crashes = sum(r.get("crashes", 0) for r in rows)
                 avg_workers = sum(r.get("num_workers", np_val - 1) for r in rows) / len(rows)
                 avg_throughput = sum(r.get("throughput", 0) for r in rows) / len(rows)
+                throughput_kinds = {
+                    r.get("throughput_kind", "unspecified") for r in rows
+                }
+                throughput_kind = (
+                    next(iter(throughput_kinds))
+                    if len(throughput_kinds) == 1 else "mixed"
+                )
                 # fuzzer_stats 指标（仅 hybrid 和 afl-only 有值）
                 avg_afl_edges_found = sum(r.get("afl_edges_found", 0) for r in rows) / len(rows)
                 avg_afl_total_edges = sum(r.get("afl_total_edges", 0) for r in rows) / len(rows)
                 avg_afl_bitmap_cvg = sum(parse_bitmap_cvg(r.get("afl_bitmap_cvg", "")) for r in rows) / len(rows)
                 avg_afl_execs_done = sum(r.get("afl_execs_done", 0) for r in rows) / len(rows)
                 avg_afl_execs_per_sec = sum(r.get("afl_execs_per_sec", 0) for r in rows) / len(rows)
+                avg_afl_master_corpus_imported = sum(
+                    r.get("afl_master_corpus_imported", 0)
+                    for r in rows) / len(rows)
+                avg_symcc_peer_published = sum(
+                    r.get("symcc_peer_published", 0)
+                    for r in rows) / len(rows)
+                avg_symcc_peer_scanned = sum(
+                    r.get("symcc_peer_scanned", 0)
+                    for r in rows) / len(rows)
+                avg_symcc_peer_imported = sum(
+                    r.get("symcc_peer_imported", 0)
+                    for r in rows) / len(rows)
+                avg_symcc_peer_not_retained = sum(
+                    r.get("symcc_peer_not_retained", 0)
+                    for r in rows) / len(rows)
+                symcc_peer_sync_complete_runs = sum(
+                    int(bool(r.get("symcc_peer_sync_complete", 0)))
+                    for r in rows)
                 summaries.append({
                     "mode": mode,
                     "np": np_val,
                     "avg_time": avg_time,
-                    "avg_generated": avg_gen,
+                    "avg_symcc_generated": avg_symcc_generated,
+                    "avg_afl_executions": avg_afl_executions,
                     "avg_unique": avg_uniq,
                     "avg_throughput": avg_throughput,
+                    "throughput_kind": throughput_kind,
                     "avg_edge_cov": avg_edge_cov,
                     "avg_edges_found": avg_edges_found,
                     "avg_edges_total": avg_edges_total,
@@ -2199,13 +3523,24 @@ def generate_report(results, output_dir):
                     "avg_afl_bitmap_cvg": avg_afl_bitmap_cvg,
                     "avg_afl_execs_done": avg_afl_execs_done,
                     "avg_afl_execs_per_sec": avg_afl_execs_per_sec,
+                    "avg_afl_master_corpus_imported":
+                        avg_afl_master_corpus_imported,
+                    "avg_symcc_peer_published": avg_symcc_peer_published,
+                    "avg_symcc_peer_scanned": avg_symcc_peer_scanned,
+                    "avg_symcc_peer_imported": avg_symcc_peer_imported,
+                    "avg_symcc_peer_not_retained":
+                        avg_symcc_peer_not_retained,
+                    "symcc_peer_sync_complete_runs":
+                        symcc_peer_sync_complete_runs,
                 })
 
-            # Find serial baseline for speedup（下方 ASCII 图用）
+            # Find the serial baseline for like-for-like candidate throughput.
             serial_throughput = None
+            serial_throughput_kind = None
             for s in summaries:
                 if s["mode"] == "serial":
                     serial_throughput = s["avg_throughput"]
+                    serial_throughput_kind = s["throughput_kind"]
 
             # Check if any coverage data is present
             has_cov = any(s["avg_edge_cov"] > 0 for s in summaries)
@@ -2224,24 +3559,26 @@ def generate_report(results, output_dir):
 
             # Table header
             hdr = (f"  {'Mode':<10} {'NP':>4} {'Time':>10} "
-                   f"{'Gen':>8} ")
+                   f"{'SymCCGen':>10} {'AFLExec':>10} {'Unique':>8} ")
             sep = (f"  {'─'*10} {'─'*4} {'─'*10} "
-                   f"{'─'*8} ")
+                   f"{'─'*10} {'─'*10} {'─'*8} ")
             if has_cov:
                 hdr += f"{'ShowmapCov':>11} {'Edges':>14} "
                 sep += f"{'─'*11} {'─'*14} "
             if has_fstats:
                 hdr += f"{'FstatsCov':>10} {'FEdges':>14} "
                 sep += f"{'─'*10} {'─'*14} "
-            hdr += f"{'Execs':>10} {'exec/s':>8}\n"
-            sep += f"{'─'*10} {'─'*8}\n"
+            hdr += f"{'AFL/s':>10}\n"
+            sep += f"{'─'*10}\n"
             f.write(hdr)
             f.write(sep)
 
             for s in summaries:
                 line = (f"  {s['mode']:<10} {s['np']:>4} "
                         f"{format_time(s['avg_time']):>10} "
-                        f"{s['avg_generated']:>8.0f} ")
+                        f"{s['avg_symcc_generated']:>10.0f} "
+                        f"{s['avg_afl_executions']:>10.0f} "
+                        f"{s['avg_unique']:>8.0f} ")
                 if has_cov:
                     edges_str = f"{int(s['avg_edges_found'])}/{int(s['avg_edges_total'])}"
                     line += (f"{s['avg_edge_cov']:>10.2f}% "
@@ -2255,12 +3592,28 @@ def generate_report(results, output_dir):
                         line += f"{afl_cvg:>9.2f}% {fedges_str:>14} "
                     else:
                         line += f"{'N/A':>10} {'N/A':>14} "
-                afl_execs = int(s.get("avg_afl_execs_done", 0))
                 afl_eps = s.get("avg_afl_execs_per_sec", 0)
-                line += f"{afl_execs:>10} {afl_eps:>8.0f}\n"
+                line += f"{afl_eps:>10.0f}\n"
                 f.write(line)
 
             f.write("\n")
+
+            if any(s["mode"] == "hybrid" for s in summaries):
+                f.write("  Online SymCC -> AFL Native Peer Sync:\n")
+                for s in summaries:
+                    if s["mode"] != "hybrid":
+                        continue
+                    f.write(
+                        f"    hybrid np={s['np']}: "
+                        f"published={s['avg_symcc_peer_published']:.1f}, "
+                        f"scanned={s['avg_symcc_peer_scanned']:.1f}, "
+                        f"imported={s['avg_symcc_peer_imported']:.1f}, "
+                        f"not-retained="
+                        f"{s['avg_symcc_peer_not_retained']:.1f}, "
+                        f"complete-runs="
+                        f"{s['symcc_peer_sync_complete_runs']}/"
+                        f"{s['rounds']}\n")
+                f.write("\n")
 
             # Edge Coverage chart (ASCII) - most important metric
             if has_cov:
@@ -2282,9 +3635,9 @@ def generate_report(results, output_dir):
                     f.write(f"  {label:>16} |{bar}| {cov:.2f}%\n")
                 f.write("\n")
 
-            # SymCC 贡献分析
+            # This is an end-to-end coverage delta, not an attribution claim.
             if seed_cov > 0:
-                f.write("  SymCC Contribution Analysis:\n")
+                f.write("  Coverage Gain over Seed Baseline:\n")
                 f.write(f"    Seed baseline: {seed_cov:.2f}% ({seed_edges} edges)\n")
                 for s in summaries:
                     if s["mode"] in ("mpi", "hybrid", "afl-only") and s["avg_edge_cov"] > 0:
@@ -2295,23 +3648,32 @@ def generate_report(results, output_dir):
                                 f"(+{abs_gain:.2f}pp, +{rel_gain:.1f}% relative)\n")
                 f.write("\n")
 
-            # Throughput Speedup chart (ASCII)
-            f.write("  Throughput Speedup Chart (tc/s ratio vs serial):\n")
+            # Compare throughput only when both rows use exactly the same unit.
+            f.write("  Like-for-like Throughput Speedup vs Serial:\n")
             max_speedup = 1.0
             speedups = []
             for s in summaries:
                 if (serial_throughput and serial_throughput > 0
-                        and s["mode"] != "serial"):
+                        and s["mode"] != "serial"
+                        and s["throughput_kind"] == serial_throughput_kind):
                     sp = (s["avg_throughput"] / serial_throughput
                           if serial_throughput > 0 else 0)
-                else:
+                elif s["mode"] == "serial":
                     sp = 1.0
+                else:
+                    sp = None
                 speedups.append(sp)
-                max_speedup = max(max_speedup, sp)
+                if sp is not None:
+                    max_speedup = max(max_speedup, sp)
             scale = 40 / max_speedup if max_speedup > 0 else 1
             for s, sp in zip(summaries, speedups):
+                label = f"  {s['mode']} np={s['np']:>3}"
+                if sp is None:
+                    f.write(
+                        f"  {label} |{'N/A':^40}| different unit: "
+                        f"{s['throughput_kind']}\n")
+                    continue
                 bar_len = int(sp * scale)
-                label = f"  np={s['np']:>3}" if s["mode"] != "serial" else "  serial"
                 bar = "█" * bar_len + "░" * max(0, 40 - bar_len)
                 f.write(f"  {label} |{bar}| {sp:.1f}x\n")
             f.write("\n")
@@ -2321,25 +3683,37 @@ def generate_report(results, output_dir):
         f.write("  OVERALL SUMMARY\n")
         f.write(f"{'=' * 80}\n\n")
 
-        # Find best config per target (by coverage first, then throughput)
+        # Retained content hashes have one meaning in every mode; generic
+        # generated/throughput values do not. Rank by coverage, then corpus
+        # cardinality, and report engine-native counters separately.
         for target in sorted(by_target.keys()):
             configs = by_target[target]
             best = None
-            best_score = -1
+            best_score = None
             for (mode, np_val), rows in configs.items():
                 avg_time = sum(r["wall_time"] for r in rows) / len(rows)
-                avg_gen = sum(r["generated"] for r in rows) / len(rows)
+                avg_unique = sum(r["unique"] for r in rows) / len(rows)
+                avg_symcc_generated = sum(
+                    r.get(
+                        "symcc_generated",
+                        r["generated"] if mode in ("serial", "mpi") else 0,
+                    )
+                    for r in rows
+                ) / len(rows)
+                avg_afl_executions = sum(
+                    r.get("afl_executions", r.get("afl_execs_done", 0))
+                    for r in rows
+                ) / len(rows)
                 avg_edge_cov = sum(r.get("edge_cov", 0) for r in rows) / len(rows)
                 total_crashes = sum(r.get("crashes", 0) for r in rows)
-                throughput = avg_gen / avg_time if avg_time > 0 else 0
-                # Score: prioritize coverage, then throughput
-                score = avg_edge_cov * 1000 + throughput
-                if score > best_score:
+                score = (avg_edge_cov, avg_unique)
+                if best_score is None or score > best_score:
                     best_score = score
                     best = {
                         "mode": mode, "np": np_val,
-                        "time": avg_time, "gen": avg_gen,
-                        "throughput": throughput,
+                        "time": avg_time, "unique": avg_unique,
+                        "symcc_generated": avg_symcc_generated,
+                        "afl_executions": avg_afl_executions,
                         "edge_cov": avg_edge_cov,
                         "crashes": total_crashes,
                     }
@@ -2347,8 +3721,9 @@ def generate_report(results, output_dir):
             if best:
                 info = (f"  {target}: best = {best['mode']} np={best['np']} "
                         f"({format_time(best['time'])}, "
-                        f"{best['gen']:.0f} test cases, "
-                        f"{best['throughput']:.1f} tc/s")
+                        f"{best['unique']:.0f} retained unique, "
+                        f"{best['symcc_generated']:.0f} SymCC candidates, "
+                        f"{best['afl_executions']:.0f} AFL executions")
                 if best["edge_cov"] > 0:
                     info += f", edge_cov={best['edge_cov']:.2f}%"
                 if best["crashes"] > 0:
@@ -2384,6 +3759,9 @@ def main():
                         help="Timeout per run in seconds (default: 60)")
     parser.add_argument("--output", default="benchmark_results",
                         help="Output directory (default: benchmark_results)")
+    parser.add_argument("--bin-dir", default=None,
+                        help="Shared directory for built/reused binaries "
+                             "(default: OUTPUT/bin)")
     parser.add_argument("--skip-build", action="store_true",
                         help="Skip compilation step")
     parser.add_argument("--simulation", action="store_true",
@@ -2410,6 +3788,12 @@ def main():
                              "dynamically parks/unparks SymCC workers and scales AFL "
                              "instances based on live SymCC useful-ratio. Overrides "
                              "--hybrid-afl-instances.")
+    parser.add_argument("--aflpp-profiles", choices=["auto", "off", "basic", "full"],
+                        default="auto",
+                        help="AFL++ strategy-profile orchestration. auto=full for "
+                             "--hybrid-adaptive, basic for --hybrid/--afl-only, off "
+                             "otherwise. basic builds/uses default+LAF+CTX; full also "
+                             "adds Ngram and LAF+CTX variants plus CmpLog companions.")
     parser.add_argument("--hybrid-grimoire", action="store_true",
                         help="Add GRIMOIRE-style grammar-free structural synthesizer as an "
                              "ensemble member (feeds AFL via -F). CPU-only; helps structured parsers.")
@@ -2426,6 +3810,24 @@ def main():
                              "(no-solve pass) and cut equal-density regions (isolate hot "
                              "bytes) instead of equal-width. Implies --symcc-diversity; "
                              "needs a density-profiling SymCC runtime (else falls back).")
+    parser.add_argument("--directed-sites", default=None,
+                        help="Comma-separated QSYM telemetry branch site ids to prioritize "
+                             "in adaptive hybrid runs. Also accepted through "
+                             "SYMCC_DIRECTED_SITES.")
+    parser.add_argument("--directed-distance", default=None,
+                        help="Path to a directed hybrid site-distance map. Accepts JSON "
+                             "or text lines '<site> <distance>' and is forwarded as "
+                             "SYMCC_DIRECTED_DISTANCE.")
+    parser.add_argument("--directed-targets", default=None,
+                        help="Compile-time ColorGo-style target specs for built-in "
+                             "SymCC targets. Values are comma-separated function names, "
+                             "file:line locations, or numeric site ids. The compiler "
+                             "emits per-target *.directed_distance maps.")
+    parser.add_argument(
+        "--structural-tasks", action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Compile and use DynamiQ-style call-graph structural tasks. "
+             "Defaults to enabled for --hybrid-adaptive and disabled otherwise.")
     parser.add_argument("--afl-only", action="store_true",
                         help="Also run AFL-only baseline (requires AFL-instrumented binaries)")
     parser.add_argument("--no-serial", action="store_true",
@@ -2441,6 +3843,13 @@ def main():
     # worker 的 run_symcc_worker 据此走 SymCC(默认)或 SymSan(fgtest)路径。
     if args.engine:
         os.environ["SYMCC_ENGINE"] = args.engine
+    if args.directed_sites:
+        os.environ["SYMCC_DIRECTED_SITES"] = args.directed_sites
+    if args.directed_distance:
+        os.environ["SYMCC_DIRECTED_DISTANCE"] = args.directed_distance
+    structural_tasks_enabled = (
+        args.hybrid_adaptive
+        if args.structural_tasks is None else args.structural_tasks)
 
     try:
         np_list = [int(x) for x in args.np_list.split(",")]
@@ -2452,9 +3861,14 @@ def main():
         target_names = []  # will be populated by public auto-discovery
     else:
         target_names = list(TARGETS.keys())
+    afl_profile_mode = resolve_afl_profile_mode(
+        args.aflpp_profiles, args.hybrid, args.hybrid_adaptive, args.afl_only)
 
     output_dir = os.path.abspath(args.output)
-    bin_dir = os.path.join(output_dir, "bin")
+    bin_dir = (
+        os.path.abspath(args.bin_dir)
+        if args.bin_dir else os.path.join(output_dir, "bin")
+    )
     os.makedirs(output_dir, exist_ok=True)
 
     print("=" * 70)
@@ -2465,12 +3879,20 @@ def main():
     print(f"  Rounds:      {args.rounds}")
     print(f"  Timeout:     {args.timeout}s per run")
     print(f"  Coverage:    {'enabled' if not args.no_coverage else 'disabled'}")
+    print(f"  AFL++ prof:  {afl_profile_mode}")
+    if args.directed_targets:
+        print(f"  Directed:    compile-time targets={args.directed_targets}")
+    elif args.directed_distance:
+        print(f"  Directed:    distance map={args.directed_distance}")
+    print(f"  Struct tasks:{' enabled' if structural_tasks_enabled else ' disabled'}")
     print(f"  Output:      {output_dir}")
     print()
 
     # Build step
     binaries = {}
     micro_afl = {}   # 微目标的 AFL 二进制(afl-clang-fast),供 hybrid 的 AFL 侧 + 覆盖测量
+    micro_afl_variants: dict[str, dict[str, str]] = defaultdict(dict)
+    micro_cmplog: dict[str, str] = {}
     if args.no_default:
         print("Step 1: Skipping built-in targets (--no-default)")
         print("-" * 40)
@@ -2485,7 +3907,9 @@ def main():
             print("  (Simulation mode: using gcc)")
             binaries = build_targets_gcc(bin_dir)
         else:
-            binaries = build_targets(bin_dir, _engine)   # 按 --engine 选 symcc/ko-clang
+            binaries = build_targets(
+                bin_dir, _engine, args.directed_targets,
+                structural_tasks_enabled)   # 按 --engine 选 symcc/ko-clang
             if not binaries and _engine.name == "symcc":
                 print("  SymCC not found, falling back to gcc (simulation mode)")
                 print("  NOTE: simulation mode tests the MPI framework overhead,")
@@ -2493,13 +3917,16 @@ def main():
                 binaries = build_targets_gcc(bin_dir)
                 args.simulation = True
             if not args.simulation:
-                micro_afl = build_afl_targets(bin_dir)  # 微目标 AFL 二进制(hybrid 需要)
+                micro_afl, micro_afl_variants, micro_cmplog = build_afl_targets(
+                    bin_dir, afl_profile_mode)  # 微目标 AFL 二进制(hybrid 需要)
     else:
         # Find existing binaries。【只认当前引擎的后缀】:此前会退回 _symcc/_native,
         # 于是 --engine symsan --skip-build 时捡起 SymCC 二进制交给 fgtest 跑,
         # fgtest 找不到 DFSan 回调 → 全程 0 输出,却看起来像"SymSan 效果差"。
         # 宁可缺目标(下面明确提示)也不要跑错引擎的二进制。
-        _engine_sfx = get_engine().binary_suffix
+        _engine_sfx = (
+            "_native" if args.simulation else get_engine().binary_suffix
+        )
         for name in target_names:
             path = os.path.join(bin_dir, f"{name}{_engine_sfx}")
             if os.path.isfile(path):
@@ -2507,6 +3934,14 @@ def main():
             afl_p = os.path.join(bin_dir, f"{name}_afl")
             if os.path.isfile(afl_p):
                 micro_afl[name] = afl_p
+                micro_afl_variants[name]["default"] = afl_p
+            for variant in AFL_BUILD_VARIANTS:
+                vp = os.path.join(bin_dir, f"{name}{variant.suffix}")
+                if os.path.isfile(vp):
+                    micro_afl_variants[name][variant.name] = vp
+            cp = os.path.join(bin_dir, f"{name}_afl_cmplog")
+            if os.path.isfile(cp):
+                micro_cmplog[name] = cp
         if not binaries and target_names:
             print(f"  WARNING: --skip-build 下没找到任何 *{_engine_sfx} 二进制"
                   f"(引擎 ={get_engine().name});请先构建或换 --engine")
@@ -2518,7 +3953,23 @@ def main():
     public_seed_dirs = {}
     target_extra_args: dict[str, list[str]] = {}  # 目标额外参数，如 base64 的 "-d"
     target_cmplog: dict[str, str] = {}  # 目标的 cmplog 二进制路径
+    target_directed_distance: dict[str, str] = {}
+    target_task_graph: dict[str, str] = {}
+    target_afl_variants: dict[str, dict[str, str]] = {
+        name: dict(paths) for name, paths in micro_afl_variants.items()
+    }
+    target_cmplog.update(micro_cmplog)
+    for name in target_names:
+        distance_path = os.path.join(bin_dir, f"{name}.directed_distance")
+        if directed_distance_map_has_rows(distance_path):
+            target_directed_distance[name] = distance_path
+        task_graph_path = os.path.join(bin_dir, f"{name}.task_graph")
+        if os.path.isfile(task_graph_path):
+            target_task_graph[name] = task_graph_path
     if not args.no_public:
+        public_afl_variants = discover_public_afl_variants()
+        for name, paths in public_afl_variants.items():
+            target_afl_variants.setdefault(name, {}).update(paths)
         public_specs = list(args.public) if args.public is not None else []
 
         # Auto-discover from benchmark/public/bin/ if no explicit specs
@@ -2609,6 +4060,10 @@ def main():
 
     available_targets = [t for t in target_names if t in binaries]
     print(f"\n  Available targets: {', '.join(available_targets)}")
+    if not available_targets:
+        requested = ", ".join(target_names) or "<none>"
+        print(f"\nERROR: None of the requested targets are available: {requested}")
+        sys.exit(2)
 
     # Check MPI
     if not shutil.which("mpirun"):
@@ -2643,6 +4098,24 @@ def main():
         print(f"\n  CmpLog binaries ({len(target_cmplog)}):")
         for name in sorted(target_cmplog):
             print(f"    {name}: {target_cmplog[name]}")
+
+    if target_directed_distance:
+        print(f"\n  Directed distance maps ({len(target_directed_distance)}):")
+        for name in sorted(target_directed_distance):
+            print(f"    {name}: {target_directed_distance[name]}")
+    if target_task_graph:
+        print(f"\n  Structural task graphs ({len(target_task_graph)}):")
+        for name in sorted(target_task_graph):
+            print(f"    {name}: {target_task_graph[name]}")
+
+    profiled_targets = {
+        name: paths for name, paths in target_afl_variants.items()
+        if len(paths) > 1 or "default" in paths
+    }
+    if profiled_targets and afl_profile_mode != "off":
+        print(f"\n  AFL++ profile variants ({len(profiled_targets)} targets):")
+        for name in sorted(profiled_targets):
+            print(f"    {name}: {', '.join(sorted(profiled_targets[name]))}")
 
     # Prepare seed directories per target
     seed_dirs = {}
@@ -2692,13 +4165,18 @@ def main():
                 "np": 0,
                 "round": 1,
                 "wall_time": 0,
-                "generated": len(os.listdir(seed_dir)),
-                "unique": len(os.listdir(seed_dir)),
+                "generated": count_output_files(seed_dir),
+                "generated_kind": "seed-files",
+                "unique": len(get_unique_hashes(seed_dir)),
                 "throughput": 0,
+                "throughput_kind": "not-applicable",
                 "edge_cov": seed_cov_data.get("edge_cov", 0.0),
                 "edges_found": seed_cov_data.get("edges_found", 0),
                 "edges_total": seed_cov_data.get("edges_total", 0),
                 "crashes": 0,
+                "status": "success",
+                "failure_reason": "",
+                "retcode": 0,
             })
 
         # Serial baseline
@@ -2711,8 +4189,39 @@ def main():
                 work_dir = tempfile.mkdtemp(prefix=f"bench_{target}_serial_r{r}_")
 
                 print(f"    Round {r+1}/{args.rounds}... ", end="", flush=True)
-                result = run_serial(binary, target, seed_dir, args.timeout, work_dir,
-                                    simulate=args.simulation)
+                _serial_kwargs = {
+                    "binary": binary,
+                    "target_name": target,
+                    "seed_dir": seed_dir,
+                    "timeout": args.timeout,
+                    "work_dir": work_dir,
+                    "simulate": args.simulation,
+                    "extra_args": target_extra_args.get(target),
+                }
+                if args.timeseries > 0 and target in afl_cov_binaries:
+                    uses_file = (
+                        TARGETS[target][3] if target in TARGETS else True)
+                    result, _ts = run_with_timeseries(
+                        run_serial,
+                        _serial_kwargs,
+                        afl_cov_binaries[target],
+                        interval=args.timeseries,
+                        uses_file=uses_file,
+                        timeout=args.timeout,
+                        corpus_source=lambda: [
+                            seed_dir,
+                            os.path.join(work_dir, "serial_output"),
+                        ],
+                        extra_args=target_extra_args.get(target),
+                    )
+                    if _ts:
+                        all_timeseries.append({
+                            "target": target, "mode": "serial",
+                            "np": 1, "round": r + 1,
+                            "timeseries": _ts,
+                        })
+                else:
+                    result = run_serial(**_serial_kwargs)
 
                 # 使用 AFL 边覆盖率测量
                 cov_data = {"edge_cov": 0.0, "edges_found": 0, "edges_total": 0, "crashes": 0}
@@ -2750,12 +4259,20 @@ def main():
                     "round": r + 1,
                     "wall_time": result["wall_time"],
                     "generated": result["generated"],
+                    "generated_kind": result.get(
+                        "generated_kind", "symcc-candidates"),
+                    "symcc_generated": result.get(
+                        "symcc_generated", result["generated"]),
                     "unique": result["unique"],
                     "throughput": result.get("throughput", 0),
+                    "throughput_kind": result.get(
+                        "throughput_kind", "symcc-candidates-per-second"),
                     "edge_cov": cov_data.get("edge_cov", 0.0),
                     "edges_found": cov_data.get("edges_found", 0),
                     "edges_total": cov_data.get("edges_total", 0),
                     "crashes": cov_data.get("crashes", 0),
+                    **coverage_measurement_metadata(cov_data),
+                    **benchmark_outcome(result),
                 })
 
                 shutil.rmtree(work_dir, ignore_errors=True)
@@ -2772,7 +4289,11 @@ def main():
                 actual_np = np_val
 
             # Predict master/worker layout (matches compute_roles() in MPI script)
-            wpm = 45  # workers_per_master default
+            # Keep the reporting/accounting layout aligned with
+            # mpi_concolic_execution.py's public CLI default.  A stale value
+            # here does not change dispatch, but it mislabels large campaigns
+            # and therefore corrupts per-worker scaling metrics.
+            wpm = 90  # workers_per_master default
             num_avail = actual_np - 1
             if num_avail <= wpm:
                 pred_masters, pred_workers = 1, num_avail
@@ -2808,6 +4329,12 @@ def main():
                         run_mpi, _mpi_kwargs, afl_cov_binaries[target],
                         interval=args.timeseries, uses_file=uses_file,
                         timeout=args.timeout,
+                        corpus_source=lambda: [
+                            seed_dir,
+                            os.path.join(
+                                work_dir, f"mpi_np{actual_np}_output"),
+                        ],
+                        extra_args=target_extra_args.get(target),
                     )
                     if _ts:
                         all_timeseries.append({
@@ -2817,6 +4344,22 @@ def main():
                         })
                 else:
                     result = run_mpi(**_mpi_kwargs)
+
+                # The temporary work directory is removed below. Preserve the
+                # complete MPI transcript first so an R-grade campaign retains
+                # enough evidence to audit failed rounds and parsed metrics.
+                raw_log = result.get("log_path")
+                if isinstance(raw_log, str) and os.path.isfile(raw_log):
+                    log_dir = os.path.join(output_dir, "raw-logs")
+                    os.makedirs(log_dir, exist_ok=True)
+                    safe_target = re.sub(r"[^A-Za-z0-9_.-]+", "_", target)
+                    shutil.copy2(
+                        raw_log,
+                        os.path.join(
+                            log_dir,
+                            f"{safe_target}-mpi-np{actual_np}-r{r + 1}.log",
+                        ),
+                    )
 
                 # 使用 AFL 边覆盖率测量
                 cov_data = {"edge_cov": 0.0, "edges_found": 0, "edges_total": 0, "crashes": 0}
@@ -2900,15 +4443,27 @@ def main():
                     "round": r + 1,
                     "wall_time": result["wall_time"],
                     "generated": result["generated"],
+                    "generated_kind": result.get(
+                        "generated_kind", "symcc-candidates"),
+                    "symcc_generated": result.get(
+                        "symcc_generated", result["generated"]),
                     "unique": result["unique"],
                     "throughput": result.get("throughput", 0),
+                    "throughput_kind": result.get(
+                        "throughput_kind", "symcc-candidates-per-second"),
                     "edge_cov": cov_data.get("edge_cov", 0.0),
                     "edges_found": cov_data.get("edges_found", 0),
                     "edges_total": cov_data.get("edges_total", 0),
                     "crashes": cov_data.get("crashes", 0),
+                    **coverage_measurement_metadata(cov_data),
                     "speedup": speedup,
                     "efficiency": efficiency,
                     "num_workers": result.get("num_workers") or (actual_np - 1),
+                    "num_masters": result.get("num_masters") or pred_masters,
+                    "auxiliary_compute_slots": result.get(
+                        "auxiliary_compute_slots", 0
+                    ),
+                    **benchmark_outcome(result),
                 })
 
                 shutil.rmtree(work_dir, ignore_errors=True)
@@ -2951,20 +4506,57 @@ def main():
                         )
 
                         print(f"    Round {r+1}/{args.rounds}... ", end="", flush=True)
-                        result = run_hybrid(
-                            binary, afl_binary, target, seed_dir,
-                            actual_np, args.timeout, work_dir,
-                            extra_args=target_extra_args.get(target),
-                            cmplog_binary=target_cmplog.get(target),
-                            afl_instances=afl_inst,
-                            adaptive=args.hybrid_adaptive,
-                            grimoire=args.hybrid_grimoire,
-                            honggfuzz_binary=(
+                        _hybrid_kwargs = {
+                            "symcc_binary": binary,
+                            "afl_binary": afl_binary,
+                            "target_name": target,
+                            "seed_dir": seed_dir,
+                            "np": actual_np,
+                            "timeout": args.timeout,
+                            "work_dir": work_dir,
+                            "extra_args": target_extra_args.get(target),
+                            "cmplog_binary": target_cmplog.get(target),
+                            "afl_variants": target_afl_variants.get(target),
+                            "afl_profile_mode": afl_profile_mode,
+                            "directed_distance": (
+                                target_directed_distance.get(target)
+                                or args.directed_distance
+                            ),
+                            "task_graph": target_task_graph.get(target),
+                            "afl_instances": afl_inst,
+                            "adaptive": args.hybrid_adaptive,
+                            "grimoire": args.hybrid_grimoire,
+                            "honggfuzz_binary": (
                                 discover_public_hfuzz_targets().get(target)
-                                if args.hybrid_honggfuzz else None),
-                            symcc_diversity=args.symcc_diversity,
-                            symcc_density_balance=args.symcc_density_balance,
-                        )
+                                if args.hybrid_honggfuzz else None
+                            ),
+                            "symcc_diversity": args.symcc_diversity,
+                            "symcc_density_balance": (
+                                args.symcc_density_balance),
+                        }
+                        if (
+                            args.timeseries > 0
+                            and target in afl_cov_binaries
+                        ):
+                            result, _ts = run_with_timeseries(
+                                run_hybrid,
+                                _hybrid_kwargs,
+                                afl_cov_binaries[target],
+                                interval=args.timeseries,
+                                uses_file=True,
+                                timeout=args.timeout,
+                                corpus_source=lambda: _hybrid_live_corpora(
+                                    seed_dir, work_dir),
+                                extra_args=target_extra_args.get(target),
+                            )
+                            if _ts:
+                                all_timeseries.append({
+                                    "target": target, "mode": "hybrid",
+                                    "np": actual_np, "round": r + 1,
+                                    "timeseries": _ts,
+                                })
+                        else:
+                            result = run_hybrid(**_hybrid_kwargs)
 
                         # 使用 AFL 边覆盖率测量
                         cov_data = {"edge_cov": 0.0, "edges_found": 0, "edges_total": 0, "crashes": 0}
@@ -2987,6 +4579,11 @@ def main():
                         timeout_str = " [TIMEOUT]" if result.get("timed_out") else ""
                         print(f"time={format_time(result['wall_time'])}, "
                               f"afl={afl_gen}, symcc_interesting={symcc_int}, "
+                              f"peer_sync="
+                              f"{result.get('symcc_peer_scanned', 0)}/"
+                              f"{result.get('symcc_peer_published', 0)}, "
+                              f"peer_imported="
+                              f"{result.get('symcc_peer_imported', 0)}, "
                               f"total={result['generated']}"
                               f"{cov_str}{timeout_str}"
                               f"{' bitmap=' + bitmap_cvg if bitmap_cvg else ''}")
@@ -2998,20 +4595,89 @@ def main():
                             "round": r + 1,
                             "wall_time": result["wall_time"],
                             "generated": result["generated"],
+                            "generated_kind": result.get(
+                                "generated_kind", "unspecified"),
+                            "afl_generated": result.get("afl_generated", 0),
+                            "afl_executions": result.get(
+                                "afl_executions",
+                                result.get("afl_execs_done", 0)),
+                            "symcc_generated": result.get(
+                                "symcc_generated", 0),
+                            "symcc_interesting": result.get(
+                                "symcc_interesting", 0),
+                            "symcc_peer_published": result.get(
+                                "symcc_peer_published", 0),
+                            "symcc_peer_scanned": result.get(
+                                "symcc_peer_scanned", 0),
+                            "symcc_peer_imported": result.get(
+                                "symcc_peer_imported", 0),
+                            "symcc_peer_not_retained": result.get(
+                                "symcc_peer_not_retained", 0),
+                            "symcc_peer_sync_complete": result.get(
+                                "symcc_peer_sync_complete", 0),
+                            "symcc_peer_pre_stop_complete": result.get(
+                                "symcc_peer_pre_stop_complete", 0),
+                            "symcc_peer_cursor_before_final_sync": result.get(
+                                "symcc_peer_cursor_before_final_sync", 0),
+                            "symcc_peer_frozen_published": result.get(
+                                "symcc_peer_frozen_published", 0),
+                            "symcc_sync_drain_seconds": result.get(
+                                "symcc_sync_drain_seconds", 0.0),
+                            "cleanup_time": result.get("cleanup_time", 0.0),
+                            "afl_master_corpus_imported": result.get(
+                                "afl_master_corpus_imported", 0),
+                            "afl_corpus_imported": result.get(
+                                "afl_corpus_imported", 0),
+                            "afl_master_sync_time": result.get(
+                                "afl_master_sync_time", 0),
+                            "afl_sync_time_minutes": result.get(
+                                "afl_sync_time_minutes", 0),
                             "unique": result["unique"],
                             "throughput": result.get("throughput", 0),
+                            "throughput_kind": result.get(
+                                "throughput_kind", "unspecified"),
+                            "afl_retained_files": result.get(
+                                "afl_retained_files", 0),
+                            "afl_retained_unique": result.get(
+                                "afl_retained_unique", 0),
+                            "symcc_output_files": result.get(
+                                "symcc_output_files", 0),
+                            "afl_instances": result.get(
+                                "afl_instances", afl_inst),
                             "edge_cov": cov_data.get("edge_cov", 0.0),
                             "edges_found": cov_data.get("edges_found", 0),
                             "edges_total": cov_data.get("edges_total", 0),
                             "crashes": cov_data.get("crashes", 0),
+                            **coverage_measurement_metadata(cov_data),
                             "speedup": 0,
                             "efficiency": 0,
+                            "num_masters": result.get("num_masters", 1),
                             "num_workers": result.get("num_workers", actual_np - 2),
+                            "auxiliary_compute_slots": result.get(
+                                "auxiliary_compute_slots"
+                            ),
                             "afl_bitmap_cvg": result.get("afl_bitmap_cvg", ""),
                             "afl_edges_found": result.get("afl_edges_found", 0),
                             "afl_total_edges": result.get("afl_total_edges", 0),
                             "afl_execs_done": result.get("afl_execs_done", 0),
                             "afl_execs_per_sec": result.get("afl_execs_per_sec", 0),
+                            "afl_profiles": result.get("afl_profiles", ""),
+                            "afl_variants": result.get("afl_variants", ""),
+                            "offline_events": result.get("offline_events", 0),
+                            "offline_approved_action": result.get(
+                                "offline_approved_action", ""),
+                            "offline_evaluations": result.get(
+                                "offline_evaluations", 0),
+                            "offline_trajectory": result.get(
+                                "offline_trajectory", ""),
+                            "offline_policy": result.get("offline_policy", ""),
+                            "smt_algorithm_observations": result.get(
+                                "smt_algorithm_observations", 0),
+                            "smt_algorithm_clusters": result.get(
+                                "smt_algorithm_clusters", 0),
+                            "smt_algorithm_state": result.get(
+                                "smt_algorithm_state", ""),
+                            **benchmark_outcome(result),
                         })
 
                         shutil.rmtree(work_dir, ignore_errors=True)
@@ -3023,76 +4689,142 @@ def main():
             afl_targets = discover_public_afl_targets()
             afl_binary = afl_targets.get(target)
             if afl_binary:
-                print("\n  [AFL-only baseline]")
+                for np_val in np_list:
+                    actual_np = max(1, np_val)
+                    print(f"\n  [AFL-only equal-core baseline np={actual_np}]")
 
-                for r in range(args.rounds):
-                    current_run += 1
-                    work_dir = tempfile.mkdtemp(
-                        prefix=f"bench_{target}_aflonly_r{r}_"
-                    )
+                    for r in range(args.rounds):
+                        current_run += 1
+                        work_dir = tempfile.mkdtemp(
+                            prefix=(
+                                f"bench_{target}_aflonly{actual_np}_r{r}_"))
 
-                    print(f"    Round {r+1}/{args.rounds}... ", end="", flush=True)
-                    result = run_afl_only(
-                        afl_binary, target, seed_dir,
-                        args.timeout, work_dir,
-                        extra_args=target_extra_args.get(target),
-                        cmplog_binary=target_cmplog.get(target),
-                    )
+                        print(f"    Round {r+1}/{args.rounds}... ",
+                              end="", flush=True)
+                        _afl_kwargs = {
+                            "afl_binary": afl_binary,
+                            "target_name": target,
+                            "seed_dir": seed_dir,
+                            "timeout": args.timeout,
+                            "work_dir": work_dir,
+                            "extra_args": target_extra_args.get(target),
+                            "cmplog_binary": target_cmplog.get(target),
+                            "instances": actual_np,
+                            "afl_variants": target_afl_variants.get(target),
+                            "afl_profile_mode": afl_profile_mode,
+                        }
+                        if args.timeseries > 0 and target in afl_cov_binaries:
+                            result, _ts = run_with_timeseries(
+                                run_afl_only,
+                                _afl_kwargs,
+                                afl_cov_binaries[target],
+                                interval=args.timeseries,
+                                uses_file=True,
+                                timeout=args.timeout,
+                                corpus_source=lambda n=actual_np, wd=work_dir: [
+                                    seed_dir,
+                                    *[
+                                        os.path.join(
+                                            wd, "afl_out", f"fuzzer{i:02d}",
+                                            "queue")
+                                        for i in range(1, n + 1)
+                                    ],
+                                ],
+                                extra_args=target_extra_args.get(target),
+                            )
+                            if _ts:
+                                all_timeseries.append({
+                                    "target": target, "mode": "afl-only",
+                                    "np": actual_np, "round": r + 1,
+                                    "timeseries": _ts,
+                                })
+                        else:
+                            result = run_afl_only(**_afl_kwargs)
 
-                    # 使用 AFL 边覆盖率测量
-                    cov_data = {"edge_cov": 0.0, "edges_found": 0, "edges_total": 0, "crashes": 0}
-                    if enable_coverage and target in afl_cov_binaries:
-                        cov_data = measure_coverage_afl(
-                            afl_cov_binaries[target], result["output_dir"],
-                            uses_file=True
-                        )
+                        cov_data = {
+                            "edge_cov": 0.0, "edges_found": 0,
+                            "edges_total": 0, "crashes": 0,
+                        }
+                        if enable_coverage and target in afl_cov_binaries:
+                            cov_data = measure_coverage_afl(
+                                afl_cov_binaries[target], result["output_dir"],
+                                uses_file=True,
+                                extra_args=target_extra_args.get(target),
+                            )
 
-                    cov_str = ""
-                    if enable_coverage and target in afl_cov_binaries:
-                        cov_str = (f", edge={cov_data['edge_cov']:.2f}% "
-                                   f"({cov_data['edges_found']}/{cov_data['edges_total']}), "
-                                   f"crashes={cov_data['crashes']}")
+                        cov_str = ""
+                        if enable_coverage and target in afl_cov_binaries:
+                            cov_str = (
+                                f", edge={cov_data['edge_cov']:.2f}% "
+                                f"({cov_data['edges_found']}/"
+                                f"{cov_data['edges_total']}), "
+                                f"crashes={cov_data['crashes']}")
 
-                    afl_execs = result.get("afl_execs_done", 0)
-                    afl_eps = result.get("afl_execs_per_sec", 0)
-                    bitmap_cvg = result.get("afl_bitmap_cvg", "")
-                    timeout_str = " [TIMEOUT]" if result.get("timed_out") else ""
-                    print(f"time={format_time(result['wall_time'])}, "
-                          f"queue={result['generated']}, "
-                          f"execs={afl_execs}"
-                          f"{cov_str}{timeout_str}"
-                          f"{' bitmap=' + bitmap_cvg if bitmap_cvg else ''}"
-                          f"{f' ({afl_eps:.0f} exec/s)' if afl_eps else ''}")
+                        afl_execs = result.get("afl_execs_done", 0)
+                        afl_eps = result.get("afl_execs_per_sec", 0)
+                        bitmap_cvg = result.get("afl_bitmap_cvg", "")
+                        timeout_str = (
+                            " [TIMEOUT]" if result.get("timed_out") else "")
+                        print(
+                            f"time={format_time(result['wall_time'])}, "
+                            f"execs={afl_execs}, retained_unique="
+                            f"{result['unique']}{cov_str}{timeout_str}"
+                            f"{' bitmap=' + bitmap_cvg if bitmap_cvg else ''}"
+                            f"{f' ({afl_eps:.0f} exec/s)' if afl_eps else ''}")
 
-                    all_results.append({
-                        "target": target,
-                        "mode": "afl-only",
-                        "np": 1,
-                        "round": r + 1,
-                        "wall_time": result["wall_time"],
-                        "generated": result["generated"],
-                        "unique": result["unique"],
-                        "throughput": result.get("throughput", 0),
-                        "edge_cov": cov_data.get("edge_cov", 0.0),
-                        "edges_found": cov_data.get("edges_found", 0),
-                        "edges_total": cov_data.get("edges_total", 0),
-                        "crashes": cov_data.get("crashes", 0),
-                        "speedup": 0,
-                        "efficiency": 0,
-                        "afl_execs_done": afl_execs,
-                        "afl_execs_per_sec": afl_eps,
-                        "afl_bitmap_cvg": result.get("afl_bitmap_cvg", ""),
-                        "afl_edges_found": result.get("afl_edges_found", 0),
-                        "afl_total_edges": result.get("afl_total_edges", 0),
-                    })
+                        all_results.append({
+                            "target": target,
+                            "mode": "afl-only",
+                            "np": actual_np,
+                            "round": r + 1,
+                            "wall_time": result["wall_time"],
+                            "generated": result["generated"],
+                            "generated_kind": result.get(
+                                "generated_kind", "afl-executions"),
+                            "afl_generated": result.get("afl_generated", 0),
+                            "afl_executions": result.get(
+                                "afl_executions",
+                                result.get("afl_execs_done", 0)),
+                            "symcc_generated": 0,
+                            "symcc_interesting": 0,
+                            "unique": result["unique"],
+                            "throughput": result.get("throughput", 0),
+                            "throughput_kind": result.get(
+                                "throughput_kind", "unspecified"),
+                            "afl_retained_files": result.get(
+                                "afl_retained_files", 0),
+                            "afl_retained_unique": result.get(
+                                "afl_retained_unique", 0),
+                            "afl_instances": result.get(
+                                "afl_instances", actual_np),
+                            "edge_cov": cov_data.get("edge_cov", 0.0),
+                            "edges_found": cov_data.get("edges_found", 0),
+                            "edges_total": cov_data.get("edges_total", 0),
+                            "crashes": cov_data.get("crashes", 0),
+                            **coverage_measurement_metadata(cov_data),
+                            "speedup": 0,
+                            "efficiency": 0,
+                            "afl_execs_done": afl_execs,
+                            "afl_execs_per_sec": afl_eps,
+                            "afl_bitmap_cvg": result.get(
+                                "afl_bitmap_cvg", ""),
+                            "afl_edges_found": result.get(
+                                "afl_edges_found", 0),
+                            "afl_total_edges": result.get(
+                                "afl_total_edges", 0),
+                            "afl_profiles": result.get("afl_profiles", ""),
+                            "afl_variants": result.get("afl_variants", ""),
+                            **benchmark_outcome(result),
+                        })
 
-                    shutil.rmtree(work_dir, ignore_errors=True)
+                        shutil.rmtree(work_dir, ignore_errors=True)
             else:
                 print(f"\n  [AFL-only] No AFL binary found for {target}, skipping")
 
     # Generate report
     print("\n\nStep 3: Generating report")
     print("-" * 40)
+    annotate_research_results(all_results, all_timeseries)
     report_path = generate_report(all_results, output_dir)
 
     # Print the report to stdout
@@ -3104,13 +4836,19 @@ def main():
         ts_path = os.path.join(output_dir, "coverage_timeseries.csv")
         with open(ts_path, "w", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow(["target", "mode", "np", "round",
+            writer.writerow(["experiment_id", "run_id", "pair_id",
+                             "target", "configuration", "mode", "np", "round",
                              "timestamp_sec", "edge_cov_pct",
                              "edges_found", "edges_total", "total_cases"])
             for entry in all_timeseries:
                 for point in entry["timeseries"]:
                     writer.writerow([
-                        entry["target"], entry["mode"], entry["np"],
+                        entry.get("experiment_id", ""),
+                        entry.get("run_id", ""),
+                        entry.get("pair_id", ""),
+                        entry["target"],
+                        entry.get("configuration", entry["mode"]),
+                        entry["mode"], entry["np"],
                         entry["round"],
                         point["timestamp_sec"], point["edge_cov"],
                         point["edges_found"], point["edges_total"],
@@ -3118,8 +4856,16 @@ def main():
                     ])
         print(f"\n  Time-series data saved to: {ts_path}")
 
+    exit_code = benchmark_matrix_exit_code(all_results)
+    if exit_code:
+        failed = sum(
+            row.get("mode") != "seed" and row.get("status") != "success"
+            for row in all_results
+        )
+        print(f"\nBenchmark completed with {failed} failed measured row(s).")
     print(f"\nBenchmark complete. Results in: {output_dir}/")
+    return exit_code
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

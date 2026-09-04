@@ -1,0 +1,5 @@
+experiment_id,run_id,pair_id,target,configuration,mode,np,round,timestamp_sec,edge_cov_pct,edges_found,edges_total,total_cases
+symcc-4fbad4414b2ce165,19c643db4f0fbbe975264710,b2760755d7863a15ca680fe2,pcre2-pcre2_fuzzer,hybrid,hybrid,16,1,0.0,7.22,702,9728,8
+symcc-4fbad4414b2ce165,19c643db4f0fbbe975264710,b2760755d7863a15ca680fe2,pcre2-pcre2_fuzzer,hybrid,hybrid,16,1,15.0,45.74,4450,9728,35236
+symcc-4fbad4414b2ce165,19c643db4f0fbbe975264710,b2760755d7863a15ca680fe2,pcre2-pcre2_fuzzer,hybrid,hybrid,16,1,30.0,48.02,4671,9728,47072
+symcc-4fbad4414b2ce165,19c643db4f0fbbe975264710,b2760755d7863a15ca680fe2,pcre2-pcre2_fuzzer,hybrid,hybrid,16,1,45.0,49.95,4859,9728,55482

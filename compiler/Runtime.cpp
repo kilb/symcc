@@ -69,6 +69,7 @@ Runtime::Runtime(Module &M) {
   buildBoolXor = import(M, "_sym_build_bool_xor", ptrT, ptrT, ptrT);
   buildBoolToBit = import(M, "_sym_build_bool_to_bit", ptrT, ptrT);
   buildBitToBool = import(M, "_sym_build_bit_to_bool", ptrT, ptrT);
+  buildIte = import(M, "_sym_build_ite", ptrT, ptrT, ptrT, ptrT);
   buildConcat =
       import(M, "_sym_concat_helper", ptrT, ptrT,
              ptrT); // doesn't follow naming convention for historic reasons
@@ -95,6 +96,14 @@ Runtime::Runtime(Module &M) {
   buildFshr =
       import(M, "_sym_build_funnel_shift_right", ptrT, ptrT, ptrT, ptrT);
   buildAbs = import(M, "_sym_build_abs", ptrT, ptrT);
+  buildSignedMin =
+      import(M, "_sym_build_signed_min", ptrT, ptrT, ptrT);
+  buildSignedMax =
+      import(M, "_sym_build_signed_max", ptrT, ptrT, ptrT);
+  buildUnsignedMin =
+      import(M, "_sym_build_unsigned_min", ptrT, ptrT, ptrT);
+  buildUnsignedMax =
+      import(M, "_sym_build_unsigned_max", ptrT, ptrT, ptrT);
 
   setParameterExpression =
       import(M, "_sym_set_parameter_expression", voidT, int8T, ptrT);
@@ -187,6 +196,39 @@ Runtime::Runtime(Module &M) {
   notifyCall = import(M, "_sym_notify_call", voidT, intPtrType);
   notifyRet = import(M, "_sym_notify_ret", voidT, intPtrType);
   notifyBasicBlock = import(M, "_sym_notify_basic_block", voidT, intPtrType);
+  notifyDataCompare = import(M, "_sym_notify_data_cmp", voidT, intPtrType,
+                             IRB.getInt64Ty(), IRB.getInt64Ty(), int8T);
+  notifyValueProfile = import(M, "_sym_notify_value_profile", voidT,
+                              intPtrType, IRB.getInt64Ty(), int8T, ptrT);
+  notifyDataLoad = import(M, "_sym_notify_data_load", voidT, intPtrType, ptrT,
+                          IRB.getInt32Ty());
+  notifyDataCompareExtended = import(
+      M, "_sym_notify_data_cmp_ext", voidT, intPtrType, IRB.getInt64Ty(),
+      IRB.getInt64Ty(), ptrT, ptrT, int8T, int8T);
+  notifyDataSwitch = import(
+      M, "_sym_notify_data_switch", voidT, intPtrType, IRB.getInt64Ty(),
+      IRB.getInt64Ty()->getPointerTo(), intPtrType, int8T);
+  notifyScheduleRead =
+      import(M, "_sym_notify_schedule_read", voidT, ptrT, intPtrType);
+  notifyScheduleWrite =
+      import(M, "_sym_notify_schedule_write", voidT, ptrT, intPtrType);
+  notifyScheduleBlock =
+      import(M, "_sym_notify_schedule_block", voidT, intPtrType);
+  notifyScheduleBranch =
+      import(M, "_sym_notify_schedule_branch", voidT, intPtrType,
+             IRB.getInt64Ty(), intPtrType);
+  notifyScheduleAtomic =
+      import(M, "_sym_notify_schedule_atomic", IRB.getInt64Ty(), ptrT,
+             intPtrType, int8T, int8T, int8T, int8T);
+  notifyScheduleAtomicResult =
+      import(M, "_sym_notify_schedule_atomic_result", voidT,
+             IRB.getInt64Ty(), ptrT, int1T);
+  notifyScheduleAtomicValue =
+      import(M, "_sym_notify_schedule_atomic_value", voidT,
+             IRB.getInt64Ty(), ptrT, IRB.getInt64Ty(), int8T, int8T);
+  notifyScheduleAtomicCommit =
+      import(M, "_sym_notify_schedule_atomic_commit", voidT,
+             IRB.getInt64Ty(), ptrT);
 }
 
 /// Decide whether a function is called symbolically.
@@ -195,8 +237,9 @@ bool isInterceptedFunction(const Function &f) {
       "malloc", "calloc",  "mmap",     "mmap64",  "open",    "read",
       "lseek",  "lseek64", "fopen",    "fopen64", "fread",   "fseek",
       "fseeko", "rewind",  "fseeko64", "getc",    "ungetc",  "memcpy",
-      "memset", "strncpy", "strchr",   "memcmp",  "memmove", "ntohl",
-      "fgets",  "fgetc",   "getchar",  "bcopy",   "bcmp",    "bzero"};
+      "memset", "strncpy", "strlen", "strchr",  "strstr",  "atoi",
+      "strtol", "strtoul", "strcmp", "strncmp", "memcmp", "memmove", "ntohl",
+      "fgets",  "fgetc",   "getchar", "bcopy",  "bcmp",    "bzero"};
 
   return (kInterceptedFunctions.count(f.getName()) > 0);
 }

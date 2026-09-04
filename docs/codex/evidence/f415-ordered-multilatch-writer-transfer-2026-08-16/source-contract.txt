@@ -1,0 +1,16 @@
+F415 production contract
+
+schema=symcc-loop-memoryphi-byte-lane-induction-v5
+capability=bounded-multilatch-loop-memoryphi-ordered-writer-transfer
+dependency=bounded-multilatch-loop-memoryphi-byte-lane-fixed-point
+memory_phi_writer_kind=ordered-writer-memory-def-chain
+fixed_point_algorithm=finite-monotone-byte-lane-union
+fixed_point_semantics=mutually-exclusive-ordered-writer-transfer
+transfer_relation=backedge transfers are mutually exclusive alternatives
+writer_relation=writers inside one transfer are a program-ordered sequence
+witness_identity=transfer ordinal plus writer ordinal plus address/lane/induction
+compatibility=all-singleton multi-latch certificates remain v4
+runtime_authority=path-local byte-init bitmap; certificates never initialize bytes
+value_boundary=store values and last-write expressions are not summarized
+failure_boundary=unknown or unrecorded MemorySSA effects fail closed
+claim_boundary=no LLVM latency, solver throughput, coverage, defect yield, or end-to-end speedup claim

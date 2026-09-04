@@ -1,0 +1,13 @@
+ConDPor, CONCUR 2025:
+https://doi.org/10.4230/LIPIcs.CONCUR.2025.26
+https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CONCUR.2025.26
+
+GenMC concurrent C/C++ model checking:
+https://plv.mpi-sws.org/genmc/
+
+Mathematizing C++ Concurrency and related formal models:
+https://www.cl.cam.ac.uk/~pes20/cpp/
+
+The implementation adopts execution-graph relations and memory-model-parametric
+admission as research directions. It does not inherit the papers' full model,
+soundness, completeness, optimality, or evaluation claims.

@@ -1,0 +1,4 @@
+phi LLVM 18 checker: PASS
+phi LLVM 17 checker: PASS
+initial LLVM 18 checker: PASS
+cross-function LLVM 18 checker: PASS

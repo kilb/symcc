@@ -1,0 +1,157 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">F396 native parameter-provider discovery and lifecycle routing</title>
+  <desc id="desc">Executable providers enter a bounded validation and atomic merge pipeline. The resulting registry is routed by task, query-service, or campaign lifecycle before persistence and sampling.</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#1f2937" flood-opacity="0.14"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#435466"/>
+    </marker>
+    <marker id="reject" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#b54242"/>
+    </marker>
+    <style>
+      text { font-family: Inter, "Noto Sans", Arial, sans-serif; letter-spacing: 0; fill: #17202a; }
+      .title { font-size: 38px; font-weight: 700; }
+      .subtitle { font-size: 19px; fill: #4b5968; }
+      .banner-title { font-size: 38px; font-weight: 700; fill: #ffffff; }
+      .banner-subtitle { font-size: 19px; fill: #d9edf0; }
+      .section { font-size: 18px; font-weight: 700; fill: #ffffff; }
+      .head { font-size: 21px; font-weight: 700; }
+      .body { font-size: 17px; fill: #354452; }
+      .small { font-size: 15px; fill: #53616f; }
+      .count { font-size: 28px; font-weight: 750; }
+      .flow { fill: none; stroke: #435466; stroke-width: 3; marker-end: url(#arrow); }
+      .dash { fill: none; stroke: #798795; stroke-width: 2.5; stroke-dasharray: 9 8; marker-end: url(#arrow); }
+      .reject { fill: none; stroke: #b54242; stroke-width: 3; marker-end: url(#reject); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1000" fill="#f5f7f8"/>
+  <rect x="0" y="0" width="1600" height="112" fill="#163f4a"/>
+  <text x="64" y="56" class="banner-title">F396 · Native Parameter Discovery</text>
+  <text x="64" y="88" class="banner-subtitle">Executable contracts, fail-closed merge, and lifecycle-correct ParaSuit scheduling</text>
+
+  <rect x="52" y="142" width="360" height="52" rx="6" fill="#287b87"/>
+  <text x="76" y="176" class="section">1 · Parameter providers</text>
+
+  <g filter="url(#shadow)">
+    <rect x="52" y="218" width="360" height="146" rx="7" fill="#ffffff" stroke="#5e9eaa" stroke-width="2"/>
+    <rect x="52" y="218" width="10" height="146" rx="5" fill="#2b8a96"/>
+    <text x="84" y="255" class="head">Coordinator contract</text>
+    <text x="84" y="286" class="count" fill="#20737f">40 declarations</text>
+    <text x="84" y="318" class="body">task + campaign + service fallback</text>
+    <text x="84" y="344" class="small">Generated from executable Python registry</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="52" y="388" width="360" height="146" rx="7" fill="#ffffff" stroke="#d99545" stroke-width="2"/>
+    <rect x="52" y="388" width="10" height="146" rx="5" fill="#e28a2b"/>
+    <text x="84" y="425" class="head">symcc-query-solver</text>
+    <text x="84" y="456" class="count" fill="#b96818">23 declarations</text>
+    <text x="84" y="488" class="body">--print-parameters · JSON v1</text>
+    <text x="84" y="514" class="small">10 overlap checks · 13 native additions</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="52" y="558" width="360" height="126" rx="7" fill="#ffffff" stroke="#778a9d" stroke-width="2"/>
+    <rect x="52" y="558" width="10" height="126" rx="5" fill="#607487"/>
+    <text x="84" y="596" class="head">Explicit override</text>
+    <text x="84" y="629" class="body">schema / custom bounded space</text>
+    <text x="84" y="655" class="small">Compatibility and controlled experiments</text>
+  </g>
+
+  <rect x="482" y="142" width="470" height="52" rx="6" fill="#66538c"/>
+  <text x="506" y="176" class="section">2 · Admission and atomic registry build</text>
+
+  <g filter="url(#shadow)">
+    <rect x="482" y="218" width="470" height="466" rx="7" fill="#ffffff" stroke="#9a8db5" stroke-width="2"/>
+    <circle cx="533" cy="270" r="24" fill="#ece7f5" stroke="#75639c" stroke-width="2"/>
+    <text x="526" y="277" class="head" fill="#66538c">1</text>
+    <text x="574" y="264" class="head">Bounded process capture</text>
+    <text x="574" y="292" class="body">50 ms–30 s timeout · streaming 1 MiB cap</text>
+
+    <line x1="533" y1="304" x2="533" y2="353" stroke="#aa9fc0" stroke-width="3"/>
+    <circle cx="533" cy="378" r="24" fill="#ece7f5" stroke="#75639c" stroke-width="2"/>
+    <text x="526" y="385" class="head" fill="#66538c">2</text>
+    <text x="574" y="372" class="head">Strict v1 normalization</text>
+    <text x="574" y="400" class="body">name · values · bounds · active_when · scope</text>
+
+    <line x1="533" y1="412" x2="533" y2="461" stroke="#aa9fc0" stroke-width="3"/>
+    <circle cx="533" cy="486" r="24" fill="#ece7f5" stroke="#75639c" stroke-width="2"/>
+    <text x="526" y="493" class="head" fill="#66538c">3</text>
+    <text x="574" y="480" class="head">Canonical SHA-256 contract</text>
+    <text x="574" y="508" class="body">stable provider and full-registry identities</text>
+
+    <line x1="533" y1="520" x2="533" y2="569" stroke="#aa9fc0" stroke-width="3"/>
+    <circle cx="533" cy="594" r="24" fill="#ece7f5" stroke="#75639c" stroke-width="2"/>
+    <text x="526" y="601" class="head" fill="#66538c">4</text>
+    <text x="574" y="588" class="head">Provider-atomic merge</text>
+    <text x="574" y="616" class="body">identical overlap deduplicates</text>
+    <text x="574" y="644" class="body">any conflict rejects the whole provider</text>
+  </g>
+
+  <rect x="1022" y="142" width="526" height="52" rx="6" fill="#315f92"/>
+  <text x="1046" y="176" class="section">3 · Lifecycle router</text>
+
+  <g filter="url(#shadow)">
+    <rect x="1022" y="218" width="526" height="138" rx="7" fill="#ffffff" stroke="#4f86ba" stroke-width="2"/>
+    <rect x="1022" y="218" width="12" height="138" rx="5" fill="#2f78b7"/>
+    <text x="1058" y="257" class="head">task</text>
+    <text x="1432" y="258" class="count" text-anchor="end" fill="#25689f">28</text>
+    <text x="1058" y="292" class="body">Eligible for per-work-item Thompson selection</text>
+    <text x="1058" y="322" class="small">assignment token → worker env → exact reward attribution</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1022" y="382" width="526" height="138" rx="7" fill="#ffffff" stroke="#d99545" stroke-width="2"/>
+    <rect x="1022" y="382" width="12" height="138" rx="5" fill="#e28a2b"/>
+    <text x="1058" y="421" class="head">query-service</text>
+    <text x="1432" y="422" class="count" text-anchor="end" fill="#b96818">23</text>
+    <text x="1058" y="456" class="body">Discovered and audited, not injected per task</text>
+    <text x="1058" y="486" class="small">Reserved for process-pool / cross-campaign control</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1022" y="546" width="526" height="138" rx="7" fill="#ffffff" stroke="#4d9a72" stroke-width="2"/>
+    <rect x="1022" y="546" width="12" height="138" rx="5" fill="#3c9367"/>
+    <text x="1058" y="585" class="head">coordinator-campaign</text>
+    <text x="1432" y="586" class="count" text-anchor="end" fill="#267952">2</text>
+    <text x="1058" y="620" class="body">Visible at startup; excluded from seed-level policy</text>
+    <text x="1058" y="650" class="small">Prevents TACE lifecycle no-op assignments</text>
+  </g>
+
+  <path d="M412 291 C444 291 448 280 482 280" class="flow"/>
+  <path d="M412 461 C448 461 449 400 482 400" class="flow"/>
+  <path d="M412 621 C448 621 449 594 482 594" class="dash"/>
+  <path d="M952 450 C986 450 986 287 1022 287" class="flow"/>
+  <path d="M952 472 C990 472 990 451 1022 451" class="flow"/>
+  <path d="M952 494 C986 494 986 615 1022 615" class="flow"/>
+
+  <g filter="url(#shadow)">
+    <rect x="52" y="742" width="1496" height="190" rx="7" fill="#ffffff" stroke="#70808f" stroke-width="2"/>
+    <text x="82" y="784" class="head">Reproducible control state</text>
+    <rect x="82" y="812" width="300" height="82" rx="6" fill="#e7f2f4"/>
+    <text x="104" y="845" class="head" fill="#246e78">53-parameter registry</text>
+    <text x="104" y="873" class="small">condition DAG validated</text>
+
+    <rect x="430" y="812" width="300" height="82" rx="6" fill="#eeeaf6"/>
+    <text x="452" y="845" class="head" fill="#66538c">Provider provenance</text>
+    <text x="452" y="873" class="small">source · digest · errors · conflicts</text>
+
+    <rect x="778" y="812" width="300" height="82" rx="6" fill="#e9f3ec"/>
+    <text x="800" y="845" class="head" fill="#347755">Schema-bound state v3</text>
+    <text x="800" y="873" class="small">mismatch refuses stale posterior import</text>
+
+    <rect x="1126" y="812" width="390" height="82" rx="6" fill="#f8ece5"/>
+    <text x="1148" y="845" class="head" fill="#a35a27">Fail-closed rejection lane</text>
+    <text x="1148" y="873" class="small">timeout · oversize · malformed · conflict · cycle</text>
+  </g>
+
+  <path d="M1285 684 L1285 742" class="flow"/>
+  <path d="M717 684 L717 716 C717 728 704 742 682 742" class="flow"/>
+  <path d="M952 650 C1080 694 1170 742 1282 812" class="reject"/>
+
+  <text x="800" y="973" text-anchor="middle" class="small">Trusted boundary: only normalized task-scope parameters enter per-seed execution; all other lifecycle classes remain explicit.</text>
+</svg>

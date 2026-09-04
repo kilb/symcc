@@ -1,0 +1,13 @@
+F430 reuses an ephemeral, warmed Z3 memory image on one Linux host by forking a
+single-thread parent. It is not a portable serialized solver state, a cross-node
+heap transfer protocol, or a guarantee that Z3 reuses every learned clause.
+
+The oracle compares mechanism cost against same-version cold Z3 processes for a
+fixed one-byte prefix. The 2.252x and 2.249x ratios do not establish end-to-end
+symbolic-execution throughput, fuzzing coverage, time-to-target, or bug-finding
+uplift. Those claims require repeated paired public-target campaigns.
+
+SAT remains subject to backend and QueryStore Query IR validation. UNSAT remains
+unknown unless the separately configured authorization policy accepts it. A
+target timeout preserves the parent snapshot, but portfolio cancellation kills
+the process group and discards it.

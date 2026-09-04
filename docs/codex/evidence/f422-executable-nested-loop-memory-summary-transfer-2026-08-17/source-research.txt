@@ -1,0 +1,8 @@
+F422 builds on the local F421 refinement contract and the continuation-based
+parallel symbolic execution architecture. The relevant external research
+lineage is documented centrally in docs/codex/sota_hybrid_execution_2026.md
+and docs/codex/Development_History_Traceability.md.
+
+The new repository claim is narrower than general veritesting or LoopSCC:
+it is a strict-consumer-verified, bounded, stack-memory-only transformer with
+an explicit fallback and concrete-coverage authority boundary.

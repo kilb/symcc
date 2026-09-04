@@ -1,0 +1,14 @@
+$ python3 -m ruff check util/query_store.py test/test_query_store.py docs/codex/verify_delivery.py docs/codex/evidence/f363-bounded-query-ir-admission-2026-08-11/run_adversarial_query_checks.py
+All checks passed!
+$ PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile util/query_store.py test/test_query_store.py docs/codex/verify_delivery.py docs/codex/evidence/f363-bounded-query-ir-admission-2026-08-11/run_adversarial_query_checks.py
+py_compile: PASS
+$ git diff --check
+git diff --check: PASS
+$ render bounded-single-snapshot-query-ir-admission-2026-08-11.svg with CairoSVG at 1600x1080 and inspect
+diagram render: PASS
+$ cmp docs/codex/index.html docs/codex/report_delivery_index.html
+HTML twins: PASS
+$ sha256sum -c docs/codex/evidence/f363-bounded-query-ir-admission-2026-08-11/SHA256SUMS.txt and docs/codex/SHA256SUMS.txt
+SHA-256 manifests: PASS
+$ PYTHONDONTWRITEBYTECODE=1 python3 docs/codex/verify_delivery.py
+delivery verifier: PASS

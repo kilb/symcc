@@ -37,7 +37,10 @@ add_custom_target(check
   COMMENT "Testing the system..."
   USES_TERMINAL)
 
-add_dependencies(check SymCCRuntime SymCC)
+add_dependencies(check SymCCRuntime SymCC symcc_schedule_rt)
+if (TARGET symcc_qfbv_z3_forkserver)
+  add_dependencies(check symcc_qfbv_z3_forkserver)
+endif()
 if (TARGET SymCCRuntime32)
   add_dependencies(check SymCCRuntime32 SymCC)
 endif()

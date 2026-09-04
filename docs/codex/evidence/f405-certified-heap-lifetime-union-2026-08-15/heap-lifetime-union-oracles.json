@@ -1,0 +1,1 @@
+{"all_passed":true,"claim_boundary":"finite allocated C heap objects only; not POSE initial symbolic heap materialization or an end-to-end performance result","domains":16,"input_assignments":4096,"marker_evaluations":34816,"rejected_mutations":4,"restart_equivalence":true,"schema":"symcc-heap-lifetime-union-oracle-v1"}

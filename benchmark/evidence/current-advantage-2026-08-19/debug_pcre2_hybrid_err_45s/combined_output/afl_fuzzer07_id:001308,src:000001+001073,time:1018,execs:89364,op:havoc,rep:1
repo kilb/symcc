@@ -1,0 +1,3 @@
+^[a-z]+b(foo|bar)*
+cbbbabbba|bS+
+$

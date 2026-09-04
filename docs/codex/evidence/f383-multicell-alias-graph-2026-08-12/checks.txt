@@ -1,0 +1,14 @@
+schema=symcc-f383-evidence-v1
+feature=F383
+capability=bounded-multicell-alias-graph
+fixed_heap_graph_edges=1
+guard_correlated_graph_edges=1
+symbolic_index_graph_edges=1
+symbolic_index_llvm17_graph_edges=1
+symbolic_index_values=24
+symbolic_index_llvm17_values=24
+phi_correlated_graph_capability=false
+phi_correlated_graph_edges=0
+pairwise_only=true
+general_heap_graph=false
+benchmark_claim=false

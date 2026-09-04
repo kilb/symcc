@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="920" viewBox="0 0 1600 920" role="img" aria-labelledby="title desc">
+  <title id="title">F430 QF_BV 求解器原生状态 fork 复用闭环</title>
+  <desc id="desc">Query IR 前缀进入单线程 Z3 父进程，完成一次预热后以 Linux copy-on-write fork 隔离每个目标查询；子进程返回有界模型和资源遥测后退出，超时只终止子进程。跨 worker 仅传输公式计划，不迁移求解器堆。</desc>
+  <defs>
+    <style>
+      .bg{fill:#f7f9fc}.ink{fill:#172033}.muted{fill:#5a6578}.panel{fill:#fff;stroke:#c7d0df;stroke-width:2}.blue{fill:#e8f1ff;stroke:#3973c8;stroke-width:2.5}.green{fill:#e8f7ef;stroke:#24865a;stroke-width:2.5}.amber{fill:#fff4dc;stroke:#b87912;stroke-width:2.5}.red{fill:#fff0ef;stroke:#c34b43;stroke-width:2.5}.violet{fill:#f2edff;stroke:#7356b6;stroke-width:2.5}.dash{fill:#fff;stroke:#8995a8;stroke-width:2;stroke-dasharray:9 7}.line{fill:none;stroke:#43516a;stroke-width:3;marker-end:url(#arrow)}.cow{fill:none;stroke:#7356b6;stroke-width:4;stroke-dasharray:10 7;marker-end:url(#violetArrow)}.return{fill:none;stroke:#24865a;stroke-width:3;marker-end:url(#greenArrow)}.timeout{fill:none;stroke:#c34b43;stroke-width:3;stroke-dasharray:8 6;marker-end:url(#redArrow)}.h1{font:700 34px "WenQuanYi Zen Hei",sans-serif}.h2{font:700 22px "WenQuanYi Zen Hei",sans-serif}.body{font:500 18px "WenQuanYi Zen Hei",sans-serif}.small{font:500 15px "WenQuanYi Zen Hei",sans-serif}.mono{font:600 16px "DejaVu Sans Mono",monospace}.tag{font:700 14px "WenQuanYi Zen Hei",sans-serif;letter-spacing:0}.num{font:700 18px "DejaVu Sans Mono",monospace}
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#43516a"/></marker>
+    <marker id="violetArrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#7356b6"/></marker>
+    <marker id="greenArrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#24865a"/></marker>
+    <marker id="redArrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#c34b43"/></marker>
+  </defs>
+
+  <rect class="bg" width="1600" height="920"/>
+  <text class="h1 ink" x="64" y="62">F430 · QF_BV 求解器原生状态复用</text>
+  <text class="body muted" x="64" y="94">前缀公式可共享，求解器堆同机复用；每个目标在 COW 子进程中隔离执行</text>
+
+  <rect class="panel" x="50" y="130" width="300" height="520" rx="8"/>
+  <rect class="blue" x="76" y="162" width="248" height="112" rx="7"/>
+  <text class="tag" x="94" y="190" fill="#285a9e">输入与身份</text>
+  <text class="h2 ink" x="94" y="221">Query IR / F426</text>
+  <text class="small muted" x="94" y="248">root hash · term · capability</text>
+
+  <path class="line" d="M200 275V320"/>
+  <rect class="panel" x="76" y="321" width="248" height="128" rx="7"/>
+  <circle cx="104" cy="353" r="16" fill="#3973c8"/><text class="num" x="98" y="360" fill="#fff">1</text>
+  <text class="h2 ink" x="132" y="360">规范前缀计划</text>
+  <text class="small muted" x="94" y="391">declare 输入字节</text>
+  <text class="small muted" x="94" y="418">逐条 assert prefix term</text>
+
+  <path class="line" d="M200 450V495"/>
+  <rect class="dash" x="76" y="496" width="248" height="124" rx="7"/>
+  <text class="h2 ink" x="94" y="532">跨 worker 边界</text>
+  <text class="small muted" x="94" y="563">只运输 formula plan / proof</text>
+  <text class="small" x="94" y="590" fill="#c34b43">不运输 Z3 heap / clause DB</text>
+
+  <rect class="panel" x="404" y="130" width="500" height="520" rx="8"/>
+  <text class="tag" x="434" y="163" fill="#7356b6">单线程 Linux 父进程</text>
+  <text class="h2 ink" x="434" y="195">symcc-qfbv-z3-forkserver</text>
+  <rect class="violet" x="434" y="224" width="440" height="112" rx="7"/>
+  <circle cx="466" cy="258" r="16" fill="#7356b6"/><text class="num" x="460" y="265" fill="#fff">2</text>
+  <text class="h2 ink" x="494" y="264">前缀预热 check()</text>
+  <text class="small muted" x="454" y="298">incremental solver · generation N · warm status</text>
+
+  <path class="line" d="M654 337V378"/>
+  <rect class="green" x="434" y="379" width="440" height="132" rx="7"/>
+  <circle cx="466" cy="414" r="16" fill="#24865a"/><text class="num" x="460" y="421" fill="#fff">3</text>
+  <text class="h2 ink" x="494" y="420">可复用原生内存快照</text>
+  <text class="small muted" x="454" y="454">Z3 context + solver + 已处理前缀</text>
+  <text class="small muted" x="454" y="482">父进程不执行 target，不被 target 污染</text>
+
+  <rect class="amber" x="434" y="541" width="440" height="78" rx="7"/>
+  <text class="body ink" x="454" y="574">前缀追加 → assert delta → 再预热</text>
+  <text class="small muted" x="454" y="600">generation N+1；旧 target 结果不进入父状态</text>
+
+  <path class="line" d="M350 386H403"/>
+
+  <rect class="panel" x="960" y="130" width="590" height="520" rx="8"/>
+  <text class="tag" x="990" y="163" fill="#7356b6">每目标一个隔离子进程</text>
+  <path class="cow" d="M875 430C924 430 925 249 990 249"/>
+  <text class="tag" x="902" y="334" fill="#7356b6">fork()</text>
+  <text class="small muted" x="902" y="357">Linux COW</text>
+
+  <rect class="violet" x="990" y="188" width="530" height="192" rx="7"/>
+  <circle cx="1024" cy="224" r="16" fill="#7356b6"/><text class="num" x="1018" y="231" fill="#fff">4</text>
+  <text class="h2 ink" x="1052" y="230">child：临时目标求解</text>
+  <text class="mono ink" x="1014" y="267">push → assert target → check</text>
+  <text class="mono ink" x="1014" y="298">get-value → bounded pipe</text>
+  <text class="small muted" x="1014" y="332">status · model · solve µs · faults · RSS</text>
+  <text class="small muted" x="1014" y="356">完成后 _exit；父快照保持不变</text>
+
+  <path class="return" d="M1255 381V424"/>
+  <rect class="green" x="990" y="425" width="530" height="100" rx="7"/>
+  <circle cx="1024" cy="460" r="16" fill="#24865a"/><text class="num" x="1018" y="467" fill="#fff">5</text>
+  <text class="h2 ink" x="1052" y="466">严格响应与双重模型复验</text>
+  <text class="small muted" x="1014" y="500">协议完整性 → backend evaluator → QueryStore</text>
+
+  <path class="timeout" d="M1255 526V560"/>
+  <rect class="red" x="990" y="561" width="530" height="58" rx="7"/>
+  <text class="body" x="1014" y="597" fill="#9d332d">deadline：SIGKILL child → unknown；父快照继续服务</text>
+
+  <rect class="panel" x="50" y="690" width="1500" height="174" rx="8"/>
+  <text class="h2 ink" x="76" y="727">可信边界与可观测量</text>
+  <rect class="blue" x="76" y="748" width="438" height="88" rx="6"/>
+  <text class="tag" x="96" y="777" fill="#285a9e">正确性</text>
+  <text class="small ink" x="96" y="805">SAT 模型仍由 Query IR 独立执行器复验</text>
+  <text class="small ink" x="96" y="828">UNSAT 仍需 capability 或 F427 proof 授权</text>
+  <rect class="amber" x="537" y="748" width="470" height="88" rx="6"/>
+  <text class="tag" x="557" y="777" fill="#8b5c0d">测量</text>
+  <text class="small ink" x="557" y="805">generation · query count · child PID · COW faults</text>
+  <text class="small ink" x="557" y="828">只证明机制成本，不外推 coverage / bug uplift</text>
+  <rect class="dash" x="1030" y="748" width="490" height="88" rx="6"/>
+  <text class="tag" x="1050" y="777" fill="#5a6578">当前限制</text>
+  <text class="small ink" x="1050" y="805">Linux / 同机 / 同二进制；不能跨节点迁移 heap</text>
+  <text class="small ink" x="1050" y="828">不与 cvc5 learned-literal 发布共用同一 backend</text>
+</svg>

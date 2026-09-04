@@ -1,0 +1,19 @@
+F432 claim boundary
+
+Supported claims:
+- deterministic lowering for the current 38-operator QF_BV Query IR domain;
+- activation/increment-scoped exact native CaDiCaL context reuse;
+- local ordered-LRUP authorization before clause injection;
+- recursively checked persistent proof fragments and QueryStore revalidation;
+- zero mismatch in two seeded 512-case real-solver oracles;
+- 1.755x and 1.765x cold/native total-cost ratios on the sealed same-formula
+  64-round mechanism benchmark.
+
+Unsupported claims:
+- end-to-end fuzzing coverage, throughput, or defect-yield uplift;
+- real-time mid-solve ImpCheck/LIDRUP streaming;
+- Mallob-style malleable resource scheduling or large-scale performance;
+- cross-node/cross-version CDCL heap transport;
+- minimal failed-assumption cores;
+- proof checker formal verification;
+- complete reproduction of any cited paper's experimental results.

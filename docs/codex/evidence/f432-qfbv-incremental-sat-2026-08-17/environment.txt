@@ -1,0 +1,19 @@
+F432 evidence environment (2026-08-17 UTC)
+
+OS: Ubuntu 24.04, Linux 7.0.0-28-generic x86_64
+Python: 3.12.3
+pytest: 9.1.1
+GCC/cc: 13.3.0
+CaDiCaL: 3.0.1, commit c60730422e758ef1cebe7aeddf2dda31c996bf04
+CaDiCaL CLI SHA-256: c2377de6ce6310cc5fd85fc5a5a86679eda6dbb4eb4a3ff960d8aa9fa1be7bae
+CaDiCaL shared library SHA-256: 41c728cadae29064f4f10472b8131139d4b842cc2dfa5789044943e4f01d0569
+cvc5: 1.1.2
+cvc5 SHA-256: f2f4cc5eea252833c4645072c3de46f2c3d4d56f3107f099383516ee885cee10
+Oracle seed: 62514 (0xF432)
+Oracle cases: 512 per run, two runs
+Benchmark rounds: 64 per run, two runs
+Python inventory: 1236 node IDs
+Python inventory SHA-256: 1beedd424d0c213aa7f17bd13c02ac4d06c826014a0b96a32e557c5a185d496c
+
+The temporary build paths embedded in raw JSON identify this host only. The
+pinned installer and content hashes are the reproducibility identities.

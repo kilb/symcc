@@ -1,0 +1,81 @@
+{
+  "claim": "finite semantics and mechanism evidence only; not a public-target coverage or end-to-end speedup result",
+  "finite_entailment": {
+    "invalid_lemma_counterexamples": 1,
+    "source_models": 1,
+    "valid_lemma_counterexamples": 0,
+    "valuations": 65536
+  },
+  "live": {
+    "consumers": {
+      "backend_checker_us": [
+        31744,
+        31836,
+        31811,
+        31810,
+        31763
+      ],
+      "injected": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "runs": 5,
+      "store_checker_us": [
+        63486,
+        63481,
+        63434,
+        63532,
+        63554
+      ],
+      "total_us": [
+        647483,
+        578072,
+        598341,
+        571545,
+        506114
+      ],
+      "total_us_median": 578072
+    },
+    "negative_checks": {
+      "false_authorizations": 0,
+      "invalid_lemma_rejected": 1,
+      "proof_tamper_rejected": 1,
+      "record_tamper_rejected": 1,
+      "sibling_rejected": 1
+    },
+    "producer": {
+      "candidates": 1,
+      "lemma": "(= symcc_input_1 #b01000010)",
+      "published": 1,
+      "record_sha256": "d2afee32ce53f11e309dc39f9900e65750286cdc291d67420170b82dfaba5b99"
+    },
+    "stores": {
+      "contexts": {
+        "active_materializations": 0,
+        "cancelled_materializations": 0,
+        "contexts": 8
+      },
+      "lemmas": {
+        "record_bytes": 8164,
+        "records": 6
+      },
+      "proofs": {
+        "proof_bytes": 3335,
+        "proofs": 6,
+        "receipts": 6,
+        "result_keys": 6
+      },
+      "query_results": 6
+    }
+  },
+  "schema": "symcc-f428-qfbv-verified-lemma-oracle-v1",
+  "toolchain": {
+    "cvc5_sha256": "7562a8b0b835e3eaad5f1a7b4616cd762350cf567b6be03d7e8ee24fa5ced5ee",
+    "cvc5_version": "cvc5 1.3.4 [git f3b21c4 on branch HEAD]",
+    "ethos_sha256": "7f73a7e8a584cabb9b50c3a57d6f222661f184cc323fb661a3ec78092c201c5d",
+    "signature_files": 51
+  }
+}

@@ -1,0 +1,1045 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>并行符号执行项目进展汇报（更新至 F453）</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --paper: #ffffff;
+      --ink: #17202a;
+      --muted: #5d6b7a;
+      --line: #d9e1ec;
+      --blue: #1f6feb;
+      --green: #168a58;
+      --amber: #b7791f;
+      --red: #c2410c;
+      --violet: #7257c8;
+      --shadow: 0 16px 40px rgba(23, 32, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif;
+      line-height: 1.68;
+      overflow-x: hidden;
+    }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+    header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+    }
+    .hero {
+      padding: 54px 0 30px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+      gap: 34px;
+      align-items: end;
+    }
+    h1 {
+      margin: 0 0 16px;
+      font-size: clamp(30px, 4vw, 52px);
+      line-height: 1.12;
+      letter-spacing: 0;
+    }
+    .subtitle {
+      margin: 0;
+      max-width: 760px;
+      font-size: 18px;
+      color: var(--muted);
+    }
+    .meta {
+      display: grid;
+      gap: 10px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      background: #f9fbfd;
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .meta strong { color: var(--ink); }
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.94);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+    }
+    nav .wrap {
+      display: flex;
+      gap: 18px;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding-top: 10px;
+      padding-bottom: 10px;
+      font-size: 14px;
+    }
+    main { padding: 28px 0 56px; }
+    section {
+      margin: 26px 0;
+      padding: 32px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+    h2 {
+      margin: 0 0 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 28px;
+      line-height: 1.24;
+    }
+    h2::before {
+      content: "";
+      display: inline-block;
+      width: 7px;
+      height: 26px;
+      margin-right: 12px;
+      border-radius: 4px;
+      background: var(--blue);
+      vertical-align: -4px;
+    }
+    h3 { margin: 26px 0 10px; font-size: 20px; }
+    p { margin: 10px 0; }
+    .lead { font-size: 17px; color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      background: #fbfdff;
+    }
+    .metric .num {
+      display: block;
+      font-size: 28px;
+      line-height: 1.15;
+      font-weight: 760;
+      color: var(--blue);
+    }
+    .metric .label { color: var(--muted); font-size: 14px; }
+    .callout {
+      margin: 18px 0;
+      padding: 16px 18px;
+      border-left: 5px solid var(--blue);
+      background: #eef5ff;
+      border-radius: 6px;
+    }
+    .callout.green { border-color: var(--green); background: #edf8f2; }
+    .callout.amber { border-color: var(--amber); background: #fff7e8; }
+    .callout.red { border-color: var(--red); background: #fff1ec; }
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin: 18px 0;
+    }
+    .step {
+      min-height: 118px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+    .step b {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      margin-bottom: 8px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: #ffffff;
+      font-size: 13px;
+    }
+    .figure {
+      margin: 22px 0;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfdff;
+    }
+    .figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 620px;
+      object-fit: contain;
+    }
+    .caption {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 22px;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+    th {
+      background: #f2f6fb;
+      font-weight: 700;
+    }
+    code {
+      padding: 2px 5px;
+      border-radius: 5px;
+      background: #eef2f7;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92em;
+    }
+    pre {
+      overflow-x: auto;
+      padding: 16px;
+      border-radius: 8px;
+      background: #111827;
+      color: #f8fafc;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    .barrow {
+      display: grid;
+      grid-template-columns: 150px 1fr 100px;
+      gap: 12px;
+      align-items: center;
+      margin: 8px 0;
+      font-size: 14px;
+    }
+    .bar {
+      height: 13px;
+      border-radius: 999px;
+      background: #e7edf5;
+      overflow: hidden;
+    }
+    .bar span { display: block; height: 100%; background: var(--green); }
+    .bar.blue span { background: var(--blue); }
+    .bar.amber span { background: var(--amber); }
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      margin: 2px 4px 2px 0;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #ffffff;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .speaker {
+      border-left: 4px solid var(--violet);
+      background: #f4f1ff;
+      padding: 14px 16px;
+      border-radius: 6px;
+      color: #3b2b6e;
+      font-size: 15px;
+    }
+    .small { color: var(--muted); font-size: 13px; }
+    @media (max-width: 860px) {
+      .wrap { padding: 0 16px; }
+      .hero { padding: 36px 0 22px; gap: 20px; }
+      h1 { font-size: 30px; line-height: 1.18; }
+      .subtitle { font-size: 16px; }
+      .hero, .grid, .grid-3, .flow { grid-template-columns: 1fr; }
+      nav .wrap { padding-left: 16px; padding-right: 16px; }
+      section { padding: 18px; overflow: hidden; }
+      h2 { font-size: 24px; }
+      .figure {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .figure img {
+        width: 760px;
+        max-width: none;
+      }
+      h1, h2, h3, p, li, td, th, .lead, .subtitle, .caption {
+        overflow-wrap: anywhere;
+        word-break: normal;
+      }
+      table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+      }
+      .callout, .speaker, .metric, .meta { overflow-wrap: anywhere; }
+      .barrow { grid-template-columns: 1fr; gap: 4px; }
+    }
+    @media print {
+      nav { position: static; }
+      body { background: #ffffff; }
+      section { break-inside: avoid; box-shadow: none; }
+      a { color: inherit; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap hero">
+      <div>
+        <h1>并行符号执行项目进展汇报</h1>
+        <p class="subtitle">
+          本材料围绕项目定位、近期工作、总体架构、执行流程、关键技术和实验结论展开。
+          重点说明框架如何以符号执行增强 fuzzing，并汇报截至 F453 的跨节点恢复、并行规模实测、认证分区求解、证明重放缓存、原生 checker 子句压缩与在线自适应 cubing 结果。
+        </p>
+      </div>
+      <div class="meta">
+        <div><strong>更新日期：</strong>2026-08-26</div>
+        <div><strong>项目路径：</strong><code>/home/ubuntu/code/symcc</code></div>
+        <div><strong>证据来源：</strong><code>docs/codex</code> 与 <code>.symcc-research-evidence</code></div>
+        <div><strong>汇报定位：</strong>工程进展 + 科研方法 + 实测数据</div>
+      </div>
+    </div>
+  </header>
+
+  <nav>
+    <div class="wrap">
+      <a href="#positioning">1 项目定位</a>
+      <a href="#progress">2 近期进展</a>
+      <a href="#architecture">3 总体架构</a>
+      <a href="#workflow">4 执行流程</a>
+      <a href="#sota">5 关键技术</a>
+      <a href="#testing">6 实验结果</a>
+      <a href="#optimization">7 瓶颈优化</a>
+      <a href="#model">8 规模模型</a>
+      <a href="#month">9 阶段成果</a>
+      <a href="#conclusion">10 后续计划</a>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <section id="positioning">
+      <h2>第一章 项目定位与研究目标</h2>
+      <p class="lead">
+        本项目面向程序测试中的覆盖率提升问题，构建并行混合符号执行框架。系统以 fuzzing
+        作为高吞吐输入生成基础，以动态符号执行补充对复杂路径条件的分析能力，并通过并行调度提高符号执行资源的利用效率。
+      </p>
+      <div class="grid">
+        <div class="metric">
+          <span class="num">背景</span>
+          <b>覆盖率提升存在结构性瓶颈</b>
+          <p>传统 fuzzing 具有很高的执行吞吐，但主要依赖随机变异。当程序分支依赖精确值、跨字段关系或复杂比较时，随机变异难以稳定触达深层路径。</p>
+        </div>
+        <div class="metric">
+          <span class="num">目标</span>
+          <b>以符号执行增强 fuzzing</b>
+          <p>动态符号执行能够记录路径约束，并通过求解器生成满足目标分支条件的新输入，从而补充 fuzzing 在复杂条件上的不足。</p>
+        </div>
+        <div class="metric">
+          <span class="num">并行</span>
+          <b>提升符号执行资源效率</b>
+          <p>符号执行本身计算成本较高。框架将输入、目标分支、约束上下文和执行状态抽象为任务，分配给多个 worker 并行处理。</p>
+        </div>
+        <div class="metric">
+          <span class="num">评价</span>
+          <b>以覆盖反馈作为统一口径</b>
+          <p>所有候选输入均由 Master 使用 AFL edge bitmap 进行最终判定。只有带来新增覆盖的输入才进入语料，保证实验结论可复核。</p>
+        </div>
+      </div>
+      <div class="speaker">
+        <b>汇报要点：</b>本项目不是单独实现 fuzzing 或符号执行，而是构建二者协同的闭环系统：fuzzing 提供广度探索，符号执行处理复杂路径条件，并行框架负责资源调度和覆盖反馈归因。
+      </div>
+    </section>
+
+    <section id="progress">
+      <h2>第二章 近期工作进展与成效</h2>
+      <p class="lead">
+        最近一阶段的工作从单机吞吐优化推进到跨节点连续运行、可审计规模评估和查询内并行求解。F447 完成两节点、双 Master、warm spare 的连续物理失效恢复，并在实验单元超过 30 后封存 35 个完整结果；F448/F449 完成认证 cube 的查询内并行，F450 降低重复证明重放开销，F451 将 cube 租约与 ULFM generation fence 绑定，F452 压缩 checker 侧的原生子句表示，F453 再以可信 solver activity 和在线成本反馈动态选择分区策略与 cube 数，形成从任务恢复、求解收敛、证明传输到自适应决策的完整优化链。
+      </p>
+
+      <div class="grid-3">
+        <div class="metric"><span class="num">+29.29%</span><span class="label">128 对 8 workers：有效输入吞吐的配对均值提升，95% CI 为 +17.80% 至 +40.78%</span></div>
+        <div class="metric"><span class="num">25.39×</span><span class="label">F450 在 64 层闭包的重复授权实验中，热重放相对完整重放的机制加速比</span></div>
+        <div class="metric"><span class="num">73.7%</span><span class="label">F452 真实 CaDiCaL 场景：38 个 literals 的整数载荷由 152 B 降至 40 B</span></div>
+        <div class="metric"><span class="num">4→2</span><span class="label">F453 cost arm 探索 4/8/16/2 cubes 后，依据在线观测再次选择成本更优的 2 cubes</span></div>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>近期工作</th><th>解决的问题</th><th>取得的效果</th><th>汇报时的重点</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>跨节点连续恢复</td><td>进程失效后，各节点对故障成员的局部观察可能不同，旧 communicator 也不能继续使用。</td><td>采用 Revoke/Shrink、稳定 endpoint 身份交换、generation receipt 和 warm spare 晋升，连续恢复两次。</td><td>系统已从单机恢复演示推进到跨节点、跨代继续提交的受控机制门禁。</td></tr>
+          <tr><td>恢复后的持久一致性</td><td>多 Master 在恢复后可能重复发布结果，或读到上一代状态。</td><td>引入按 Master/代次隔离的 QueryStore、共享 Work WAL 和锁内幂等提交；最终验证 820 个内容寻址公共对象。</td><td>恢复不仅重建通信，还保证工作记录和公共 corpus 可重放、可核验。</td></tr>
+          <tr><td>并行规模实测</td><td>旧数据只有三轮短测，无法量化高并行度的吞吐、覆盖和失败风险。</td><td>在相同 130 核预留和 60 秒测量窗口下比较 8/32/128 workers；按用户要求在超过 30 个单元后停止，封存 35 个完整单元。</td><td>性能统计只采用三档都成功的 9 个配对区组；可靠性统计采用 11 个完整区组。</td></tr>
+          <tr><td>规模收益与代价</td><td>更多 worker 是否真正转化为有效输入和覆盖不清楚。</td><td>128 对 8 workers 的生成吞吐提升 50.52%，有效输入吞吐提升 29.29%；endpoint edges 无显著提升，保留率下降 13.98%。</td><td>并行提升了候选处理能力，但小型饱和目标上的覆盖没有随规模单调增长。</td></tr>
+          <tr><td>失败语义修复</td><td>两次 128-worker 内层 MPI 运行以 70 退出，但旧 driver 仍把外层进程标记为成功。</td><td>benchmark 现在保存报告后返回非零；显式 benchmark 模式若零目标匹配也会失败关闭。</td><td>128-worker 内部失败率为 2/11，即 18.18%，不再被外层成功状态掩盖。</td></tr>
+          <tr><td>证明感知的查询内并行</td><td>过去分区器只生成 cube 目录，主查询服务没有真正执行 cube，也不能把叶级 UNSAT 结论合成为原查询结论。</td><td>F448/F449 完成分区、租约调度、独立求解上下文、SAT 抢先取消、UNSAT 分辨率聚合和生命周期回收闭环。</td><td>并行不再只发生在输入之间，也可发生在单个困难 QF_BV 查询内部；所有返回结果仍需通过模型或证明重放。</td></tr>
+          <tr><td>闭包绑定的证明缓存</td><td>相同不可变 plan 上的重复授权会反复解析、遍历和重放整个 LRUP import closure。</td><td>F450 将缓存授权与 plan、checker policy 和完整导入闭包绑定；64 层机制实验中位加速比 25.39×。</td><td>优化的是重复检查成本，不缓存求解结论，命中后仍校验完整闭包证言。</td></tr>
+          <tr><td>跨节点认证 cube 执行</td><td>本地 cube token 不能阻止旧 communicator 上的结果在节点恢复后越代提交。</td><td>F451 将 cube lease 与 stable endpoint、generation、shard 和 work fence 双重绑定；3 轮双主机实验均完成失效恢复与 SAT 收敛。</td><td>单查询内并行现在能够跨进程、跨节点持久执行，旧代心跳和结果均失败关闭。</td></tr>
+          <tr><td>原生 checker 子句压缩</td><td>并行 checker 在导入大量子句时，固定宽度整数表示会放大队列内存、跨语言复制与节点间传输成本。</td><td>F452 实现 canonical delta-varint、7-byte inline 存储和 CaDiCaL 流式解码；真实场景中 152 B 降至 40 B，压缩 73.7%。</td><td>压缩发生在 checker 数据通路，不改变 SAT/UNSAT 语义；短子句可能略增大，系统保留完整遥测。</td></tr>
+          <tr><td>在线 activity/cost 引导 cubing</td><td>固定分区策略无法适应不同公式；盲目增加 cube 还会放大预运行、建树和求解开销。</td><td>F453 在 static、activity、cost 三路策略间进行有界在线选择，并在等配置 CPU 上限内扣除预运行成本；cost arm 完成 4/8/16/2 探索后再次选择 2 cubes。</td><td>闭环已经成立，但小型矛盾公式上 static 中位 348.016 ms 明显更快，因此保留静态回退，不宣称 guided 策略普遍提速。</td></tr>
+          <tr><td>回归与交付门禁</td><td>新增恢复和分析逻辑必须证明没有破坏原有能力。</td><td>F452 阶段 Python 1467 项与 310 子测试全部通过；新增协议具备严格的重复 literal、tautology、截断和非规范编码拒绝规则。</td><td>项目能力的增长有稳定测试清单和回归记录支撑。</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout green">
+        <b>近期阶段结论：</b>本轮工作已把“可验证分区、持久租约、重放缓存、跨节点代次恢复、全局结果收敛、原生子句压缩和在线策略选择”连成一条端到端机制链。规模实验证明增加 worker 能提高生成与有效输入吞吐，但覆盖不会随规模自动增长；F450-F453 的数据分别证明检查成本、跨节点正确性、checker 数据表示和在线决策闭环，不外推为公开目标的覆盖率提升。
+      </div>
+    </section>
+
+    <section id="architecture">
+      <h2>第三章 总体架构与系统特色</h2>
+      <p class="lead">
+        这套框架可以概括为三个核心决策：AFL++ 负责快速探索，MPI Master 负责统一调度和覆盖准入，SymCC worker pool 负责并行求解复杂路径条件。
+        设计重点不是堆叠模块，而是让输入、任务、覆盖反馈和实验证据各有清晰归属。
+      </p>
+
+      <div class="figure">
+        <img src="diagrams/parallel-2026-08-20/simple-architecture.svg" alt="并行符号执行简化架构">
+        <div class="caption">图 1：系统总体架构。蓝色箭头是主执行流，绿色虚线是 AFL 对调度器的反馈信号，紫色虚线是实验记录流；Evidence 只用于复盘，不参与覆盖准入。</div>
+      </div>
+
+      <div class="callout">
+        <b>读图顺序：</b>先看左侧 AFL++ 产生输入与覆盖反馈，再看中间 Master 把输入组织为任务，随后看右侧 worker 并行执行与求解，最后沿候选输入返回线回到 Master。Master 只有在 AFL 原生 edge bitmap 验证出新覆盖后，才把输入写回 AFL queue；Data Map 只提供比较距离，Evidence 只记录过程。
+      </div>
+
+      <h3>3.1 汇报时先讲三个重点</h3>
+      <table>
+        <thead>
+          <tr><th>重点</th><th>一句话说明</th><th>体现的工程价值</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>统一覆盖口径</b></td><td>所有候选输入最终都由 Master 使用 AFL edge bitmap 判定。</td><td>避免不同 worker 各自判断覆盖，保证实验结果可以复核。</td></tr>
+          <tr><td><b>任务可调度</b></td><td>把输入、目标分支、路径前缀、约束上下文和执行状态统一抽象为任务。</td><td>并行资源不只是“多跑几个进程”，而是有依据地分配给更有价值的探索目标。</td></tr>
+          <tr><td><b>反馈闭环</b></td><td>AFL 的 queue、edge bitmap、data map 和覆盖停滞情况会反向影响 Master 调度。</td><td>符号执行不是离线旁路工具，而是嵌入 fuzzing 进程中的在线增强组件。</td></tr>
+        </tbody>
+      </table>
+
+      <h3>3.2 三类信息分别是什么</h3>
+      <table>
+        <thead>
+          <tr><th>名称</th><th>如何生成</th><th>谁使用</th><th>是否决定最终覆盖</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>Edge Bitmap</b></td><td>AFL 插桩目标程序后，在执行时记录边覆盖和 hit-count bucket；评测时也可通过 showmap 复核。</td><td>Master 做候选输入准入，AFL 做语料管理。</td><td><b>是。</b>这是最终权威口径。</td></tr>
+          <tr><td><b>Data Map</b></td><td>比较指令、宽整数比较、memcmp/strcmp 等插桩产生匹配进度或距离信息。</td><td>AFL 用于更有方向地变异，Master 可用于任务评分。</td><td><b>否。</b>它是提示信号，不替代 edge bitmap。</td></tr>
+          <tr><td><b>Evidence</b></td><td>Master、worker 和 benchmark 脚本输出 CSV、JSON、profile、统计表。</td><td>研究人员用于复盘、绘图和撰写汇报。</td><td><b>否。</b>它不反向影响调度，只用于解释结果。</td></tr>
+        </tbody>
+      </table>
+
+      <h3>3.3 架构特色</h3>
+      <p>
+        当前框架的特色在于“反馈可归因”和“并行可控制”。AFL 负责发现大量浅层输入，SymCC 负责处理随机变异不擅长的精确条件，Master 则把二者连接起来：
+        它从 AFL queue 中提取输入，根据覆盖反馈和历史收益生成任务，向 worker 分配求解目标，再用 AFL 原生覆盖口径决定候选输入是否回流。
+      </p>
+      <div class="speaker">
+        <b>汇报要点：</b>worker 可以使用本地 solver bitmap 减少重复求解，但它不能决定最终覆盖。最终准入统一交给 Master 的 AFL edge bitmap，这也是实验数据能和 AFL-only 对照的基础。
+      </div>
+
+      <h3>3.4 F447：跨节点后如何继续运行</h3>
+      <p>
+        F447 在上述业务闭环外增加了弹性控制面。每个进程具有不随 communicator 改变的稳定 endpoint 身份；物理进程退出后，存活进程先执行 Revoke/Shrink，再交换稳定身份以确定共同故障集合，写入新 generation receipt，随后晋升 warm spare 并重建 Master/worker 分组。共享 Work WAL 记录已经提交的工作，按代次隔离的 QueryStore 阻止旧代结果污染新代运行。
+      </p>
+      <div class="figure">
+        <img src="diagrams/f447-cross-node-ulfm-architecture.svg" alt="F447 跨节点弹性并行符号执行架构">
+        <div class="caption">图 2：两节点弹性控制面。上半部分是 communicator 与 Master/worker 分组；中间是五步故障恢复；下半部分是可重放的持久提交链。图中的节点与角色用于说明协议，受控实验实际使用 10 ranks、2 个 warm spares。</div>
+      </div>
+      <div class="callout green">
+        <b>跨节点结果：</b>在两个节点、10 ranks（8 active + 2 warm spares）的受控门禁中，generation 0 的稳定 rank 2 与 generation 1 的稳定 rank 3 先后物理退出；rank 8、rank 9 依次晋升。最终 generation 2 仍保持 8 个 active ranks、2 个 Master 和 6 个 worker，并核验 164 条 analyzed WAL、820 条 generated WAL 与 820 个公共内容寻址对象。
+      </div>
+
+      <h3>3.5 F451：单查询任务如何跨节点继续执行</h3>
+      <p>
+        F451 将 F449 的认证 cube 租约与 F447 的稳定 endpoint、communicator generation、shard 和 work token 同时绑定。
+        worker 只有在“cube token 当前”和“外层 generation fence 当前”两个条件同时成立时，才能续租或提交结果。
+        任一节点失效后，所有结果尚不确定的在途 cube 都在新代次重排，包括原本由存活进程持有的任务，从而避免丢叶和越代提交。
+      </p>
+      <div class="figure">
+        <img src="diagrams/f451-generation-fenced-distributed-cube-execution.svg" alt="F451 代次栅栏下的跨节点认证 cube 执行">
+        <div class="caption">图 2B：上层是查询与 cube 正确性，中层是跨节点租约与 generation fence，下层是故障后的重排、结果重放和全局收敛。箭头表示任务或确认流向，不表示覆盖准入。</div>
+      </div>
+      <div class="callout green">
+        <b>端到端结果：</b>物理双主机适配器实验完成 3/3 轮；每轮远端进程均按预期以 86 退出，generation 由 0 切换为 1，3/3 个在途 cube 全部重排，存活远端返回 SAT winner 后取消另外 2 个任务，最终 active work 和 recovery queue 均为 0。
+      </div>
+
+      <h3>3.6 F452：checker 子句如何低成本传输与驻留</h3>
+      <p>
+        F452 面向并行证明检查的数据通路，将有序 signed literal 映射为非负序号，再以差分和 canonical 7-bit varint 编码。长度不超过 7 字节的结果直接保存在对象内部，较长结果进入受所有权约束的堆存储；CaDiCaL 回调按游标流式解码，无需先还原完整整数数组。协议严格拒绝重复 literal、互补 literal、非规范 varint、截断和资源越界，避免压缩层掩盖错误证明数据。
+      </p>
+      <div class="figure">
+        <img src="diagrams/f452-native-clause-compression.svg" alt="F452 原生 checker 子句压缩流程">
+        <div class="caption">图 2C：子句在 Python/C++ 边界完成规范化压缩，队列保存压缩对象，CaDiCaL 导入时流式解码；遥测记录原始字节、压缩字节、inline/heap 分布和失败计数。</div>
+      </div>
+      <div class="callout green">
+        <b>机制结果：</b>真实 CaDiCaL 3.0.1 场景完成 2/2 次导入确认，38 个 literals 的固定宽度整数载荷由 152 B 降至 40 B，减少 73.7%，解码 38/38，队列残留 0，失败 0。单 literal 工作负载会增加 11.4%，因此该结果只用于说明数据通路收益，不宣称整体求解加速。
+      </div>
+    </section>
+
+    <section id="workflow">
+      <h2>第四章 执行流程与工作流</h2>
+      <p class="lead">
+        工作流不是“符号执行生成输入后交给 AFL”这么简单，而是一个双向闭环：AFL 向 Master 提供新输入和覆盖反馈，Master 据此调整符号执行任务；SymCC 生成候选输入后，再由 Master 验证并回流给 AFL。
+      </p>
+
+      <div class="figure">
+        <img src="diagrams/parallel-2026-08-20/simple-workflow.svg" alt="并行符号执行工作流">
+        <div class="caption">图 3：AFL 与符号执行的双向反馈流程。绿色虚线表示 AFL 对符号执行调度的反馈，蓝色箭头表示候选输入的执行与回流。</div>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>步骤</th><th>执行次序</th><th>关键说明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>AFL 从 seed 出发变异并执行目标程序。</td><td>提供最高吞吐的基础探索能力。</td></tr>
+          <tr><td>2</td><td>AFL 更新 queue、edge bitmap、data map 和覆盖进展。</td><td>这些信息不仅服务 AFL，也会成为 Master 调度符号执行的反馈信号。</td></tr>
+          <tr><td>3</td><td>Master 读取新输入和反馈信号，做去重、评分和任务合并。</td><td>任务由输入、目标分支、路径前缀、focus bytes、策略参数组成。</td></tr>
+          <tr><td>4</td><td>Master 在 worker READY 后下发 WORK。</td><td>任务带 token、bitmap 版本和策略参数，避免迟到结果污染当前状态。</td></tr>
+          <tr><td>5</td><td>worker 执行 SymCC 插桩目标，收集约束并选择快速求解或 Z3。</td><td>worker 的本地 bitmap 只用于减少重复求解，不作为最终覆盖口径。</td></tr>
+          <tr><td>6</td><td>候选输入返回 Master 后，由 AFL edge bitmap 重新 triage。</td><td>新增覆盖写回 AFL sync；无新增覆盖则丢弃或只保留统计。</td></tr>
+          <tr><td>7</td><td>AFL 接收有效新语料并继续变异。</td><td>形成“fuzzing 发现输入、符号执行突破条件、fuzzing 继续扩散”的闭环。</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout green">
+        <b>AFL 要不要反馈给符号执行？要。</b>AFL 的 edge bitmap 告诉 Master 哪些路径已经被覆盖，data map 提供比较距离和 hot bytes，queue 增长率与覆盖停滞窗口用于判断是否需要把更多资源交给符号执行或减少低收益 worker。
+      </div>
+    </section>
+
+    <section id="sota">
+      <h2>第五章 关键技术体系与 SOTA 引入</h2>
+      <p class="lead">
+        引入 SOTA 技术的目的并非罗列算法名称，而是围绕三个问题展开：如何选择更有价值的路径，如何减少重复求解，如何让符号执行更适合并行环境。
+      </p>
+
+      <table>
+        <thead>
+          <tr><th>技术方向</th><th>汇报时如何理解</th><th>核心原理</th><th>引入原因</th><th>当前效果与边界</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>S2F action seed / Prefix DAG</b></td>
+            <td>把“翻转某个分支”提升为“规划一段探索路线”。</td>
+            <td>将单次分支翻转扩展为可规划的 action 序列，并记录公共路径前缀。</td>
+            <td>降低并行 worker 在相同输入和相同路径上的重复探索。</td>
+            <td>已接入调度与 profile；MDP 有界刷新后 adaptive_scheduler 从 59.37s 降至 14.28s。</td>
+          </tr>
+          <tr>
+            <td><b>ColorGo / MultiGo / TACO 目标导向调度</b></td>
+            <td>让 worker 优先处理更可能产生新覆盖的任务。</td>
+            <td>根据目标距离、覆盖收益和路径难度选择探索方向。</td>
+            <td>使任务分配从“空闲即派发”转向“优先派发高价值任务”。</td>
+            <td>已用于 Prefix-DAG MDP 与 target reward；后续需补充更多消融实验。</td>
+          </tr>
+          <tr>
+            <td><b>PANGOLIN 式约束与 Z3 context 复用</b></td>
+            <td>相似路径不重复从零求解，而是复用已有约束上下文。</td>
+            <td>复用相似路径中的前缀约束、polyhedral summary 和 solver context。</td>
+            <td>降低重复求解开销，提升复杂约束求解效率。</td>
+            <td>机制已实现；LAVA-M base64 命中不足，仍需更合适的结构化目标验证收益。</td>
+          </tr>
+          <tr>
+            <td><b>Backsolver + Veritesting / IFSS</b></td>
+            <td>把多个相似路径合并成更少的可验证表达式。</td>
+            <td>通过 LLVM IR 分析恢复分支合并关系，将多路径控制流转换为可验证表达式。</td>
+            <td>缓解路径爆炸，提升复杂控制流下的路径分析能力。</td>
+            <td>已形成 loop summary、MemoryPhi 和 continuation 链路；当前按机制证据汇报。</td>
+          </tr>
+          <tr>
+            <td><b>ParaSuit / Cottontail / TopSeed</b></td>
+            <td>利用路径稀有度、输入结构和历史成功经验筛选任务。</td>
+            <td>结合分支稀有度、约束形状、历史成功输入和结构信息选择任务。</td>
+            <td>提升求解前的新颖度判断，减少低价值候选。</td>
+            <td>已接入调度画像；下一步需要与 novelty-aware allocation 联合验证。</td>
+          </tr>
+          <tr>
+            <td><b>QF_BV proof/context exchange</b></td>
+            <td>让多个 worker 共享可验证的位向量求解经验。</td>
+            <td>跨 worker 交换可验证的位向量求解上下文、证明结果和复用信息。</td>
+            <td>并行求解中不应重复证明同类公式，但复用必须可验证。</td>
+            <td>机制链路已完成；当前作为机制成果汇报，不外推为公开目标 speedup。</td>
+          </tr>
+          <tr>
+            <td><b>证明前缀分区与认证并行求解</b></td>
+            <td>把一个困难位向量查询分成若干互斥子问题，同时求解，但最终答案必须仍能验证。</td>
+            <td>F448 依据可证明前缀构造完备 cube 树；F449 以持久租约分配叶任务。任一 SAT 叶返回可重放模型后取消同组任务；全部叶 UNSAT 时，沿分区树反向消去 split literal，合成为原查询证明。</td>
+            <td>补齐“生成分区但不执行”的工程缺口，使单条困难查询能够利用多核，同时保持 SAT/UNSAT 结果可审计。</td>
+            <td>2 至 64 cubes 的五轮机制实验均完成证明重放；64-cube 聚合含 64 个叶证明和 63 个分辨率步骤。耗时仅表示当前证明管线成本。</td>
+          </tr>
+          <tr>
+            <td><b>闭包绑定的证明重放缓存</b></td>
+            <td>证明检查通过后，缓存的是“这份证明在这个具体 plan 上已获授权”，而不是 SAT/UNSAT 结论。</td>
+            <td>缓存身份同时包含 plan、checker policy 和完整 import closure；命中仍会稳定读取并批量核对闭包见证。</td>
+            <td>重复查询会反复执行 LRUP/JSON/SQLite 递归检查，这是分布式证明管线的显著固定开销。</td>
+            <td>F450 的 10 轮机制实验中，8/32/64 层闭包的中位加速比分别为 3.90×、14.22×和 25.39×；不代表端到端 solver 加速。</td>
+          </tr>
+          <tr>
+            <td><b>代次栅栏下的跨节点 Cube 执行</b></td>
+            <td>为每个 cube 同时持有查询内 task token 和跨节点 generation/shard/work fence。</td>
+            <td>先验证外层 ULFM fence，再重放内层 SAT 模型或 UNSAT 证明；故障后全部不确定在途任务换 token 并重排。</td>
+            <td>将 F449 的本地查询内并行与 F447 的跨节点恢复真正连接，阻止旧 communicator 结果越代提交。</td>
+            <td>F451 完成 5 轮逻辑拓扑 oracle 和 3 轮物理双主机适配器 oracle；证明机制正确性，不把 SSH 适配器宣称为生产 MPI 性能。</td>
+          </tr>
+          <tr>
+            <td><b>Smart Cubing 式在线 activity/cost 决策</b></td>
+            <td>先用少量可信观测判断公式特征，再决定采用静态分区、activity 引导还是成本自适应分区。</td>
+            <td>F453 将 checked clause activity、分区成本、执行结果和选择概率写入持久策略库；预运行费用从统一 CPU 预算中扣除，SAT/UNSAT 仍由模型或证明独立裁决。</td>
+            <td>固定 cube 数和固定分区策略难以同时适应不同查询，需要让系统根据历史结果在线调整，同时避免学习器成为新的信任根。</td>
+            <td>15 次同公式族机制实验完成三路各 5 次选择；cost arm 探索后选择 2 cubes。该小公式上 static 更快，说明自适应策略必须保留回退，并需公开长时目标验证覆盖收益。</td>
+          </tr>
+          <tr>
+            <td><b>Agentic concolic / LLM proposal</b></td>
+            <td>大模型只给候选策略，最终仍由真实执行和 bitmap 验证。</td>
+            <td>在覆盖停滞时，由模型异步提出有限 action plan，再由真实执行验证。</td>
+            <td>利用模型对输入结构和策略规划的能力，但不让模型决定覆盖准入。</td>
+            <td>已有接口方向；作为 P2 研究任务推进，不进入热路径。</td>
+          </tr>
+          <tr>
+            <td><b>ULFM + warm spare 连续恢复</b></td>
+            <td>某个并行进程失效后，不重启整个作业，而由存活进程缩容、接管并继续执行。</td>
+            <td>使用 Revoke/Shrink 重建 communicator，以稳定 endpoint 身份、generation fence、WAL 和幂等提交衔接恢复前后的状态。</td>
+            <td>长时间、多节点符号执行必须把进程失效视为常态，否则单个进程退出会丢失整个实验窗口。</td>
+            <td>已完成连续两次跨节点物理失效门禁；当前证明机制连续性，不把 15 秒 simulation 的吞吐外推为生产性能。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout green">
+        <b>章节结论：</b>当前 SOTA 技术体系形成七条主线：任务质量、约束复用、路径合并、证明感知的查询内并行、证明检查加速、跨节点故障连续性和在线自适应决策。每项技术都以可关闭模块、失败关闭规则和证据边界落地；算法名称本身不作为效果证明。
+      </div>
+    </section>
+
+    <section id="testing">
+      <h2>第六章 测试设计与实验结果</h2>
+      <p class="lead">
+        本章分别展示并行规模、认证分区、证明重放缓存、跨节点 cube 恢复、在线自适应 cubing 和历史真实程序对照。规模实验把性能与可靠性分开统计：只有 8/32/128 三档均成功的区组进入性能比较，所有完整区组都进入失败率统计，避免用失败样本筛选出过度乐观的结论。
+      </p>
+
+      <h3>6.1 测试矩阵</h3>
+      <table>
+        <thead>
+          <tr><th>证据层级</th><th>规模与预算</th><th>有效样本</th><th>回答的问题</th><th>结论等级</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>F447 跨节点失效门禁</td><td>2 节点、10 ranks、2 warm spares、连续 2 次物理退出</td><td>1 次受控 15 秒 simulation</td><td>故障后能否连续恢复通信、角色与持久工作</td><td>机制正确性证据</td></tr>
+          <tr><td>F447 等资源规模实验</td><td>8/32/128 workers；均预留 130 cores、7800 CPU-s；每单元测量 60 秒</td><td>35 个完整单元；性能 9 个配对区组，可靠性 11 个区组</td><td>吞吐、保留率、覆盖与高并行失败风险</td><td>提前停止的工程证据</td></tr>
+          <tr><td>F449 认证分区执行</td><td>2/4/8/16/32/64 cubes；每档 5 轮</td><td>30 个 UNSAT 聚合样本 + 1 个 64-cube SAT 抢先结束样本</td><td>叶证明能否合成原查询证明，以及 SAT 赢家能否取消冗余任务</td><td>机制与成本证据</td></tr>
+          <tr><td>F450 证明重放缓存</td><td>8/32/64 层 import closure；disabled 与 enabled 各 10 轮</td><td>60 个完整机制样本</td><td>闭包绑定授权能否在不省略完整性证言的前提下减少重放成本</td><td>机制微基准</td></tr>
+          <tr><td>F451 分布式 cube 恢复</td><td>8 cubes 的逻辑拓扑 5 轮；2 台物理主机 3 轮</td><td>10 个逻辑恢复 case + 5 个 SAT case + 3 个物理双主机 case</td><td>旧代结果能否被拒绝，在途 cube 能否无丢失重排并完成全局收敛</td><td>机制与跨主机适配器证据</td></tr>
+          <tr><td>F452 原生子句压缩</td><td>20,000 轮性质 oracle、9 类长度分布、真实 CaDiCaL 3.0.1</td><td>2/2 导入确认；38/38 literals 解码；152 B → 40 B</td><td>压缩协议是否规范、可流式解码并降低 checker 数据载荷</td><td>机制与真实后端证据</td></tr>
+          <tr><td>F453 在线自适应 cubing</td><td>static/activity/cost 三路；同公式族、同配置 CPU 上限；每路 5 次</td><td>15/15 决策与结果闭环；activity/cost 各消费 60 条 checked activity receipts</td><td>可信 activity 与在线成本反馈能否改变策略和 cube 数，同时保持预算可比与结果可验证</td><td>机制与成本证据，非公开目标加速结论</td></tr>
+          <tr><td>历史公开目标对照</td><td>LAVA-M base64、pcre2、libxml2；60 至 300 秒</td><td>多数配置 3 轮</td><td>hybrid 何时优于纯 fuzzing，何时收益受限</td><td>阶段性目标证据</td></tr>
+          <tr><td>完整回归门禁</td><td>Python capability gate + native CMake/lit</td><td>1482 测试项 + 310 子测试；333 native 项历史门禁</td><td>新增恢复、driver、压缩、自适应策略与分析代码是否破坏既有能力</td><td>F453 阶段完整回归证据</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout amber">
+        <b>为什么现在停止：</b>原方案的 60 是“3 档配置×每档 20 个单元”，而不是单一配置要跑 60 次。按最新决策，在累计完成约 30 个实验单元后即停止；停止时共有 35 个完整外层结果落盘，第 36 个未完成目录不计入。因此数据足以用于工程趋势判断，但仍标记为 <em>engineering-early-stopped-not-confirmatory</em>，不冒充论文级确认性结论。
+      </div>
+
+      <h3>6.2 F449 查询内认证并行</h3>
+      <table>
+        <thead><tr><th>Cube 数</th><th>叶证明</th><th>聚合步骤</th><th>构造与聚合中位耗时</th><th>最终证明重放中位耗时</th></tr></thead>
+        <tbody>
+          <tr><td>2</td><td>2</td><td>1</td><td>208.727 ms</td><td>39.838 ms</td></tr>
+          <tr><td>8</td><td>8</td><td>7</td><td>618.284 ms</td><td>118.218 ms</td></tr>
+          <tr><td>32</td><td>32</td><td>31</td><td>2476.498 ms</td><td>489.109 ms</td></tr>
+          <tr><td>64</td><td>64</td><td>63</td><td>4591.331 ms</td><td>965.030 ms</td></tr>
+        </tbody>
+      </table>
+      <div class="callout green"><b>F449 结论：</b>分区规模扩大时，叶证明数与分辨率步骤保持可解释的线性关系；SAT 场景在首个有效模型完成后只完成 1 个 cube，并取消其余 63 个。该组数据验证了调度、取消和证明聚合闭环，不能解释为应用加速比或覆盖率收益。</div>
+
+      <h3>6.3 F450 证明重放缓存</h3>
+      <table>
+        <thead><tr><th>Import closure 深度</th><th>完整重放中位耗时</th><th>缓存热重放中位耗时</th><th>机制加速比</th><th>十轮命中</th></tr></thead>
+        <tbody>
+          <tr><td>8</td><td>35.655 ms</td><td>9.140 ms</td><td>3.901×</td><td>70</td></tr>
+          <tr><td>32</td><td>148.042 ms</td><td>10.410 ms</td><td>14.221×</td><td>310</td></tr>
+          <tr><td>64</td><td>279.206 ms</td><td>10.997 ms</td><td>25.389×</td><td>630</td></tr>
+        </tbody>
+      </table>
+      <div class="callout green"><b>F450 结论：</b>闭包越深，避免重复递归 LRUP/JSON/SQLite 重放的收益越明显；三档均为 0 证言失败。这是 checker 授权路径的机制收益，不是整体 solver 加速比。</div>
+
+      <h3>6.4 F451 跨节点认证 Cube 执行</h3>
+      <table>
+        <thead><tr><th>证据</th><th>轮次</th><th>故障与恢复</th><th>结果收敛</th><th>最终状态</th></tr></thead>
+        <tbody>
+          <tr><td>逻辑拓扑 oracle</td><td>5</td><td>10/10 recovery cases，恢复 40/40 个在途 cubes，丢失 0</td><td>10/10 UNSAT 原查询证明，5/5 SAT winners</td><td>每个 8-cube case 精确记录 8 次 semantic attempts</td></tr>
+          <tr><td>物理双主机 adapter</td><td>3</td><td>3/3 远端 exit 86；每轮 generation 0→1，3/3 在途 cubes 重排</td><td>3/3 存活远端 SAT；每轮取消 2/2 peers</td><td>active work 0，recovery queue 0</td></tr>
+        </tbody>
+      </table>
+      <div class="callout green"><b>F451 结论：</b>认证 cube 已从单进程租约任务升级为代次隔离的跨节点任务；故障后无丢叶，旧代结果不能提交，SAT/UNSAT 仍经模型或证明重放收敛。SSH 适配器数据仅证明应用协议跨主机成立。</div>
+
+      <h3>6.5 F452 原生 Checker 子句压缩</h3>
+      <table>
+        <thead><tr><th>子句规模</th><th>固定宽度载荷</th><th>压缩后载荷</th><th>变化</th><th>结论</th></tr></thead>
+        <tbody>
+          <tr><td>1 literal</td><td>基准化为 100%</td><td>111.4%</td><td>+11.4%</td><td>极短子句存在协议开销，不应宣称普遍压缩</td></tr>
+          <tr><td>8 literals</td><td>基准化为 100%</td><td>61.4%</td><td>-38.6%</td><td>中等子句开始形成稳定收益</td></tr>
+          <tr><td>32 literals</td><td>基准化为 100%</td><td>51.6%</td><td>-48.4%</td><td>队列与传输载荷接近减半</td></tr>
+          <tr><td>256 literals</td><td>基准化为 100%</td><td>47.9%</td><td>-52.1%</td><td>长子句获得最高机制收益</td></tr>
+          <tr><td>真实 CaDiCaL 场景，38 literals</td><td>152 B</td><td>40 B</td><td>-73.7%</td><td>2/2 导入确认，38/38 解码，0 失败</td></tr>
+        </tbody>
+      </table>
+      <div class="callout green"><b>F452 结论：</b>原生压缩显著降低中长子句的 checker 队列和跨边界载荷，并保持严格、可审计的解码语义；它优化的是证明检查数据通路，不等同于求解器整体提速。</div>
+
+      <h3>6.6 F453 在线 Activity/Cost 引导 Cubing</h3>
+      <table>
+        <thead><tr><th>策略</th><th>样本</th><th>Cube 序列</th><th>Checked activity</th><th>分区执行中位</th><th>总耗时中位</th></tr></thead>
+        <tbody>
+          <tr><td>static</td><td>5</td><td>4 / 4 / 4 / 4 / 4</td><td>0</td><td>347.613 ms</td><td><b>348.016 ms</b></td></tr>
+          <tr><td>activity</td><td>5</td><td>4 / 4 / 4 / 4 / 4</td><td>60</td><td>1463.350 ms</td><td>1813.961 ms</td></tr>
+          <tr><td>cost</td><td>5</td><td>4 / 8 / 16 / 2 / 2</td><td>60</td><td>1377.961 ms</td><td>1742.517 ms</td></tr>
+        </tbody>
+      </table>
+      <div class="callout green"><b>F453 结论：</b>可信 activity 消费、三路策略选择、成本探索、持久反馈和等配置预算扣费已经形成闭环；cost 策略在探索四种 cube 数后再次选择观测成本较优的 2。当前小型矛盾公式上 static 明显更快，数据支持“机制能够自适应”，不支持“guided cubing 已普遍加速”。</div>
+
+      <h3>6.7 F447 并行规模实验</h3>
+      <div class="grid-3">
+        <div class="metric"><span class="num">+50.52%</span><span class="label">128 对 8 workers：候选生成吞吐配对提升，95% CI [+35.61%, +65.43%]</span></div>
+        <div class="metric"><span class="num">+29.29%</span><span class="label">128 对 8 workers：有效输入吞吐配对提升，95% CI [+17.80%, +40.78%]</span></div>
+        <div class="metric"><span class="num">18.18%</span><span class="label">128-worker 内层 MPI 失败率 2/11，Wilson 95% CI [5.14%, 47.70%]</span></div>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>Workers</th><th>生成吞吐，均值 [95% CI]</th><th>有效输入吞吐，均值 [95% CI]</th><th>保留率</th><th>Endpoint edges，均值 [95% CI]</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>8</td><td>65.47 [61.65, 69.30]</td><td>23.47 [22.45, 24.50]</td><td>35.85%</td><td>185.00 [181.64, 188.36]</td></tr>
+          <tr><td>32</td><td>83.42 [79.63, 87.21]</td><td>27.45 [26.31, 28.58]</td><td>32.90%</td><td>173.89 [168.00, 179.78]</td></tr>
+          <tr><td>128</td><td>97.93 [91.47, 104.40]</td><td>30.22 [28.38, 32.06]</td><td>30.86%</td><td>181.44 [178.38, 184.51]</td></tr>
+        </tbody>
+      </table>
+
+      <div class="figure">
+        <img src="diagrams/f447-parallel-scale-engineering.svg" alt="F447 并行规模工程实验结果">
+        <div class="caption">图 4：左图显示有效输入吞吐及 USL 拟合；右图显示 endpoint coverage 的非单调观测。误差线为按配置计算的普通均值 95% 置信区间；配对提升区间另按 9 个完整区组计算。</div>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>相对 8 workers</th><th>生成吞吐</th><th>有效输入吞吐</th><th>Endpoint edges</th><th>保留率</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>32 workers</td><td>+29.01% [13.04%, 44.98%]</td><td>+17.63% [7.07%, 28.18%]</td><td>-5.99% [-9.38%, -2.60%]</td><td>-8.27% [-11.47%, -5.08%]</td></tr>
+          <tr><td>128 workers</td><td>+50.52% [35.61%, 65.43%]</td><td>+29.29% [17.80%, 40.78%]</td><td>-1.82% [-5.38%, 1.74%]</td><td>-13.98% [-15.79%, -12.17%]</td></tr>
+        </tbody>
+      </table>
+      <div class="callout green">
+        <b>规模实验结论：</b>更多 worker 确实提高了候选生成和去重后的有效输入吞吐，但增益明显递减；保留率随规模下降，endpoint edges 不单调，128 workers 还出现 2/11 内部失败。因此不能把“处理得更多”直接解释为“覆盖得更多”，也不能据此宣布固定的最优规模。
+      </div>
+
+      <h3>6.8 此前规模与真实程序对照</h3>
+      <table>
+        <thead>
+          <tr><th>SymCC workers</th><th>Unique throughput</th><th>Endpoint edges</th><th>结论</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>16.21 inputs/s</td><td>155.0</td><td>单 worker 可运行基线。</td></tr>
+          <tr><td>3</td><td>23.80 inputs/s</td><td>182.3</td><td>吞吐和覆盖同时提升。</td></tr>
+          <tr><td>7</td><td>31.36 inputs/s</td><td><b>193.0</b></td><td>覆盖在该短预算下接近平台。</td></tr>
+          <tr><td>15</td><td>36.47 inputs/s</td><td>190.3</td><td>吞吐继续增长，但覆盖未继续增长。</td></tr>
+          <tr><td>31</td><td><b>40.04 inputs/s</b></td><td>191.3</td><td>说明“更多 worker”不等于“更多覆盖”。</td></tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <b>测试结论：</b>synthetic case 中 worker 增多后 unique throughput 从 16.21 inputs/s 提升到 40.04 inputs/s，说明并行执行链路有效；该短预算下最高覆盖观测出现在 7 workers，但 2026-08-30 的 v5 证据复核因随机种子复用、时间暴露不等、覆盖来源及抽样 provenance 缺失而拒绝把 7 解释为稳定上限。
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>libxml2 total np</th><th>AFL exec/s</th><th>Combined unique/s</th><th>Endpoint edges</th><th>AUC</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>4</td><td>59,933</td><td>85.79</td><td>5355.3</td><td>4899.7</td></tr>
+          <tr><td>8</td><td>154,607</td><td>161.39</td><td>5478.3</td><td>5018.2</td></tr>
+          <tr><td>16</td><td>290,681</td><td>298.32</td><td>5533.7</td><td>5089.5</td></tr>
+          <tr><td>32</td><td><b>606,340</b></td><td><b>643.85</b></td><td><b>5615.0</b></td><td><b>5147.6</b></td></tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <b>测试结论：</b>libxml2 上 total np=4→32 时，AFL exec/s 提升约 10.12x，endpoint edges 提升 4.85%。这说明框架能够扩大执行规模，但真实 parser 的短时新增边已经较稀疏，继续提升覆盖需要更好的任务选择和新颖度判断。
+      </div>
+
+      <h3>6.9 工程调优与对照结果</h3>
+      <table>
+        <thead>
+          <tr><th>pcre2 对照</th><th>轮次</th><th>SymCC candidates</th><th>AFL execs</th><th>Showmap coverage</th><th>结论</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Legacy hybrid</td><td>3</td><td>5,482</td><td>2,279,949</td><td>47.01% (4573/9728)</td><td>调优前 hybrid 基线。</td></tr>
+          <tr><td>Tuned hybrid</td><td>3</td><td>3,066</td><td>21,575,645</td><td><b>50.20% (4884/9728)</b></td><td>相对 legacy hybrid 提升 3.19pp。</td></tr>
+          <tr><td>AFL-only</td><td>3</td><td>0</td><td>47,037,750</td><td>50.56% (4918/9728)</td><td>AFL-only 仍略高，不能宣称 hybrid 超越。</td></tr>
+        </tbody>
+      </table>
+      <div class="callout amber">
+        <b>测试结论：</b>pcre2 上 tuned hybrid 相对 legacy hybrid 提升 3.19 个百分点，说明调优降低了混合执行的工程开销；但 AFL-only 仍略高，说明该目标在短时窗口下更适合高吞吐 fuzzing，不能把所有目标都表述为 hybrid 必然领先。
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>瓶颈优化项</th><th>优化前</th><th>优化后</th><th>变化</th><th>说明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Queue scan time</td><td>30.19 s</td><td>19.47 s</td><td><b>-35.49%</b></td><td>busy-path poll 从 100 ms 调整为可配置 500 ms。</td></tr>
+          <tr><td>Queue scan calls</td><td>521.7</td><td>143.3</td><td><b>-72.52%</b></td><td>减少 worker 忙碌时的无效重扫。</td></tr>
+          <tr><td>300s master triage</td><td>126.80 s</td><td>93.68 s</td><td><b>-26.1%</b></td><td>批量目录提交和 proposal 状态降频保存。</td></tr>
+          <tr><td>Adaptive scheduler</td><td>59.37 s</td><td>14.28 s</td><td><b>-75.9%</b></td><td>Prefix-DAG / ColorGo MDP 全图刷新改为有界刷新。</td></tr>
+          <tr><td>MDP bounded triage</td><td>78.73 s</td><td>33.78 s</td><td><b>-57.1%</b></td><td>单轮 profile 显示 Master 串行开销明显下降。</td></tr>
+        </tbody>
+      </table>
+      <div class="callout green">
+        <b>优化结论：</b>本轮优化最明确的收益在系统开销侧：queue scan、triage 和 Prefix-DAG 刷新均明显下降。这类收益不一定立即转化为覆盖率跃升，但它降低了后续长时、多节点实验的系统性瓶颈。
+      </div>
+
+      <h3>6.10 Hybrid 机制正例：LAVA-M base64</h3>
+      <table>
+        <thead>
+          <tr><th>模式</th><th>轮次</th><th>SymCC candidates</th><th>AFL execs</th><th>Showmap coverage</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Seed</td><td>3</td><td>0</td><td>0</td><td>11.58% (126/1088)</td></tr>
+          <tr><td>AFL-only</td><td>3</td><td>0</td><td>2,147,017</td><td>14.06% (153/1088)</td></tr>
+          <tr><td>Hybrid</td><td>3</td><td>267</td><td>381,921</td><td><b>21.14% (230/1088)</b></td></tr>
+        </tbody>
+      </table>
+      <div class="callout amber">
+        <b>测试结论：</b>LAVA-M base64 中 hybrid 覆盖 230 edges，AFL-only 为 153 edges，相对提升约 50.3%。该结果说明符号执行对精确条件和 magic value 有明确补充价值；但该配置是 symbolic-heavy 机制展示，不代表所有真实 parser 在短时窗口下都会超过 AFL-only。
+      </div>
+
+      <h3>6.11 为什么提升不是线性的</h3>
+      <p>
+        做了大量优化后，覆盖提升仍然只有几个百分点到几十个百分点，这并不矛盾。混合模糊测试的收益取决于目标程序的约束形态：
+        如果目标存在 magic value、memcmp、宽整数比较和深层精确分支，符号执行能明显补足随机变异；如果目标是高吞吐 parser，AFL persistent mode 在短时间内已经覆盖大量浅层路径，符号执行新增输入的边际收益会更低。
+      </p>
+      <table>
+        <thead>
+          <tr><th>原因</th><th>对结果的影响</th><th>后续优化方向</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>短时窗口偏向 AFL-only</td><td>几十秒到数分钟内，AFL 的执行次数优势很大，符号执行的深层收益还没有完全释放。</td><td>后续需要 6h/24h 多轮实验，而当前材料只能按阶段数据汇报。</td></tr>
+          <tr><td>新增覆盖密度下降</td><td>worker 增多后会生成更多候选，但很多候选落在已覆盖区域。</td><td>推进 novelty-aware allocation 和目标导向调度。</td></tr>
+          <tr><td>Master 存在串行环节</td><td>queue scan、result triage、Prefix-DAG 更新会限制并行扩展。</td><td>继续做 coverage owner sharding、多 master 和异步 solver service。</td></tr>
+          <tr><td>SOTA 技术效果有目标依赖</td><td>Backsolver、context cache、data map 在不同程序上的命中率不同，不能平均化宣传。</td><td>按目标类型建立 case registry，区分强正例、弱正例和负例。</td></tr>
+        </tbody>
+      </table>
+      <div class="speaker">
+        <b>汇报口径：</b>当前成果不应表述为“全面超过 AFL-only”，而应表述为“完成并行 hybrid 框架闭环，显著降低关键系统开销，并在精确条件目标上取得明确覆盖收益；真实 parser 上仍需要更长时间和更强任务新颖度控制”。
+      </div>
+    </section>
+
+    <section id="optimization">
+      <h2>第七章 瓶颈分析与优化进展</h2>
+      <p class="lead">
+        当前优化遵循“先定位瓶颈，再确定优先级，最后用 profile 验证”的原则。阶段性结果表明，Master 端串行开销已有明显下降。
+      </p>
+
+      <table>
+        <thead>
+          <tr><th>优先级</th><th>发现的问题</th><th>采取的优化</th><th>效果</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>P0 已完成</b></td><td>跨节点故障后，本地 failed group 观察不一致</td><td>先 Shrink 得到共同 survivor 集，再交换稳定 endpoint 身份并确定 missing set</td><td>连续两次物理退出后均收敛到一致 generation</td></tr>
+          <tr><td><b>P0 已完成</b></td><td>恢复后的新 Master 可能读取旧代或其他 Master 的状态</td><td>QueryStore 按 Master 与 generation 隔离；所有提交绑定 generation receipt</td><td>旧代结果被 fence，恢复后的工作可重放</td></tr>
+          <tr><td><b>P0 已完成</b></td><td>并发 Master 可能重复发布同一结果</td><td>共享 Work WAL 上执行锁内 <code>replay_commit_once</code>，公共 corpus 使用内容寻址</td><td>820 条 generated WAL 收敛为 820 个可核验公共对象</td></tr>
+          <tr><td><b>P0 已完成</b></td><td>benchmark 内层 MPI 失败被外层返回码掩盖</td><td>保留报告后返回 3；显式目标零匹配返回 2</td><td>识别出 128-worker 的 2/11 内部失败，避免错误成功结论</td></tr>
+          <tr><td><b>P0 已完成</b></td><td>覆盖点非单调时，饱和模型会崩溃或给出伪拟合</td><td>保留吞吐 USL 结果，记录 <code>coverage_fit_error</code> 并拒绝覆盖拟合</td><td>网页和报告明确显示“覆盖上限未知”</td></tr>
+          <tr><td><b>P1 已具备、待长测</b></td><td>规模增大后有效输入保留率下降</td><td>novelty-aware allocation、target/frontier 分片与低收益 worker 停泊</td><td>机制已实现；需在更长真实目标实验中估计控制律收益</td></tr>
+          <tr><td><b>P2 研究评估</b></td><td>128-worker 稳定性与跨节点网络/存储环境仍有限</td><td>把当前 SSH/NAT shim、SMB/flock broker 门禁迁移到生产原生网络和共享存储</td><td>当前门禁不等价于生产集群资格证明</td></tr>
+        </tbody>
+      </table>
+
+      <h3>7.1 大模型辅助的合理边界</h3>
+      <div class="callout">
+        <b>适用位置：</b>大模型适合放在异步研究接口中，在覆盖停滞、确定性 frontier 消耗殆尽时，给出结构化 action plan，例如 focus bytes、target branch、S2F actions 和输入结构候选方案。每个 proposal 必须经过真实执行和 AFL coverage triage 验证。
+      </div>
+      <div class="callout red">
+        <b>不适用位置：</b>LLM 不应进入 queue scan、bitmap merge、lease fencing 或 RESULT 准入热路径。这些环节属于确定性系统逻辑，引入模型会增加延迟并降低可复现性。
+      </div>
+      <pre><code>trigger = coverage_slope &lt; tau_cov
+       and accepted_symcc_rate &lt; tau_useful
+       and deterministic_frontier_exhausted
+
+LLM/agent output: {strategy, focus_bytes, target_branch, s2f_actions}
+Verifier: real execution + branch telemetry + AFL coverage triage</code></pre>
+    </section>
+
+    <section id="model">
+      <h2>第八章 并行规模决策模型</h2>
+      <p class="lead">
+        并行规模不是一个只由 CPU 数量决定的常数。F447 以 Universal Scalability Law（USL）描述有效输入吞吐的递减收益，同时把资源、Master 服务能力、覆盖新颖度和运行可靠性作为独立门禁。该模型用于决定下一轮实验规模，不用于宣称理论上限或生产最优值。
+      </p>
+
+      <h3>8.1 模型来源与计算方式</h3>
+      <pre><code>C(N) = gamma * N / [1 + sigma(N - 1) + kappa * N * (N - 1)]
+
+N_candidate = min(N_resource, N_master, N_USL)
+accept N only if coverage and reliability gates also pass</code></pre>
+      <p>
+        USL 在 Amdahl 串行比例之外显式描述并发争用 <code>sigma</code> 与一致性开销 <code>kappa</code>，适合解释 worker 增多后吞吐仍增长但边际收益下降的现象。本项目再用 Master profile 约束服务能力，用真实执行后的 endpoint coverage 检查新颖度，并把失败率作为规模准入条件。组合规则是本项目的工程决策方法；其中 Amdahl 与 USL 是已有并行性能理论，覆盖与可靠性门禁来自本项目实测。
+      </p>
+
+      <table>
+        <thead>
+          <tr><th>约束</th><th>可观测量</th><th>F447 当前结果</th><th>能否形成上限</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>资源</td><td>可调度 CPU、内存、solver 和存储容量</td><td>分析器记录的 resource ceiling 为 191；本实验所有配置实际统一预留 130 cores</td><td>只表示环境容量，不表示有效规模</td></tr>
+          <tr><td>Master 服务能力</td><td>queue scan、dispatch、triage、commit 与状态刷新时间</td><td>历史 profile 已定位并降低多项串行开销；F447 未单独拟合 Master 排队模型</td><td>暂不单独给数值上限</td></tr>
+          <tr><td>有效吞吐 USL</td><td>去重后有效输入数/秒</td><td><code>gamma=8.8788</code>、<code>sigma=0.2933</code>、<code>kappa=0</code>、<code>R²=0.6359</code></td><td>10% 翻倍收益启发式为 11 workers</td></tr>
+          <tr><td>覆盖新颖度</td><td>endpoint edges</td><td>185.00 → 173.89 → 181.44，非单调</td><td><b>不能。</b>覆盖饱和拟合被拒绝</td></tr>
+          <tr><td>可靠性</td><td>内层 MPI 失败率</td><td>8/32 为 0/11；128 为 2/11（18.18%）</td><td>128 暂不能通过稳定性门禁</td></tr>
+        </tbody>
+      </table>
+
+      <h3>8.2 当前可以得出的判断</h3>
+      <div class="grid-3">
+        <div class="metric"><span class="num">11</span><span class="label">有效吞吐 USL 的 10% 翻倍收益启发式点</span></div>
+        <div class="metric"><span class="num">20</span><span class="label">原始候选生成吞吐的同类启发式点</span></div>
+        <div class="metric"><span class="num">未知</span><span class="label">覆盖规模上限；非单调观测不足以支持饱和曲线</span></div>
+      </div>
+
+      <div class="speaker">
+        <b>汇报时应这样表述：</b>“11 workers 是基于当前三个规模点和有效吞吐 USL 拟合得到的弱启发式，不是生产上限，也不是经验最优值。由于最低实测点已经是 8 workers、拟合 R² 仅为 0.6359、实验提前停止且没有 1-worker 基线，当前只能用它安排后续探针，不能据此固定资源配置。”
+      </div>
+
+      <h3>8.3 为什么拒绝覆盖饱和拟合</h3>
+      <p>
+        饱和曲线要求观测随规模大体单调增长，而 F447 的 endpoint edges 在 8、32、128 workers 下依次为 185.00、173.89、181.44。强行拟合会把目标噪声和随机波动误写为“覆盖天花板”。分析器现在保留吞吐模型，同时记录 <code>coverage_fit_error=invalid coverage observation</code>；网页因此只展示观测点，不绘制虚构的覆盖曲线。
+      </p>
+      <div class="callout amber">
+        <b>模型证据边界：</b>当前只有 3 个规模点、每档 9 个成功性能样本，且实验提前停止。要把启发式升级为稳定决策模型，至少需要补充 1/2/4/16/64 等规模点、更长真实目标、多批次重复和独立验证集；128-worker 的失败率也必须先降低。
+      </div>
+
+      <p class="small">
+        参考依据：
+        <a href="https://dl.acm.org/doi/10.1145/1465482.1465560">Amdahl, AFIPS 1967</a>；
+        <a href="https://arxiv.org/abs/0808.1431">Gunther, Universal Scalability Law</a>；
+        <a href="https://arxiv.org/abs/1808.09700">Klees et al., Evaluating Fuzz Testing, CCS 2018</a>；
+        <a href="research-progress/Cross_Node_Continuous_ULFM_and_Scale_Evidence_F447_2026-08-25.md">F447 完整实现与实验报告</a>。
+      </p>
+    </section>
+
+    <section id="month">
+      <h2>第九章 近期交付物与可汇报成果</h2>
+      <p class="lead">
+        本章汇总近期可以对外汇报的工作产出。重点不是逐条列代码改动，而是说明完成了哪些系统能力、形成了哪些实验证据，以及这些结果对后续研究有什么价值。
+      </p>
+
+      <table>
+        <thead>
+          <tr><th>工作方向</th><th>完成内容</th><th>取得效果</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>跨节点弹性框架</td><td>完成稳定 endpoint、Revoke/Shrink、generation receipt、双 Master、warm spare 和恢复后重新分组。</td><td>两节点连续两次物理进程退出后，系统均在同一作业内恢复并继续执行。</td></tr>
+          <tr><td>可恢复持久状态</td><td>按 Master/代次隔离 QueryStore，使用共享 Work WAL、锁内幂等提交和内容寻址 corpus。</td><td>恢复后核验 164 条 analyzed、820 条 generated 记录和 820 个公共对象，无重复发布。</td></tr>
+          <tr><td>规模实验</td><td>建立等 CPU 预留、随机区组顺序、配对统计、可靠性统计、SHA-256 封存和提前停止说明。</td><td>在 27 个成功性能单元上量化 8/32/128 workers 的收益，在 33 个可靠性单元上识别 128-worker 风险。</td></tr>
+          <tr><td>Benchmark 正确性</td><td>修复零目标匹配仍成功、内层 MPI 失败仍返回 0、非单调覆盖强制拟合三类问题。</td><td>失败能传播到自动化门禁，模型在证据不足时明确拒绝结论。</td></tr>
+          <tr><td>查询内认证并行</td><td>实现证明前缀分区、持久 cube 租约、多槽求解、首个 SAT 取消、叶级 UNSAT 聚合与依赖闭合回收。</td><td>F448 的静态分区目录已转化为主查询服务可执行的 F449 闭环，并保留可重放的结果证据。</td></tr>
+          <tr><td>证明重放缓存</td><td>实现与 plan、checker policy 和完整 import closure 绑定的批量授权缓存，并保留稳定见证核对。</td><td>64 层重复授权的机制加速比达 25.39×，且不扩大已证明结论的信任边界。</td></tr>
+          <tr><td>跨节点认证 cube</td><td>将 cube token 与 stable endpoint、generation、shard 和 work fence 组合，补齐恢复队列续跑和跨 ledger 崩溃对账。</td><td>3/3 轮物理双主机适配器实验均在远端失效后无丢叶收敛，旧代结果被双层 fence 拒绝。</td></tr>
+          <tr><td>原生证明数据压缩</td><td>实现 canonical delta-varint、短子句 inline 存储和 CaDiCaL 流式解码。</td><td>真实 38-literal 场景载荷由 152 B 降至 40 B，降低 73.7%。</td></tr>
+          <tr><td>在线自适应 cubing</td><td>实现 static/activity/cost 三路选择、精确 propensity、成本反馈、统一预算扣费与静态回退。</td><td>15/15 次决策完成持久闭环；cost arm 探索 4/8/16/2 后再次选择 2 cubes。</td></tr>
+          <tr><td>完整验证与文档</td><td>F453 阶段完成 capability gate、专项/耦合回归、机制 oracle、实现报告与证据封存。</td><td>1482 项 Python 测试与 310 子测试全部通过，16 项能力清单与测试身份精确一致。</td></tr>
+        </tbody>
+      </table>
+
+      <h3>可直接用于汇报的结果</h3>
+      <table>
+        <thead>
+          <tr><th>结果</th><th>数据</th><th>一句话结论</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>跨节点连续恢复</td><td>2 节点、2 次连续物理退出、2 次 spare 晋升；最终 8 active ranks</td><td>故障恢复已覆盖通信、角色、持久状态和提交，不只是进程重新连通。</td></tr>
+          <tr><td>并行吞吐</td><td>128 对 8 workers：生成吞吐 +50.52%，有效输入吞吐 +29.29%</td><td>并行有明确吞吐收益，但有效工作增长慢于原始候选增长。</td></tr>
+          <tr><td>覆盖与保留率</td><td>endpoint edges -1.82%，区间跨 0；保留率相对下降 13.98%</td><td>当前小型目标已饱和，增加 worker 没有形成可证明的覆盖收益。</td></tr>
+          <tr><td>高并行可靠性</td><td>128 workers 失败 2/11；8/32 workers 均为 0/11</td><td>128-worker 尚不能作为稳定配置推荐。</td></tr>
+          <tr><td>历史 hybrid 正例</td><td>LAVA-M base64：230 对 153 edges，hybrid 相对 AFL-only +50.3%</td><td>精确比较和 magic value 目标能体现符号执行对 fuzzing 的补充作用。</td></tr>
+          <tr><td>历史系统优化</td><td>queue scan time -35.49%，adaptive scheduler -75.9%，MDP bounded triage -57.1%</td><td>profile 驱动的优化显著降低了 Master 串行开销。</td></tr>
+          <tr><td>认证分区机制</td><td>64 个 UNSAT 叶证明经 63 步聚合为原查询证明；SAT 首胜后取消 63/64 子任务</td><td>单条困难查询已具备多槽执行与可验证收敛能力。</td></tr>
+          <tr><td>证明重放成本</td><td>8/32/64 层闭包热重放加速比为 3.90× / 14.22× / 25.39×</td><td>闭包绑定缓存大幅减少重复 checker 工作，且仍核对完整见证。</td></tr>
+          <tr><td>分布式 cube 恢复</td><td>逻辑拓扑恢复 40/40 在途 cubes；物理双主机 3/3 轮恢复并完成 SAT 取消</td><td>查询内并行已经与跨节点代次恢复连通，不再仅是单机机制。</td></tr>
+          <tr><td>在线 cubing 决策</td><td>static/activity/cost 各 5 次；cost cube 序列 4/8/16/2/2</td><td>系统能从可信求解活动与实测成本中调整分区规模，同时在不适用目标上回退 static。</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout amber">
+        <b>证据边界：</b>F447 的跨节点运行是受控机制门禁，使用 SSH/NAT shim 与 SMB/flock broker，不等价于生产原生网络和存储验证；F447 规模实验提前停止，且目标较小。LAVA-M、pcre2 和 libxml2 是此前短时结果，只用于说明目标依赖性，不与 F447 配对统计合并。
+      </div>
+    </section>
+
+    <section id="conclusion">
+      <h2>第十章 结论与后续计划</h2>
+      <div class="grid">
+        <div>
+          <h3>阶段性结论</h3>
+          <ul>
+            <li>F447 已完成两节点、双 Master、warm spare 的连续两次物理失效恢复门禁。</li>
+            <li>F448/F449 已完成从证明前缀分区到并行 cube 执行、抢先取消和 UNSAT 聚合的主服务闭环。</li>
+            <li>F450 已完成与不可变 plan 闭包绑定的证明重放缓存，64 层机制实验中位加速比 25.39×。</li>
+            <li>F451 已把认证 cube 执行接入代次栅栏的跨节点恢复，3/3 轮物理双主机适配器实验完成收敛。</li>
+            <li>F452 已完成 checker 原生子句压缩，真实 CaDiCaL 场景将 152 B 整数载荷压缩至 40 B，减少 73.7%。</li>
+            <li>F453 已完成在线 activity/cost 引导 cubing；15 次机制实验形成“观测、选择、执行、验证、反馈”持久闭环。</li>
+            <li>恢复后的 Work WAL、generation fence 与公共 corpus 能够继续提交并逐项核验。</li>
+            <li>8/32/128-worker 等资源实测证明吞吐可扩展，但收益递减；128 对 8 的有效输入吞吐提升 29.29%。</li>
+            <li>高并行度没有带来 endpoint coverage 提升，并暴露 128-worker 的 18.18% 内部失败率。</li>
+            <li>完整回归与交付门禁通过，benchmark 已能正确传播内部失败并拒绝无依据的覆盖拟合。</li>
+          </ul>
+        </div>
+        <div>
+          <h3>结论边界</h3>
+          <ul>
+            <li>规模实验已按“累计达到约 30 个单元即停止”的决策收尾，实际封存 35 个完整单元。</li>
+            <li>性能结论来自 9 个成功配对区组；可靠性结论来自 11 个完整区组，二者不能混用。</li>
+            <li>11-worker 数值只是低拟合度 USL 启发式，不是生产上限或最优配置。</li>
+            <li>真实 persistent parser 在短时等核条件下 AFL-only 仍有很强竞争力，不能表述为 hybrid 全面领先。</li>
+            <li>跨节点门禁尚未覆盖生产原生网络、共享存储和长时间连续故障。</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>收尾后的工作计划</h3>
+      <ol>
+        <li>按当前指令在 F453 闭环后暂停新增 SOTA 功能，保持当前实现为可测试、可追溯的阶段版本。</li>
+        <li>优先定位两次 128-worker <code>exit-70</code> 的根因，并把可靠性门禁纳入规模选择。</li>
+        <li>后续实验补充低规模点、真实目标和长时独立重复，再重新拟合 USL 与覆盖模型。</li>
+        <li>将跨节点门禁迁移到原生集群网络与共享存储，验证连续多故障下的恢复时延和数据一致性。</li>
+        <li>LLM/agent 继续保持异步 proposal 角色，只有经过真实执行和 AFL coverage triage 的结果才能进入语料。</li>
+      </ol>
+
+      <div class="callout green">
+        <b>总体结论：</b>项目已经形成从 AFL 覆盖反馈、目标导向任务调度、输入间并行、单查询内认证并行到候选准入的完整闭环，并进一步具备证明重放缓存、跨节点代次恢复、压缩证明数据和在线自适应 cubing 能力。当前数据支持“并行提升有效输入吞吐”“特定精确条件目标上 hybrid 提升覆盖”“闭包绑定缓存显著降低重复 checker 开销”“认证 cube 能在节点失效后无丢失收敛”和“可信 activity/cost 能驱动可审计策略调整”五项结论；同时也证明覆盖收益、保留率、可靠性和 guided 策略收益都不会自动随资源或机制复杂度增长。当前阶段已按要求收尾。
+      </div>
+
+      <p class="small">
+        主要参考与本地证据：<a href="Parallel_Framework_Architecture_and_Execution_2026-08-20.md">并行框架文档</a>、
+        <a href="Parallel_Scaling_Bottleneck_and_Optimization_2026-08-20.md">并行扩展性与瓶颈报告</a>、
+        <a href="Monthly_Work_Report_2026-07-19_to_2026-08-19.md">最近一个月工作报告</a>、
+        <a href="research-progress/Cross_Node_Continuous_ULFM_and_Scale_Evidence_F447_2026-08-25.md">F447 跨节点恢复与规模证据</a>、
+        <a href="research-progress/Proof_Prefix_Guided_Certified_Partitioning_F448_2026-08-25.md">F448 证明前缀认证分区</a>、
+        <a href="evidence/f449-proof-aware-partition-execution-2026-08-25/oracle.json">F449 认证分区执行机制数据</a>、
+        <a href="research-progress/Closure_Bound_Proof_Replay_Cache_F450_2026-08-25.md">F450 证明重放缓存报告</a>、
+        <a href="research-progress/Generation_Fenced_Distributed_Cube_Execution_F451_2026-08-26.md">F451 跨节点认证 cube 执行报告</a>、
+        <a href="research-progress/Native_Checker_Clause_Compression_F452_2026-08-26.md">F452 原生 checker 子句压缩报告</a>、
+        <a href="research-progress/Online_Activity_Cost_Guided_Cubing_F453_2026-08-26.md">F453 在线 activity/cost cubing 报告</a>、
+        Cloud9、GenSym ICSE 2023、QSYM、PANGOLIN、S2F、USL、Cottontail 等论文方向。
+      </p>
+    </section>
+  </main>
+</body>
+</html>

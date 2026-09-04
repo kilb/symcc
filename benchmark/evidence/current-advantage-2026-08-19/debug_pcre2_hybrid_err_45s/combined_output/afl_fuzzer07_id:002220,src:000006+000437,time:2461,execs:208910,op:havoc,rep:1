@@ -1,0 +1,3 @@
+(?:abA(foo|bad)*
+(foo|bad)*.*?b
+c){2,5}

@@ -1,0 +1,126 @@
+=== MPI output ===
+SymCC MPI Parallel Concolic Execution
+  Processes:     2
+  Mode:          single-master (1 workers)
+  Shared dir:    /tmp/symcc-f343-mpi-0tsr0pe6/output
+  Input dir:     /tmp/symcc-f343-mpi-0tsr0pe6/input
+  Target:        /tmp/symcc-f343-mpi-0tsr0pe6/simulation-gate.py
+  Timeout:       1s per execution
+  Result budget: 5 objects, 5 bytes per parent
+  Input budget:  5 bytes per object
+  Work epoch:    f343f343f343f343f343f343f343f343f343f343f343f343f343f343f343f343 (configured recovery)
+  Retired GC:    0 root(s) reclaimed, 0 entry(s) removed, stop=disabled
+  Retired budget: roots=0, entries=4096, time=0.05s
+  Retired scan:   entries=0, candidates=0, selected=0
+  Retirement:    renameat2(RENAME_NOREPLACE) qualified
+  Wall timeout:  30s total
+
+[Master] Observed 1 initial inputs from /tmp/symcc-f343-mpi-0tsr0pe6/input
+[Master] Using 1 master(s), 1 workers in this group
+[Master] Durable work ownership: rendezvous + 64 fenced shards, lease=6s
+[Master] Shared filesystem capabilities: {'schema': 'symcc-shared-filesystem-capabilities-v1', 'root': '/tmp/symcc-f343-mpi-0tsr0pe6/output/.standalone-work-f343f343f343f343f343f343f343f343f343f343f343f343f343f343f343f343', 'publication_root': '/tmp/symcc-f343-mpi-0tsr0pe6/output', 'device': 92, 'filesystem_id': 18395215968828387670, 'publication_device': 92, 'publication_filesystem_id': 18395215968828387670, 'filesystem_type': 'overlay', 'mount_point': '/', 'mount_source': 'overlay', 'distributed_filesystem': False, 'cluster_lock_verified': False, 'probe_scope': 'same-host-subprocess-v1', 'cluster_lock_members': [{'rank': 0, 'processor': 'cuda-ke'}], 'cluster_lock_representatives': [0], 'cluster_lock_rounds': 0, 'cluster_lock_contention_checks': 0, 'cluster_lock_release_checks': 0, 'file_fsync': True, 'directory_fsync': True, 'same_directory_replace': True, 'cross_directory_replace': True, 'publication_replace': True, 'hard_link': True, 'durable_unlink': True, 'advisory_lock_exclusion': True, 'advisory_lock_release': True}
+[Master 0] Waiting for inputs... (10 generated, 5 interesting, 6 analyzed)
+[Master] No more inputs after 1.001s (limit 1s). Shutting down.
+[Master 0] Worker shutdown: acked=1/1 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+
+[Master] === Final Statistics ===
+[Master] Total analysis observations:       6
+[Master] Total test cases generated:  10
+[Master] External input objects:      1
+[Master] New interesting test cases:  5
+[Master] Throughput:                  6.5 tc/s
+[Master] Masters used:               1
+[Master] Workers used:               1
+[Master] Analysis by master:         0=6
+=== F343 result ===
+{
+  "active_epochs": [],
+  "actual_mpi_transport": true,
+  "actual_multi_host": false,
+  "all_checks_passed": true,
+  "analysis_observations": 6,
+  "checks": {
+    "actual_single_worker_mpi": true,
+    "all_public_objects_are_one_byte": true,
+    "all_workers_acknowledged": true,
+    "analysis_count_matches_public_corpus": true,
+    "bounded_runtime": true,
+    "clean_exit": true,
+    "each_public_object_is_executed_once": true,
+    "exact_result_budget_reported": true,
+    "generation_and_publication_are_observed": true,
+    "no_staging_residue": true,
+    "seed_and_generated_children_are_public": true,
+    "simulation_mode_configured": true,
+    "successful_epoch_retired_once": true
+  },
+  "command": [
+    "mpirun",
+    "--oversubscribe",
+    "-np",
+    "2",
+    "python3",
+    "/home/ubuntu/code/symcc/util/mpi_concolic_execution.py",
+    "-i",
+    "/tmp/symcc-f343-mpi-0tsr0pe6/input",
+    "-o",
+    "/tmp/symcc-f343-mpi-0tsr0pe6/output",
+    "-t",
+    "1",
+    "--max-idle",
+    "1",
+    "--wall-timeout",
+    "30",
+    "--simulate",
+    "--",
+    "/tmp/symcc-f343-mpi-0tsr0pe6/simulation-gate.py"
+  ],
+  "configuration": {
+    "input_max_bytes": 5,
+    "masters": 1,
+    "ranks": 2,
+    "result_max_bytes": 5,
+    "result_max_objects": 5,
+    "seed_bytes": 1,
+    "simulation_outputs_per_seed": 5,
+    "work_epoch": "f343f343f343f343f343f343f343f343f343f343f343f343f343f343f343f343",
+    "workers": 1
+  },
+  "elapsed_seconds": 2.0813127181027085,
+  "generated_observations": 10,
+  "invalid_public_objects": [],
+  "new_interesting_objects": 5,
+  "observed_contents_hex": [
+    "00",
+    "6d",
+    "93",
+    "b3",
+    "b4",
+    "ef"
+  ],
+  "output": "SymCC MPI Parallel Concolic Execution\n  Processes:     2\n  Mode:          single-master (1 workers)\n  Shared dir:    /tmp/symcc-f343-mpi-0tsr0pe6/output\n  Input dir:     /tmp/symcc-f343-mpi-0tsr0pe6/input\n  Target:        /tmp/symcc-f343-mpi-0tsr0pe6/simulation-gate.py\n  Timeout:       1s per execution\n  Result budget: 5 objects, 5 bytes per parent\n  Input budget:  5 bytes per object\n  Work epoch:    f343f343f343f343f343f343f343f343f343f343f343f343f343f343f343f343 (configured recovery)\n  Retired GC:    0 root(s) reclaimed, 0 entry(s) removed, stop=disabled\n  Retired budget: roots=0, entries=4096, time=0.05s\n  Retired scan:   entries=0, candidates=0, selected=0\n  Retirement:    renameat2(RENAME_NOREPLACE) qualified\n  Wall timeout:  30s total\n\n[Master] Observed 1 initial inputs from /tmp/symcc-f343-mpi-0tsr0pe6/input\n[Master] Using 1 master(s), 1 workers in this group\n[Master] Durable work ownership: rendezvous + 64 fenced shards, lease=6s\n[Master] Shared filesystem capabilities: {'schema': 'symcc-shared-filesystem-capabilities-v1', 'root': '/tmp/symcc-f343-mpi-0tsr0pe6/output/.standalone-work-f343f343f343f343f343f343f343f343f343f343f343f343f343f343f343f343', 'publication_root': '/tmp/symcc-f343-mpi-0tsr0pe6/output', 'device': 92, 'filesystem_id': 18395215968828387670, 'publication_device': 92, 'publication_filesystem_id': 18395215968828387670, 'filesystem_type': 'overlay', 'mount_point': '/', 'mount_source': 'overlay', 'distributed_filesystem': False, 'cluster_lock_verified': False, 'probe_scope': 'same-host-subprocess-v1', 'cluster_lock_members': [{'rank': 0, 'processor': 'cuda-ke'}], 'cluster_lock_representatives': [0], 'cluster_lock_rounds': 0, 'cluster_lock_contention_checks': 0, 'cluster_lock_release_checks': 0, 'file_fsync': True, 'directory_fsync': True, 'same_directory_replace': True, 'cross_directory_replace': True, 'publication_replace': True, 'hard_link': True, 'durable_unlink': True, 'advisory_lock_exclusion': True, 'advisory_lock_release': True}\n[Master 0] Waiting for inputs... (10 generated, 5 interesting, 6 analyzed)\n[Master] No more inputs after 1.001s (limit 1s). Shutting down.\n[Master 0] Worker shutdown: acked=1/1 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s\n\n[Master] === Final Statistics ===\n[Master] Total analysis observations:       6\n[Master] Total test cases generated:  10\n[Master] External input objects:      1\n[Master] New interesting test cases:  5\n[Master] Throughput:                  6.5 tc/s\n[Master] Masters used:               1\n[Master] Workers used:               1\n[Master] Analysis by master:         0=6\n",
+  "proof_boundary": "One real two-rank Open MPI run on one host and local storage exercises the production --simulate worker path, private result discovery, staging, fenced publication, deduplication, and acknowledged shutdown. The one-byte observer target deliberately echoes non-seed children to stop recursive simulation and does not invoke a symbolic solver. This is not multi-host, DSE coverage, campaign throughput, bug-discovery, or LAVA-M uplift evidence.",
+  "public_contents_hex": [
+    "00",
+    "6d",
+    "93",
+    "b3",
+    "b4",
+    "ef"
+  ],
+  "public_object_hashes": [
+    "27952171c7fcdf0ddc765ab4f4e1c537cb29e5e533d57b3456257ee785c81711",
+    "4d4d75d742863ab9656f3d5f76dff8589c3922e95a24ea6812157ffe4aaa3b6b",
+    "62c66a7a5dd70c3146618063c344e531e6d4b59e379808443ce962b3abd63c5a",
+    "65f15821061635e6807f06701bf0a12d8e89dcff88df5968bd0822c9dbb52f1c",
+    "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+    "d16bd22f7196c0a70f4b12aa0b290c4c4acecd5d6ba350ecc8447fbdf4c3819b"
+  ],
+  "retired_epochs": [
+    ".retired-standalone-work-f343f343f343f343f343f343f343f343f343f343f343f343f343f343f343f343-bf91a6d0f359147fbf52855395e9f93b"
+  ],
+  "returncode": 0,
+  "schema": "symcc-f343-bounded-streaming-simulation-mpi-v1",
+  "staging_residue": [],
+  "synthetic_observer_target": true
+}

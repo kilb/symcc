@@ -1,0 +1,8 @@
+-- Testing: 261 tests, 192 workers --
+Testing:  0.. 10.. 20.. 30.. 40.. 50.. 60.. 70.. 80.. 90.. 
+
+Testing Time: 213.91s
+
+Total Discovered Tests: 261
+  Unsupported:   2 (0.77%)
+  Passed     : 259 (99.23%)

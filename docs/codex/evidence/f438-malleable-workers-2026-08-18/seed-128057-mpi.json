@@ -1,0 +1,3553 @@
+{
+  "artifact_sha256": "7ad3555edd095d7c01a2bc66699b8a94eaeccb0d4addaecbecb676324ac2c3bd",
+  "claim_boundary": "same-run physical MPI rank membership plus deterministic protocol replay and operation-ownership attestation; no dynamic MPI spawn, multi-node speedup, coverage, or defect-yield claim",
+  "mpi_library_version": "Open MPI v4.1.6, package: Debian OpenMPI, ident: 4.1.6, repo rev: v4.1.6, Sep 30, 2023\u0000",
+  "physical_world_size": 5,
+  "protocol": "symcc-f438-malleable-physical-mpi-attestation-v1",
+  "rank_reports": [
+    {
+      "full_replay_verified": true,
+      "processor": "cuda-ke",
+      "protocol": "symcc-f438-malleable-physical-mpi-attestation-v1",
+      "rank": 0,
+      "report_sha256": "e5cf4bd6c023732c7a261cedb590edfe9cf03db02f427da4ab1eed2047c57ae8",
+      "role": "coordinator",
+      "schema": "symcc-f438-malleable-physical-rank-report-v1",
+      "trial_sha256": "d551057d2cad243657db34f825f14164b6e6c29f80124ee97973fe7721997ccb",
+      "worker_id": "",
+      "worker_operation_sha256": [],
+      "world_size": 5
+    },
+    {
+      "full_replay_verified": true,
+      "processor": "cuda-ke",
+      "protocol": "symcc-f438-malleable-physical-mpi-attestation-v1",
+      "rank": 1,
+      "report_sha256": "9d309bc023810e66a5772c79e5957d93f3d63c1bde8b9acef83135bca398c3f7",
+      "role": "worker",
+      "schema": "symcc-f438-malleable-physical-rank-report-v1",
+      "trial_sha256": "d551057d2cad243657db34f825f14164b6e6c29f80124ee97973fe7721997ccb",
+      "worker_id": "rank-1",
+      "worker_operation_sha256": [
+        "472dc62c225d7757e4112db4f31154cd6ffd3c799a10c4906ff7bf0090eefebe",
+        "11ed8599f26db80d1addfef3327fc40097a691a6b30dee7aa065dcfb28da15dc",
+        "c42f73e7fdc3465b2e2a444761b9d50f6dd018368d41c9fab5294f5a6482a6a8",
+        "d4e9e0c2d4beeeb3c7303de78b843db6125e503778d4b463ab695d5c340f60f3",
+        "3dcd3f8ca5c4922dcf0a77791c9c45dff52ec0d32595ed6608c1ecddb471a117",
+        "170bf2bdd03b9590cfb46f4f16886d74b290cdb57402b04650074053101ad117",
+        "2f38ee0302a6453d14714b4e9dae9f5bbbf5abbb5e34f90e0d488362f590e22d",
+        "18bd5f4ec1c5fa63b1a7e5e9079840d1ccc03f63367cc8a31b649ae6bd76ff67",
+        "632c3e6a9c5a4cccdf6daedca827a5f20b4d22475979c34724d15ce5380e76a6",
+        "f63791e9d03e949571bfaefe678580175c70cb1429474c2df12ccadb61395994",
+        "7bb985435a593380569aa7b530d1ea4aba86ca8c91038a1d5325c73e38fb1929",
+        "0b425b5fe156effeccf8755d21ba9047f8e34b704e4a16ec3c2f7cb7ee66f4ac",
+        "9fcd9e347d7d044ca979387558ed417a32adf33c145b1de3e6ffbe983936211b",
+        "9dd2a5769ae595194a907f4cccdd47bbcfb47fbb349ba8267cf56047f4b33b80",
+        "6abe7bdf36dc562f90076631599d308441b811550bd7d668f631d6c21aa172e8",
+        "065236340490a916b9f4e6bc7baae08840855bc5a139e34a6f380e7cec3abed5",
+        "9d7cfda15f93d89a8cccb47aa20cb4e201ae8deae4ea2b883c7e9ff79eb198f1",
+        "89ad461ac1c708ca8768ac3a56d1423a764463f294528e19a021b77299a0cb21",
+        "b380451bbf734645ce6b07d9b89e9ece13253f8d09215464a70d1f72ec28d696"
+      ],
+      "world_size": 5
+    },
+    {
+      "full_replay_verified": true,
+      "processor": "cuda-ke",
+      "protocol": "symcc-f438-malleable-physical-mpi-attestation-v1",
+      "rank": 2,
+      "report_sha256": "c7d303af572c0d794ae77f16b6d6154aac3d73c09f102b7683ccc30bb578e80f",
+      "role": "worker",
+      "schema": "symcc-f438-malleable-physical-rank-report-v1",
+      "trial_sha256": "d551057d2cad243657db34f825f14164b6e6c29f80124ee97973fe7721997ccb",
+      "worker_id": "rank-2",
+      "worker_operation_sha256": [
+        "f5ff4808ddb6c728074ae9dc05d28aec999b963126ac098ec2be8547c2f7cd44",
+        "c1c9357149cc28b04b44c2e7737784e6aee3abad1e40ee0c656f6bedd5222c70",
+        "28153f5082f526aa7338441eebb5ae11829372e95c3163483cdd226026642d75",
+        "996bd3c80c78c0aa6c3a90995b5dbc31a5adf25f536543f0a36d9036951a1811",
+        "3ea8d6f5b9d62ec42f403d68ca7281346b194e1d46d4f543757049a4bf09855e",
+        "38b5e742560e6e1ede3ff28afad939cf0a85bacd7bd6557008c356729398d9a5",
+        "a72926a530f073aac29826244c756ef431177ef45a5514685e7694964b37843a",
+        "d77489b6f79752b6a85c9c93668bdb9ef2a3e7c52782209217bf5c567a078b95",
+        "57b6f8841cd395ea4c89d5dd8fbe6a7be50031a9d1bee1470e1e3ece242c8966",
+        "16f03216bac7dd7d17270303c083914e13a591808071b01817c862707708ba1c",
+        "3878194873f00df0c985754b48520b7037347d2eb91a1fc85a493e90209d9568",
+        "86aab5b05df03efa30ba2b704f7106a5ecfd6e757a3ece2988eac9afeb5f9cbe",
+        "3dc6b92a8ecddf42e0557d308ab114127407672584d1e0f1ad67fe458465ca6f",
+        "19eaf22123e399d5be0e0930a39a15836b977f66a11bc9acac63d083f999f049",
+        "55ee92ee901800ff31d9e48d2c550ba3243245c94af4ea7c904fbe2947dc2f68"
+      ],
+      "world_size": 5
+    },
+    {
+      "full_replay_verified": true,
+      "processor": "cuda-ke",
+      "protocol": "symcc-f438-malleable-physical-mpi-attestation-v1",
+      "rank": 3,
+      "report_sha256": "6ba6ac9ad4ca574f5324f6ff7d3ef3432ffca82b68b57a708c620787734e1063",
+      "role": "worker",
+      "schema": "symcc-f438-malleable-physical-rank-report-v1",
+      "trial_sha256": "d551057d2cad243657db34f825f14164b6e6c29f80124ee97973fe7721997ccb",
+      "worker_id": "rank-3",
+      "worker_operation_sha256": [
+        "491b96755ff1a3f8a96df968b5a4f91b841e58851754b6ab18bf3e360db7c022",
+        "da9b1de065fcea044d5ae52efd80fc9267d3f04a0f142a154a7a6b68bcf8389a",
+        "97315c3a21460fe4698b5768b3f196617b5e9e767a54cbc117116bd355d85537",
+        "0652a3a8d71dc52a2fceb5d93660a37814e992923fc1b6e4c334dc47515c7857",
+        "ea41a324701406dc3fdc1a7124bbc34de588b91034f09056520fc8a9e42b8bf6",
+        "f44a1db1326067bd1ce401b78b7292b35d7656bd19d768c83375b99d34cf8700",
+        "c79e78be6c98dff62ea851a4a8000a6bf616a34f496363edf86f69ad65d1339f",
+        "afe28acca61af2c46bcac804ca2dc84cdd2d4bfd79589899df31c5d4f043f21a",
+        "05ae35428bfa4fea55426e288b8d550090b4b841453b96ba4aa2bf8462cd0213",
+        "5e3c5e61609ecc66da1a6bcdafce3f5d2064f62a8b8b3420d71959e2e97412c0",
+        "32919988dcca99d4837be32f86803a9926305c9ccb4336ce8b253889a0e1ddbe",
+        "973bc5c32ace4df7b26e4464fcee1cd96aac5e346ffffcbc5c6a57cd249e9563",
+        "bf5ad288a61d09ad256b7191b7a291e4f8a0a5eedbbac4636221d9f25f969fbe",
+        "fd1f60b0227b28782c66b03cd770ee6b22c8e1a918ff80057da5b38b4eb89fb8",
+        "37917f435235fcc41176f55259e3ff55f379a0e662cdb5ad4a25fb09a7aa45d6",
+        "8593e94264914e06033ff6de9b0f603a117852cb303deb06460a676aef378283",
+        "a9995e2abeb2ff5fb867ab491f4d86f501bd0cf829c34aad4ebe963319f891e2",
+        "bee1b073528a504f01f662dcfc5a703da1d7cdc0f9e1561b384b61c739420507",
+        "1390e111edc083246b9bea8054d2c3d8ada3ed7a0409e3990f87b599466b7523"
+      ],
+      "world_size": 5
+    },
+    {
+      "full_replay_verified": true,
+      "processor": "cuda-ke",
+      "protocol": "symcc-f438-malleable-physical-mpi-attestation-v1",
+      "rank": 4,
+      "report_sha256": "f49fbc9183b4427b96e9fc03c76fab2bd1058f1482889ab51a1204bbf01eb70a",
+      "role": "worker",
+      "schema": "symcc-f438-malleable-physical-rank-report-v1",
+      "trial_sha256": "d551057d2cad243657db34f825f14164b6e6c29f80124ee97973fe7721997ccb",
+      "worker_id": "rank-4",
+      "worker_operation_sha256": [
+        "26ba723cfb842fe1197581600800fcddbaeb6db75a4e542c00f2018b5662d66e",
+        "c650ecb4479c8cd28fc37e434f9409fd2841a704a0ca9ad785e05c8651b26a68",
+        "03e536cf318d648e996072d0bab4ca4903eecdd81d8142052c055402d9f0a531",
+        "4f2e91d28e5abd2e41b1a3f8d495a5c14d38b8054971bf6ef461a0595cc7f9c5",
+        "285f4e538b4585b722025dee4c274385c4bf4841ddaa562d0d7591594b6e361a",
+        "5398971e63a7ab79cf996b914c0b806fd79fa3404340daa364300eddd0be8fb5",
+        "6b7272ad917ededec88d1cfcf82cecd475fab6cc92bb0dda7662bd0766414081",
+        "2cdea06395c0ea4490afffe5f032287a7931c9ee81b0775592c23a44d836a730",
+        "f1dff97fe5e6c80e23c74582ff5ce13d48f514b2dfedd8a76a1f88420ca8f910",
+        "d13f57e09d6aee41c137459c61b95b959d232cfe8cc37d0828894b7c81c4c89f",
+        "a185ffe44cc24938851ffa625651694c615ac21ec65c7988fab56fa96a08a3a0",
+        "677a0490cb7caf8185a164e52e2da6cd7da5fe81fd13b6c304830ab4dea46513",
+        "9a72e955ee4b97211cb8099e3786bd56af8bd76d9e5f51f444e8ffed73a95f93",
+        "4c9468d7256d2d7719ba47e1954820b5b348a0e42ce7ef1e92f18c92262d7247",
+        "acaac6f0bfffa5042de1e7413140bdc328eeedaa89987b9cab0a55425293dc54",
+        "1dca78e2b8ff8bf224e3af908ffcbf6ff6e8fb3acae7e74ee1f02fab80dab3c5",
+        "0181d13fc17d0813683b5326f23832f6a536204239209d151056488bc3b99119",
+        "42337a72a8a2439399fdb284422e010735f4bc0dc71e21b1c08b8eb64f5ba968",
+        "8b1d8949f6060d4b34d4476ed31dc56642aef630b6e6dc517b0cace879430d68"
+      ],
+      "world_size": 5
+    }
+  ],
+  "schema": "symcc-f438-malleable-physical-mpi-result-v1",
+  "trial": {
+    "allocations": [
+      {
+        "job-0": 2,
+        "job-1": 2
+      },
+      {
+        "job-0": 3,
+        "job-2": 1
+      },
+      {
+        "job-1": 3,
+        "job-2": 1
+      },
+      {
+        "job-0": 1,
+        "job-1": 3
+      },
+      {
+        "job-0": 2,
+        "job-2": 2
+      },
+      {
+        "job-1": 2,
+        "job-2": 2
+      },
+      {
+        "job-0": 1,
+        "job-1": 2
+      },
+      {
+        "job-0": 3,
+        "job-2": 1
+      }
+    ],
+    "artifact_sha256": "d551057d2cad243657db34f825f14164b6e6c29f80124ee97973fe7721997ccb",
+    "attached_leases": 19,
+    "claim_boundary": "deterministic logical multi-rank protocol oracle; validates resource, lease, proof, restart, and fencing conservation without throughput, coverage, defect-yield, MPI rank-spawn, or multi-node speedup claims",
+    "config": {
+      "backlog_per_slot": 2,
+      "epochs": 8,
+      "jobs": 3,
+      "policy": {
+        "activation_weight": 2,
+        "backlog_per_slot": 2,
+        "backlog_weight": 1000,
+        "checker_reference_us": 1000,
+        "event_lag_reference": 64,
+        "max_events": 1000000,
+        "max_jobs": 1024,
+        "max_leases_per_worker": 256,
+        "max_proofs_per_worker": 4096,
+        "min_slots_per_runnable_job": 1,
+        "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+        "rebalance_hysteresis_slots": 1,
+        "schema": "symcc-malleable-worker-policy-v1",
+        "total_slots": 4,
+        "utility_weight": 1
+      },
+      "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+      "protocol": "symcc-f438-malleable-multirank-evaluation-v1",
+      "seed": 128057,
+      "worker_ids": [
+        "rank-1",
+        "rank-2",
+        "rank-3",
+        "rank-4"
+      ],
+      "world_size": 5
+    },
+    "durable_proofs": 19,
+    "final_snapshot": {
+      "allocation_generation": 9,
+      "assignments": {
+        "rank-1": {
+          "assignment_generation": 9,
+          "assignment_token": "8fffa49fd94eb92216fe946cb626eb499b595023d93f4ebbeb8c4d900198da8f",
+          "durable_proofs": [],
+          "job_id": "",
+          "leases": [],
+          "proof_cursor": 5,
+          "state": "standby",
+          "worker_id": "rank-1"
+        },
+        "rank-2": {
+          "assignment_generation": 9,
+          "assignment_token": "785633695fb01121b02386255faf7012d021f7f309384bad895c50e859befa7f",
+          "durable_proofs": [],
+          "job_id": "",
+          "leases": [],
+          "proof_cursor": 4,
+          "state": "standby",
+          "worker_id": "rank-2"
+        },
+        "rank-3": {
+          "assignment_generation": 9,
+          "assignment_token": "4765f8ae125a75f280159d1ebe827bba279ede804400020acce63f2c72f33a5f",
+          "durable_proofs": [],
+          "job_id": "",
+          "leases": [],
+          "proof_cursor": 5,
+          "state": "standby",
+          "worker_id": "rank-3"
+        },
+        "rank-4": {
+          "assignment_generation": 9,
+          "assignment_token": "a00e43689f10227c82daf04263aeeedcc01ef24ec49ec1cea3263d53474a5615",
+          "durable_proofs": [],
+          "job_id": "",
+          "leases": [],
+          "proof_cursor": 5,
+          "state": "standby",
+          "worker_id": "rank-4"
+        }
+      },
+      "next_event_ordinal": 76,
+      "pending_transition": null,
+      "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+      "pool_id": "f438-multirank-pool",
+      "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+      "schema": "symcc-malleable-worker-snapshot-v1",
+      "snapshot_sha256": "40e112589273ad8f2ffa80bd1cf4dc224e5f2891989b9192f35e6ff9666d0355",
+      "totals": {
+        "aborted": 0,
+        "committed": 9,
+        "drain_receipts": 19,
+        "leases_attached": 19,
+        "leases_retired": 19,
+        "prepared": 9,
+        "proofs_durable": 19
+      }
+    },
+    "malleability_protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+    "operations": [
+      {
+        "arguments": {
+          "signals": [
+            {
+              "activated": 1,
+              "backlog": 6,
+              "checker_total_us": 100,
+              "delivered": 2,
+              "event_lag_total": 0,
+              "formula_family_sha256": "8fd5529198ed062fb366b2933122a269de683ac2c2263c66dcce226ca0e986be",
+              "job_id": "job-0",
+              "outcomes": 2,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 5500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 3,
+              "checker_total_us": 200,
+              "delivered": 1,
+              "event_lag_total": 3,
+              "formula_family_sha256": "c77629a7119df9632a4e2b9c022e4abe8d0d1fed79ae19ded00a9604b8206d04",
+              "job_id": "job-1",
+              "outcomes": 2,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 5000,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 0,
+              "checker_total_us": 300,
+              "delivered": 2,
+              "event_lag_total": 6,
+              "formula_family_sha256": "d630c8038fd1c5db241a9b138cd73d38c974eb7e97899dbb3fb2d18498e22882",
+              "job_id": "job-2",
+              "outcomes": 2,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 5500,
+              "schema": "symcc-malleable-job-signal-v1"
+            }
+          ]
+        },
+        "op": "prepare",
+        "ordinal": 1,
+        "result": {
+          "allocation": {
+            "job-0": 2,
+            "job-1": 2,
+            "job-2": 0
+          },
+          "base_allocation_generation": 0,
+          "desired_jobs": {
+            "rank-1": "job-0",
+            "rank-2": "job-0",
+            "rank-3": "job-1",
+            "rank-4": "job-1"
+          },
+          "drain_workers": [],
+          "event_ordinal": 1,
+          "expected_leases": {},
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "pool_id": "f438-multirank-pool",
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "schema": "symcc-malleable-worker-transition-v1",
+          "signals": [
+            {
+              "activated": 1,
+              "backlog": 6,
+              "checker_total_us": 100,
+              "delivered": 2,
+              "event_lag_total": 0,
+              "formula_family_sha256": "8fd5529198ed062fb366b2933122a269de683ac2c2263c66dcce226ca0e986be",
+              "job_id": "job-0",
+              "outcomes": 2,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 5500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 3,
+              "checker_total_us": 200,
+              "delivered": 1,
+              "event_lag_total": 3,
+              "formula_family_sha256": "c77629a7119df9632a4e2b9c022e4abe8d0d1fed79ae19ded00a9604b8206d04",
+              "job_id": "job-1",
+              "outcomes": 2,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 5000,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 0,
+              "checker_total_us": 300,
+              "delivered": 2,
+              "event_lag_total": 6,
+              "formula_family_sha256": "d630c8038fd1c5db241a9b138cd73d38c974eb7e97899dbb3fb2d18498e22882",
+              "job_id": "job-2",
+              "outcomes": 2,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 5500,
+              "schema": "symcc-malleable-job-signal-v1"
+            }
+          ],
+          "target_allocation_generation": 1,
+          "transition_sha256": "27f614aeb551067c5cc0b10b00aa708753d83c998012b8347369c8492c6a855a"
+        }
+      },
+      {
+        "arguments": {},
+        "op": "commit",
+        "ordinal": 2,
+        "result": {
+          "allocation": {
+            "job-0": 2,
+            "job-1": 2,
+            "job-2": 0
+          },
+          "allocation_generation": 1,
+          "assignment_tokens": {
+            "rank-1": "1e48f36723a2b443687230d9c09b884878de37de2e94247cb15ad5a1bda157e4",
+            "rank-2": "95fbdb32fafd38fb09ca0de3db550f880976c3351f6d52fa323a03a2b1083a64",
+            "rank-3": "b0fcaf6f6ad50c473b41254becd77d8b9a3aec91731b5e5edd468fb30a5a3fd2",
+            "rank-4": "990440dd03568d8a88e4f6e886083d359dc3450c92b01cd4defeadcdd3e41ee1"
+          },
+          "changed_workers": [
+            "rank-1",
+            "rank-2",
+            "rank-3",
+            "rank-4"
+          ],
+          "commit_sha256": "47ead771679a71fac4857467ec11409b672ece173c389df5750d5e0418f6ad94",
+          "event_ordinal": 2,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "pool_id": "f438-multirank-pool",
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "schema": "symcc-malleable-worker-commit-v1",
+          "transition_sha256": "27f614aeb551067c5cc0b10b00aa708753d83c998012b8347369c8492c6a855a"
+        }
+      },
+      {
+        "arguments": {
+          "generation": 1,
+          "lease_id": "epoch-0:rank-1:job-0",
+          "token": "1e48f36723a2b443687230d9c09b884878de37de2e94247cb15ad5a1bda157e4",
+          "worker_id": "rank-1"
+        },
+        "op": "attach",
+        "ordinal": 3,
+        "result": {
+          "assignment_generation": 1,
+          "assignment_token": "1e48f36723a2b443687230d9c09b884878de37de2e94247cb15ad5a1bda157e4",
+          "event_ordinal": 3,
+          "event_sha256": "84ab6690f71355c7bee48e185bb4eaaef60982e0ad3d14644ee443e7ac2ec1ad",
+          "lease_id": "epoch-0:rank-1:job-0",
+          "worker_id": "rank-1"
+        }
+      },
+      {
+        "arguments": {
+          "generation": 1,
+          "lease_id": "epoch-0:rank-2:job-0",
+          "token": "95fbdb32fafd38fb09ca0de3db550f880976c3351f6d52fa323a03a2b1083a64",
+          "worker_id": "rank-2"
+        },
+        "op": "attach",
+        "ordinal": 4,
+        "result": {
+          "assignment_generation": 1,
+          "assignment_token": "95fbdb32fafd38fb09ca0de3db550f880976c3351f6d52fa323a03a2b1083a64",
+          "event_ordinal": 4,
+          "event_sha256": "f771aff317816f673e747bfd2c2adf26baff501e84db5c2459bd7672636c8319",
+          "lease_id": "epoch-0:rank-2:job-0",
+          "worker_id": "rank-2"
+        }
+      },
+      {
+        "arguments": {
+          "generation": 1,
+          "lease_id": "epoch-0:rank-3:job-1",
+          "token": "b0fcaf6f6ad50c473b41254becd77d8b9a3aec91731b5e5edd468fb30a5a3fd2",
+          "worker_id": "rank-3"
+        },
+        "op": "attach",
+        "ordinal": 5,
+        "result": {
+          "assignment_generation": 1,
+          "assignment_token": "b0fcaf6f6ad50c473b41254becd77d8b9a3aec91731b5e5edd468fb30a5a3fd2",
+          "event_ordinal": 5,
+          "event_sha256": "dafe351d9655a2c11b6a9581a4907b84e7bbf78fd346dfa49684afdbd9b1522d",
+          "lease_id": "epoch-0:rank-3:job-1",
+          "worker_id": "rank-3"
+        }
+      },
+      {
+        "arguments": {
+          "generation": 1,
+          "lease_id": "epoch-0:rank-4:job-1",
+          "token": "990440dd03568d8a88e4f6e886083d359dc3450c92b01cd4defeadcdd3e41ee1",
+          "worker_id": "rank-4"
+        },
+        "op": "attach",
+        "ordinal": 6,
+        "result": {
+          "assignment_generation": 1,
+          "assignment_token": "990440dd03568d8a88e4f6e886083d359dc3450c92b01cd4defeadcdd3e41ee1",
+          "event_ordinal": 6,
+          "event_sha256": "6cdc05a926177a6e802beb19088d9adaea5a8a62ce4cebeb902a5b7fc3ab8a55",
+          "lease_id": "epoch-0:rank-4:job-1",
+          "worker_id": "rank-4"
+        }
+      },
+      {
+        "arguments": {
+          "epoch": 0
+        },
+        "op": "epoch",
+        "ordinal": 7,
+        "result": {
+          "allocation": {
+            "job-0": 2,
+            "job-1": 2
+          }
+        }
+      },
+      {
+        "arguments": {
+          "signals": [
+            {
+              "activated": 2,
+              "backlog": 8,
+              "checker_total_us": 200,
+              "delivered": 3,
+              "event_lag_total": 3,
+              "formula_family_sha256": "8fd5529198ed062fb366b2933122a269de683ac2c2263c66dcce226ca0e986be",
+              "job_id": "job-0",
+              "outcomes": 3,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 10500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 0,
+              "checker_total_us": 300,
+              "delivered": 2,
+              "event_lag_total": 6,
+              "formula_family_sha256": "c77629a7119df9632a4e2b9c022e4abe8d0d1fed79ae19ded00a9604b8206d04",
+              "job_id": "job-1",
+              "outcomes": 3,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 5500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 4,
+              "checker_total_us": 400,
+              "delivered": 3,
+              "event_lag_total": 9,
+              "formula_family_sha256": "d630c8038fd1c5db241a9b138cd73d38c974eb7e97899dbb3fb2d18498e22882",
+              "job_id": "job-2",
+              "outcomes": 3,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 6000,
+              "schema": "symcc-malleable-job-signal-v1"
+            }
+          ]
+        },
+        "op": "prepare",
+        "ordinal": 8,
+        "result": {
+          "allocation": {
+            "job-0": 3,
+            "job-1": 0,
+            "job-2": 1
+          },
+          "base_allocation_generation": 1,
+          "desired_jobs": {
+            "rank-1": "job-0",
+            "rank-2": "job-0",
+            "rank-3": "job-0",
+            "rank-4": "job-2"
+          },
+          "drain_workers": [
+            "rank-3",
+            "rank-4"
+          ],
+          "event_ordinal": 7,
+          "expected_leases": {
+            "rank-3": [
+              "epoch-0:rank-3:job-1"
+            ],
+            "rank-4": [
+              "epoch-0:rank-4:job-1"
+            ]
+          },
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "pool_id": "f438-multirank-pool",
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "schema": "symcc-malleable-worker-transition-v1",
+          "signals": [
+            {
+              "activated": 2,
+              "backlog": 8,
+              "checker_total_us": 200,
+              "delivered": 3,
+              "event_lag_total": 3,
+              "formula_family_sha256": "8fd5529198ed062fb366b2933122a269de683ac2c2263c66dcce226ca0e986be",
+              "job_id": "job-0",
+              "outcomes": 3,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 10500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 0,
+              "checker_total_us": 300,
+              "delivered": 2,
+              "event_lag_total": 6,
+              "formula_family_sha256": "c77629a7119df9632a4e2b9c022e4abe8d0d1fed79ae19ded00a9604b8206d04",
+              "job_id": "job-1",
+              "outcomes": 3,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 5500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 4,
+              "checker_total_us": 400,
+              "delivered": 3,
+              "event_lag_total": 9,
+              "formula_family_sha256": "d630c8038fd1c5db241a9b138cd73d38c974eb7e97899dbb3fb2d18498e22882",
+              "job_id": "job-2",
+              "outcomes": 3,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 6000,
+              "schema": "symcc-malleable-job-signal-v1"
+            }
+          ],
+          "target_allocation_generation": 2,
+          "transition_sha256": "c26337a3c4f20d9ac551ba44665ad50b361295ff479de40bdedf49a60a2410e6"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "c84b5949624450e2602ffa8a01f9904d3d5e361873314e57bbfd234f01a7a7ca"
+          ],
+          "generation": 1,
+          "lease_id": "epoch-0:rank-3:job-1",
+          "token": "b0fcaf6f6ad50c473b41254becd77d8b9a3aec91731b5e5edd468fb30a5a3fd2",
+          "worker_id": "rank-3"
+        },
+        "op": "finish",
+        "ordinal": 9,
+        "result": {
+          "assignment_generation": 1,
+          "assignment_token": "b0fcaf6f6ad50c473b41254becd77d8b9a3aec91731b5e5edd468fb30a5a3fd2",
+          "durable_proofs": [
+            "c84b5949624450e2602ffa8a01f9904d3d5e361873314e57bbfd234f01a7a7ca"
+          ],
+          "event_ordinal": 8,
+          "event_sha256": "d7e6c3af598a9a0630d1fad358c407a3ba14be89e756bc23adcd8c1442b87e0b",
+          "lease_id": "epoch-0:rank-3:job-1",
+          "proof_cursor": 1,
+          "worker_id": "rank-3"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "c84b5949624450e2602ffa8a01f9904d3d5e361873314e57bbfd234f01a7a7ca"
+          ],
+          "generation": 1,
+          "proof_cursor": 1,
+          "returned_leases": [
+            "epoch-0:rank-3:job-1"
+          ],
+          "token": "b0fcaf6f6ad50c473b41254becd77d8b9a3aec91731b5e5edd468fb30a5a3fd2",
+          "worker_id": "rank-3"
+        },
+        "op": "ack",
+        "ordinal": 10,
+        "result": {
+          "assignment_generation": 1,
+          "assignment_token": "b0fcaf6f6ad50c473b41254becd77d8b9a3aec91731b5e5edd468fb30a5a3fd2",
+          "durable_proofs": [
+            "c84b5949624450e2602ffa8a01f9904d3d5e361873314e57bbfd234f01a7a7ca"
+          ],
+          "event_ordinal": 9,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "proof_cursor": 1,
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "receipt_sha256": "906c6803d00aea62a31a0c4e8841805228f4404da76f7caab7a39a3d17169b17",
+          "returned_leases": [
+            "epoch-0:rank-3:job-1"
+          ],
+          "schema": "symcc-malleable-worker-drain-receipt-v1",
+          "transition_sha256": "c26337a3c4f20d9ac551ba44665ad50b361295ff479de40bdedf49a60a2410e6",
+          "worker_id": "rank-3"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "dd8468a8cb176e2b0e422a62e2d309ca087f7fb81290e80f4eb224129909b71a"
+          ],
+          "generation": 1,
+          "lease_id": "epoch-0:rank-4:job-1",
+          "token": "990440dd03568d8a88e4f6e886083d359dc3450c92b01cd4defeadcdd3e41ee1",
+          "worker_id": "rank-4"
+        },
+        "op": "finish",
+        "ordinal": 11,
+        "result": {
+          "assignment_generation": 1,
+          "assignment_token": "990440dd03568d8a88e4f6e886083d359dc3450c92b01cd4defeadcdd3e41ee1",
+          "durable_proofs": [
+            "dd8468a8cb176e2b0e422a62e2d309ca087f7fb81290e80f4eb224129909b71a"
+          ],
+          "event_ordinal": 10,
+          "event_sha256": "c7c32d67f1d1284711580ba60f039ccc89877d4c9e4a890f73c1681e2ced79a7",
+          "lease_id": "epoch-0:rank-4:job-1",
+          "proof_cursor": 1,
+          "worker_id": "rank-4"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "dd8468a8cb176e2b0e422a62e2d309ca087f7fb81290e80f4eb224129909b71a"
+          ],
+          "generation": 1,
+          "proof_cursor": 1,
+          "returned_leases": [
+            "epoch-0:rank-4:job-1"
+          ],
+          "token": "990440dd03568d8a88e4f6e886083d359dc3450c92b01cd4defeadcdd3e41ee1",
+          "worker_id": "rank-4"
+        },
+        "op": "ack",
+        "ordinal": 12,
+        "result": {
+          "assignment_generation": 1,
+          "assignment_token": "990440dd03568d8a88e4f6e886083d359dc3450c92b01cd4defeadcdd3e41ee1",
+          "durable_proofs": [
+            "dd8468a8cb176e2b0e422a62e2d309ca087f7fb81290e80f4eb224129909b71a"
+          ],
+          "event_ordinal": 11,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "proof_cursor": 1,
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "receipt_sha256": "d01e6a075acd775ca899696fb0839cee9debb1158aaf43b9cdbf9b921f88a783",
+          "returned_leases": [
+            "epoch-0:rank-4:job-1"
+          ],
+          "schema": "symcc-malleable-worker-drain-receipt-v1",
+          "transition_sha256": "c26337a3c4f20d9ac551ba44665ad50b361295ff479de40bdedf49a60a2410e6",
+          "worker_id": "rank-4"
+        }
+      },
+      {
+        "arguments": {},
+        "op": "commit",
+        "ordinal": 13,
+        "result": {
+          "allocation": {
+            "job-0": 3,
+            "job-1": 0,
+            "job-2": 1
+          },
+          "allocation_generation": 2,
+          "assignment_tokens": {
+            "rank-3": "171c7a2cd9f2473969abcec4ff652030078c3acfed1eb28d6e63022eb3514c6a",
+            "rank-4": "9cd80132fa1231ad3aea59a6865b76c6d07870fb751fd876fa9da2597440b1fe"
+          },
+          "changed_workers": [
+            "rank-3",
+            "rank-4"
+          ],
+          "commit_sha256": "d70ad9c7f81c29664e9731581d5b9206a877b93f79df9015be6af4a7b13b3cfb",
+          "event_ordinal": 12,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "pool_id": "f438-multirank-pool",
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "schema": "symcc-malleable-worker-commit-v1",
+          "transition_sha256": "c26337a3c4f20d9ac551ba44665ad50b361295ff479de40bdedf49a60a2410e6"
+        }
+      },
+      {
+        "arguments": {
+          "generation": 2,
+          "lease_id": "epoch-1:rank-3:job-0",
+          "token": "171c7a2cd9f2473969abcec4ff652030078c3acfed1eb28d6e63022eb3514c6a",
+          "worker_id": "rank-3"
+        },
+        "op": "attach",
+        "ordinal": 14,
+        "result": {
+          "assignment_generation": 2,
+          "assignment_token": "171c7a2cd9f2473969abcec4ff652030078c3acfed1eb28d6e63022eb3514c6a",
+          "event_ordinal": 13,
+          "event_sha256": "777c6ec1235893771759aac9e28576cb09850ab527d97c5371569eb66e4bc5d7",
+          "lease_id": "epoch-1:rank-3:job-0",
+          "worker_id": "rank-3"
+        }
+      },
+      {
+        "arguments": {
+          "generation": 2,
+          "lease_id": "epoch-1:rank-4:job-2",
+          "token": "9cd80132fa1231ad3aea59a6865b76c6d07870fb751fd876fa9da2597440b1fe",
+          "worker_id": "rank-4"
+        },
+        "op": "attach",
+        "ordinal": 15,
+        "result": {
+          "assignment_generation": 2,
+          "assignment_token": "9cd80132fa1231ad3aea59a6865b76c6d07870fb751fd876fa9da2597440b1fe",
+          "event_ordinal": 14,
+          "event_sha256": "13079a4255871642cb689b000206d949764cb4088d8d88664d60fea65e39158a",
+          "lease_id": "epoch-1:rank-4:job-2",
+          "worker_id": "rank-4"
+        }
+      },
+      {
+        "arguments": {
+          "epoch": 1
+        },
+        "op": "epoch",
+        "ordinal": 16,
+        "result": {
+          "allocation": {
+            "job-0": 3,
+            "job-2": 1
+          }
+        }
+      },
+      {
+        "arguments": {
+          "signals": [
+            {
+              "activated": 3,
+              "backlog": 0,
+              "checker_total_us": 300,
+              "delivered": 4,
+              "event_lag_total": 6,
+              "formula_family_sha256": "8fd5529198ed062fb366b2933122a269de683ac2c2263c66dcce226ca0e986be",
+              "job_id": "job-0",
+              "outcomes": 4,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 15500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 7,
+              "checker_total_us": 400,
+              "delivered": 3,
+              "event_lag_total": 9,
+              "formula_family_sha256": "c77629a7119df9632a4e2b9c022e4abe8d0d1fed79ae19ded00a9604b8206d04",
+              "job_id": "job-1",
+              "outcomes": 4,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 6000,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 2,
+              "checker_total_us": 500,
+              "delivered": 4,
+              "event_lag_total": 12,
+              "formula_family_sha256": "d630c8038fd1c5db241a9b138cd73d38c974eb7e97899dbb3fb2d18498e22882",
+              "job_id": "job-2",
+              "outcomes": 4,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 6500,
+              "schema": "symcc-malleable-job-signal-v1"
+            }
+          ]
+        },
+        "op": "prepare",
+        "ordinal": 17,
+        "result": {
+          "allocation": {
+            "job-0": 0,
+            "job-1": 3,
+            "job-2": 1
+          },
+          "base_allocation_generation": 2,
+          "desired_jobs": {
+            "rank-1": "job-1",
+            "rank-2": "job-1",
+            "rank-3": "job-1",
+            "rank-4": "job-2"
+          },
+          "drain_workers": [
+            "rank-1",
+            "rank-2",
+            "rank-3"
+          ],
+          "event_ordinal": 15,
+          "expected_leases": {
+            "rank-1": [
+              "epoch-0:rank-1:job-0"
+            ],
+            "rank-2": [
+              "epoch-0:rank-2:job-0"
+            ],
+            "rank-3": [
+              "epoch-1:rank-3:job-0"
+            ]
+          },
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "pool_id": "f438-multirank-pool",
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "schema": "symcc-malleable-worker-transition-v1",
+          "signals": [
+            {
+              "activated": 3,
+              "backlog": 0,
+              "checker_total_us": 300,
+              "delivered": 4,
+              "event_lag_total": 6,
+              "formula_family_sha256": "8fd5529198ed062fb366b2933122a269de683ac2c2263c66dcce226ca0e986be",
+              "job_id": "job-0",
+              "outcomes": 4,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 15500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 7,
+              "checker_total_us": 400,
+              "delivered": 3,
+              "event_lag_total": 9,
+              "formula_family_sha256": "c77629a7119df9632a4e2b9c022e4abe8d0d1fed79ae19ded00a9604b8206d04",
+              "job_id": "job-1",
+              "outcomes": 4,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 6000,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 2,
+              "checker_total_us": 500,
+              "delivered": 4,
+              "event_lag_total": 12,
+              "formula_family_sha256": "d630c8038fd1c5db241a9b138cd73d38c974eb7e97899dbb3fb2d18498e22882",
+              "job_id": "job-2",
+              "outcomes": 4,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 6500,
+              "schema": "symcc-malleable-job-signal-v1"
+            }
+          ],
+          "target_allocation_generation": 3,
+          "transition_sha256": "fca592930bf998e10ffe1832916d65956467419669ec3946d48fb523a86042d5"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "ddb378f5de24b52f611b729d1df5aa3d6e9ab93cc8c90d48075ad8d954c829ec"
+          ],
+          "generation": 1,
+          "lease_id": "epoch-0:rank-1:job-0",
+          "token": "1e48f36723a2b443687230d9c09b884878de37de2e94247cb15ad5a1bda157e4",
+          "worker_id": "rank-1"
+        },
+        "op": "finish",
+        "ordinal": 18,
+        "result": {
+          "assignment_generation": 1,
+          "assignment_token": "1e48f36723a2b443687230d9c09b884878de37de2e94247cb15ad5a1bda157e4",
+          "durable_proofs": [
+            "ddb378f5de24b52f611b729d1df5aa3d6e9ab93cc8c90d48075ad8d954c829ec"
+          ],
+          "event_ordinal": 16,
+          "event_sha256": "8a9d29ab6214b5d64528f5f3ca30feb513708e2ed70988a00800c054aa180d2b",
+          "lease_id": "epoch-0:rank-1:job-0",
+          "proof_cursor": 1,
+          "worker_id": "rank-1"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "ddb378f5de24b52f611b729d1df5aa3d6e9ab93cc8c90d48075ad8d954c829ec"
+          ],
+          "generation": 1,
+          "proof_cursor": 1,
+          "returned_leases": [
+            "epoch-0:rank-1:job-0"
+          ],
+          "token": "1e48f36723a2b443687230d9c09b884878de37de2e94247cb15ad5a1bda157e4",
+          "worker_id": "rank-1"
+        },
+        "op": "ack",
+        "ordinal": 19,
+        "result": {
+          "assignment_generation": 1,
+          "assignment_token": "1e48f36723a2b443687230d9c09b884878de37de2e94247cb15ad5a1bda157e4",
+          "durable_proofs": [
+            "ddb378f5de24b52f611b729d1df5aa3d6e9ab93cc8c90d48075ad8d954c829ec"
+          ],
+          "event_ordinal": 17,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "proof_cursor": 1,
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "receipt_sha256": "16064025982b73bba420f40392e3242927de7ea5adc520443cc58d099575762b",
+          "returned_leases": [
+            "epoch-0:rank-1:job-0"
+          ],
+          "schema": "symcc-malleable-worker-drain-receipt-v1",
+          "transition_sha256": "fca592930bf998e10ffe1832916d65956467419669ec3946d48fb523a86042d5",
+          "worker_id": "rank-1"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "4ccbe3b5e5d7266d05ef89ae72fdbdd71dad1133bcaa1f04abf6e5eeb49a9d57"
+          ],
+          "generation": 1,
+          "lease_id": "epoch-0:rank-2:job-0",
+          "token": "95fbdb32fafd38fb09ca0de3db550f880976c3351f6d52fa323a03a2b1083a64",
+          "worker_id": "rank-2"
+        },
+        "op": "finish",
+        "ordinal": 20,
+        "result": {
+          "assignment_generation": 1,
+          "assignment_token": "95fbdb32fafd38fb09ca0de3db550f880976c3351f6d52fa323a03a2b1083a64",
+          "durable_proofs": [
+            "4ccbe3b5e5d7266d05ef89ae72fdbdd71dad1133bcaa1f04abf6e5eeb49a9d57"
+          ],
+          "event_ordinal": 18,
+          "event_sha256": "528584b7777369de2efc6b2a80785a5cca43b53912dcc84590ef56915bf3ae82",
+          "lease_id": "epoch-0:rank-2:job-0",
+          "proof_cursor": 1,
+          "worker_id": "rank-2"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "4ccbe3b5e5d7266d05ef89ae72fdbdd71dad1133bcaa1f04abf6e5eeb49a9d57"
+          ],
+          "generation": 1,
+          "proof_cursor": 1,
+          "returned_leases": [
+            "epoch-0:rank-2:job-0"
+          ],
+          "token": "95fbdb32fafd38fb09ca0de3db550f880976c3351f6d52fa323a03a2b1083a64",
+          "worker_id": "rank-2"
+        },
+        "op": "ack",
+        "ordinal": 21,
+        "result": {
+          "assignment_generation": 1,
+          "assignment_token": "95fbdb32fafd38fb09ca0de3db550f880976c3351f6d52fa323a03a2b1083a64",
+          "durable_proofs": [
+            "4ccbe3b5e5d7266d05ef89ae72fdbdd71dad1133bcaa1f04abf6e5eeb49a9d57"
+          ],
+          "event_ordinal": 19,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "proof_cursor": 1,
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "receipt_sha256": "10f1945b39eabea0817c692d290e9f7ccdca60901a49ffebf4c881a372a3d7e9",
+          "returned_leases": [
+            "epoch-0:rank-2:job-0"
+          ],
+          "schema": "symcc-malleable-worker-drain-receipt-v1",
+          "transition_sha256": "fca592930bf998e10ffe1832916d65956467419669ec3946d48fb523a86042d5",
+          "worker_id": "rank-2"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "a4d3edfaf2e6daae3faeca246e86756d105c18d2134b6145b1da94f6a1b13817"
+          ],
+          "generation": 2,
+          "lease_id": "epoch-1:rank-3:job-0",
+          "token": "171c7a2cd9f2473969abcec4ff652030078c3acfed1eb28d6e63022eb3514c6a",
+          "worker_id": "rank-3"
+        },
+        "op": "finish",
+        "ordinal": 22,
+        "result": {
+          "assignment_generation": 2,
+          "assignment_token": "171c7a2cd9f2473969abcec4ff652030078c3acfed1eb28d6e63022eb3514c6a",
+          "durable_proofs": [
+            "a4d3edfaf2e6daae3faeca246e86756d105c18d2134b6145b1da94f6a1b13817"
+          ],
+          "event_ordinal": 20,
+          "event_sha256": "cb7d3116c4bb8bd49911f4e46627f7e0a2ae60257ed59a2cbbbbe21999fe414b",
+          "lease_id": "epoch-1:rank-3:job-0",
+          "proof_cursor": 2,
+          "worker_id": "rank-3"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "a4d3edfaf2e6daae3faeca246e86756d105c18d2134b6145b1da94f6a1b13817"
+          ],
+          "generation": 2,
+          "proof_cursor": 2,
+          "returned_leases": [
+            "epoch-1:rank-3:job-0"
+          ],
+          "token": "171c7a2cd9f2473969abcec4ff652030078c3acfed1eb28d6e63022eb3514c6a",
+          "worker_id": "rank-3"
+        },
+        "op": "ack",
+        "ordinal": 23,
+        "result": {
+          "assignment_generation": 2,
+          "assignment_token": "171c7a2cd9f2473969abcec4ff652030078c3acfed1eb28d6e63022eb3514c6a",
+          "durable_proofs": [
+            "a4d3edfaf2e6daae3faeca246e86756d105c18d2134b6145b1da94f6a1b13817"
+          ],
+          "event_ordinal": 21,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "proof_cursor": 2,
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "receipt_sha256": "e0940e97c75c56e7e655ee9325cfc461c88328909b98fb6e30bee02742ae3928",
+          "returned_leases": [
+            "epoch-1:rank-3:job-0"
+          ],
+          "schema": "symcc-malleable-worker-drain-receipt-v1",
+          "transition_sha256": "fca592930bf998e10ffe1832916d65956467419669ec3946d48fb523a86042d5",
+          "worker_id": "rank-3"
+        }
+      },
+      {
+        "arguments": {},
+        "op": "commit",
+        "ordinal": 24,
+        "result": {
+          "allocation": {
+            "job-0": 0,
+            "job-1": 3,
+            "job-2": 1
+          },
+          "allocation_generation": 3,
+          "assignment_tokens": {
+            "rank-1": "a8815a370da81ee5978cb0b75200859a35a58355f27f39ff2326bb2d645af4a7",
+            "rank-2": "d65c2740bba57827b7c26e12141901c05b1b2c66c83a015f58ad06abb1769765",
+            "rank-3": "db15f1ca9279a67647daf8d18feea42d96be4720f99eb070e988bfac7ac9e65f"
+          },
+          "changed_workers": [
+            "rank-1",
+            "rank-2",
+            "rank-3"
+          ],
+          "commit_sha256": "80ca50c4350cdef75ee19170c74dc2a6bb21cdff3f24925b3d66e94a25aebe24",
+          "event_ordinal": 22,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "pool_id": "f438-multirank-pool",
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "schema": "symcc-malleable-worker-commit-v1",
+          "transition_sha256": "fca592930bf998e10ffe1832916d65956467419669ec3946d48fb523a86042d5"
+        }
+      },
+      {
+        "arguments": {
+          "generation": 3,
+          "lease_id": "epoch-2:rank-1:job-1",
+          "token": "a8815a370da81ee5978cb0b75200859a35a58355f27f39ff2326bb2d645af4a7",
+          "worker_id": "rank-1"
+        },
+        "op": "attach",
+        "ordinal": 25,
+        "result": {
+          "assignment_generation": 3,
+          "assignment_token": "a8815a370da81ee5978cb0b75200859a35a58355f27f39ff2326bb2d645af4a7",
+          "event_ordinal": 23,
+          "event_sha256": "54ba189e528d9fa696e7db0c09ff2730d022018946e18f8d033bf026fcea2398",
+          "lease_id": "epoch-2:rank-1:job-1",
+          "worker_id": "rank-1"
+        }
+      },
+      {
+        "arguments": {
+          "generation": 3,
+          "lease_id": "epoch-2:rank-2:job-1",
+          "token": "d65c2740bba57827b7c26e12141901c05b1b2c66c83a015f58ad06abb1769765",
+          "worker_id": "rank-2"
+        },
+        "op": "attach",
+        "ordinal": 26,
+        "result": {
+          "assignment_generation": 3,
+          "assignment_token": "d65c2740bba57827b7c26e12141901c05b1b2c66c83a015f58ad06abb1769765",
+          "event_ordinal": 24,
+          "event_sha256": "5e82bc023242f82e11fb2142690c340d3b9a82a77f0caf273b5a4fb822209c63",
+          "lease_id": "epoch-2:rank-2:job-1",
+          "worker_id": "rank-2"
+        }
+      },
+      {
+        "arguments": {
+          "generation": 3,
+          "lease_id": "epoch-2:rank-3:job-1",
+          "token": "db15f1ca9279a67647daf8d18feea42d96be4720f99eb070e988bfac7ac9e65f",
+          "worker_id": "rank-3"
+        },
+        "op": "attach",
+        "ordinal": 27,
+        "result": {
+          "assignment_generation": 3,
+          "assignment_token": "db15f1ca9279a67647daf8d18feea42d96be4720f99eb070e988bfac7ac9e65f",
+          "event_ordinal": 25,
+          "event_sha256": "3091983e2bf678a2c20d65cc4fa19b1c9669678328fb7fdc19f6f44f2db0d171",
+          "lease_id": "epoch-2:rank-3:job-1",
+          "worker_id": "rank-3"
+        }
+      },
+      {
+        "arguments": {
+          "epoch": 2
+        },
+        "op": "epoch",
+        "ordinal": 28,
+        "result": {
+          "allocation": {
+            "job-1": 3,
+            "job-2": 1
+          }
+        }
+      },
+      {
+        "arguments": {
+          "signals": [
+            {
+              "activated": 4,
+              "backlog": 1,
+              "checker_total_us": 400,
+              "delivered": 5,
+              "event_lag_total": 9,
+              "formula_family_sha256": "8fd5529198ed062fb366b2933122a269de683ac2c2263c66dcce226ca0e986be",
+              "job_id": "job-0",
+              "outcomes": 5,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 20500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 8,
+              "checker_total_us": 500,
+              "delivered": 4,
+              "event_lag_total": 12,
+              "formula_family_sha256": "c77629a7119df9632a4e2b9c022e4abe8d0d1fed79ae19ded00a9604b8206d04",
+              "job_id": "job-1",
+              "outcomes": 5,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 6500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 0,
+              "checker_total_us": 600,
+              "delivered": 5,
+              "event_lag_total": 15,
+              "formula_family_sha256": "d630c8038fd1c5db241a9b138cd73d38c974eb7e97899dbb3fb2d18498e22882",
+              "job_id": "job-2",
+              "outcomes": 5,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 7000,
+              "schema": "symcc-malleable-job-signal-v1"
+            }
+          ]
+        },
+        "op": "prepare",
+        "ordinal": 29,
+        "result": {
+          "allocation": {
+            "job-0": 1,
+            "job-1": 3,
+            "job-2": 0
+          },
+          "base_allocation_generation": 3,
+          "desired_jobs": {
+            "rank-1": "job-1",
+            "rank-2": "job-1",
+            "rank-3": "job-1",
+            "rank-4": "job-0"
+          },
+          "drain_workers": [
+            "rank-4"
+          ],
+          "event_ordinal": 26,
+          "expected_leases": {
+            "rank-4": [
+              "epoch-1:rank-4:job-2"
+            ]
+          },
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "pool_id": "f438-multirank-pool",
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "schema": "symcc-malleable-worker-transition-v1",
+          "signals": [
+            {
+              "activated": 4,
+              "backlog": 1,
+              "checker_total_us": 400,
+              "delivered": 5,
+              "event_lag_total": 9,
+              "formula_family_sha256": "8fd5529198ed062fb366b2933122a269de683ac2c2263c66dcce226ca0e986be",
+              "job_id": "job-0",
+              "outcomes": 5,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 20500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 8,
+              "checker_total_us": 500,
+              "delivered": 4,
+              "event_lag_total": 12,
+              "formula_family_sha256": "c77629a7119df9632a4e2b9c022e4abe8d0d1fed79ae19ded00a9604b8206d04",
+              "job_id": "job-1",
+              "outcomes": 5,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 6500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 0,
+              "checker_total_us": 600,
+              "delivered": 5,
+              "event_lag_total": 15,
+              "formula_family_sha256": "d630c8038fd1c5db241a9b138cd73d38c974eb7e97899dbb3fb2d18498e22882",
+              "job_id": "job-2",
+              "outcomes": 5,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 7000,
+              "schema": "symcc-malleable-job-signal-v1"
+            }
+          ],
+          "target_allocation_generation": 4,
+          "transition_sha256": "63fb8b13e07348c78f6fbceb452d9e48240d6b25b4e7c677332a74be675e3aa0"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "6a87cf0f96346d656bd94b0856cbca6983f7975b070be6dd29b4f4c813551f5c"
+          ],
+          "generation": 2,
+          "lease_id": "epoch-1:rank-4:job-2",
+          "token": "9cd80132fa1231ad3aea59a6865b76c6d07870fb751fd876fa9da2597440b1fe",
+          "worker_id": "rank-4"
+        },
+        "op": "finish",
+        "ordinal": 30,
+        "result": {
+          "assignment_generation": 2,
+          "assignment_token": "9cd80132fa1231ad3aea59a6865b76c6d07870fb751fd876fa9da2597440b1fe",
+          "durable_proofs": [
+            "6a87cf0f96346d656bd94b0856cbca6983f7975b070be6dd29b4f4c813551f5c"
+          ],
+          "event_ordinal": 27,
+          "event_sha256": "4ce3cfcde1c4c6b2f018ef2c37509e496c0355ea0599873b0ce17deaba7782d1",
+          "lease_id": "epoch-1:rank-4:job-2",
+          "proof_cursor": 2,
+          "worker_id": "rank-4"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "6a87cf0f96346d656bd94b0856cbca6983f7975b070be6dd29b4f4c813551f5c"
+          ],
+          "generation": 2,
+          "proof_cursor": 2,
+          "returned_leases": [
+            "epoch-1:rank-4:job-2"
+          ],
+          "token": "9cd80132fa1231ad3aea59a6865b76c6d07870fb751fd876fa9da2597440b1fe",
+          "worker_id": "rank-4"
+        },
+        "op": "ack",
+        "ordinal": 31,
+        "result": {
+          "assignment_generation": 2,
+          "assignment_token": "9cd80132fa1231ad3aea59a6865b76c6d07870fb751fd876fa9da2597440b1fe",
+          "durable_proofs": [
+            "6a87cf0f96346d656bd94b0856cbca6983f7975b070be6dd29b4f4c813551f5c"
+          ],
+          "event_ordinal": 28,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "proof_cursor": 2,
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "receipt_sha256": "22bfcd333f050a5cf4b95f7aed8b68dfe114da40f392b8495ea22ac05a75e9ea",
+          "returned_leases": [
+            "epoch-1:rank-4:job-2"
+          ],
+          "schema": "symcc-malleable-worker-drain-receipt-v1",
+          "transition_sha256": "63fb8b13e07348c78f6fbceb452d9e48240d6b25b4e7c677332a74be675e3aa0",
+          "worker_id": "rank-4"
+        }
+      },
+      {
+        "arguments": {},
+        "op": "commit",
+        "ordinal": 32,
+        "result": {
+          "allocation": {
+            "job-0": 1,
+            "job-1": 3,
+            "job-2": 0
+          },
+          "allocation_generation": 4,
+          "assignment_tokens": {
+            "rank-4": "fe0f7f0415d091379710dd6cc92c5c5f53839d9529639ae42c80734524afd5bb"
+          },
+          "changed_workers": [
+            "rank-4"
+          ],
+          "commit_sha256": "77464d2aa930efc9bfe8e39c771f06a7489a63a5ffc05c16ff9ab5483d1b5d34",
+          "event_ordinal": 29,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "pool_id": "f438-multirank-pool",
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "schema": "symcc-malleable-worker-commit-v1",
+          "transition_sha256": "63fb8b13e07348c78f6fbceb452d9e48240d6b25b4e7c677332a74be675e3aa0"
+        }
+      },
+      {
+        "arguments": {
+          "generation": 4,
+          "lease_id": "epoch-3:rank-4:job-0",
+          "token": "fe0f7f0415d091379710dd6cc92c5c5f53839d9529639ae42c80734524afd5bb",
+          "worker_id": "rank-4"
+        },
+        "op": "attach",
+        "ordinal": 33,
+        "result": {
+          "assignment_generation": 4,
+          "assignment_token": "fe0f7f0415d091379710dd6cc92c5c5f53839d9529639ae42c80734524afd5bb",
+          "event_ordinal": 30,
+          "event_sha256": "35ab9c5ada2a0b3026e8d1240ac87b809479405232d19d08bf759652d8d8fe31",
+          "lease_id": "epoch-3:rank-4:job-0",
+          "worker_id": "rank-4"
+        }
+      },
+      {
+        "arguments": {
+          "epoch": 3
+        },
+        "op": "epoch",
+        "ordinal": 34,
+        "result": {
+          "allocation": {
+            "job-0": 1,
+            "job-1": 3
+          }
+        }
+      },
+      {
+        "arguments": {
+          "signals": [
+            {
+              "activated": 5,
+              "backlog": 4,
+              "checker_total_us": 500,
+              "delivered": 6,
+              "event_lag_total": 12,
+              "formula_family_sha256": "8fd5529198ed062fb366b2933122a269de683ac2c2263c66dcce226ca0e986be",
+              "job_id": "job-0",
+              "outcomes": 6,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 25500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 0,
+              "checker_total_us": 600,
+              "delivered": 5,
+              "event_lag_total": 15,
+              "formula_family_sha256": "c77629a7119df9632a4e2b9c022e4abe8d0d1fed79ae19ded00a9604b8206d04",
+              "job_id": "job-1",
+              "outcomes": 6,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 7000,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 7,
+              "checker_total_us": 700,
+              "delivered": 6,
+              "event_lag_total": 18,
+              "formula_family_sha256": "d630c8038fd1c5db241a9b138cd73d38c974eb7e97899dbb3fb2d18498e22882",
+              "job_id": "job-2",
+              "outcomes": 6,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 7500,
+              "schema": "symcc-malleable-job-signal-v1"
+            }
+          ]
+        },
+        "op": "prepare",
+        "ordinal": 35,
+        "result": {
+          "allocation": {
+            "job-0": 2,
+            "job-1": 0,
+            "job-2": 2
+          },
+          "base_allocation_generation": 4,
+          "desired_jobs": {
+            "rank-1": "job-0",
+            "rank-2": "job-2",
+            "rank-3": "job-2",
+            "rank-4": "job-0"
+          },
+          "drain_workers": [
+            "rank-1",
+            "rank-2",
+            "rank-3"
+          ],
+          "event_ordinal": 31,
+          "expected_leases": {
+            "rank-1": [
+              "epoch-2:rank-1:job-1"
+            ],
+            "rank-2": [
+              "epoch-2:rank-2:job-1"
+            ],
+            "rank-3": [
+              "epoch-2:rank-3:job-1"
+            ]
+          },
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "pool_id": "f438-multirank-pool",
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "schema": "symcc-malleable-worker-transition-v1",
+          "signals": [
+            {
+              "activated": 5,
+              "backlog": 4,
+              "checker_total_us": 500,
+              "delivered": 6,
+              "event_lag_total": 12,
+              "formula_family_sha256": "8fd5529198ed062fb366b2933122a269de683ac2c2263c66dcce226ca0e986be",
+              "job_id": "job-0",
+              "outcomes": 6,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 25500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 0,
+              "checker_total_us": 600,
+              "delivered": 5,
+              "event_lag_total": 15,
+              "formula_family_sha256": "c77629a7119df9632a4e2b9c022e4abe8d0d1fed79ae19ded00a9604b8206d04",
+              "job_id": "job-1",
+              "outcomes": 6,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 7000,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 7,
+              "checker_total_us": 700,
+              "delivered": 6,
+              "event_lag_total": 18,
+              "formula_family_sha256": "d630c8038fd1c5db241a9b138cd73d38c974eb7e97899dbb3fb2d18498e22882",
+              "job_id": "job-2",
+              "outcomes": 6,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 7500,
+              "schema": "symcc-malleable-job-signal-v1"
+            }
+          ],
+          "target_allocation_generation": 5,
+          "transition_sha256": "b7ff60ac5ee9a9fe5c7c9836426c4734aa0ddf3ff7d5fd0876b54b21febc2d82"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "c76e76fa7be6a09ccf9c54068f73d58856f9aea71dba71fc10a8afd892e27ffc"
+          ],
+          "generation": 3,
+          "lease_id": "epoch-2:rank-1:job-1",
+          "token": "a8815a370da81ee5978cb0b75200859a35a58355f27f39ff2326bb2d645af4a7",
+          "worker_id": "rank-1"
+        },
+        "op": "finish",
+        "ordinal": 36,
+        "result": {
+          "assignment_generation": 3,
+          "assignment_token": "a8815a370da81ee5978cb0b75200859a35a58355f27f39ff2326bb2d645af4a7",
+          "durable_proofs": [
+            "c76e76fa7be6a09ccf9c54068f73d58856f9aea71dba71fc10a8afd892e27ffc"
+          ],
+          "event_ordinal": 32,
+          "event_sha256": "bea94f0b89d32d912f68b39754e061737672b8d8e46622d591920b6fce10a3b0",
+          "lease_id": "epoch-2:rank-1:job-1",
+          "proof_cursor": 2,
+          "worker_id": "rank-1"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "c76e76fa7be6a09ccf9c54068f73d58856f9aea71dba71fc10a8afd892e27ffc"
+          ],
+          "generation": 3,
+          "proof_cursor": 2,
+          "returned_leases": [
+            "epoch-2:rank-1:job-1"
+          ],
+          "token": "a8815a370da81ee5978cb0b75200859a35a58355f27f39ff2326bb2d645af4a7",
+          "worker_id": "rank-1"
+        },
+        "op": "ack",
+        "ordinal": 37,
+        "result": {
+          "assignment_generation": 3,
+          "assignment_token": "a8815a370da81ee5978cb0b75200859a35a58355f27f39ff2326bb2d645af4a7",
+          "durable_proofs": [
+            "c76e76fa7be6a09ccf9c54068f73d58856f9aea71dba71fc10a8afd892e27ffc"
+          ],
+          "event_ordinal": 33,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "proof_cursor": 2,
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "receipt_sha256": "d200818162aeb00b263f4a9f7e52c57fee6cc9a3f3397d051b0cea689b048e95",
+          "returned_leases": [
+            "epoch-2:rank-1:job-1"
+          ],
+          "schema": "symcc-malleable-worker-drain-receipt-v1",
+          "transition_sha256": "b7ff60ac5ee9a9fe5c7c9836426c4734aa0ddf3ff7d5fd0876b54b21febc2d82",
+          "worker_id": "rank-1"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "9f270235c690bac74d9f155cbfbf71b004d80eeb2e1159b31b7928372cbd7a61"
+          ],
+          "generation": 3,
+          "lease_id": "epoch-2:rank-2:job-1",
+          "token": "d65c2740bba57827b7c26e12141901c05b1b2c66c83a015f58ad06abb1769765",
+          "worker_id": "rank-2"
+        },
+        "op": "finish",
+        "ordinal": 38,
+        "result": {
+          "assignment_generation": 3,
+          "assignment_token": "d65c2740bba57827b7c26e12141901c05b1b2c66c83a015f58ad06abb1769765",
+          "durable_proofs": [
+            "9f270235c690bac74d9f155cbfbf71b004d80eeb2e1159b31b7928372cbd7a61"
+          ],
+          "event_ordinal": 34,
+          "event_sha256": "74ed1f4337fe1b2fdb52a9cc968d733e2f5510456c8ef612568565416c1f2516",
+          "lease_id": "epoch-2:rank-2:job-1",
+          "proof_cursor": 2,
+          "worker_id": "rank-2"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "9f270235c690bac74d9f155cbfbf71b004d80eeb2e1159b31b7928372cbd7a61"
+          ],
+          "generation": 3,
+          "proof_cursor": 2,
+          "returned_leases": [
+            "epoch-2:rank-2:job-1"
+          ],
+          "token": "d65c2740bba57827b7c26e12141901c05b1b2c66c83a015f58ad06abb1769765",
+          "worker_id": "rank-2"
+        },
+        "op": "ack",
+        "ordinal": 39,
+        "result": {
+          "assignment_generation": 3,
+          "assignment_token": "d65c2740bba57827b7c26e12141901c05b1b2c66c83a015f58ad06abb1769765",
+          "durable_proofs": [
+            "9f270235c690bac74d9f155cbfbf71b004d80eeb2e1159b31b7928372cbd7a61"
+          ],
+          "event_ordinal": 35,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "proof_cursor": 2,
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "receipt_sha256": "951295b5a2df3cf5ac6d3a10b21c9dd3ad06b093ceed05b3e91e27cbcaf15290",
+          "returned_leases": [
+            "epoch-2:rank-2:job-1"
+          ],
+          "schema": "symcc-malleable-worker-drain-receipt-v1",
+          "transition_sha256": "b7ff60ac5ee9a9fe5c7c9836426c4734aa0ddf3ff7d5fd0876b54b21febc2d82",
+          "worker_id": "rank-2"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "b92dd180322e90a84b19c9c8dbd7f7bf16cde9fc74464f819f2feabdfc6bb401"
+          ],
+          "generation": 3,
+          "lease_id": "epoch-2:rank-3:job-1",
+          "token": "db15f1ca9279a67647daf8d18feea42d96be4720f99eb070e988bfac7ac9e65f",
+          "worker_id": "rank-3"
+        },
+        "op": "finish",
+        "ordinal": 40,
+        "result": {
+          "assignment_generation": 3,
+          "assignment_token": "db15f1ca9279a67647daf8d18feea42d96be4720f99eb070e988bfac7ac9e65f",
+          "durable_proofs": [
+            "b92dd180322e90a84b19c9c8dbd7f7bf16cde9fc74464f819f2feabdfc6bb401"
+          ],
+          "event_ordinal": 36,
+          "event_sha256": "f61fd434a512e5e1f11d9cc989e42f4f24672cef453d9d31fcd15de04b18241e",
+          "lease_id": "epoch-2:rank-3:job-1",
+          "proof_cursor": 3,
+          "worker_id": "rank-3"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "b92dd180322e90a84b19c9c8dbd7f7bf16cde9fc74464f819f2feabdfc6bb401"
+          ],
+          "generation": 3,
+          "proof_cursor": 3,
+          "returned_leases": [
+            "epoch-2:rank-3:job-1"
+          ],
+          "token": "db15f1ca9279a67647daf8d18feea42d96be4720f99eb070e988bfac7ac9e65f",
+          "worker_id": "rank-3"
+        },
+        "op": "ack",
+        "ordinal": 41,
+        "result": {
+          "assignment_generation": 3,
+          "assignment_token": "db15f1ca9279a67647daf8d18feea42d96be4720f99eb070e988bfac7ac9e65f",
+          "durable_proofs": [
+            "b92dd180322e90a84b19c9c8dbd7f7bf16cde9fc74464f819f2feabdfc6bb401"
+          ],
+          "event_ordinal": 37,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "proof_cursor": 3,
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "receipt_sha256": "30dadb073a8da95d6fdce33f0ff4b2f965b84d00939f97847227a6e07ac7ebc1",
+          "returned_leases": [
+            "epoch-2:rank-3:job-1"
+          ],
+          "schema": "symcc-malleable-worker-drain-receipt-v1",
+          "transition_sha256": "b7ff60ac5ee9a9fe5c7c9836426c4734aa0ddf3ff7d5fd0876b54b21febc2d82",
+          "worker_id": "rank-3"
+        }
+      },
+      {
+        "arguments": {},
+        "op": "commit",
+        "ordinal": 42,
+        "result": {
+          "allocation": {
+            "job-0": 2,
+            "job-1": 0,
+            "job-2": 2
+          },
+          "allocation_generation": 5,
+          "assignment_tokens": {
+            "rank-1": "fe59d581cf1e85c1b2e34427f9ef5b9e8f9ef4f0c0434d046f04314372d06250",
+            "rank-2": "e1f4b1c5c204828772094bf9d9c9f4638e176891793c39cc40945d4ed62928e6",
+            "rank-3": "083fcb1009046fde7bf89587d94249b1c7f90355fe0221b79e50d9b37233895b"
+          },
+          "changed_workers": [
+            "rank-1",
+            "rank-2",
+            "rank-3"
+          ],
+          "commit_sha256": "8c3baa79c424dccd0b5960d7d77f7847aeb422a8b51b1e1df269d4f87365a5f6",
+          "event_ordinal": 38,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "pool_id": "f438-multirank-pool",
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "schema": "symcc-malleable-worker-commit-v1",
+          "transition_sha256": "b7ff60ac5ee9a9fe5c7c9836426c4734aa0ddf3ff7d5fd0876b54b21febc2d82"
+        }
+      },
+      {
+        "arguments": {
+          "generation": 5,
+          "lease_id": "epoch-4:rank-1:job-0",
+          "token": "fe59d581cf1e85c1b2e34427f9ef5b9e8f9ef4f0c0434d046f04314372d06250",
+          "worker_id": "rank-1"
+        },
+        "op": "attach",
+        "ordinal": 43,
+        "result": {
+          "assignment_generation": 5,
+          "assignment_token": "fe59d581cf1e85c1b2e34427f9ef5b9e8f9ef4f0c0434d046f04314372d06250",
+          "event_ordinal": 39,
+          "event_sha256": "cbe5415cc5ed60a6fd0f1074170e934c39e341bd5d10911477333fc098489621",
+          "lease_id": "epoch-4:rank-1:job-0",
+          "worker_id": "rank-1"
+        }
+      },
+      {
+        "arguments": {
+          "generation": 5,
+          "lease_id": "epoch-4:rank-2:job-2",
+          "token": "e1f4b1c5c204828772094bf9d9c9f4638e176891793c39cc40945d4ed62928e6",
+          "worker_id": "rank-2"
+        },
+        "op": "attach",
+        "ordinal": 44,
+        "result": {
+          "assignment_generation": 5,
+          "assignment_token": "e1f4b1c5c204828772094bf9d9c9f4638e176891793c39cc40945d4ed62928e6",
+          "event_ordinal": 40,
+          "event_sha256": "f8f01122d21f73465cd07dd78a33ca5bcb542400ba1f76ca1777bab1a2294b9c",
+          "lease_id": "epoch-4:rank-2:job-2",
+          "worker_id": "rank-2"
+        }
+      },
+      {
+        "arguments": {
+          "generation": 5,
+          "lease_id": "epoch-4:rank-3:job-2",
+          "token": "083fcb1009046fde7bf89587d94249b1c7f90355fe0221b79e50d9b37233895b",
+          "worker_id": "rank-3"
+        },
+        "op": "attach",
+        "ordinal": 45,
+        "result": {
+          "assignment_generation": 5,
+          "assignment_token": "083fcb1009046fde7bf89587d94249b1c7f90355fe0221b79e50d9b37233895b",
+          "event_ordinal": 41,
+          "event_sha256": "b0db0dd958951c459acca456c0926811bb66ed0956d86f7ed16da317e5ce7343",
+          "lease_id": "epoch-4:rank-3:job-2",
+          "worker_id": "rank-3"
+        }
+      },
+      {
+        "arguments": {
+          "epoch": 4
+        },
+        "op": "epoch",
+        "ordinal": 46,
+        "result": {
+          "allocation": {
+            "job-0": 2,
+            "job-2": 2
+          }
+        }
+      },
+      {
+        "arguments": {
+          "snapshot": {
+            "allocation_generation": 5,
+            "assignments": {
+              "rank-1": {
+                "assignment_generation": 5,
+                "assignment_token": "fe59d581cf1e85c1b2e34427f9ef5b9e8f9ef4f0c0434d046f04314372d06250",
+                "durable_proofs": [],
+                "job_id": "job-0",
+                "leases": [
+                  "epoch-4:rank-1:job-0"
+                ],
+                "proof_cursor": 2,
+                "state": "active",
+                "worker_id": "rank-1"
+              },
+              "rank-2": {
+                "assignment_generation": 5,
+                "assignment_token": "e1f4b1c5c204828772094bf9d9c9f4638e176891793c39cc40945d4ed62928e6",
+                "durable_proofs": [],
+                "job_id": "job-2",
+                "leases": [
+                  "epoch-4:rank-2:job-2"
+                ],
+                "proof_cursor": 2,
+                "state": "active",
+                "worker_id": "rank-2"
+              },
+              "rank-3": {
+                "assignment_generation": 5,
+                "assignment_token": "083fcb1009046fde7bf89587d94249b1c7f90355fe0221b79e50d9b37233895b",
+                "durable_proofs": [],
+                "job_id": "job-2",
+                "leases": [
+                  "epoch-4:rank-3:job-2"
+                ],
+                "proof_cursor": 3,
+                "state": "active",
+                "worker_id": "rank-3"
+              },
+              "rank-4": {
+                "assignment_generation": 4,
+                "assignment_token": "fe0f7f0415d091379710dd6cc92c5c5f53839d9529639ae42c80734524afd5bb",
+                "durable_proofs": [],
+                "job_id": "job-0",
+                "leases": [
+                  "epoch-3:rank-4:job-0"
+                ],
+                "proof_cursor": 2,
+                "state": "active",
+                "worker_id": "rank-4"
+              }
+            },
+            "next_event_ordinal": 42,
+            "pending_transition": null,
+            "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+            "pool_id": "f438-multirank-pool",
+            "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+            "schema": "symcc-malleable-worker-snapshot-v1",
+            "snapshot_sha256": "90503df774b293473a1104d39076e3504f15a5831d4fe127290ea32b06a8474e",
+            "totals": {
+              "aborted": 0,
+              "committed": 5,
+              "drain_receipts": 9,
+              "leases_attached": 13,
+              "leases_retired": 9,
+              "prepared": 5,
+              "proofs_durable": 9
+            }
+          }
+        },
+        "op": "restart",
+        "ordinal": 47,
+        "result": {
+          "allocation_generation": 5,
+          "assignments": {
+            "rank-1": {
+              "assignment_generation": 5,
+              "assignment_token": "fe59d581cf1e85c1b2e34427f9ef5b9e8f9ef4f0c0434d046f04314372d06250",
+              "durable_proofs": [],
+              "job_id": "job-0",
+              "leases": [
+                "epoch-4:rank-1:job-0"
+              ],
+              "proof_cursor": 2,
+              "state": "active",
+              "worker_id": "rank-1"
+            },
+            "rank-2": {
+              "assignment_generation": 5,
+              "assignment_token": "e1f4b1c5c204828772094bf9d9c9f4638e176891793c39cc40945d4ed62928e6",
+              "durable_proofs": [],
+              "job_id": "job-2",
+              "leases": [
+                "epoch-4:rank-2:job-2"
+              ],
+              "proof_cursor": 2,
+              "state": "active",
+              "worker_id": "rank-2"
+            },
+            "rank-3": {
+              "assignment_generation": 5,
+              "assignment_token": "083fcb1009046fde7bf89587d94249b1c7f90355fe0221b79e50d9b37233895b",
+              "durable_proofs": [],
+              "job_id": "job-2",
+              "leases": [
+                "epoch-4:rank-3:job-2"
+              ],
+              "proof_cursor": 3,
+              "state": "active",
+              "worker_id": "rank-3"
+            },
+            "rank-4": {
+              "assignment_generation": 4,
+              "assignment_token": "fe0f7f0415d091379710dd6cc92c5c5f53839d9529639ae42c80734524afd5bb",
+              "durable_proofs": [],
+              "job_id": "job-0",
+              "leases": [
+                "epoch-3:rank-4:job-0"
+              ],
+              "proof_cursor": 2,
+              "state": "active",
+              "worker_id": "rank-4"
+            }
+          },
+          "next_event_ordinal": 42,
+          "pending_transition": null,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "pool_id": "f438-multirank-pool",
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "schema": "symcc-malleable-worker-snapshot-v1",
+          "snapshot_sha256": "90503df774b293473a1104d39076e3504f15a5831d4fe127290ea32b06a8474e",
+          "totals": {
+            "aborted": 0,
+            "committed": 5,
+            "drain_receipts": 9,
+            "leases_attached": 13,
+            "leases_retired": 9,
+            "prepared": 5,
+            "proofs_durable": 9
+          }
+        }
+      },
+      {
+        "arguments": {
+          "signals": [
+            {
+              "activated": 6,
+              "backlog": 0,
+              "checker_total_us": 600,
+              "delivered": 7,
+              "event_lag_total": 15,
+              "formula_family_sha256": "8fd5529198ed062fb366b2933122a269de683ac2c2263c66dcce226ca0e986be",
+              "job_id": "job-0",
+              "outcomes": 7,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 30500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 5,
+              "checker_total_us": 700,
+              "delivered": 6,
+              "event_lag_total": 18,
+              "formula_family_sha256": "c77629a7119df9632a4e2b9c022e4abe8d0d1fed79ae19ded00a9604b8206d04",
+              "job_id": "job-1",
+              "outcomes": 7,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 7500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 8,
+              "checker_total_us": 800,
+              "delivered": 7,
+              "event_lag_total": 21,
+              "formula_family_sha256": "d630c8038fd1c5db241a9b138cd73d38c974eb7e97899dbb3fb2d18498e22882",
+              "job_id": "job-2",
+              "outcomes": 7,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 8000,
+              "schema": "symcc-malleable-job-signal-v1"
+            }
+          ]
+        },
+        "op": "prepare",
+        "ordinal": 48,
+        "result": {
+          "allocation": {
+            "job-0": 0,
+            "job-1": 2,
+            "job-2": 2
+          },
+          "base_allocation_generation": 5,
+          "desired_jobs": {
+            "rank-1": "job-1",
+            "rank-2": "job-2",
+            "rank-3": "job-2",
+            "rank-4": "job-1"
+          },
+          "drain_workers": [
+            "rank-1",
+            "rank-4"
+          ],
+          "event_ordinal": 42,
+          "expected_leases": {
+            "rank-1": [
+              "epoch-4:rank-1:job-0"
+            ],
+            "rank-4": [
+              "epoch-3:rank-4:job-0"
+            ]
+          },
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "pool_id": "f438-multirank-pool",
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "schema": "symcc-malleable-worker-transition-v1",
+          "signals": [
+            {
+              "activated": 6,
+              "backlog": 0,
+              "checker_total_us": 600,
+              "delivered": 7,
+              "event_lag_total": 15,
+              "formula_family_sha256": "8fd5529198ed062fb366b2933122a269de683ac2c2263c66dcce226ca0e986be",
+              "job_id": "job-0",
+              "outcomes": 7,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 30500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 5,
+              "checker_total_us": 700,
+              "delivered": 6,
+              "event_lag_total": 18,
+              "formula_family_sha256": "c77629a7119df9632a4e2b9c022e4abe8d0d1fed79ae19ded00a9604b8206d04",
+              "job_id": "job-1",
+              "outcomes": 7,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 7500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 8,
+              "checker_total_us": 800,
+              "delivered": 7,
+              "event_lag_total": 21,
+              "formula_family_sha256": "d630c8038fd1c5db241a9b138cd73d38c974eb7e97899dbb3fb2d18498e22882",
+              "job_id": "job-2",
+              "outcomes": 7,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 8000,
+              "schema": "symcc-malleable-job-signal-v1"
+            }
+          ],
+          "target_allocation_generation": 6,
+          "transition_sha256": "51f8932e53b74a9f88a6a86013ab7e553ebd513f3db31072c7c1a5f0fa7d9de9"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "c4d8d92d82426f565c17ca57f2f21d375ff945b23b5f1657cd952fbaff683e53"
+          ],
+          "generation": 5,
+          "lease_id": "epoch-4:rank-1:job-0",
+          "token": "fe59d581cf1e85c1b2e34427f9ef5b9e8f9ef4f0c0434d046f04314372d06250",
+          "worker_id": "rank-1"
+        },
+        "op": "finish",
+        "ordinal": 49,
+        "result": {
+          "assignment_generation": 5,
+          "assignment_token": "fe59d581cf1e85c1b2e34427f9ef5b9e8f9ef4f0c0434d046f04314372d06250",
+          "durable_proofs": [
+            "c4d8d92d82426f565c17ca57f2f21d375ff945b23b5f1657cd952fbaff683e53"
+          ],
+          "event_ordinal": 43,
+          "event_sha256": "ca76859d5929dff554e8be0c6927d529767264d35f4bae111fec687dc83b441b",
+          "lease_id": "epoch-4:rank-1:job-0",
+          "proof_cursor": 3,
+          "worker_id": "rank-1"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "c4d8d92d82426f565c17ca57f2f21d375ff945b23b5f1657cd952fbaff683e53"
+          ],
+          "generation": 5,
+          "proof_cursor": 3,
+          "returned_leases": [
+            "epoch-4:rank-1:job-0"
+          ],
+          "token": "fe59d581cf1e85c1b2e34427f9ef5b9e8f9ef4f0c0434d046f04314372d06250",
+          "worker_id": "rank-1"
+        },
+        "op": "ack",
+        "ordinal": 50,
+        "result": {
+          "assignment_generation": 5,
+          "assignment_token": "fe59d581cf1e85c1b2e34427f9ef5b9e8f9ef4f0c0434d046f04314372d06250",
+          "durable_proofs": [
+            "c4d8d92d82426f565c17ca57f2f21d375ff945b23b5f1657cd952fbaff683e53"
+          ],
+          "event_ordinal": 44,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "proof_cursor": 3,
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "receipt_sha256": "6833c70ca83068e4ec5c6476f9fd8ace24f7bd5380b5b8901b9d7a7087f9ec8f",
+          "returned_leases": [
+            "epoch-4:rank-1:job-0"
+          ],
+          "schema": "symcc-malleable-worker-drain-receipt-v1",
+          "transition_sha256": "51f8932e53b74a9f88a6a86013ab7e553ebd513f3db31072c7c1a5f0fa7d9de9",
+          "worker_id": "rank-1"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "8d891b215e80944ad61cac913586a7f3da003e8d27b9522637ae17290f6f22da"
+          ],
+          "generation": 4,
+          "lease_id": "epoch-3:rank-4:job-0",
+          "token": "fe0f7f0415d091379710dd6cc92c5c5f53839d9529639ae42c80734524afd5bb",
+          "worker_id": "rank-4"
+        },
+        "op": "finish",
+        "ordinal": 51,
+        "result": {
+          "assignment_generation": 4,
+          "assignment_token": "fe0f7f0415d091379710dd6cc92c5c5f53839d9529639ae42c80734524afd5bb",
+          "durable_proofs": [
+            "8d891b215e80944ad61cac913586a7f3da003e8d27b9522637ae17290f6f22da"
+          ],
+          "event_ordinal": 45,
+          "event_sha256": "38eae03878e6aae35122b4bcacd7c7ca8a2cb5b73da3ef089c24d62ca2aeeb30",
+          "lease_id": "epoch-3:rank-4:job-0",
+          "proof_cursor": 3,
+          "worker_id": "rank-4"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "8d891b215e80944ad61cac913586a7f3da003e8d27b9522637ae17290f6f22da"
+          ],
+          "generation": 4,
+          "proof_cursor": 3,
+          "returned_leases": [
+            "epoch-3:rank-4:job-0"
+          ],
+          "token": "fe0f7f0415d091379710dd6cc92c5c5f53839d9529639ae42c80734524afd5bb",
+          "worker_id": "rank-4"
+        },
+        "op": "ack",
+        "ordinal": 52,
+        "result": {
+          "assignment_generation": 4,
+          "assignment_token": "fe0f7f0415d091379710dd6cc92c5c5f53839d9529639ae42c80734524afd5bb",
+          "durable_proofs": [
+            "8d891b215e80944ad61cac913586a7f3da003e8d27b9522637ae17290f6f22da"
+          ],
+          "event_ordinal": 46,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "proof_cursor": 3,
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "receipt_sha256": "47e4372e3efb8f5516316cadfd58d0ffe4d31ab861f090f4879587bb1c63babd",
+          "returned_leases": [
+            "epoch-3:rank-4:job-0"
+          ],
+          "schema": "symcc-malleable-worker-drain-receipt-v1",
+          "transition_sha256": "51f8932e53b74a9f88a6a86013ab7e553ebd513f3db31072c7c1a5f0fa7d9de9",
+          "worker_id": "rank-4"
+        }
+      },
+      {
+        "arguments": {},
+        "op": "commit",
+        "ordinal": 53,
+        "result": {
+          "allocation": {
+            "job-0": 0,
+            "job-1": 2,
+            "job-2": 2
+          },
+          "allocation_generation": 6,
+          "assignment_tokens": {
+            "rank-1": "1eb9231e532d8724253ca8d1d3770f2ada0a5d5724f7cfaea62ac7684e3c909f",
+            "rank-4": "8e6ebf226ce6bf7b510f3767ef9242f41810e066a867dabd2073537151fe6f57"
+          },
+          "changed_workers": [
+            "rank-1",
+            "rank-4"
+          ],
+          "commit_sha256": "a61ac13df5716851224e9847d65066b918fe85856ea4796749a298038393f79b",
+          "event_ordinal": 47,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "pool_id": "f438-multirank-pool",
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "schema": "symcc-malleable-worker-commit-v1",
+          "transition_sha256": "51f8932e53b74a9f88a6a86013ab7e553ebd513f3db31072c7c1a5f0fa7d9de9"
+        }
+      },
+      {
+        "arguments": {
+          "generation": 6,
+          "lease_id": "epoch-5:rank-1:job-1",
+          "token": "1eb9231e532d8724253ca8d1d3770f2ada0a5d5724f7cfaea62ac7684e3c909f",
+          "worker_id": "rank-1"
+        },
+        "op": "attach",
+        "ordinal": 54,
+        "result": {
+          "assignment_generation": 6,
+          "assignment_token": "1eb9231e532d8724253ca8d1d3770f2ada0a5d5724f7cfaea62ac7684e3c909f",
+          "event_ordinal": 48,
+          "event_sha256": "909b62b4ecef6da68a5d728b4155bdab6472f972a6269bccb1edf722fb63fd32",
+          "lease_id": "epoch-5:rank-1:job-1",
+          "worker_id": "rank-1"
+        }
+      },
+      {
+        "arguments": {
+          "generation": 6,
+          "lease_id": "epoch-5:rank-4:job-1",
+          "token": "8e6ebf226ce6bf7b510f3767ef9242f41810e066a867dabd2073537151fe6f57",
+          "worker_id": "rank-4"
+        },
+        "op": "attach",
+        "ordinal": 55,
+        "result": {
+          "assignment_generation": 6,
+          "assignment_token": "8e6ebf226ce6bf7b510f3767ef9242f41810e066a867dabd2073537151fe6f57",
+          "event_ordinal": 49,
+          "event_sha256": "93076b2fdbe1b9ea2711d104c01cebb70228effe4b25f27fafd1e75d6e7dde70",
+          "lease_id": "epoch-5:rank-4:job-1",
+          "worker_id": "rank-4"
+        }
+      },
+      {
+        "arguments": {
+          "epoch": 5
+        },
+        "op": "epoch",
+        "ordinal": 56,
+        "result": {
+          "allocation": {
+            "job-1": 2,
+            "job-2": 2
+          }
+        }
+      },
+      {
+        "arguments": {
+          "signals": [
+            {
+              "activated": 7,
+              "backlog": 2,
+              "checker_total_us": 700,
+              "delivered": 8,
+              "event_lag_total": 18,
+              "formula_family_sha256": "8fd5529198ed062fb366b2933122a269de683ac2c2263c66dcce226ca0e986be",
+              "job_id": "job-0",
+              "outcomes": 8,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 35500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 4,
+              "checker_total_us": 800,
+              "delivered": 7,
+              "event_lag_total": 21,
+              "formula_family_sha256": "c77629a7119df9632a4e2b9c022e4abe8d0d1fed79ae19ded00a9604b8206d04",
+              "job_id": "job-1",
+              "outcomes": 8,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 8000,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 0,
+              "checker_total_us": 900,
+              "delivered": 8,
+              "event_lag_total": 24,
+              "formula_family_sha256": "d630c8038fd1c5db241a9b138cd73d38c974eb7e97899dbb3fb2d18498e22882",
+              "job_id": "job-2",
+              "outcomes": 8,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 8500,
+              "schema": "symcc-malleable-job-signal-v1"
+            }
+          ]
+        },
+        "op": "prepare",
+        "ordinal": 57,
+        "result": {
+          "allocation": {
+            "job-0": 1,
+            "job-1": 2,
+            "job-2": 0
+          },
+          "base_allocation_generation": 6,
+          "desired_jobs": {
+            "rank-1": "job-1",
+            "rank-2": "job-0",
+            "rank-3": "",
+            "rank-4": "job-1"
+          },
+          "drain_workers": [
+            "rank-2",
+            "rank-3"
+          ],
+          "event_ordinal": 50,
+          "expected_leases": {
+            "rank-2": [
+              "epoch-4:rank-2:job-2"
+            ],
+            "rank-3": [
+              "epoch-4:rank-3:job-2"
+            ]
+          },
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "pool_id": "f438-multirank-pool",
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "schema": "symcc-malleable-worker-transition-v1",
+          "signals": [
+            {
+              "activated": 7,
+              "backlog": 2,
+              "checker_total_us": 700,
+              "delivered": 8,
+              "event_lag_total": 18,
+              "formula_family_sha256": "8fd5529198ed062fb366b2933122a269de683ac2c2263c66dcce226ca0e986be",
+              "job_id": "job-0",
+              "outcomes": 8,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 35500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 4,
+              "checker_total_us": 800,
+              "delivered": 7,
+              "event_lag_total": 21,
+              "formula_family_sha256": "c77629a7119df9632a4e2b9c022e4abe8d0d1fed79ae19ded00a9604b8206d04",
+              "job_id": "job-1",
+              "outcomes": 8,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 8000,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 0,
+              "checker_total_us": 900,
+              "delivered": 8,
+              "event_lag_total": 24,
+              "formula_family_sha256": "d630c8038fd1c5db241a9b138cd73d38c974eb7e97899dbb3fb2d18498e22882",
+              "job_id": "job-2",
+              "outcomes": 8,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 8500,
+              "schema": "symcc-malleable-job-signal-v1"
+            }
+          ],
+          "target_allocation_generation": 7,
+          "transition_sha256": "89ea444a4da6903eb498610c76c1220bba45cd95a6c9ca3918027a4caef41b3e"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "5a8a11eaed4715f565a6240b339fccc6e6d3efb4024f6f86a8aef6896efd6522"
+          ],
+          "generation": 5,
+          "lease_id": "epoch-4:rank-2:job-2",
+          "token": "e1f4b1c5c204828772094bf9d9c9f4638e176891793c39cc40945d4ed62928e6",
+          "worker_id": "rank-2"
+        },
+        "op": "finish",
+        "ordinal": 58,
+        "result": {
+          "assignment_generation": 5,
+          "assignment_token": "e1f4b1c5c204828772094bf9d9c9f4638e176891793c39cc40945d4ed62928e6",
+          "durable_proofs": [
+            "5a8a11eaed4715f565a6240b339fccc6e6d3efb4024f6f86a8aef6896efd6522"
+          ],
+          "event_ordinal": 51,
+          "event_sha256": "03c7157b06cd9f8e3839ce4679ef3930448dd6234b379bfb2ba8a88e42e76b24",
+          "lease_id": "epoch-4:rank-2:job-2",
+          "proof_cursor": 3,
+          "worker_id": "rank-2"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "5a8a11eaed4715f565a6240b339fccc6e6d3efb4024f6f86a8aef6896efd6522"
+          ],
+          "generation": 5,
+          "proof_cursor": 3,
+          "returned_leases": [
+            "epoch-4:rank-2:job-2"
+          ],
+          "token": "e1f4b1c5c204828772094bf9d9c9f4638e176891793c39cc40945d4ed62928e6",
+          "worker_id": "rank-2"
+        },
+        "op": "ack",
+        "ordinal": 59,
+        "result": {
+          "assignment_generation": 5,
+          "assignment_token": "e1f4b1c5c204828772094bf9d9c9f4638e176891793c39cc40945d4ed62928e6",
+          "durable_proofs": [
+            "5a8a11eaed4715f565a6240b339fccc6e6d3efb4024f6f86a8aef6896efd6522"
+          ],
+          "event_ordinal": 52,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "proof_cursor": 3,
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "receipt_sha256": "0e893e1a295b0edb943741695094244650c155af95990163c3defd9b9b39b8c2",
+          "returned_leases": [
+            "epoch-4:rank-2:job-2"
+          ],
+          "schema": "symcc-malleable-worker-drain-receipt-v1",
+          "transition_sha256": "89ea444a4da6903eb498610c76c1220bba45cd95a6c9ca3918027a4caef41b3e",
+          "worker_id": "rank-2"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "212fc0b3ae56bce6ecbba6487a662ba8d9a53f45ead0616db753a836214396e6"
+          ],
+          "generation": 5,
+          "lease_id": "epoch-4:rank-3:job-2",
+          "token": "083fcb1009046fde7bf89587d94249b1c7f90355fe0221b79e50d9b37233895b",
+          "worker_id": "rank-3"
+        },
+        "op": "finish",
+        "ordinal": 60,
+        "result": {
+          "assignment_generation": 5,
+          "assignment_token": "083fcb1009046fde7bf89587d94249b1c7f90355fe0221b79e50d9b37233895b",
+          "durable_proofs": [
+            "212fc0b3ae56bce6ecbba6487a662ba8d9a53f45ead0616db753a836214396e6"
+          ],
+          "event_ordinal": 53,
+          "event_sha256": "61ab505640ccc1d7d9228d8c76346c169c7a916bbbe100624394a904103d5d16",
+          "lease_id": "epoch-4:rank-3:job-2",
+          "proof_cursor": 4,
+          "worker_id": "rank-3"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "212fc0b3ae56bce6ecbba6487a662ba8d9a53f45ead0616db753a836214396e6"
+          ],
+          "generation": 5,
+          "proof_cursor": 4,
+          "returned_leases": [
+            "epoch-4:rank-3:job-2"
+          ],
+          "token": "083fcb1009046fde7bf89587d94249b1c7f90355fe0221b79e50d9b37233895b",
+          "worker_id": "rank-3"
+        },
+        "op": "ack",
+        "ordinal": 61,
+        "result": {
+          "assignment_generation": 5,
+          "assignment_token": "083fcb1009046fde7bf89587d94249b1c7f90355fe0221b79e50d9b37233895b",
+          "durable_proofs": [
+            "212fc0b3ae56bce6ecbba6487a662ba8d9a53f45ead0616db753a836214396e6"
+          ],
+          "event_ordinal": 54,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "proof_cursor": 4,
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "receipt_sha256": "afca57926efaaacab9882bbe13328b1a651b1efa08775123274034104697319f",
+          "returned_leases": [
+            "epoch-4:rank-3:job-2"
+          ],
+          "schema": "symcc-malleable-worker-drain-receipt-v1",
+          "transition_sha256": "89ea444a4da6903eb498610c76c1220bba45cd95a6c9ca3918027a4caef41b3e",
+          "worker_id": "rank-3"
+        }
+      },
+      {
+        "arguments": {},
+        "op": "commit",
+        "ordinal": 62,
+        "result": {
+          "allocation": {
+            "job-0": 1,
+            "job-1": 2,
+            "job-2": 0
+          },
+          "allocation_generation": 7,
+          "assignment_tokens": {
+            "rank-2": "86cfbe8388e8eedcce6a8bfd0dcf0a7ed54731cc37208c99c482518a022ee106",
+            "rank-3": "ff56676e70a673ef424dc1e82cb1111f0ccf9aa4e753c0adaf8f3a94dd2cbaa8"
+          },
+          "changed_workers": [
+            "rank-2",
+            "rank-3"
+          ],
+          "commit_sha256": "7a989a39dbdb61938ef487c1b676548498269ba207758bd78f0503afc8329a13",
+          "event_ordinal": 55,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "pool_id": "f438-multirank-pool",
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "schema": "symcc-malleable-worker-commit-v1",
+          "transition_sha256": "89ea444a4da6903eb498610c76c1220bba45cd95a6c9ca3918027a4caef41b3e"
+        }
+      },
+      {
+        "arguments": {
+          "generation": 7,
+          "lease_id": "epoch-6:rank-2:job-0",
+          "token": "86cfbe8388e8eedcce6a8bfd0dcf0a7ed54731cc37208c99c482518a022ee106",
+          "worker_id": "rank-2"
+        },
+        "op": "attach",
+        "ordinal": 63,
+        "result": {
+          "assignment_generation": 7,
+          "assignment_token": "86cfbe8388e8eedcce6a8bfd0dcf0a7ed54731cc37208c99c482518a022ee106",
+          "event_ordinal": 56,
+          "event_sha256": "701d44a6aa61cf82d613b4a8149b2d7360ec6da425261420862ef6e1047610b0",
+          "lease_id": "epoch-6:rank-2:job-0",
+          "worker_id": "rank-2"
+        }
+      },
+      {
+        "arguments": {
+          "epoch": 6
+        },
+        "op": "epoch",
+        "ordinal": 64,
+        "result": {
+          "allocation": {
+            "job-0": 1,
+            "job-1": 2
+          }
+        }
+      },
+      {
+        "arguments": {
+          "signals": [
+            {
+              "activated": 8,
+              "backlog": 6,
+              "checker_total_us": 800,
+              "delivered": 9,
+              "event_lag_total": 21,
+              "formula_family_sha256": "8fd5529198ed062fb366b2933122a269de683ac2c2263c66dcce226ca0e986be",
+              "job_id": "job-0",
+              "outcomes": 9,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 40500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 0,
+              "checker_total_us": 900,
+              "delivered": 8,
+              "event_lag_total": 24,
+              "formula_family_sha256": "c77629a7119df9632a4e2b9c022e4abe8d0d1fed79ae19ded00a9604b8206d04",
+              "job_id": "job-1",
+              "outcomes": 9,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 8500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 2,
+              "checker_total_us": 1000,
+              "delivered": 9,
+              "event_lag_total": 27,
+              "formula_family_sha256": "d630c8038fd1c5db241a9b138cd73d38c974eb7e97899dbb3fb2d18498e22882",
+              "job_id": "job-2",
+              "outcomes": 9,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 9000,
+              "schema": "symcc-malleable-job-signal-v1"
+            }
+          ]
+        },
+        "op": "prepare",
+        "ordinal": 65,
+        "result": {
+          "allocation": {
+            "job-0": 3,
+            "job-1": 0,
+            "job-2": 1
+          },
+          "base_allocation_generation": 7,
+          "desired_jobs": {
+            "rank-1": "job-0",
+            "rank-2": "job-0",
+            "rank-3": "job-2",
+            "rank-4": "job-0"
+          },
+          "drain_workers": [
+            "rank-1",
+            "rank-4"
+          ],
+          "event_ordinal": 57,
+          "expected_leases": {
+            "rank-1": [
+              "epoch-5:rank-1:job-1"
+            ],
+            "rank-4": [
+              "epoch-5:rank-4:job-1"
+            ]
+          },
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "pool_id": "f438-multirank-pool",
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "schema": "symcc-malleable-worker-transition-v1",
+          "signals": [
+            {
+              "activated": 8,
+              "backlog": 6,
+              "checker_total_us": 800,
+              "delivered": 9,
+              "event_lag_total": 21,
+              "formula_family_sha256": "8fd5529198ed062fb366b2933122a269de683ac2c2263c66dcce226ca0e986be",
+              "job_id": "job-0",
+              "outcomes": 9,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 40500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 0,
+              "checker_total_us": 900,
+              "delivered": 8,
+              "event_lag_total": 24,
+              "formula_family_sha256": "c77629a7119df9632a4e2b9c022e4abe8d0d1fed79ae19ded00a9604b8206d04",
+              "job_id": "job-1",
+              "outcomes": 9,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 8500,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 1,
+              "backlog": 2,
+              "checker_total_us": 1000,
+              "delivered": 9,
+              "event_lag_total": 27,
+              "formula_family_sha256": "d630c8038fd1c5db241a9b138cd73d38c974eb7e97899dbb3fb2d18498e22882",
+              "job_id": "job-2",
+              "outcomes": 9,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 9000,
+              "schema": "symcc-malleable-job-signal-v1"
+            }
+          ],
+          "target_allocation_generation": 8,
+          "transition_sha256": "c7580d2eba331ccdedbd79e11cd87c112fa45a3dac832cad203df9351a302f0d"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "266d61b735402143768ed95359798ee5fc0fbf5ea0fca150a8659d507ff0f728"
+          ],
+          "generation": 6,
+          "lease_id": "epoch-5:rank-1:job-1",
+          "token": "1eb9231e532d8724253ca8d1d3770f2ada0a5d5724f7cfaea62ac7684e3c909f",
+          "worker_id": "rank-1"
+        },
+        "op": "finish",
+        "ordinal": 66,
+        "result": {
+          "assignment_generation": 6,
+          "assignment_token": "1eb9231e532d8724253ca8d1d3770f2ada0a5d5724f7cfaea62ac7684e3c909f",
+          "durable_proofs": [
+            "266d61b735402143768ed95359798ee5fc0fbf5ea0fca150a8659d507ff0f728"
+          ],
+          "event_ordinal": 58,
+          "event_sha256": "d92e6624e3a9c009568287059131037e3d749423469d13b1df4b388864b69e56",
+          "lease_id": "epoch-5:rank-1:job-1",
+          "proof_cursor": 4,
+          "worker_id": "rank-1"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "266d61b735402143768ed95359798ee5fc0fbf5ea0fca150a8659d507ff0f728"
+          ],
+          "generation": 6,
+          "proof_cursor": 4,
+          "returned_leases": [
+            "epoch-5:rank-1:job-1"
+          ],
+          "token": "1eb9231e532d8724253ca8d1d3770f2ada0a5d5724f7cfaea62ac7684e3c909f",
+          "worker_id": "rank-1"
+        },
+        "op": "ack",
+        "ordinal": 67,
+        "result": {
+          "assignment_generation": 6,
+          "assignment_token": "1eb9231e532d8724253ca8d1d3770f2ada0a5d5724f7cfaea62ac7684e3c909f",
+          "durable_proofs": [
+            "266d61b735402143768ed95359798ee5fc0fbf5ea0fca150a8659d507ff0f728"
+          ],
+          "event_ordinal": 59,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "proof_cursor": 4,
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "receipt_sha256": "393d18828b42e7a9e62424732f5a82fea4911852258f25a1dc4093193840ece4",
+          "returned_leases": [
+            "epoch-5:rank-1:job-1"
+          ],
+          "schema": "symcc-malleable-worker-drain-receipt-v1",
+          "transition_sha256": "c7580d2eba331ccdedbd79e11cd87c112fa45a3dac832cad203df9351a302f0d",
+          "worker_id": "rank-1"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "e485d9a4232970cac22acfd87699a5c436dc906490786e16c07e2e8a383c7b7f"
+          ],
+          "generation": 6,
+          "lease_id": "epoch-5:rank-4:job-1",
+          "token": "8e6ebf226ce6bf7b510f3767ef9242f41810e066a867dabd2073537151fe6f57",
+          "worker_id": "rank-4"
+        },
+        "op": "finish",
+        "ordinal": 68,
+        "result": {
+          "assignment_generation": 6,
+          "assignment_token": "8e6ebf226ce6bf7b510f3767ef9242f41810e066a867dabd2073537151fe6f57",
+          "durable_proofs": [
+            "e485d9a4232970cac22acfd87699a5c436dc906490786e16c07e2e8a383c7b7f"
+          ],
+          "event_ordinal": 60,
+          "event_sha256": "856e53dd0877246c671d786fcc5332b3cf9150e8b49090ce0474eaede375224d",
+          "lease_id": "epoch-5:rank-4:job-1",
+          "proof_cursor": 4,
+          "worker_id": "rank-4"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "e485d9a4232970cac22acfd87699a5c436dc906490786e16c07e2e8a383c7b7f"
+          ],
+          "generation": 6,
+          "proof_cursor": 4,
+          "returned_leases": [
+            "epoch-5:rank-4:job-1"
+          ],
+          "token": "8e6ebf226ce6bf7b510f3767ef9242f41810e066a867dabd2073537151fe6f57",
+          "worker_id": "rank-4"
+        },
+        "op": "ack",
+        "ordinal": 69,
+        "result": {
+          "assignment_generation": 6,
+          "assignment_token": "8e6ebf226ce6bf7b510f3767ef9242f41810e066a867dabd2073537151fe6f57",
+          "durable_proofs": [
+            "e485d9a4232970cac22acfd87699a5c436dc906490786e16c07e2e8a383c7b7f"
+          ],
+          "event_ordinal": 61,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "proof_cursor": 4,
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "receipt_sha256": "99c556731271637dc592b61607bcb5af055982cefc338976885e24d9d320bfd7",
+          "returned_leases": [
+            "epoch-5:rank-4:job-1"
+          ],
+          "schema": "symcc-malleable-worker-drain-receipt-v1",
+          "transition_sha256": "c7580d2eba331ccdedbd79e11cd87c112fa45a3dac832cad203df9351a302f0d",
+          "worker_id": "rank-4"
+        }
+      },
+      {
+        "arguments": {},
+        "op": "commit",
+        "ordinal": 70,
+        "result": {
+          "allocation": {
+            "job-0": 3,
+            "job-1": 0,
+            "job-2": 1
+          },
+          "allocation_generation": 8,
+          "assignment_tokens": {
+            "rank-1": "c7b23d2c66aaaab4964401246b026a6be6e29f39e82d1f343978bd8daaa62806",
+            "rank-3": "abb5ba8ffd0a87bbc272f9e5bfed1c63fe8a9b3617ff7817fa9837803fb4bf6b",
+            "rank-4": "1f86a42f26abd67c13bcb7e0e93a4c27bee0578a6a290eb9160680f52cb2887d"
+          },
+          "changed_workers": [
+            "rank-1",
+            "rank-3",
+            "rank-4"
+          ],
+          "commit_sha256": "1ff59201e276608ae0cd695bb15e89d3b3f58f835ecebbb3743311a6592b2aeb",
+          "event_ordinal": 62,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "pool_id": "f438-multirank-pool",
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "schema": "symcc-malleable-worker-commit-v1",
+          "transition_sha256": "c7580d2eba331ccdedbd79e11cd87c112fa45a3dac832cad203df9351a302f0d"
+        }
+      },
+      {
+        "arguments": {
+          "generation": 8,
+          "lease_id": "epoch-7:rank-1:job-0",
+          "token": "c7b23d2c66aaaab4964401246b026a6be6e29f39e82d1f343978bd8daaa62806",
+          "worker_id": "rank-1"
+        },
+        "op": "attach",
+        "ordinal": 71,
+        "result": {
+          "assignment_generation": 8,
+          "assignment_token": "c7b23d2c66aaaab4964401246b026a6be6e29f39e82d1f343978bd8daaa62806",
+          "event_ordinal": 63,
+          "event_sha256": "f72cdc895614fb7fdb2c1348be428e425cae2b0d38708a216d2ebe5203de5735",
+          "lease_id": "epoch-7:rank-1:job-0",
+          "worker_id": "rank-1"
+        }
+      },
+      {
+        "arguments": {
+          "generation": 8,
+          "lease_id": "epoch-7:rank-3:job-2",
+          "token": "abb5ba8ffd0a87bbc272f9e5bfed1c63fe8a9b3617ff7817fa9837803fb4bf6b",
+          "worker_id": "rank-3"
+        },
+        "op": "attach",
+        "ordinal": 72,
+        "result": {
+          "assignment_generation": 8,
+          "assignment_token": "abb5ba8ffd0a87bbc272f9e5bfed1c63fe8a9b3617ff7817fa9837803fb4bf6b",
+          "event_ordinal": 64,
+          "event_sha256": "b666d2d0609b17a70c2123978748ee425cc2ebdedbbd4e50f9c338988adc4ad8",
+          "lease_id": "epoch-7:rank-3:job-2",
+          "worker_id": "rank-3"
+        }
+      },
+      {
+        "arguments": {
+          "generation": 8,
+          "lease_id": "epoch-7:rank-4:job-0",
+          "token": "1f86a42f26abd67c13bcb7e0e93a4c27bee0578a6a290eb9160680f52cb2887d",
+          "worker_id": "rank-4"
+        },
+        "op": "attach",
+        "ordinal": 73,
+        "result": {
+          "assignment_generation": 8,
+          "assignment_token": "1f86a42f26abd67c13bcb7e0e93a4c27bee0578a6a290eb9160680f52cb2887d",
+          "event_ordinal": 65,
+          "event_sha256": "95a87f27c2909e37f9c257610203e58365982716e8992a5b8651a26439f174bf",
+          "lease_id": "epoch-7:rank-4:job-0",
+          "worker_id": "rank-4"
+        }
+      },
+      {
+        "arguments": {
+          "epoch": 7
+        },
+        "op": "epoch",
+        "ordinal": 74,
+        "result": {
+          "allocation": {
+            "job-0": 3,
+            "job-2": 1
+          }
+        }
+      },
+      {
+        "arguments": {
+          "signals": [
+            {
+              "activated": 0,
+              "backlog": 0,
+              "checker_total_us": 0,
+              "delivered": 0,
+              "event_lag_total": 0,
+              "formula_family_sha256": "8fd5529198ed062fb366b2933122a269de683ac2c2263c66dcce226ca0e986be",
+              "job_id": "job-0",
+              "outcomes": 0,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 0,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 0,
+              "backlog": 0,
+              "checker_total_us": 0,
+              "delivered": 0,
+              "event_lag_total": 0,
+              "formula_family_sha256": "c77629a7119df9632a4e2b9c022e4abe8d0d1fed79ae19ded00a9604b8206d04",
+              "job_id": "job-1",
+              "outcomes": 0,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 0,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 0,
+              "backlog": 0,
+              "checker_total_us": 0,
+              "delivered": 0,
+              "event_lag_total": 0,
+              "formula_family_sha256": "d630c8038fd1c5db241a9b138cd73d38c974eb7e97899dbb3fb2d18498e22882",
+              "job_id": "job-2",
+              "outcomes": 0,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 0,
+              "schema": "symcc-malleable-job-signal-v1"
+            }
+          ]
+        },
+        "op": "prepare",
+        "ordinal": 75,
+        "result": {
+          "allocation": {
+            "job-0": 0,
+            "job-1": 0,
+            "job-2": 0
+          },
+          "base_allocation_generation": 8,
+          "desired_jobs": {
+            "rank-1": "",
+            "rank-2": "",
+            "rank-3": "",
+            "rank-4": ""
+          },
+          "drain_workers": [
+            "rank-1",
+            "rank-2",
+            "rank-3",
+            "rank-4"
+          ],
+          "event_ordinal": 66,
+          "expected_leases": {
+            "rank-1": [
+              "epoch-7:rank-1:job-0"
+            ],
+            "rank-2": [
+              "epoch-6:rank-2:job-0"
+            ],
+            "rank-3": [
+              "epoch-7:rank-3:job-2"
+            ],
+            "rank-4": [
+              "epoch-7:rank-4:job-0"
+            ]
+          },
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "pool_id": "f438-multirank-pool",
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "schema": "symcc-malleable-worker-transition-v1",
+          "signals": [
+            {
+              "activated": 0,
+              "backlog": 0,
+              "checker_total_us": 0,
+              "delivered": 0,
+              "event_lag_total": 0,
+              "formula_family_sha256": "8fd5529198ed062fb366b2933122a269de683ac2c2263c66dcce226ca0e986be",
+              "job_id": "job-0",
+              "outcomes": 0,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 0,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 0,
+              "backlog": 0,
+              "checker_total_us": 0,
+              "delivered": 0,
+              "event_lag_total": 0,
+              "formula_family_sha256": "c77629a7119df9632a4e2b9c022e4abe8d0d1fed79ae19ded00a9604b8206d04",
+              "job_id": "job-1",
+              "outcomes": 0,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 0,
+              "schema": "symcc-malleable-job-signal-v1"
+            },
+            {
+              "activated": 0,
+              "backlog": 0,
+              "checker_total_us": 0,
+              "delivered": 0,
+              "event_lag_total": 0,
+              "formula_family_sha256": "d630c8038fd1c5db241a9b138cd73d38c974eb7e97899dbb3fb2d18498e22882",
+              "job_id": "job-2",
+              "outcomes": 0,
+              "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+              "reward_total": 0,
+              "schema": "symcc-malleable-job-signal-v1"
+            }
+          ],
+          "target_allocation_generation": 9,
+          "transition_sha256": "24cebe0f7d1cf10ffb360d4d1f19ae32afae1b4314ad71ae25757797d43516de"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "3ae7f47838372b485ba317b7d8383a0f31797764ff6858a37034441d94ee299e"
+          ],
+          "generation": 8,
+          "lease_id": "epoch-7:rank-1:job-0",
+          "token": "c7b23d2c66aaaab4964401246b026a6be6e29f39e82d1f343978bd8daaa62806",
+          "worker_id": "rank-1"
+        },
+        "op": "finish",
+        "ordinal": 76,
+        "result": {
+          "assignment_generation": 8,
+          "assignment_token": "c7b23d2c66aaaab4964401246b026a6be6e29f39e82d1f343978bd8daaa62806",
+          "durable_proofs": [
+            "3ae7f47838372b485ba317b7d8383a0f31797764ff6858a37034441d94ee299e"
+          ],
+          "event_ordinal": 67,
+          "event_sha256": "783696bbbfa3c569735ac09dd5415a0c38bde0ff64494c2ec8f86d81b1477b1c",
+          "lease_id": "epoch-7:rank-1:job-0",
+          "proof_cursor": 5,
+          "worker_id": "rank-1"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "3ae7f47838372b485ba317b7d8383a0f31797764ff6858a37034441d94ee299e"
+          ],
+          "generation": 8,
+          "proof_cursor": 5,
+          "returned_leases": [
+            "epoch-7:rank-1:job-0"
+          ],
+          "token": "c7b23d2c66aaaab4964401246b026a6be6e29f39e82d1f343978bd8daaa62806",
+          "worker_id": "rank-1"
+        },
+        "op": "ack",
+        "ordinal": 77,
+        "result": {
+          "assignment_generation": 8,
+          "assignment_token": "c7b23d2c66aaaab4964401246b026a6be6e29f39e82d1f343978bd8daaa62806",
+          "durable_proofs": [
+            "3ae7f47838372b485ba317b7d8383a0f31797764ff6858a37034441d94ee299e"
+          ],
+          "event_ordinal": 68,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "proof_cursor": 5,
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "receipt_sha256": "7f081cb6b18111a0b17764f432a57519e0cf3bcfec203dd6a49389410a388f1d",
+          "returned_leases": [
+            "epoch-7:rank-1:job-0"
+          ],
+          "schema": "symcc-malleable-worker-drain-receipt-v1",
+          "transition_sha256": "24cebe0f7d1cf10ffb360d4d1f19ae32afae1b4314ad71ae25757797d43516de",
+          "worker_id": "rank-1"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "21fb17e953e53295e7fd4d475e81fadfc959825d530f604ad823205233549ff5"
+          ],
+          "generation": 7,
+          "lease_id": "epoch-6:rank-2:job-0",
+          "token": "86cfbe8388e8eedcce6a8bfd0dcf0a7ed54731cc37208c99c482518a022ee106",
+          "worker_id": "rank-2"
+        },
+        "op": "finish",
+        "ordinal": 78,
+        "result": {
+          "assignment_generation": 7,
+          "assignment_token": "86cfbe8388e8eedcce6a8bfd0dcf0a7ed54731cc37208c99c482518a022ee106",
+          "durable_proofs": [
+            "21fb17e953e53295e7fd4d475e81fadfc959825d530f604ad823205233549ff5"
+          ],
+          "event_ordinal": 69,
+          "event_sha256": "1b6e48fc8a1f395c59990bc451259e6ed56043d260d84216fe6d9972f5a9ab01",
+          "lease_id": "epoch-6:rank-2:job-0",
+          "proof_cursor": 4,
+          "worker_id": "rank-2"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "21fb17e953e53295e7fd4d475e81fadfc959825d530f604ad823205233549ff5"
+          ],
+          "generation": 7,
+          "proof_cursor": 4,
+          "returned_leases": [
+            "epoch-6:rank-2:job-0"
+          ],
+          "token": "86cfbe8388e8eedcce6a8bfd0dcf0a7ed54731cc37208c99c482518a022ee106",
+          "worker_id": "rank-2"
+        },
+        "op": "ack",
+        "ordinal": 79,
+        "result": {
+          "assignment_generation": 7,
+          "assignment_token": "86cfbe8388e8eedcce6a8bfd0dcf0a7ed54731cc37208c99c482518a022ee106",
+          "durable_proofs": [
+            "21fb17e953e53295e7fd4d475e81fadfc959825d530f604ad823205233549ff5"
+          ],
+          "event_ordinal": 70,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "proof_cursor": 4,
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "receipt_sha256": "454861853f86e156655278070c4b98c4838fb1743376827951eea51705d5ad21",
+          "returned_leases": [
+            "epoch-6:rank-2:job-0"
+          ],
+          "schema": "symcc-malleable-worker-drain-receipt-v1",
+          "transition_sha256": "24cebe0f7d1cf10ffb360d4d1f19ae32afae1b4314ad71ae25757797d43516de",
+          "worker_id": "rank-2"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "1e0e7452228ce5252e8f20169b65d6b9a394d31a756b9726162b96d47e80ae2a"
+          ],
+          "generation": 8,
+          "lease_id": "epoch-7:rank-3:job-2",
+          "token": "abb5ba8ffd0a87bbc272f9e5bfed1c63fe8a9b3617ff7817fa9837803fb4bf6b",
+          "worker_id": "rank-3"
+        },
+        "op": "finish",
+        "ordinal": 80,
+        "result": {
+          "assignment_generation": 8,
+          "assignment_token": "abb5ba8ffd0a87bbc272f9e5bfed1c63fe8a9b3617ff7817fa9837803fb4bf6b",
+          "durable_proofs": [
+            "1e0e7452228ce5252e8f20169b65d6b9a394d31a756b9726162b96d47e80ae2a"
+          ],
+          "event_ordinal": 71,
+          "event_sha256": "8b8f4176c01134764aa6aba5a6824191e5e8b4643363fb4b7b249549ee65402e",
+          "lease_id": "epoch-7:rank-3:job-2",
+          "proof_cursor": 5,
+          "worker_id": "rank-3"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "1e0e7452228ce5252e8f20169b65d6b9a394d31a756b9726162b96d47e80ae2a"
+          ],
+          "generation": 8,
+          "proof_cursor": 5,
+          "returned_leases": [
+            "epoch-7:rank-3:job-2"
+          ],
+          "token": "abb5ba8ffd0a87bbc272f9e5bfed1c63fe8a9b3617ff7817fa9837803fb4bf6b",
+          "worker_id": "rank-3"
+        },
+        "op": "ack",
+        "ordinal": 81,
+        "result": {
+          "assignment_generation": 8,
+          "assignment_token": "abb5ba8ffd0a87bbc272f9e5bfed1c63fe8a9b3617ff7817fa9837803fb4bf6b",
+          "durable_proofs": [
+            "1e0e7452228ce5252e8f20169b65d6b9a394d31a756b9726162b96d47e80ae2a"
+          ],
+          "event_ordinal": 72,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "proof_cursor": 5,
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "receipt_sha256": "44545f8e27efadcc783f767c1b51c92e74a9a0065ad4784ebcc193eac6fcaae1",
+          "returned_leases": [
+            "epoch-7:rank-3:job-2"
+          ],
+          "schema": "symcc-malleable-worker-drain-receipt-v1",
+          "transition_sha256": "24cebe0f7d1cf10ffb360d4d1f19ae32afae1b4314ad71ae25757797d43516de",
+          "worker_id": "rank-3"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "222bbfbf02405e222ffc91d8c60152f4518c14deba59f1af8d3141a6b3c0e47a"
+          ],
+          "generation": 8,
+          "lease_id": "epoch-7:rank-4:job-0",
+          "token": "1f86a42f26abd67c13bcb7e0e93a4c27bee0578a6a290eb9160680f52cb2887d",
+          "worker_id": "rank-4"
+        },
+        "op": "finish",
+        "ordinal": 82,
+        "result": {
+          "assignment_generation": 8,
+          "assignment_token": "1f86a42f26abd67c13bcb7e0e93a4c27bee0578a6a290eb9160680f52cb2887d",
+          "durable_proofs": [
+            "222bbfbf02405e222ffc91d8c60152f4518c14deba59f1af8d3141a6b3c0e47a"
+          ],
+          "event_ordinal": 73,
+          "event_sha256": "fe42573ae90a9d33d35a43d44df20ad41ef2958f23ee6d12d02b25be226a8132",
+          "lease_id": "epoch-7:rank-4:job-0",
+          "proof_cursor": 5,
+          "worker_id": "rank-4"
+        }
+      },
+      {
+        "arguments": {
+          "durable_proofs": [
+            "222bbfbf02405e222ffc91d8c60152f4518c14deba59f1af8d3141a6b3c0e47a"
+          ],
+          "generation": 8,
+          "proof_cursor": 5,
+          "returned_leases": [
+            "epoch-7:rank-4:job-0"
+          ],
+          "token": "1f86a42f26abd67c13bcb7e0e93a4c27bee0578a6a290eb9160680f52cb2887d",
+          "worker_id": "rank-4"
+        },
+        "op": "ack",
+        "ordinal": 83,
+        "result": {
+          "assignment_generation": 8,
+          "assignment_token": "1f86a42f26abd67c13bcb7e0e93a4c27bee0578a6a290eb9160680f52cb2887d",
+          "durable_proofs": [
+            "222bbfbf02405e222ffc91d8c60152f4518c14deba59f1af8d3141a6b3c0e47a"
+          ],
+          "event_ordinal": 74,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "proof_cursor": 5,
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "receipt_sha256": "0e7d3d685783f7b55132e8eebb6408dfbcf6f3365302c8696292bdaf2405fdeb",
+          "returned_leases": [
+            "epoch-7:rank-4:job-0"
+          ],
+          "schema": "symcc-malleable-worker-drain-receipt-v1",
+          "transition_sha256": "24cebe0f7d1cf10ffb360d4d1f19ae32afae1b4314ad71ae25757797d43516de",
+          "worker_id": "rank-4"
+        }
+      },
+      {
+        "arguments": {},
+        "op": "commit",
+        "ordinal": 84,
+        "result": {
+          "allocation": {
+            "job-0": 0,
+            "job-1": 0,
+            "job-2": 0
+          },
+          "allocation_generation": 9,
+          "assignment_tokens": {
+            "rank-1": "8fffa49fd94eb92216fe946cb626eb499b595023d93f4ebbeb8c4d900198da8f",
+            "rank-2": "785633695fb01121b02386255faf7012d021f7f309384bad895c50e859befa7f",
+            "rank-3": "4765f8ae125a75f280159d1ebe827bba279ede804400020acce63f2c72f33a5f",
+            "rank-4": "a00e43689f10227c82daf04263aeeedcc01ef24ec49ec1cea3263d53474a5615"
+          },
+          "changed_workers": [
+            "rank-1",
+            "rank-2",
+            "rank-3",
+            "rank-4"
+          ],
+          "commit_sha256": "899161477dde6ac0e622c55756bf86050049f5d1a74b80273819da518b9dd195",
+          "event_ordinal": 75,
+          "policy_sha256": "db276ab552069259bc71fa11cff8db8050e787e89e2ae1974edf95d82981dc31",
+          "pool_id": "f438-multirank-pool",
+          "protocol": "symcc-generation-fenced-malleable-worker-pool-v1",
+          "schema": "symcc-malleable-worker-commit-v1",
+          "transition_sha256": "24cebe0f7d1cf10ffb360d4d1f19ae32afae1b4314ad71ae25757797d43516de"
+        }
+      },
+      {
+        "arguments": {
+          "generation": 1,
+          "lease_id": "stale-0",
+          "token": "b0fcaf6f6ad50c473b41254becd77d8b9a3aec91731b5e5edd468fb30a5a3fd2",
+          "worker_id": "rank-3"
+        },
+        "op": "stale-probe",
+        "ordinal": 85,
+        "result": {
+          "rejected": true
+        }
+      },
+      {
+        "arguments": {
+          "generation": 1,
+          "lease_id": "stale-1",
+          "token": "990440dd03568d8a88e4f6e886083d359dc3450c92b01cd4defeadcdd3e41ee1",
+          "worker_id": "rank-4"
+        },
+        "op": "stale-probe",
+        "ordinal": 86,
+        "result": {
+          "rejected": true
+        }
+      },
+      {
+        "arguments": {
+          "generation": 1,
+          "lease_id": "stale-2",
+          "token": "1e48f36723a2b443687230d9c09b884878de37de2e94247cb15ad5a1bda157e4",
+          "worker_id": "rank-1"
+        },
+        "op": "stale-probe",
+        "ordinal": 87,
+        "result": {
+          "rejected": true
+        }
+      },
+      {
+        "arguments": {
+          "generation": 1,
+          "lease_id": "stale-3",
+          "token": "95fbdb32fafd38fb09ca0de3db550f880976c3351f6d52fa323a03a2b1083a64",
+          "worker_id": "rank-2"
+        },
+        "op": "stale-probe",
+        "ordinal": 88,
+        "result": {
+          "rejected": true
+        }
+      },
+      {
+        "arguments": {
+          "generation": 2,
+          "lease_id": "stale-4",
+          "token": "171c7a2cd9f2473969abcec4ff652030078c3acfed1eb28d6e63022eb3514c6a",
+          "worker_id": "rank-3"
+        },
+        "op": "stale-probe",
+        "ordinal": 89,
+        "result": {
+          "rejected": true
+        }
+      },
+      {
+        "arguments": {
+          "generation": 2,
+          "lease_id": "stale-5",
+          "token": "9cd80132fa1231ad3aea59a6865b76c6d07870fb751fd876fa9da2597440b1fe",
+          "worker_id": "rank-4"
+        },
+        "op": "stale-probe",
+        "ordinal": 90,
+        "result": {
+          "rejected": true
+        }
+      },
+      {
+        "arguments": {
+          "generation": 3,
+          "lease_id": "stale-6",
+          "token": "a8815a370da81ee5978cb0b75200859a35a58355f27f39ff2326bb2d645af4a7",
+          "worker_id": "rank-1"
+        },
+        "op": "stale-probe",
+        "ordinal": 91,
+        "result": {
+          "rejected": true
+        }
+      },
+      {
+        "arguments": {
+          "generation": 3,
+          "lease_id": "stale-7",
+          "token": "d65c2740bba57827b7c26e12141901c05b1b2c66c83a015f58ad06abb1769765",
+          "worker_id": "rank-2"
+        },
+        "op": "stale-probe",
+        "ordinal": 92,
+        "result": {
+          "rejected": true
+        }
+      },
+      {
+        "arguments": {
+          "generation": 3,
+          "lease_id": "stale-8",
+          "token": "db15f1ca9279a67647daf8d18feea42d96be4720f99eb070e988bfac7ac9e65f",
+          "worker_id": "rank-3"
+        },
+        "op": "stale-probe",
+        "ordinal": 93,
+        "result": {
+          "rejected": true
+        }
+      },
+      {
+        "arguments": {
+          "generation": 5,
+          "lease_id": "stale-9",
+          "token": "fe59d581cf1e85c1b2e34427f9ef5b9e8f9ef4f0c0434d046f04314372d06250",
+          "worker_id": "rank-1"
+        },
+        "op": "stale-probe",
+        "ordinal": 94,
+        "result": {
+          "rejected": true
+        }
+      },
+      {
+        "arguments": {
+          "generation": 4,
+          "lease_id": "stale-10",
+          "token": "fe0f7f0415d091379710dd6cc92c5c5f53839d9529639ae42c80734524afd5bb",
+          "worker_id": "rank-4"
+        },
+        "op": "stale-probe",
+        "ordinal": 95,
+        "result": {
+          "rejected": true
+        }
+      },
+      {
+        "arguments": {
+          "generation": 5,
+          "lease_id": "stale-11",
+          "token": "e1f4b1c5c204828772094bf9d9c9f4638e176891793c39cc40945d4ed62928e6",
+          "worker_id": "rank-2"
+        },
+        "op": "stale-probe",
+        "ordinal": 96,
+        "result": {
+          "rejected": true
+        }
+      },
+      {
+        "arguments": {
+          "generation": 5,
+          "lease_id": "stale-12",
+          "token": "083fcb1009046fde7bf89587d94249b1c7f90355fe0221b79e50d9b37233895b",
+          "worker_id": "rank-3"
+        },
+        "op": "stale-probe",
+        "ordinal": 97,
+        "result": {
+          "rejected": true
+        }
+      },
+      {
+        "arguments": {
+          "generation": 6,
+          "lease_id": "stale-13",
+          "token": "1eb9231e532d8724253ca8d1d3770f2ada0a5d5724f7cfaea62ac7684e3c909f",
+          "worker_id": "rank-1"
+        },
+        "op": "stale-probe",
+        "ordinal": 98,
+        "result": {
+          "rejected": true
+        }
+      },
+      {
+        "arguments": {
+          "generation": 6,
+          "lease_id": "stale-14",
+          "token": "8e6ebf226ce6bf7b510f3767ef9242f41810e066a867dabd2073537151fe6f57",
+          "worker_id": "rank-4"
+        },
+        "op": "stale-probe",
+        "ordinal": 99,
+        "result": {
+          "rejected": true
+        }
+      }
+    ],
+    "protocol": "symcc-f438-malleable-multirank-evaluation-v1",
+    "retired_leases": 19,
+    "schema": "symcc-f438-malleable-multirank-result-v1",
+    "stale_fences_rejected": 15
+  },
+  "worker_operations_attested": 72
+}

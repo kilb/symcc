@@ -1,0 +1,117 @@
+{
+  "actual_mpi_transport": false,
+  "actual_multihost_filesystem": false,
+  "admission_failure": {
+    "error": "cluster lock renewal request admission failed: injected request admission failure",
+    "generation": 0,
+    "observed": false
+  },
+  "base_exception_results": [
+    "KeyboardInterrupt: begin transport signal",
+    "KeyboardInterrupt: poll transport signal",
+    "KeyboardInterrupt: delivery signal"
+  ],
+  "bounded_delivery": {
+    "completed_count": 0,
+    "error": "cluster lock renewal delivery request 0 failed: x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ",
+    "incomplete_count": 0,
+    "total_count": 1,
+    "uncertain_count": 1
+  },
+  "checks": {
+    "admission_exception_is_fatal_classified": true,
+    "base_exceptions_propagate": true,
+    "delivery_diagnostic_is_bounded": true,
+    "delivery_handles_are_observed_once": true,
+    "delivery_states_are_distinct": true,
+    "duplicate_handle_is_rejected_before_observation": true,
+    "partial_send_exception_is_contained": true,
+    "poll_exception_is_contained": true,
+    "post_begin_failure_retains_generation": true,
+    "pre_begin_exception_is_contained": true,
+    "pre_begin_failure_keeps_controller_state": true,
+    "receiving_peers_accept_exact_generation": true,
+    "render_failure_uses_exception_type": true,
+    "successful_send_handles_are_retained": true,
+    "unsent_peer_observes_no_request": true
+  },
+  "checks_passed": 15,
+  "checks_total": 15,
+  "claim_boundary": "Local transport containment and deterministic synthetic point-to-point evidence only; no send rollback, retry, MPI atomicity, collective convergence, real MPI, multi-host, ULFM, solver, coverage, campaign, bug, or LAVA-M uplift claim.",
+  "delivery": {
+    "completed_count": 1,
+    "error": "cluster lock renewal delivery request 2 failed: injected completion observation failure",
+    "incomplete_count": 1,
+    "total_count": 3,
+    "uncertain_count": 1
+  },
+  "delivery_calls": {
+    "completed": 1,
+    "incomplete": 1,
+    "uncertain": 1
+  },
+  "duplicate_delivery": {
+    "completed_count": 0,
+    "error": "duplicate cluster lock renewal delivery request",
+    "incomplete_count": 0,
+    "total_count": 2,
+    "uncertain_count": 2
+  },
+  "epoch": "0f4604bce8985ff2c2ae2754c8a7aa408c5d579bd48591946a6b6f23dde27b80",
+  "feature": "F358",
+  "partial_send": {
+    "controller_in_flight_generation": 1,
+    "delivery": {
+      "completed_count": 2,
+      "error": "",
+      "incomplete_count": 0,
+      "total_count": 2,
+      "uncertain_count": 0
+    },
+    "error": "cluster lock renewal request send failed: injected partial send adapter failure",
+    "generation": 1,
+    "peer_results": [
+      {
+        "error": "",
+        "generation": 1,
+        "observed": true,
+        "rank": 1
+      },
+      {
+        "error": "",
+        "generation": 0,
+        "observed": false,
+        "rank": 2
+      },
+      {
+        "error": "",
+        "generation": 1,
+        "observed": true,
+        "rank": 3
+      }
+    ],
+    "send_count": 2
+  },
+  "poll_failure": {
+    "error": "cluster lock renewal request receive failed: injected peer poll failure",
+    "generation": 0,
+    "observed": false
+  },
+  "pre_begin": {
+    "error": "cluster lock renewal communicator failed: injected communicator rank failure",
+    "generation": 0,
+    "prestate_retained": true,
+    "send_count": 0
+  },
+  "rendered_delivery": {
+    "completed_count": 0,
+    "error": "cluster lock renewal delivery request 0 failed: BrokenTextError",
+    "incomplete_count": 0,
+    "total_count": 1,
+    "uncertain_count": 1
+  },
+  "schema": "symcc-f358-renewal-control-transport-evidence-v1",
+  "solver_or_campaign_executed": false,
+  "synthetic_collective_transport": false,
+  "synthetic_point_to_point_transport": true
+}

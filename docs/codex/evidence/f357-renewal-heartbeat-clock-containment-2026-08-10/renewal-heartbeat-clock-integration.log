@@ -1,0 +1,207 @@
+{
+  "actual_local_filesystem_probe": true,
+  "actual_mpi_transport": false,
+  "actual_multihost_filesystem": false,
+  "bounded_heartbeat": {
+    "error": "work lease heartbeat failed: x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?",
+    "lost_lease_count": 0
+  },
+  "checks": {
+    "clean_heartbeat_is_preserved": true,
+    "collective_completion_is_single_attempt": true,
+    "collective_heartbeat_failure_converges": true,
+    "completion_base_exception_propagates": true,
+    "completion_clock_exception_is_contained": true,
+    "completion_clock_failure_keeps_prestate": true,
+    "completion_clock_is_called_once": true,
+    "heartbeat_base_exception_propagates": true,
+    "heartbeat_diagnostic_is_bounded": true,
+    "heartbeat_exception_is_contained": true,
+    "heartbeat_providers_are_called_once": true,
+    "heartbeat_rendering_failure_uses_type_name": true,
+    "invalid_heartbeat_is_rejected": true,
+    "proof_rejection_commits_one_failure": true
+  },
+  "checks_passed": 14,
+  "checks_total": 14,
+  "claim_boundary": "Local heartbeat/completion and synthetic collective evidence only; no retry guarantee after partial heartbeat side effects, real MPI, multi-host filesystem, ULFM recovery, solver, coverage, campaign, bug, or LAVA-M uplift claim.",
+  "clean_heartbeat": {
+    "error": "",
+    "lost_lease_count": 2
+  },
+  "clock_failure_result": {
+    "after": {
+      "attempts": 0,
+      "failures": 0,
+      "generation": 0,
+      "in_flight_generation": 1,
+      "interval": 5.0,
+      "jitter_fraction": 0.0,
+      "last_elapsed": 0.0,
+      "last_scheduled_interval": 0.0,
+      "maximum_interval": 5.0,
+      "next_scheduled_interval": 5.0,
+      "schema": "symcc-cluster-lock-renewal-metrics-v2",
+      "successes": 0,
+      "timeout": 2.0,
+      "total_elapsed": 0.0
+    },
+    "before": {
+      "attempts": 0,
+      "failures": 0,
+      "generation": 0,
+      "in_flight_generation": 1,
+      "interval": 5.0,
+      "jitter_fraction": 0.0,
+      "last_elapsed": 0.0,
+      "last_scheduled_interval": 0.0,
+      "maximum_interval": 5.0,
+      "next_scheduled_interval": 5.0,
+      "schema": "symcc-cluster-lock-renewal-metrics-v2",
+      "successes": 0,
+      "timeout": 2.0,
+      "total_elapsed": 0.0
+    },
+    "error": "injected completion clock failure",
+    "prestate_retained": true,
+    "successful": false
+  },
+  "collective_completions": [
+    {
+      "error": "",
+      "snapshot": {
+        "attempts": 1,
+        "failures": 1,
+        "generation": 1,
+        "in_flight_generation": 0,
+        "interval": 5.0,
+        "jitter_fraction": 0.0,
+        "last_elapsed": 0.0,
+        "last_scheduled_interval": 5.0,
+        "maximum_interval": 5.0,
+        "next_scheduled_interval": 5.0,
+        "schema": "symcc-cluster-lock-renewal-metrics-v2",
+        "successes": 0,
+        "timeout": 2.0,
+        "total_elapsed": 0.0
+      },
+      "successful": false
+    },
+    {
+      "error": "",
+      "snapshot": {
+        "attempts": 1,
+        "failures": 1,
+        "generation": 1,
+        "in_flight_generation": 0,
+        "interval": 5.0,
+        "jitter_fraction": 0.0,
+        "last_elapsed": 0.0,
+        "last_scheduled_interval": 5.0,
+        "maximum_interval": 5.0,
+        "next_scheduled_interval": 5.0,
+        "schema": "symcc-cluster-lock-renewal-metrics-v2",
+        "successes": 0,
+        "timeout": 2.0,
+        "total_elapsed": 0.0
+      },
+      "successful": false
+    }
+  ],
+  "collective_results": [
+    {
+      "clean": false,
+      "contention_checks": 0,
+      "elapsed": 0.0,
+      "error": "master 1 local probe failed: pre-renewal work lease heartbeat failed: injected heartbeat adapter failure",
+      "identity_checks": 0,
+      "members": [
+        [
+          0,
+          "node-0"
+        ],
+        [
+          1,
+          "node-1"
+        ]
+      ],
+      "proof_transcript": "",
+      "qualification_generation": 1,
+      "release_checks": 0,
+      "representatives": [],
+      "rounds": 0,
+      "verified": false
+    },
+    {
+      "clean": false,
+      "contention_checks": 0,
+      "elapsed": 0.0,
+      "error": "master 1 local probe failed: pre-renewal work lease heartbeat failed: injected heartbeat adapter failure",
+      "identity_checks": 0,
+      "members": [
+        [
+          0,
+          "node-0"
+        ],
+        [
+          1,
+          "node-1"
+        ]
+      ],
+      "proof_transcript": "",
+      "qualification_generation": 1,
+      "release_checks": 0,
+      "representatives": [],
+      "rounds": 0,
+      "verified": false
+    }
+  ],
+  "collective_thread_errors": [],
+  "collective_threads_alive": 0,
+  "completed_result": {
+    "error": "",
+    "snapshot": {
+      "attempts": 1,
+      "failures": 1,
+      "generation": 1,
+      "in_flight_generation": 0,
+      "interval": 5.0,
+      "jitter_fraction": 0.0,
+      "last_elapsed": 0.25,
+      "last_scheduled_interval": 5.0,
+      "maximum_interval": 5.0,
+      "next_scheduled_interval": 5.0,
+      "schema": "symcc-cluster-lock-renewal-metrics-v2",
+      "successes": 0,
+      "timeout": 2.0,
+      "total_elapsed": 0.25
+    },
+    "successful": false
+  },
+  "completion_base_exception": "KeyboardInterrupt: completion process control",
+  "completion_clock_calls": [
+    "clock"
+  ],
+  "epoch": "7df2015ddfc4501918bb1fe92b11cf74641734543b79c9c91c308503e82b4cdc",
+  "failed_heartbeat": {
+    "error": "work lease heartbeat failed: injected heartbeat adapter failure",
+    "lost_lease_count": 0
+  },
+  "feature": "F357",
+  "heartbeat_base_exception": "KeyboardInterrupt: heartbeat process control",
+  "heartbeat_provider_order": [
+    "clean",
+    "failed"
+  ],
+  "invalid_heartbeat": {
+    "error": "work lease heartbeat returned an invalid result",
+    "lost_lease_count": 0
+  },
+  "rendered_heartbeat": {
+    "error": "work lease heartbeat failed: BrokenTextError",
+    "lost_lease_count": 0
+  },
+  "schema": "symcc-f357-renewal-heartbeat-clock-evidence-v1",
+  "solver_or_campaign_executed": false,
+  "synthetic_collective_transport": true
+}

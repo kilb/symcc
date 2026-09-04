@@ -1,0 +1,108 @@
+{
+  "actual_mpi_transport": true,
+  "actual_multi_host": false,
+  "all_checks_passed": true,
+  "cases": [
+    {
+      "active_epoch_after_run": false,
+      "all_checks_passed": true,
+      "checks": {
+        "analysis_count_is_two": true,
+        "bounded_runtime": true,
+        "clean_exit": true,
+        "metadata_and_symlink_not_counted": true,
+        "no_staging_residue": true,
+        "same_name_replacement_processed_once_each": true,
+        "successful_epoch_retired": true,
+        "two_exact_external_objects_public": true
+      },
+      "command": [
+        "mpirun",
+        "--oversubscribe",
+        "-np",
+        "2",
+        "python3",
+        "/home/ubuntu/code/symcc/util/mpi_concolic_execution.py",
+        "-i",
+        "/tmp/symcc-f341-replacement-d55gwdog/input",
+        "-o",
+        "/tmp/symcc-f341-replacement-d55gwdog/output",
+        "-t",
+        "1",
+        "--max-idle",
+        "2",
+        "--wall-timeout",
+        "30",
+        "--",
+        "/tmp/symcc-f341-replacement-d55gwdog/input-observer.py"
+      ],
+      "elapsed_seconds": 2.7352051788475364,
+      "expected_external_hashes": [
+        "acf60c7a961caa590894e3cdd67bca7495604b83997f7bd11ff3cb1947ea813c",
+        "bdf9393e05a45446cf0d9df24fb5f92109f784220f8839a5285ebc26dacce4a1"
+      ],
+      "mode": "same-name-replacement",
+      "observed_target_hashes": [
+        "bdf9393e05a45446cf0d9df24fb5f92109f784220f8839a5285ebc26dacce4a1",
+        "acf60c7a961caa590894e3cdd67bca7495604b83997f7bd11ff3cb1947ea813c"
+      ],
+      "output": "SymCC MPI Parallel Concolic Execution\n  Processes:     2\n  Mode:          single-master (1 workers)\n  Shared dir:    /tmp/symcc-f341-replacement-d55gwdog/output\n  Input dir:     /tmp/symcc-f341-replacement-d55gwdog/input\n  Target:        /tmp/symcc-f341-replacement-d55gwdog/input-observer.py\n  Timeout:       1s per execution\n  Result budget: 2 objects, 1024 bytes per parent\n  Input budget:  1024 bytes per object\n  Work epoch:    a250e63d3efd0f005300d80129696986635512554609ac330f2b946002ddb5f2 (configured recovery)\n  Retired GC:    0 root(s) reclaimed, 0 entry(s) removed, stop=disabled\n  Retired budget: roots=0, entries=4096, time=0.05s\n  Retired scan:   entries=0, candidates=0, selected=0\n  Retirement:    renameat2(RENAME_NOREPLACE) qualified\n  Wall timeout:  30s total\n\n[Master] Imported 1 initial inputs from /tmp/symcc-f341-replacement-d55gwdog/input\n[Master] Using 1 master(s), 1 workers in this group\n[Master] Durable work ownership: rendezvous + 64 fenced shards, lease=8s\n[Master] Shared filesystem capabilities: {'schema': 'symcc-shared-filesystem-capabilities-v1', 'root': '/tmp/symcc-f341-replacement-d55gwdog/output/.standalone-work-a250e63d3efd0f005300d80129696986635512554609ac330f2b946002ddb5f2', 'publication_root': '/tmp/symcc-f341-replacement-d55gwdog/output', 'device': 92, 'filesystem_id': 18395215968828387670, 'publication_device': 92, 'publication_filesystem_id': 18395215968828387670, 'filesystem_type': 'overlay', 'mount_point': '/', 'mount_source': 'overlay', 'distributed_filesystem': False, 'cluster_lock_verified': False, 'probe_scope': 'same-host-subprocess-v1', 'cluster_lock_members': [{'rank': 0, 'processor': 'cuda-ke'}], 'cluster_lock_representatives': [0], 'cluster_lock_rounds': 0, 'cluster_lock_contention_checks': 0, 'cluster_lock_release_checks': 0, 'file_fsync': True, 'directory_fsync': True, 'same_directory_replace': True, 'cross_directory_replace': True, 'publication_replace': True, 'hard_link': True, 'durable_unlink': True, 'advisory_lock_exclusion': True, 'advisory_lock_release': True}\n[Master 0] Waiting for inputs... (0 generated, 0 interesting, 2 analyzed)\n[Master] 0 generated, 0 interesting, 2 analyzed, 0 busy (0 tc/s)\n[Master] No more inputs after 2.001s (limit 2s). Shutting down.\n[Master 0] Worker shutdown: acked=1/1 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s\n\n[Master] === Final Statistics ===\n[Master] Total analysis observations:       2\n[Master] Total test cases generated:  0\n[Master] External input objects:      2\n[Master] New interesting test cases:  0\n[Master] Throughput:                  0.0 tc/s\n[Master] Masters used:               1\n[Master] Workers used:               1\n[Master] Analysis by master:         0=2\n",
+      "retired_epoch_count": 1,
+      "returncode": 0,
+      "staged_residue": [],
+      "valid_public_objects": [
+        "acf60c7a961caa590894e3cdd67bca7495604b83997f7bd11ff3cb1947ea813c",
+        "bdf9393e05a45446cf0d9df24fb5f92109f784220f8839a5285ebc26dacce4a1"
+      ]
+    },
+    {
+      "active_epoch_after_run": true,
+      "all_checks_passed": true,
+      "checks": {
+        "bounded_runtime": true,
+        "budget_is_reported": true,
+        "failed_epoch_remains_recoverable": true,
+        "fatal_exit": true,
+        "nothing_public_or_staged": true,
+        "overflow_is_exact": true,
+        "target_not_executed": true,
+        "worker_shutdown_acknowledged": true
+      },
+      "command": [
+        "mpirun",
+        "--oversubscribe",
+        "-np",
+        "2",
+        "python3",
+        "/home/ubuntu/code/symcc/util/mpi_concolic_execution.py",
+        "-i",
+        "/tmp/symcc-f341-overflow-wm3mx5jj/input",
+        "-o",
+        "/tmp/symcc-f341-overflow-wm3mx5jj/output",
+        "-t",
+        "1",
+        "--max-idle",
+        "2",
+        "--wall-timeout",
+        "30",
+        "--",
+        "/tmp/symcc-f341-overflow-wm3mx5jj/input-observer.py"
+      ],
+      "elapsed_seconds": 0.4667222029529512,
+      "mode": "input-overflow",
+      "output": "SymCC MPI Parallel Concolic Execution\n  Processes:     2\n  Mode:          single-master (1 workers)\n  Shared dir:    /tmp/symcc-f341-overflow-wm3mx5jj/output\n  Input dir:     /tmp/symcc-f341-overflow-wm3mx5jj/input\n  Target:        /tmp/symcc-f341-overflow-wm3mx5jj/input-observer.py\n  Timeout:       1s per execution\n  Result budget: 2 objects, 16 bytes per parent\n  Input budget:  16 bytes per object\n  Work epoch:    9146ccb2f8814754350f49e4e989abfc741484abc2520acdbb69cc978d8e8844 (configured recovery)\n  Retired GC:    0 root(s) reclaimed, 0 entry(s) removed, stop=disabled\n  Retired budget: roots=0, entries=4096, time=0.05s\n  Retired scan:   entries=0, candidates=0, selected=0\n  Retirement:    renameat2(RENAME_NOREPLACE) qualified\n  Wall timeout:  30s total\n\n[Master] Imported 0 initial inputs from /tmp/symcc-f341-overflow-wm3mx5jj/input\n[Master] Using 1 master(s), 1 workers in this group\n[Master] Durable work ownership: rendezvous + 64 fenced shards, lease=8s\n[Master] Shared filesystem capabilities: {'schema': 'symcc-shared-filesystem-capabilities-v1', 'root': '/tmp/symcc-f341-overflow-wm3mx5jj/output/.standalone-work-9146ccb2f8814754350f49e4e989abfc741484abc2520acdbb69cc978d8e8844', 'publication_root': '/tmp/symcc-f341-overflow-wm3mx5jj/output', 'device': 92, 'filesystem_id': 18395215968828387670, 'publication_device': 92, 'publication_filesystem_id': 18395215968828387670, 'filesystem_type': 'overlay', 'mount_point': '/', 'mount_source': 'overlay', 'distributed_filesystem': False, 'cluster_lock_verified': False, 'probe_scope': 'same-host-subprocess-v1', 'cluster_lock_members': [{'rank': 0, 'processor': 'cuda-ke'}], 'cluster_lock_representatives': [0], 'cluster_lock_rounds': 0, 'cluster_lock_contention_checks': 0, 'cluster_lock_release_checks': 0, 'file_fsync': True, 'directory_fsync': True, 'same_directory_replace': True, 'cross_directory_replace': True, 'publication_replace': True, 'hard_link': True, 'durable_unlink': True, 'advisory_lock_exclusion': True, 'advisory_lock_release': True}\n[Master 0] Global work control failure: standalone input bytes budget exceeded: observed=17, limit=16\n[Master 0] Worker shutdown: acked=1/1 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s\n[Master 0] Control failure during worker shutdown: standalone input bytes budget exceeded: observed=17, limit=16\n[Master 0] Incomplete MPI lifecycle after bounded master rendezvous; aborting job.\n--------------------------------------------------------------------------\nMPI_ABORT was invoked on rank 0 in communicator MPI_COMM_WORLD\nwith errorcode 70.\n\nNOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.\nYou may or may not see output from other processes, depending on\nexactly when Open MPI kills them.\n--------------------------------------------------------------------------\n",
+      "retired_epoch_count": 0,
+      "returncode": 70,
+      "staged_residue": [],
+      "valid_public_objects": []
+    }
+  ],
+  "configuration": {
+    "masters": 1,
+    "ranks": 2,
+    "workers": 1
+  },
+  "proof_boundary": "Two same-host Open MPI runs on local overlayfs exercise stable input replacement reimport and pre-dispatch byte rejection. The observer target does not invoke SymCC's solver. This is not DSE coverage, campaign throughput, multi-host storage, bug discovery, or LAVA-M evidence.",
+  "schema": "symcc-f341-stable-streaming-input-mpi-v1",
+  "synthetic_input_observer_target": true
+}

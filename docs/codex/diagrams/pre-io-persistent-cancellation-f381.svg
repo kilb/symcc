@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1100" viewBox="0 0 1800 1100">
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#17202a" flood-opacity="0.15"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#34495e"/>
+    </marker>
+    <marker id="redArrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#c0392b"/>
+    </marker>
+    <style>
+      text { font-family: "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; fill: #17202a; letter-spacing: 0; }
+      .title { font-size: 46px; font-weight: 700; }
+      .subtitle { font-size: 23px; fill: #566573; }
+      .lane { font-size: 25px; font-weight: 700; fill: white; }
+      .head { font-size: 27px; font-weight: 700; }
+      .body { font-size: 21px; }
+      .small { font-size: 18px; fill: #566573; }
+      .on-dark { fill: #ffffff; }
+      .on-dark-sub { fill: #d5d8dc; }
+      .box { rx: 8; filter: url(#shadow); }
+      .line { stroke: #34495e; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .bad { stroke: #c0392b; stroke-width: 4; fill: none; marker-end: url(#redArrow); }
+      .dash { stroke-dasharray: 11 9; }
+    </style>
+  </defs>
+
+  <rect width="1800" height="1100" fill="#f7f9fa"/>
+  <rect x="0" y="0" width="1800" height="118" fill="#17202a"/>
+  <text x="70" y="63" class="title on-dark">F381  Pre-I/O Persistent Portfolio Cancellation</text>
+  <text x="72" y="96" class="subtitle on-dark-sub">消除 future-running 与 active-publication 之间的取消丢失窗口</text>
+
+  <rect x="55" y="150" width="810" height="390" class="box" fill="#fff4f2" stroke="#d98880" stroke-width="2"/>
+  <text x="88" y="194" class="head" fill="#922b21">旧时序：取消可能丢失</text>
+  <rect x="90" y="224" width="180" height="52" rx="6" fill="#5d6d7e"/>
+  <text x="180" y="258" class="lane" text-anchor="middle">Portfolio</text>
+  <rect x="330" y="224" width="190" height="52" rx="6" fill="#2874a6"/>
+  <text x="425" y="258" class="lane" text-anchor="middle">Fast future</text>
+  <rect x="580" y="224" width="230" height="52" rx="6" fill="#7d3c98"/>
+  <text x="695" y="258" class="lane" text-anchor="middle">Persistent future</text>
+  <line x1="180" y1="286" x2="180" y2="493" stroke="#85929e" stroke-width="2"/>
+  <line x1="425" y1="286" x2="425" y2="493" stroke="#85929e" stroke-width="2"/>
+  <line x1="695" y1="286" x2="695" y2="493" stroke="#85929e" stroke-width="2"/>
+  <path d="M190 315 H410" class="line"/>
+  <text x="300" y="306" class="small" text-anchor="middle">submit</text>
+  <path d="M190 350 H680" class="line"/>
+  <text x="520" y="341" class="small" text-anchor="middle">future running, 尚未发布 active</text>
+  <path d="M415 390 H190" class="line"/>
+  <text x="300" y="381" class="small" text-anchor="middle">SAT winner</text>
+  <path d="M190 430 H680" class="bad"/>
+  <text x="436" y="421" class="small" text-anchor="middle" fill="#922b21">cancel(): active_query 为空 → False</text>
+  <rect x="585" y="453" width="220" height="52" rx="6" fill="#fadbd8" stroke="#c0392b" stroke-width="2"/>
+  <text x="695" y="486" class="body" text-anchor="middle" fill="#922b21">继续执行，计数为 0</text>
+
+  <rect x="935" y="150" width="810" height="390" class="box" fill="#f1f8f5" stroke="#73c6b6" stroke-width="2"/>
+  <text x="968" y="194" class="head" fill="#196f3d">新时序：登记先于 I/O</text>
+  <rect x="970" y="224" width="180" height="52" rx="6" fill="#5d6d7e"/>
+  <text x="1060" y="258" class="lane" text-anchor="middle">Portfolio</text>
+  <rect x="1210" y="224" width="190" height="52" rx="6" fill="#2874a6"/>
+  <text x="1305" y="258" class="lane" text-anchor="middle">Fast future</text>
+  <rect x="1460" y="224" width="230" height="52" rx="6" fill="#117864"/>
+  <text x="1575" y="258" class="lane" text-anchor="middle">Persistent future</text>
+  <line x1="1060" y1="286" x2="1060" y2="493" stroke="#85929e" stroke-width="2"/>
+  <line x1="1305" y1="286" x2="1305" y2="493" stroke="#85929e" stroke-width="2"/>
+  <line x1="1575" y1="286" x2="1575" y2="493" stroke="#85929e" stroke-width="2"/>
+  <path d="M1070 315 H1560" class="line"/>
+  <text x="1320" y="306" class="small" text-anchor="middle">register event under state lock</text>
+  <rect x="1465" y="330" width="220" height="47" rx="6" fill="#d5f5e3" stroke="#229954" stroke-width="2"/>
+  <text x="1575" y="360" class="body" text-anchor="middle">等待 _io_lock</text>
+  <path d="M1295 397 H1070" class="line"/>
+  <text x="1185" y="388" class="small" text-anchor="middle">SAT winner</text>
+  <path d="M1070 437 H1560" class="line"/>
+  <text x="1325" y="428" class="small" text-anchor="middle">set registered event</text>
+  <rect x="1465" y="454" width="220" height="52" rx="6" fill="#d5f5e3" stroke="#229954" stroke-width="2"/>
+  <text x="1575" y="487" class="body" text-anchor="middle" fill="#196f3d">cancelled + cold reset</text>
+
+  <rect x="55" y="585" width="1690" height="430" class="box" fill="white" stroke="#d5d8dc" stroke-width="2"/>
+  <text x="88" y="633" class="head">状态机与证明责任</text>
+
+  <rect x="95" y="680" width="285" height="126" class="box" fill="#eaf2f8" stroke="#5dade2" stroke-width="2"/>
+  <text x="238" y="720" class="head" text-anchor="middle">REGISTERED</text>
+  <text x="238" y="754" class="body" text-anchor="middle">running[qid] 含唯一 event</text>
+  <text x="238" y="783" class="small" text-anchor="middle">线性化点在 I/O 锁之前</text>
+
+  <rect x="520" y="680" width="285" height="126" class="box" fill="#fef9e7" stroke="#f4d03f" stroke-width="2"/>
+  <text x="663" y="720" class="head" text-anchor="middle">QUEUED / ACTIVE</text>
+  <text x="663" y="754" class="body" text-anchor="middle">queued: 只设置 event</text>
+  <text x="663" y="783" class="small" text-anchor="middle">active: event + process interrupt</text>
+
+  <rect x="945" y="680" width="285" height="126" class="box" fill="#e9f7ef" stroke="#52be80" stroke-width="2"/>
+  <text x="1088" y="720" class="head" text-anchor="middle">CANCELLED</text>
+  <text x="1088" y="754" class="body" text-anchor="middle">不发布 terminal model</text>
+  <text x="1088" y="783" class="small" text-anchor="middle">退休不确定 helper generation</text>
+
+  <rect x="1370" y="680" width="285" height="126" class="box" fill="#f4ecf7" stroke="#af7ac5" stroke-width="2"/>
+  <text x="1513" y="720" class="head" text-anchor="middle">DEREGISTERED</text>
+  <text x="1513" y="754" class="body" text-anchor="middle">outer finally 删除 event</text>
+  <text x="1513" y="783" class="small" text-anchor="middle">close 覆盖全部 registrations</text>
+
+  <path d="M385 743 H505" class="line"/>
+  <path d="M810 743 H930" class="line"/>
+  <path d="M1235 743 H1355" class="line"/>
+  <path d="M662 820 C662 900,1088 900,1088 820" class="bad dash"/>
+  <text x="875" y="930" class="body" text-anchor="middle" fill="#922b21">SAT winner / close 设置 event</text>
+
+  <rect x="95" y="950" width="1560" height="42" rx="6" fill="#17202a"/>
+  <text x="875" y="978" class="body on-dark" text-anchor="middle">核心不变量：Future.cancel() 失败后，solver-level cancel 仍能观察所有已启动 callable</text>
+</svg>

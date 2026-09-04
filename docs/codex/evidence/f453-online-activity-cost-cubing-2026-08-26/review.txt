@@ -1,0 +1,36 @@
+F453 multi-round review record
+
+R1 - Selection accounting
+Finding: the first design recorded only arm propensity, so an adaptive cube-count decision could not be audited as a joint action.
+Fix: persist and verify exact arm, cube and joint numerator/denominator fields.
+
+R2 - Concurrent exploration
+Finding: warm-up counted completed outcomes but ignored pending decisions; concurrent requests could all over-explore the same arm.
+Fix: include assigned and observed counts, deterministically balance pending choices and enforce a per-family pending ceiling.
+
+R3 - Persistent-history integrity
+Finding: mutable SQL index columns could affect reward aggregation even when canonical decision/outcome JSON was intact.
+Fix: reparse canonical JSON, recompute digests and verify every redundant arm/family/reward/cost column before learning.
+
+R4 - Prerun budget fairness
+Finding: guided prerun was initially extra wall time outside the partition budget.
+Fix: charge rounded-up prerun milliseconds against one configured CPU-ms ceiling.
+
+R5 - Cube-count budget fairness
+Finding: a larger selected cube count inherited the same per-cube timeout and therefore received more total compute.
+Fix: divide remaining CPU-ms by selected cube count and maximum attempts; persist and recheck effective budget fields.
+
+R6 - Backend lifecycle
+Finding: recreating the realtime backend per query discarded the persistent solver context and inflated setup cost.
+Fix: cache one prerun backend behind a lock and close it through the partition backend context manager.
+
+R7 - Two-level exploration
+Finding: arm warm-up and cost-candidate warm-up were coupled, preventing independent bounded exploration guarantees.
+Fix: add a separate cost_min_exploration_samples policy field and deterministic candidate accounting.
+
+R8 - Early terminal trust
+Finding: a prerun SAT/UNSAT status must not bypass the existing model/proof trust boundary.
+Fix: accept SAT only after parent Query IR candidate validation and UNSAT only after authorized checked-proof verification; otherwise continue through F448/F449.
+
+Claim review
+The final synthetic fixture reports guided slowdown rather than hiding it. Evidence is limited to policy, checked-signal, persistence and equal-budget mechanism behavior. No public-target speedup, fuzzing coverage or defect-yield claim is made.

@@ -1,0 +1,10 @@
+$ python3 -m ruff check F362 implementation, evidence driver, and verifier
+All checks passed!
+$ PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile F362 implementation, evidence driver, and verifier
+py_compile: PASS
+$ actionlint v1.7.7 .github/workflows/run_tests.yml
+actionlint: PASS
+$ git diff --check -- F362 implementation and delivery files
+git diff --check: PASS
+$ PYTHONDONTWRITEBYTECODE=1 python3 docs/codex/verify_delivery.py
+delivery verifier: PASS

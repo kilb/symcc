@@ -1,0 +1,48 @@
+F435 multi-round review findings (2026-08-18)
+
+Round 1 - algorithm and lifecycle
+- Inactive native solve originally risked classifying a useful record as a hard
+  reject. Disposition: inactive is a soft defer and is deterministically retried.
+- A persistent controller could carry unresolved feedback across stream identity.
+  Disposition: begin_stream rejects changes until pending feedback is quiescent.
+- Decision budget could be consumed across unrelated solves. Disposition: reset
+  the bounded per-stream counter while retaining only sealed per-source history.
+
+Round 2 - concurrency and experimental validity
+- candidates incremented before proof/admission settled, allowing the oracle to
+  start solve early. Disposition: add settled_candidates and gate on exact 8/8.
+- Literal-order variants could normalize to one clause. Disposition: oracle
+  constructs and publishes exactly eight distinct normalized shared clauses.
+- solve_age used session creation time and included pre-solve scan. Disposition:
+  anchor age to the first native solving=true observation.
+- abort completed controller feedback but retained session pending entries.
+  Disposition: clear adaptive pending after exactly-once expiry; double abort and
+  next-stream reuse are tested.
+
+Round 3 - independent verification and claim discipline
+- A validly resealed decision could name a different durable event unless the
+  store reconstructs the proof relationship. Disposition: QueryStore reloads the
+  record, reruns proof checking, and verifies exact event/formula/source/cost data;
+  a resealed wrong-event test fails closed.
+- A current trace could be valid but not be the latest controller state.
+  Disposition: require contiguous ordinals ending at snapshot.next_ordinal - 1.
+- CaDiCaL Learner does not expose auditable LBD through the current callback.
+  Disposition: do not synthesize LBD; document it as future bridge work.
+- Raw solve times were not order-randomized. Disposition: retain them for audit
+  only and report delivery recovery solely as a constructed mechanism result.
+
+Round 4 - strict representation and current research interpretation
+- Numeric strings and floats could pass integer normalization, and non-string
+  identities could be stringified. Disposition: require exact integer/string
+  types and bounded control-free worker identities; regression cases fail closed.
+- Settled/duplicate telemetry was emitted but normalized away by QueryStore.
+  Disposition: require the pair, validate settled <= candidates and duplicate <=
+  settled, then preserve both in the durable result.
+- Native LBD was previously described as a SOTA implementation target. The SAT
+  2025 MallobSat study found no measurable value in forwarding or shuffling it.
+  Disposition: retain LBD only as possible diagnostic telemetry; prioritize
+  measured consumer utilization, worker pairing and malleable scheduling.
+
+Final disposition: all identified F435 correctness and evidence issues are
+closed in the implemented scope. Multi-node efficacy, native protocol/artifact interoperability, worker
+pairing and malleable resources remain explicit future work.

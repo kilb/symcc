@@ -1,0 +1,78 @@
+{
+  "claim": "graph semantics, live-store deletion, fencing, and crash-window evidence only; not solver or coverage speedup",
+  "finite_graphs": {
+    "dependency_order_violations": 0,
+    "false_deletions": 0,
+    "graphs": 64,
+    "missed_deletions": 0,
+    "nodes": 1024
+  },
+  "live": {
+    "active_deleted": 0,
+    "active_protected": 5,
+    "after": {
+      "contexts": {
+        "active_materializations": 0,
+        "cancelled_materializations": 0,
+        "contexts": 0
+      },
+      "lemmas": {
+        "record_bytes": 0,
+        "records": 0
+      },
+      "lifecycle": {
+        "active_jobs": 0,
+        "active_references": 0,
+        "artifact_bytes": 0,
+        "artifacts": 0,
+        "edges": 0,
+        "jobs": 1
+      },
+      "proofs": {
+        "proof_bytes": 0,
+        "proofs": 0,
+        "receipts": 0,
+        "result_keys": 0
+      }
+    },
+    "before": {
+      "active_jobs": 1,
+      "active_references": 4,
+      "artifact_bytes": 12169,
+      "artifacts": 5,
+      "edges": 4,
+      "jobs": 1
+    },
+    "elapsed_us": 464704,
+    "inventories": {
+      "context": {
+        "complete": true,
+        "scanned": 2,
+        "total": 2
+      },
+      "lemma": {
+        "complete": true,
+        "scanned": 1,
+        "total": 1
+      },
+      "proof": {
+        "complete": true,
+        "scanned": 2,
+        "total": 2
+      }
+    },
+    "orphan_deleted": 1,
+    "orphan_store_contexts": 0,
+    "released_deleted": 5,
+    "released_deleted_bytes": 12169,
+    "released_stop_reason": "complete",
+    "stale_generation_rejected": 1
+  },
+  "schema": "symcc-f429-qfbv-artifact-lifecycle-oracle-v1",
+  "toolchain": {
+    "cvc5_sha256": "7562a8b0b835e3eaad5f1a7b4616cd762350cf567b6be03d7e8ee24fa5ced5ee",
+    "cvc5_version": "cvc5 1.3.4 [git f3b21c4 on branch HEAD]",
+    "ethos_sha256": "7f73a7e8a584cabb9b50c3a57d6f222661f184cc323fb661a3ec78092c201c5d",
+    "signature_files": 51
+  }
+}

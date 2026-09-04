@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">F421 bounded affine Decision DAG value summary</title>
+  <desc id="desc">LLVM select graph, postorder shared certificate, per-instance specialization, strict reconstruction, and runtime authority boundary.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#52606d"/>
+    </marker>
+    <style>
+      .title { font: 700 30px sans-serif; fill: #172b4d; letter-spacing: 0; }
+      .subtitle { font: 400 15px sans-serif; fill: #52606d; letter-spacing: 0; }
+      .section { font: 700 18px sans-serif; fill: #172b4d; letter-spacing: 0; }
+      .label { font: 600 14px sans-serif; fill: #172b4d; letter-spacing: 0; }
+      .small { font: 400 13px sans-serif; fill: #344563; letter-spacing: 0; }
+      .mono { font: 500 13px monospace; fill: #172b4d; letter-spacing: 0; }
+      .guard { fill: #dff7f2; stroke: #168b7a; stroke-width: 2; }
+      .leaf { fill: #fff3ce; stroke: #c58b00; stroke-width: 2; }
+      .proof { fill: #e9efff; stroke: #4263c7; stroke-width: 2; }
+      .strict { fill: #ffe8e3; stroke: #c94f3d; stroke-width: 2; }
+      .neutral { fill: #f7f8fa; stroke: #9aa5b1; stroke-width: 1.5; }
+      .edge { fill: none; stroke: #52606d; stroke-width: 2; marker-end: url(#arrow); }
+      .shared { fill: none; stroke: #c58b00; stroke-width: 2.5; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="#ffffff"/>
+  <rect x="42" y="30" width="1516" height="72" rx="8" class="neutral"/>
+  <text x="70" y="66" class="title">F421  Bounded Affine Decision DAG Value Summary</text>
+  <text x="70" y="90" class="subtitle">Multi-guard shared expressions and per-instance specialization, independently reconstructed from lowered LLVM IR</text>
+
+  <text x="60" y="145" class="section">1  LLVM SSA / select DAG</text>
+  <rect x="60" y="165" width="470" height="500" rx="8" class="neutral"/>
+  <rect x="205" y="195" width="180" height="66" rx="8" class="guard"/>
+  <text x="225" y="220" class="label">G1 / root guard</text>
+  <text x="225" y="242" class="mono">outer_iv ule 1</text>
+  <rect x="92" y="350" width="180" height="66" rx="8" class="guard"/>
+  <text x="112" y="375" class="label">G0 / inner guard</text>
+  <text x="112" y="397" class="mono">inner_iv ult 2</text>
+  <rect x="90" y="535" width="180" height="78" rx="8" class="leaf"/>
+  <text x="110" y="561" class="label">A / affine leaf</text>
+  <text x="110" y="583" class="mono">17 + 5o + 7i + 3x</text>
+  <rect x="340" y="535" width="180" height="78" rx="8" class="leaf"/>
+  <text x="360" y="561" class="label">B / shared leaf</text>
+  <text x="360" y="583" class="mono">513 + 11o + 13i + 2x</text>
+  <path d="M255 261 C235 298,205 320,185 350" class="edge"/>
+  <path d="M335 261 C400 335,440 430,430 535" class="shared"/>
+  <path d="M150 416 C125 465,130 500,160 535" class="edge"/>
+  <path d="M235 416 C300 455,360 485,405 535" class="shared"/>
+  <text x="205" y="300" class="small">true</text>
+  <text x="394" y="354" class="small">false</text>
+  <text x="112" y="472" class="small">true</text>
+  <text x="302" y="476" class="small">false / same SSA leaf</text>
+  <text x="90" y="642" class="small">Plain add/mul use modulo 2^bits; poison-producing value flags fail closed</text>
+
+  <text x="565" y="145" class="section">2  v11 postorder shared certificate</text>
+  <rect x="565" y="165" width="430" height="500" rx="8" class="proof"/>
+  <text x="595" y="205" class="label">Schema</text>
+  <text x="700" y="205" class="mono">...byte-lane-induction-v11</text>
+  <text x="595" y="238" class="label">Budget</text>
+  <text x="700" y="238" class="mono">depth &lt;= 4 / nodes &lt;= 31</text>
+  <rect x="595" y="275" width="370" height="56" rx="6" class="leaf"/>
+  <text x="615" y="298" class="mono">node 0  affine-leaf A</text>
+  <text x="615" y="317" class="small">actual operand + 4 coefficients + input binding</text>
+  <rect x="595" y="345" width="370" height="56" rx="6" class="leaf"/>
+  <text x="615" y="368" class="mono">node 1  affine-leaf B</text>
+  <text x="615" y="387" class="small">referenced by both node 2 and node 3</text>
+  <rect x="595" y="415" width="370" height="64" rx="6" class="guard"/>
+  <text x="615" y="440" class="mono">node 2  guard G0  true-&gt;0 false-&gt;1</text>
+  <text x="615" y="462" class="small">every child id is smaller than its parent id</text>
+  <rect x="595" y="493" width="370" height="64" rx="6" class="guard"/>
+  <text x="615" y="518" class="mono">node 3  guard G1  true-&gt;2 false-&gt;1</text>
+  <text x="615" y="540" class="small">root = 3 / depth = 2 / every node reachable</text>
+  <rect x="595" y="584" width="370" height="52" rx="6" class="strict"/>
+  <text x="615" y="607" class="label">Do not trust producer topology or coefficients</text>
+  <text x="615" y="626" class="small">consumer reconstructs them from lowered definitions</text>
+
+  <text x="1030" y="145" class="section">3  Per-instance specialization</text>
+  <rect x="1030" y="165" width="510" height="500" rx="8" class="neutral"/>
+  <rect x="1060" y="195" width="450" height="112" rx="8" class="guard"/>
+  <text x="1080" y="220" class="label">instance (o=0, i=0)</text>
+  <text x="1080" y="245" class="mono">node 3: true -&gt; node 2</text>
+  <text x="1080" y="267" class="mono">node 2: true -&gt; leaf 0 (A)</text>
+  <text x="1080" y="289" class="small">path length 2; emit guard_result and selected_arm</text>
+  <rect x="1060" y="327" width="450" height="90" rx="8" class="guard"/>
+  <text x="1080" y="352" class="label">instance (o=2, i=0)</text>
+  <text x="1080" y="377" class="mono">node 3: false -&gt; leaf 1 (B)</text>
+  <text x="1080" y="399" class="small">path length 1; shared leaf is encoded once</text>
+  <path d="M1285 417 L1285 452" class="edge"/>
+  <rect x="1060" y="455" width="450" height="80" rx="8" class="leaf"/>
+  <text x="1080" y="481" class="label">Extract byte in target endianness</text>
+  <text x="1080" y="505" class="mono">specialized C + input_scale*x / low_bit</text>
+  <path d="M1285 535 L1285 566" class="edge"/>
+  <rect x="1060" y="568" width="450" height="67" rx="8" class="proof"/>
+  <text x="1080" y="593" class="label">descending last-write witness</text>
+  <text x="1080" y="616" class="small">outer -&gt; inner -&gt; writer ordinal; first active match</text>
+
+  <rect x="60" y="705" width="1480" height="145" rx="8" class="neutral"/>
+  <text x="85" y="738" class="section">4  Trust boundary and next stage</text>
+  <rect x="85" y="760" width="385" height="62" rx="8" class="proof"/>
+  <text x="105" y="785" class="label">Producer</text>
+  <text x="105" y="807" class="small">finite instances + DAG + byte witness</text>
+  <path d="M470 791 L555 791" class="edge"/>
+  <rect x="560" y="760" width="385" height="62" rx="8" class="strict"/>
+  <text x="580" y="785" class="label">Strict consumer</text>
+  <text x="580" y="807" class="small">independent IR/ABI/topology/path reconstruction</text>
+  <path d="M945 791 L1030 791" class="edge"/>
+  <rect x="1035" y="760" width="475" height="62" rx="8" class="neutral"/>
+  <text x="1055" y="785" class="label">Runtime authority</text>
+  <text x="1055" y="807" class="small">F421 runs the real loop; F422 adds transactional summary-transfer</text>
+</svg>

@@ -1,0 +1,17 @@
+feature=F355
+scope=local public qualification producer containment evidence
+actual_mpi_transport=false
+actual_multihost_filesystem=false
+solver_or_campaign_executed=false
+integration_checks=10/10
+clean_protocol_classes=1
+contained_exception_classes=2
+diagnostic_limit_characters=512
+base_exception_passthrough_cases=1
+producer_exception_semantics=completed fail-closed qualification result
+consumer_exception_semantics=F353 pre-state retained by F354 boundary
+directed_tests=1 passed, 34 deselected
+qualification_lifecycle_tests=94 passed, 75 subtests passed
+related_tests=377 passed, 101 subtests passed
+full_tests=770 passed, 121 subtests passed
+uplift_claim=none

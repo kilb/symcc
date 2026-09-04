@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1500" viewBox="0 0 1900 1500" role="img" aria-labelledby="title desc">
+  <title id="title">F345 Stable Hybrid Input Admission</title>
+  <desc id="desc">End-to-end digest-fenced hybrid input pipeline from AFL queue scoring through master admission, content-addressed transport, worker verification, result acknowledgement, continuation identity, and measured resource results.</desc>
+  <defs>
+    <filter id="shadow" x="-12%" y="-12%" width="124%" height="135%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#17202a" flood-opacity="0.13"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#405261"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#23856f"/>
+    </marker>
+    <style>
+      .title { font: 700 46px Arial, sans-serif; fill: #17202a; }
+      .subtitle { font: 400 22px Arial, sans-serif; fill: #52606d; }
+      .section { font: 700 27px Arial, sans-serif; fill: #17202a; }
+      .lane { font: 700 20px Arial, sans-serif; fill: #ffffff; }
+      .box-title { font: 700 21px Arial, sans-serif; fill: #17202a; }
+      .body { font: 400 17px Arial, sans-serif; fill: #34495e; }
+      .small { font: 400 15px Arial, sans-serif; fill: #52606d; }
+      .metric { font: 700 24px Arial, sans-serif; fill: #17202a; }
+      .mono { font: 600 16px 'Courier New', monospace; fill: #25313c; }
+      .white { fill: #ffffff; }
+      .arrow { stroke: #405261; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .ack { stroke: #23856f; stroke-width: 4; fill: none; stroke-dasharray: 10 8; marker-end: url(#arrowGreen); }
+    </style>
+  </defs>
+
+  <rect width="1900" height="1500" fill="#f7f9fb"/>
+  <rect x="0" y="0" width="1900" height="14" fill="#1f7a8c"/>
+  <text x="90" y="78" class="title">F345 - Stable Hybrid Input Admission</text>
+  <text x="90" y="116" class="subtitle">One content identity across scoring, admission, transport, execution, and acknowledgement</text>
+
+  <text x="90" y="172" class="section">Byte-backed work: exact identity before scheduler side effects</text>
+  <g filter="url(#shadow)">
+    <rect x="90" y="198" width="1720" height="610" rx="8" fill="#ffffff" stroke="#c7d0d9" stroke-width="2"/>
+  </g>
+
+  <rect x="90" y="198" width="165" height="176" rx="0" fill="#1f7a8c"/>
+  <text x="172" y="245" class="lane" text-anchor="middle">AFL QUEUE</text>
+  <text x="172" y="278" class="lane" text-anchor="middle">SCORING</text>
+  <text x="172" y="322" class="small white" text-anchor="middle">complete scan</text>
+  <rect x="285" y="225" width="315" height="122" rx="7" fill="#eaf6f8" stroke="#1f7a8c" stroke-width="2"/>
+  <text x="442" y="260" class="box-title" text-anchor="middle">Stable snapshot</text>
+  <text x="442" y="290" class="body" text-anchor="middle">no-follow regular fd, 1 MiB chunks</text>
+  <text x="442" y="319" class="mono" text-anchor="middle">Hscore + dev/ino/size/time</text>
+  <path d="M255 286 H285" class="arrow"/>
+  <rect x="655" y="225" width="310" height="122" rx="7" fill="#fff7e8" stroke="#cf8b1f" stroke-width="2"/>
+  <text x="810" y="260" class="box-title" text-anchor="middle">Capacity-K heap</text>
+  <text x="810" y="290" class="body" text-anchor="middle">deterministic score tie-break</text>
+  <text x="810" y="319" class="mono" text-anchor="middle">memory O(K + cache)</text>
+  <path d="M600 286 H655" class="arrow"/>
+  <rect x="1020" y="225" width="320" height="122" rx="7" fill="#f3effa" stroke="#6c5aa7" stroke-width="2"/>
+  <text x="1180" y="260" class="box-title" text-anchor="middle">Pin selected records</text>
+  <text x="1180" y="290" class="body" text-anchor="middle">survive FIFO scan eviction</text>
+  <text x="1180" y="319" class="mono" text-anchor="middle">path -&gt; Hscore</text>
+  <path d="M965 286 H1020" class="arrow"/>
+  <rect x="1395" y="225" width="355" height="122" rx="7" fill="#eef8f5" stroke="#23856f" stroke-width="2"/>
+  <text x="1572" y="260" class="box-title" text-anchor="middle">Stable frontier target</text>
+  <text x="1572" y="290" class="body" text-anchor="middle">showmap runs on CAS object path</text>
+  <text x="1572" y="319" class="mono" text-anchor="middle">coverage(Hscore)</text>
+  <path d="M1340 286 H1395" class="arrow"/>
+
+  <rect x="90" y="390" width="165" height="185" rx="0" fill="#34495e"/>
+  <text x="172" y="438" class="lane" text-anchor="middle">MASTER</text>
+  <text x="172" y="471" class="lane" text-anchor="middle">ADMISSION</text>
+  <text x="172" y="518" class="small white" text-anchor="middle">before leases</text>
+  <rect x="285" y="420" width="315" height="125" rx="7" fill="#eaf6f8" stroke="#1f7a8c" stroke-width="2"/>
+  <text x="442" y="456" class="box-title" text-anchor="middle">Reopen and bind bytes</text>
+  <text x="442" y="487" class="body" text-anchor="middle">bounded stable SHA-256 import</text>
+  <text x="442" y="517" class="mono" text-anchor="middle">Hadmit == Hscore</text>
+  <path d="M255 482 H285" class="arrow"/>
+  <rect x="655" y="420" width="310" height="125" rx="7" fill="#eef8f5" stroke="#23856f" stroke-width="2"/>
+  <text x="810" y="456" class="box-title" text-anchor="middle">Self-verifying CAS</text>
+  <text x="810" y="487" class="body" text-anchor="middle">verify, reject, or atomic repair</text>
+  <text x="810" y="517" class="mono" text-anchor="middle">object id = SHA256(bytes)</text>
+  <path d="M600 482 H655" class="arrow"/>
+  <rect x="1020" y="420" width="320" height="125" rx="7" fill="#fff7e8" stroke="#cf8b1f" stroke-width="2"/>
+  <text x="1180" y="456" class="box-title" text-anchor="middle">Policy and leases</text>
+  <text x="1180" y="487" class="body" text-anchor="middle">strategy, target, state, agentic</text>
+  <text x="1180" y="517" class="small" text-anchor="middle">only after exact admission</text>
+  <path d="M965 482 H1020" class="arrow"/>
+  <rect x="1395" y="420" width="355" height="125" rx="7" fill="#f3effa" stroke="#6c5aa7" stroke-width="2"/>
+  <text x="1572" y="456" class="box-title" text-anchor="middle">WORK message</text>
+  <text x="1572" y="487" class="body" text-anchor="middle">id + content until ACK resident</text>
+  <text x="1572" y="517" class="mono" text-anchor="middle">or path + exact digest fence</text>
+  <path d="M1340 482 H1395" class="arrow"/>
+
+  <rect x="90" y="590" width="165" height="185" rx="0" fill="#6c5aa7"/>
+  <text x="172" y="638" class="lane" text-anchor="middle">WORKER</text>
+  <text x="172" y="671" class="lane" text-anchor="middle">EXECUTION</text>
+  <text x="172" y="718" class="small white" text-anchor="middle">local truth</text>
+  <rect x="285" y="620" width="315" height="125" rx="7" fill="#f3effa" stroke="#6c5aa7" stroke-width="2"/>
+  <text x="442" y="656" class="box-title" text-anchor="middle">Materialize exact object</text>
+  <text x="442" y="687" class="body" text-anchor="middle">verify local CAS or stable path import</text>
+  <text x="442" y="717" class="mono" text-anchor="middle">Hworker == Hadmit</text>
+  <path d="M255 682 H285" class="arrow"/>
+  <rect x="655" y="620" width="310" height="125" rx="7" fill="#eef8f5" stroke="#23856f" stroke-width="2"/>
+  <text x="810" y="656" class="box-title" text-anchor="middle">Execute SymCC target</text>
+  <text x="810" y="687" class="body" text-anchor="middle">only verified bytes reach execution</text>
+  <text x="810" y="717" class="small" text-anchor="middle">errors preserve materialized id</text>
+  <path d="M600 682 H655" class="arrow"/>
+  <rect x="1020" y="620" width="320" height="125" rx="7" fill="#eaf6f8" stroke="#1f7a8c" stroke-width="2"/>
+  <text x="1180" y="656" class="box-title" text-anchor="middle">Generation-fenced RESULT</text>
+  <text x="1180" y="687" class="body" text-anchor="middle">echo exact input object id</text>
+  <text x="1180" y="717" class="small" text-anchor="middle">pre-import failure sends no ACK</text>
+  <path d="M965 682 H1020" class="arrow"/>
+  <rect x="1395" y="620" width="355" height="125" rx="7" fill="#fff7e8" stroke="#cf8b1f" stroke-width="2"/>
+  <text x="1572" y="656" class="box-title" text-anchor="middle">Master residency knowledge</text>
+  <text x="1572" y="687" class="body" text-anchor="middle">exact ACK -&gt; resident</text>
+  <text x="1572" y="717" class="body" text-anchor="middle">missing/mismatch -&gt; resend later</text>
+  <path d="M1340 682 H1395" class="arrow"/>
+  <path d="M1572 620 C1572 575 1572 572 1572 545" class="ack"/>
+  <text x="1600" y="585" class="small" fill="#23856f">ACK controls future payload omission</text>
+
+  <text x="90" y="872" class="section">Two identities, two lifecycle rules</text>
+  <g filter="url(#shadow)">
+    <rect x="90" y="900" width="820" height="230" rx="8" fill="#ffffff" stroke="#c7d0d9" stroke-width="2"/>
+    <rect x="990" y="900" width="820" height="230" rx="8" fill="#ffffff" stroke="#c7d0d9" stroke-width="2"/>
+  </g>
+  <rect x="120" y="935" width="240" height="155" rx="7" fill="#eaf6f8" stroke="#1f7a8c" stroke-width="2"/>
+  <text x="240" y="973" class="box-title" text-anchor="middle">Byte-backed input</text>
+  <text x="240" y="1008" class="mono" text-anchor="middle">identity = SHA256(bytes)</text>
+  <text x="240" y="1041" class="body" text-anchor="middle">path is only a locator</text>
+  <text x="240" y="1070" class="small" text-anchor="middle">transport limit applies</text>
+  <path d="M360 1012 H450" class="arrow"/>
+  <rect x="450" y="935" width="420" height="155" rx="7" fill="#eef8f5" stroke="#23856f" stroke-width="2"/>
+  <text x="660" y="973" class="box-title" text-anchor="middle">Acknowledged remote residency</text>
+  <text x="660" y="1008" class="body" text-anchor="middle">UNKNOWN -&gt; IN_FLIGHT -&gt; RESIDENT</text>
+  <text x="660" y="1041" class="body" text-anchor="middle">mismatch returns to UNKNOWN</text>
+  <text x="660" y="1070" class="small" text-anchor="middle">300,000-entry clear-on-overflow cap</text>
+
+  <rect x="1020" y="935" width="260" height="155" rx="7" fill="#f3effa" stroke="#6c5aa7" stroke-width="2"/>
+  <text x="1150" y="973" class="box-title" text-anchor="middle">Live continuation</text>
+  <text x="1150" y="1008" class="mono" text-anchor="middle">stable initial bytes</text>
+  <text x="1150" y="1041" class="body" text-anchor="middle">self-contained CAS state</text>
+  <text x="1150" y="1070" class="small" text-anchor="middle">initial input max 4 MiB</text>
+  <path d="M1280 1012 H1370" class="arrow"/>
+  <rect x="1370" y="935" width="400" height="155" rx="7" fill="#fff7e8" stroke="#cf8b1f" stroke-width="2"/>
+  <text x="1570" y="973" class="box-title" text-anchor="middle">Checkpoint dispatch identity</text>
+  <text x="1570" y="1008" class="mono" text-anchor="middle">canonical checkpoint_id</text>
+  <text x="1570" y="1041" class="body" text-anchor="middle">original queue path may disappear</text>
+  <text x="1570" y="1070" class="small" text-anchor="middle">no input-object ACK or re-admission</text>
+
+  <text x="90" y="1192" class="section">Fresh-process mechanism evidence - stable snapshot versus read-all SHA-256</text>
+  <g filter="url(#shadow)">
+    <rect x="90" y="1220" width="1110" height="220" rx="8" fill="#ffffff" stroke="#c7d0d9" stroke-width="2"/>
+    <rect x="1240" y="1220" width="570" height="220" rx="8" fill="#fffaf0" stroke="#cf8b1f" stroke-width="2"/>
+  </g>
+  <text x="125" y="1260" class="box-title">Python traced peak (lower is better)</text>
+  <text x="125" y="1308" class="body">32 MiB</text>
+  <rect x="235" y="1284" width="390" height="30" rx="4" fill="#cf5c4f"/>
+  <rect x="235" y="1323" width="25" height="30" rx="4" fill="#23856f"/>
+  <text x="650" y="1308" class="metric">33.56 MB</text>
+  <text x="282" y="1348" class="metric">2.10 MB - 15.99x lower</text>
+  <text x="125" y="1390" class="body">128 MiB</text>
+  <rect x="235" y="1366" width="650" height="30" rx="4" fill="#cf5c4f"/>
+  <rect x="235" y="1405" width="11" height="30" rx="4" fill="#23856f"/>
+  <text x="910" y="1390" class="metric">134.22 MB</text>
+  <text x="270" y="1430" class="metric">2.10 MB - 63.97x lower</text>
+
+  <text x="1275" y="1260" class="box-title">Observed and bounded claims</text>
+  <text x="1275" y="1302" class="metric">1.445x / 1.439x local mechanism</text>
+  <text x="1275" y="1332" class="small">32 / 128 MiB elapsed; overlayfs sparse fixtures</text>
+  <text x="1275" y="1374" class="metric">11 / 11 integration checks</text>
+  <text x="1275" y="1404" class="small">Exact digests, repair, ACK, Top-K, continuation</text>
+
+  <text x="90" y="1475" class="small">40 retained fresh-process samples; no MPI, solver, campaign, coverage, bug-discovery, or LAVA-M uplift claim</text>
+</svg>

@@ -1,0 +1,35 @@
+F436 multi-round review record (2026-08-18)
+
+Round 1 - native ABI, state machine, and resource bounds
+- Audited exact capability negotiation, type widths, clause canonicalization,
+  assignment/backtrack transitions, first-activation semantics, and bounded
+  dequeue storage.
+- Repaired partial-ABI acceptance and per-poll 256 KiB allocation by requiring
+  the complete protocol/enable/dequeue surface and reusing one bounded buffer.
+- Added unit, conflict, satisfied-unactivated, root and assumption-level tests.
+
+Round 2 - lifecycle, concurrency, and receipt closure
+- Audited ACK-before-tracking, solve generation, ordinals, API transitions,
+  termination, reset, and finish-time conservation.
+- Repaired a check-to-use race between solve and add/assume/observe/reset/
+  enable with an API mutex while retaining solve-time queue concurrency.
+- Tightened exact integer/digest validation and independently checked the
+  falsifying witness after a malicious receipt was re-sealed.
+
+Round 3 - durable replay, MPI aggregation, and claim discipline
+- Audited QueryStore reconstruction from current Query IR, proof CAS and event
+  lookup; audited rank-0 replay, exact ACK/activity accounting, clock domains,
+  filesystem qualification, and sealed result identities.
+- Distinguished delivery from activation and explicitly classified local MPI
+  evidence as I/T/E-local rather than multi-node R-level evidence.
+- Confirmed that activity is an opportunity signal, not unique causal use.
+
+Round 4 - complete gates and cross-feature regressions
+- The warning-strict complete gate exposed a cancellation hand-off race: a
+  running portfolio future could be cancelled before the backend registered
+  the query. Made pending cancellation sticky and added a deterministic test.
+- A clean LLVM 18 build exposed a missing `check -> symcc_schedule_rt`
+  dependency. Added the dependency and reran both complete LLVM suites.
+- Final outcome: 1,274 Python tests plus 291 subtests, 326 lit tests on each
+  LLVM version, focused/review sets, C++ warning-as-error, ASan/UBSan, image,
+  generator and diff checks all pass under the documented boundaries.

@@ -1,0 +1,51 @@
+F347 unified live-state CAS and stable snapshot reads
+Date: 2026-08-10 UTC
+Repository base commit: 146e01b2d6f8e02fd2526764d46ea0d80a4bb6f6 (dirty research worktree)
+Host: Linux 7.0.0-28-generic x86_64 GNU/Linux
+Python: 3.12.3
+Evidence filesystem: overlay
+
+Implementation
+- add a validated content-addressed object leaf suffix without changing the digest shard
+- retain the live-state objects/xx/<digest-rest>.json namespace
+- route every live-state publication through the F346 descriptor-bound CAS writer
+- remove the isfile existence shortcut that followed and trusted symlinks
+- read every object through a bounded O_NOFOLLOW regular-file snapshot
+- bind bytes, SHA-256, descriptor identity, and final path identity before JSON parsing
+- remember verified read identities for later O(1) metadata publication reuse
+- remove prior positive identity knowledge on failed or digest-mismatched reads
+- preserve exact-content competing-writer convergence and failure cleanup
+
+Directed regression
+- 9 passed + 3 subtests, 141 deselected, warnings as errors, 0.33 s
+
+Related regression
+- 352 passed + 77 subtests, warnings as errors, 16.98 s
+
+Full Python regression
+- 745 passed + 97 subtests, warnings as errors, 93.88 s
+
+Local production-primitive integration
+- 8/8 exact checks true
+- checkpoint id: 5327e28fa296a5b70d5bba1e88531854a4121dc0b50a80e76061780f46dc3e3c
+- continuation graph objects: 6, all compatible .json regular files
+- cached wrong-content object: 1 fallback hash, repaired
+- exact-content replacement inode: 1 fallback hash, accepted
+- path replacement during stable read: rejected, positive cache empty
+- exact-content symlink read: rejected without following, positive cache empty
+- pre-existing exact-content symlink publication: replaced inside the CAS root
+- external exact-content files: unchanged
+- temporary residue: empty
+
+Complexity
+- publication of a cached verified object: O(1) metadata validation
+- first or changed-object publication: one O(object_bytes) stable digest verification
+- every live-state read: O(object_bytes), which is required because JSON bytes are consumed
+- snapshot retention remains bounded by max_object_bytes
+
+Claim boundary
+- deterministic local mechanism fault injection on real regular files and symlinks
+- no real MPI transport, target, afl-showmap, or symbolic solver invocation
+- no fuzzing campaign or multi-host/NFS/Lustre race-frequency measurement
+- no throughput, coverage, bug-discovery, or LAVA-M uplift claim
+- final-component no-follow and trusted metadata are not Byzantine storage proof

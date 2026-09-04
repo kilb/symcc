@@ -1,0 +1,24 @@
+Primary sources consulted:
+
+1. Z3 official programming tutorial - incrementality, scopes, and solver clone:
+   https://z3prover.github.io/papers/programmingz3.html
+2. Z3 official 5.0.0 release (2026-07-17):
+   https://github.com/Z3Prover/z3/releases/tag/z3-5.0.0
+3. Linux fork(2) manual - copy-on-write implementation and process semantics:
+   https://man7.org/linux/man-pages/man2/fork.2.html
+4. Triereme, ACSAC 2023 - common-prefix ordering and incremental solving:
+   https://download.vusec.net/papers/triereme_acsac23.pdf
+5. Pangolin, IEEE S&P 2020 - polyhedral path abstraction:
+   https://doi.org/10.1109/SP40000.2020.00063
+6. PSCache, FSE 2024 - partial-solution cache entries:
+   https://doi.org/10.1145/3660817
+7. Optimal ConDPOR, CONCUR 2025 - solver pools and incremental contexts:
+   https://doi.org/10.4230/LIPIcs.CONCUR.2025.26
+8. Cache-a-lot, 2025 preprint - variable-substitution UNSAT-core reuse:
+   https://arxiv.org/abs/2504.07642
+9. Green - constraint reuse and implication infrastructure:
+   https://www.cs.sun.ac.za/~jaco/PAPERS/vgd12.pdf
+
+Interpretation: F430 composes warmed incremental Z3 state, Linux COW isolation,
+strict lifecycle telemetry, and existing SymCC validation. It does not claim to
+reproduce every algorithm or experimental result in these works.

@@ -1,0 +1,29 @@
+{
+  "all_checks_passed": true,
+  "legacy": {
+    "attacker_accepted": true,
+    "attacker_observed_truncated_first_line": true,
+    "generation_reused": true,
+    "helper_startups": 1,
+    "victim_accepted_stale_injected_response": true,
+    "victim_observed_injected_fields": true
+  },
+  "production": {
+    "delimiter_classes_rejected": [
+      "carriage-return",
+      "newline",
+      "nul",
+      "tab"
+    ],
+    "descriptor_id_classes_rejected": [
+      "non-ascii",
+      "oversized"
+    ],
+    "healthy_generation_preserved": true,
+    "helper_startups": 1,
+    "malicious_path_rejected_before_transport": true,
+    "sealed_request_valid_after_rejections": true,
+    "victim_observed_own_request": true
+  },
+  "schema": "symcc-f369-protocol-complete-preflight-v1"
+}

@@ -1,0 +1,16 @@
+{
+  "__version__": [
+    18,
+    1,
+    8
+  ],
+  "elapsed": 3.0791068077087402,
+  "tests": [
+    {
+      "code": "PASS",
+      "elapsed": 3.0715861320495605,
+      "name": "compiler :: test_qfbv_artifact_lifecycle.py",
+      "output": "Exit Code: 0\n\nCommand Output (stdout):\n--\n# RUN: at line 2\npython3 /home/ubuntu/code/symcc/test/test_qfbv_artifact_lifecycle.py\n# executed command: python3 /home/ubuntu/code/symcc/test/test_qfbv_artifact_lifecycle.py\n# .---command stderr------------\n# | ......................\n# | ----------------------------------------------------------------------\n# | Ran 22 tests in 2.999s\n# | \n# | OK\n# `-----------------------------\n\n--\n"
+    }
+  ]
+}

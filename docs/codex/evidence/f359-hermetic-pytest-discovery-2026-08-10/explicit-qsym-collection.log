@@ -1,0 +1,18 @@
+$ PYTHONDONTWRITEBYTECODE=1 python3 -m pytest --collect-only -q runtime/src/backends/qsym/qsym/tests/test_utils.py
+
+==================================== ERRORS ====================================
+_____ ERROR collecting runtime/src/backends/qsym/qsym/tests/test_utils.py ______
+ImportError while importing test module '/home/ubuntu/code/symcc/runtime/src/backends/qsym/qsym/tests/test_utils.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+runtime/src/backends/qsym/qsym/tests/test_utils.py:10: in <module>
+    import qsym
+E   ModuleNotFoundError: No module named 'qsym'
+=========================== short test summary info ============================
+ERROR runtime/src/backends/qsym/qsym/tests/test_utils.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+no tests collected, 1 error in 0.07s
+exit_code=2

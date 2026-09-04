@@ -1,0 +1,81 @@
+F322 durable result replay checks, 2026-08-07 UTC
+
+environment:
+  uid=1000
+  mpirun=Open MPI 4.1.6
+  execution_timeout_sec=1
+  max_idle_sec=1
+  wall_timeout_sec=30
+  shutdown_grace_sec=5
+  finalize_grace_sec=5
+
+automated-gates:
+  py_compile=pass
+  ruff=pass
+  targeted_pytest=111_passed_10_subtests_5.45s
+  full_pytest=622_passed_38_subtests_84.16s
+
+normal-single:
+  temp_dir=/tmp/symcc-f322-final-normal-single.PvwmEG
+  exit_code=0
+  corpus_regular_files=3
+  standalone_work_directories=0
+  analysis_observations=3
+  total_generated=3
+  generated_unique_children=1
+  master_0_observations=3
+  worker_shutdown_acks=2/2
+
+normal-multi:
+  temp_dir=/tmp/symcc-f322-final-normal-multi.b2ovJB
+  exit_code=0
+  corpus_regular_files=13
+  standalone_work_directories=0
+  analysis_observations=13
+  total_generated=13
+  generated_unique_children=1
+  master_0_observations=8
+  master_1_observations=5
+  worker_shutdown_acks=6/6
+
+future-clock-lease-recovery:
+  temp_dir=/tmp/symcc-f322-snapshot-future-lease.atBPV7
+  exit_code=0
+  epoch=3333333333333333333333333333333333333333333333333333333333333333
+  work_hash=2a568158c8b5971f23f82938e9a56ce4cfd49dab69391b8e97c92faaf804754b
+  prior_updated_offset_sec=3600
+  configured_lease_ttl_sec=120
+  corpus_regular_files=1
+  standalone_work_directories=0
+  recovered=1
+  replayed_commits=0
+  analysis_observations=1
+  worker_shutdown_acks=2/2
+
+partial-commit-recovery:
+  temp_dir=/tmp/symcc-f322-snapshot-partial-commit.ingfG8
+  exit_code=0
+  epoch=4444444444444444444444444444444444444444444444444444444444444444
+  parent_hash=e4bdeefdc01f2fae2c68814f4dbcdddf58f87206bf713a5d9af982ad5245018d
+  child_a=69c11a1fb47f5e88a84cd29fd0a639d32c6ee7e076e88d2171b117cae5167bf5
+  child_b=b54c8fba567e8692601844ee970e63e79b2b4c47f9411f8e9da1749bc40d1b20
+  corpus_regular_files=3
+  standalone_work_directories=0
+  replayed_commits=1
+  recovered=0
+  total_generated=2
+  analysis_observations=3
+  master_0_observations=2
+  master_1_observations=1
+  worker_shutdown_acks=6/6
+
+missing-manifest-fail-closed:
+  temp_dir=/tmp/symcc-f322-snapshot-missing-manifest.K5RVPj
+  exit_code=70
+  epoch=6666666666666666666666666666666666666666666666666666666666666666
+  work_hash=d1d619fd3366add3c1121c85313782ec548ab2581d2d246e2fcc0c4f8802c587
+  corpus_regular_files=1
+  standalone_work_directories=1
+  analysis_observations=0
+  worker_shutdown_acks=2/2
+  control_error=committing_record_lacks_durable_manifest

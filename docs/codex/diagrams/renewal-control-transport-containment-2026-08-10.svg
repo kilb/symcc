@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080" role="img" aria-labelledby="title desc">
+  <title id="title">F358 Renewal Control Transport Containment</title>
+  <desc id="desc">The old post-begin exception escape, the new root and peer transport flow, three-way send completion classification, and evidence limits.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#36566f"/>
+    </marker>
+    <style>
+      .bg { fill: #f7f9fb; }
+      .title { font: 700 36px Inter, Arial, sans-serif; fill: #142433; }
+      .subtitle { font: 400 18px Inter, Arial, sans-serif; fill: #40566a; }
+      .section { font: 700 23px Inter, Arial, sans-serif; fill: #142433; }
+      .label { font: 700 18px Inter, Arial, sans-serif; fill: #20384c; }
+      .body { font: 400 16px Inter, Arial, sans-serif; fill: #314b60; }
+      .small { font: 400 14px Inter, Arial, sans-serif; fill: #486176; }
+      .mono { font: 600 14px ui-monospace, SFMono-Regular, Consolas, monospace; fill: #243b50; }
+      .panel { fill: #ffffff; stroke: #cbd7e1; stroke-width: 2; }
+      .old { fill: #fff2f0; stroke: #c85850; stroke-width: 2; }
+      .root { fill: #edf5fa; stroke: #35759d; stroke-width: 2; }
+      .peer { fill: #eef8f1; stroke: #3c855b; stroke-width: 2; }
+      .warn { fill: #fff8e8; stroke: #b37d20; stroke-width: 2; }
+      .unknown { fill: #f4f0f8; stroke: #725a90; stroke-width: 2; }
+      .line { fill: none; stroke: #36566f; stroke-width: 2.5; marker-end: url(#arrow); }
+      .dash { fill: none; stroke: #b04b44; stroke-width: 2.5; stroke-dasharray: 9 7; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1600" height="1080"/>
+  <text class="title" x="70" y="65">F358 - Renewal Control Transport Containment</text>
+  <text class="subtitle" x="70" y="100">Preserve generation and partial delivery state across ordinary adapter failures</text>
+
+  <text class="section" x="70" y="150">Before: a post-begin exception destroys the caller's protocol input</text>
+  <rect class="old" x="70" y="177" width="1460" height="156" rx="8"/>
+  <rect class="panel" x="100" y="207" width="255" height="92" rx="6"/>
+  <text class="label" x="125" y="240">begin_request()</text>
+  <text class="mono" x="125" y="271">in_flight = generation 1</text>
+  <path class="line" d="M355 253 L430 253"/>
+  <rect class="panel" x="435" y="207" width="260" height="92" rx="6"/>
+  <text class="label" x="460" y="240">peer 1 isend succeeds</text>
+  <text class="mono" x="460" y="271">handle H1 created</text>
+  <path class="line" d="M695 253 L770 253"/>
+  <rect class="old" x="775" y="207" width="270" height="92" rx="6"/>
+  <text class="label" x="800" y="240">peer 2 raises LookupError</text>
+  <text class="mono" x="800" y="271">manual catch tuple misses it</text>
+  <path class="dash" d="M1045 253 L1120 253"/>
+  <rect class="old" x="1125" y="207" width="375" height="92" rx="6"/>
+  <text class="label" x="1150" y="240">Python stack unwinds</text>
+  <text class="mono" x="1150" y="271">caller loses generation + H1</text>
+
+  <text class="section" x="70" y="389">After: state-aware root and peer paths</text>
+  <rect class="root" x="70" y="419" width="935" height="235" rx="8"/>
+  <text class="label" x="100" y="455">Root: preserve partial progress</text>
+  <rect class="panel" x="100" y="482" width="200" height="105" rx="6"/>
+  <text class="body" x="125" y="517">Query topology</text>
+  <text class="small" x="125" y="548">Failure: g=0, S0</text>
+  <path class="line" d="M300 535 L340 535"/>
+  <rect class="panel" x="345" y="482" width="215" height="105" rx="6"/>
+  <text class="body" x="370" y="517">Commit generation g</text>
+  <text class="small" x="370" y="548">Controller enters Sg</text>
+  <path class="line" d="M560 535 L600 535"/>
+  <rect class="panel" x="605" y="482" width="205" height="105" rx="6"/>
+  <text class="body" x="630" y="517">Create isend set H</text>
+  <text class="small" x="630" y="548">Keep every success</text>
+  <path class="line" d="M810 535 L850 535"/>
+  <rect class="panel" x="855" y="482" width="120" height="105" rx="6"/>
+  <text class="body" x="880" y="517">Return</text>
+  <text class="mono" x="880" y="548">(g,H,e)</text>
+  <text class="small" x="100" y="626">Partial failure still enters bounded qualification; it is preserved, not rolled back.</text>
+
+  <rect class="peer" x="1045" y="419" width="485" height="235" rx="8"/>
+  <text class="label" x="1075" y="455">Peer: classify before acting</text>
+  <text class="mono" x="1075" y="495">no message       - continue</text>
+  <text class="mono" x="1075" y="530">malformed request - quarantine</text>
+  <text class="mono" x="1075" y="565">valid request     - qualify(g)</text>
+  <text class="mono" x="1075" y="600">local Exception   - fatal-control</text>
+  <text class="small" x="1075" y="630">BaseException propagates as process control</text>
+
+  <text class="section" x="70" y="716">One-shot delivery observation: T = C + I + U</text>
+  <rect class="peer" x="70" y="748" width="435" height="172" rx="8"/>
+  <text class="label" x="100" y="786">Completed (C)</text>
+  <text class="mono" x="100" y="824">request.Test() == true</text>
+  <text class="body" x="100" y="858">Completion was explicitly observed</text>
+  <text class="small" x="100" y="891">Success path; one call per unique handle</text>
+
+  <rect class="warn" x="580" y="748" width="435" height="172" rx="8"/>
+  <text class="label" x="610" y="786">Incomplete (I)</text>
+  <text class="mono" x="610" y="824">request.Test() == false</text>
+  <text class="body" x="610" y="858">Not complete at this observation</text>
+  <text class="small" x="610" y="891">Fail closed; do not claim message loss</text>
+
+  <rect class="unknown" x="1095" y="748" width="435" height="172" rx="8"/>
+  <text class="label" x="1125" y="786">Uncertain (U)</text>
+  <text class="mono" x="1125" y="824">request.Test() raises Exception</text>
+  <text class="body" x="1125" y="858">Delivery state cannot be inferred</text>
+  <text class="small" x="1125" y="891">Bounded error; no automatic retry</text>
+
+  <text class="section" x="70" y="976">Evidence boundary</text>
+  <rect class="panel" x="70" y="998" width="820" height="55" rx="8"/>
+  <text class="body" x="100" y="1032">Deterministic 4-rank point-to-point bus: partial send + 15/15 checks</text>
+  <rect class="panel" x="920" y="998" width="285" height="55" rx="8"/>
+  <text class="label" x="950" y="1032">776 tests + 125 subtests</text>
+  <rect class="panel" x="1235" y="998" width="295" height="55" rx="8"/>
+  <text class="label" x="1265" y="1032">No MPI atomicity claim</text>
+</svg>

@@ -1,0 +1,21 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/ubuntu/venv/symcc/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/ubuntu/code/symcc
+collecting ... collected 109 items / 96 deselected / 13 selected
+
+test/test_distributed_state.py::FencedTargetLeaseTableTests::test_failed_group_heartbeat_restores_one_expiry_point PASSED [  7%]
+test/test_distributed_state.py::FencedTargetLeaseTableTests::test_failed_group_publication_rolls_back_written_members PASSED [ 15%]
+test/test_distributed_state.py::FencedTargetLeaseTableTests::test_group_claim_directory_failure_rolls_back_every_member PASSED [ 23%]
+test/test_distributed_state.py::FencedTargetLeaseTableTests::test_group_claim_rejects_unserializable_payload_before_publication PASSED [ 30%]
+test/test_distributed_state.py::FencedTargetLeaseTableTests::test_group_claim_syncs_each_affected_shard_once PASSED [ 38%]
+test/test_distributed_state.py::FencedTargetLeaseTableTests::test_group_release_directory_failure_restores_every_member PASSED [ 46%]
+test/test_distributed_state.py::FencedTargetLeaseTableTests::test_group_release_syncs_each_affected_shard_once PASSED [ 53%]
+test/test_distributed_state.py::FencedTargetLeaseTableTests::test_group_release_unlink_failure_restores_removed_members PASSED [ 61%]
+test/test_distributed_state.py::FencedTargetLeaseTableTests::test_heartbeat_expiry_and_stale_release_are_fenced PASSED [ 69%]
+test/test_distributed_state.py::FencedTargetLeaseTableTests::test_overlapping_groups_conflict_without_partial_publication PASSED [ 76%]
+test/test_distributed_state.py::FencedTargetLeaseTableTests::test_stale_group_release_is_a_zero_mutation_rejection PASSED [ 84%]
+test/test_distributed_state.py::FencedTargetLeaseTableTests::test_target_group_heartbeat_syncs_each_affected_shard_once PASSED [ 92%]
+test/test_distributed_state.py::FencedTargetLeaseTableTests::test_target_group_rejects_nonfinite_time_and_corrupt_state PASSED [100%]
+
+====================== 13 passed, 96 deselected in 0.44s =======================

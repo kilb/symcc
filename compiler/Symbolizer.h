@@ -18,18 +18,28 @@
 #include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/InstVisitor.h>
+#include <llvm/ADT/DenseMap.h>
+#include <llvm/ADT/SmallPtrSet.h>
 #include <llvm/IR/ValueMap.h>
 #include <llvm/Support/raw_ostream.h>
 #include <optional>
 
 #include "Runtime.h"
+#include "SiteId.h"
+
+namespace llvm {
+class AAResults;
+class DominatorTree;
+class Function;
+class MemorySSA;
+class PostDominatorTree;
+}
 
 class Symbolizer : public llvm::InstVisitor<Symbolizer> {
 public:
-  explicit Symbolizer(llvm::Module &M)
-      : runtime(M), dataLayout(M.getDataLayout()),
-        ptrBits(M.getDataLayout().getPointerSizeInBits()),
-        intPtrType(M.getDataLayout().getIntPtrType(M.getContext())) {}
+  explicit Symbolizer(llvm::Module &M, llvm::Function &F,
+                      llvm::AAResults *aliasAnalysis = nullptr,
+                      llvm::MemorySSA *memorySSA = nullptr);
 
   /// Insert code to obtain the symbolic expressions for the function arguments.
   void symbolizeFunctionArguments(llvm::Function &F);
@@ -104,6 +114,7 @@ public:
   //
   void visitBinaryOperator(llvm::BinaryOperator &I);
   void visitUnaryOperator(llvm::UnaryOperator &I);
+  void visitFreezeInst(llvm::FreezeInst &I);
   void visitSelectInst(llvm::SelectInst &I);
   void visitCmpInst(llvm::CmpInst &I);
   void visitReturnInst(llvm::ReturnInst &I);
@@ -114,6 +125,9 @@ public:
   void visitAllocaInst(llvm::AllocaInst &);
   void visitLoadInst(llvm::LoadInst &I);
   void visitStoreInst(llvm::StoreInst &I);
+  void visitAtomicRMWInst(llvm::AtomicRMWInst &I);
+  void visitAtomicCmpXchgInst(llvm::AtomicCmpXchgInst &I);
+  void visitFenceInst(llvm::FenceInst &I);
   void visitGetElementPtrInst(llvm::GetElementPtrInst &I);
   void visitBitCastInst(llvm::BitCastInst &I);
   void visitTruncInst(llvm::TruncInst &I);
@@ -134,6 +148,9 @@ public:
   void visitInstruction(llvm::Instruction &I);
 
 private:
+  void instrumentValueProfileForPathSite(llvm::IRBuilder<> &IRB,
+                                         llvm::Value *condition,
+                                         llvm::Instruction &site);
   static constexpr unsigned kExpectedMaxPHINodesPerFunction = 16;
   static constexpr unsigned kExpectedSymbolicArgumentsPerComputation = 2;
 
@@ -219,6 +236,59 @@ private:
     return expr;
   }
 
+  /// Recover implicit data flow of a two-arm PHI in a bounded acyclic
+  /// conditional region. Pure nested PHIs are recursively synthesized as ITEs
+  /// so that non-taken values remain visible to the solver.
+  bool tryBuildImplicitFlowPHI(llvm::PHINode &phi, llvm::PHINode &symbolicPHI,
+                               llvm::DominatorTree &dominators,
+                               llvm::PostDominatorTree &postDominators);
+
+  /// Recover a bounded acyclic 3--8 arm implicit-flow merge. The worklist
+  /// reconstructs path predicates for every PHI predecessor and substitutes a
+  /// complete ITE state merge at the region exit.
+  bool tryBuildMultiArmImplicitFlowPHI(
+      llvm::PHINode &phi, llvm::PHINode &symbolicPHI,
+      llvm::DominatorTree &dominators,
+      llvm::PostDominatorTree &postDominators);
+
+  /// Recover the symbolic memory state of a merge-local load when MemorySSA
+  /// proves that both incoming states are simple, equal-width MustAlias stores.
+  bool tryBuildImplicitFlowMemoryLoad(
+      llvm::LoadInst &load, llvm::DominatorTree &dominators,
+      llvm::PostDominatorTree &postDominators);
+
+  struct RegionRuntimeArg {
+    llvm::Value *concreteValue = nullptr;
+    llvm::Value *expressionValue = nullptr;
+    bool symbolic = true;
+    bool trackInput = true;
+  };
+
+  struct RegionValue {
+    llvm::Value *concreteValue = nullptr;
+    llvm::Value *expressionValue = nullptr;
+    SymbolicComputation computation;
+  };
+
+  bool canUseValueAt(llvm::Value *value, llvm::Instruction *insertBefore,
+                     llvm::DominatorTree &dominators) const;
+
+  bool trySynthesizeRegionValue(llvm::Value *value,
+                                llvm::Instruction *insertBefore,
+                                llvm::BasicBlock *regionEntry,
+                                llvm::DominatorTree &dominators,
+                                unsigned depth, RegionValue &result);
+
+  bool trySynthesizeRegionLoad(llvm::LoadInst &load,
+                               llvm::Instruction *insertBefore,
+                               llvm::BasicBlock *regionEntry,
+                               llvm::DominatorTree &dominators,
+                               RegionValue &result);
+
+  SymbolicComputation forceBuildRuntimeCallWithExpressions(
+      llvm::IRBuilder<> &IRB, SymFnT function,
+      llvm::ArrayRef<RegionRuntimeArg> args) const;
+
   bool isLittleEndian(llvm::Type *type) {
     return (!type->isAggregateType() && dataLayout.isLittleEndian());
   }
@@ -283,25 +353,11 @@ private:
   /// Generate code that makes the solver try an alternative value for V.
   void tryAlternative(llvm::IRBuilder<> &IRB, llvm::Value *V);
 
-  /// Helper to use a pointer to a host object as integer (truncating!).
-  ///
-  /// Note that the conversion will truncate the most significant bits of the
-  /// pointer if the host uses larger addresses than the target. Therefore, use
-  /// this function only when such loss is acceptable (e.g., when generating
-  /// site identifiers to be passed to the backend, where collisions of the
-  /// least significant bits are reasonably unlikely).
-  ///
-  /// Why not do a lossless conversion and make the backend accept 64-bit
-  /// integers?
-  ///
-  /// 1. Performance: 32-bit architectures will process 32-bit values faster
-  /// than 64-bit values.
-  ///
-  /// 2. Pragmatism: Changing the backend to accept and process 64-bit values
-  /// would require modifying code that we don't control (in the case of Qsym).
-  llvm::ConstantInt *getTargetPreferredInt(void *pointer) {
-    return llvm::ConstantInt::get(intPtrType,
-                                  reinterpret_cast<uint64_t>(pointer));
+  llvm::ConstantInt *getTargetPreferredInt(llvm::Value *value) {
+    auto found = siteIds.find(value);
+    const uint64_t id =
+        found == siteIds.end() ? symcc::stableSiteId(*value) : found->second;
+    return llvm::ConstantInt::get(intPtrType, id);
   }
 
   /// Compute the offset of a member in a (possibly nested) aggregate.
@@ -340,6 +396,14 @@ private:
   /// An integer type at least as wide as a pointer.
   llvm::IntegerType *intPtrType;
 
+  /// Whether to emit DPOR memory-access notifications for schedule tracing.
+  bool scheduleMemoryTracing;
+
+  llvm::AAResults *aliasAnalysis;
+  llvm::MemorySSA *memorySSA;
+  llvm::SmallPtrSet<llvm::Instruction *, 32> originalInstructions;
+  llvm::DenseMap<const llvm::Value *, uint64_t> siteIds;
+
   /// Mapping from SSA values to symbolic expressions.
   ///
   /// For pointer values, the stored value is an expression describing the value
@@ -358,6 +422,9 @@ private:
   /// we only insert a dummy symbolic expression for each PHI node and fix it
   /// after all instructions have been processed.
   llvm::SmallVector<llvm::PHINode *, kExpectedMaxPHINodesPerFunction> phiNodes;
+
+  /// Loads that may consume a branch-dependent MemorySSA phi.
+  llvm::SmallVector<llvm::LoadInst *, 16> memoryMergeLoads;
 
   /// A record of expression uses that can be short-circuited.
   ///

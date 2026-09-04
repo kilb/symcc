@@ -1,0 +1,6 @@
+command=python3 /usr/lib/llvm-17/build/utils/lit/lit.py -sv build-llvm17/test
+Testing Time: 259.84s
+Total Discovered Tests: 266
+Unsupported: 2
+Passed: 264
+Failed: 0

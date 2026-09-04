@@ -1,0 +1,18 @@
+F417 production contract
+
+schema=symcc-loop-memoryphi-byte-lane-induction-v7
+capability=bounded-nested-loop-memoryphi-last-write-value-summary
+dependency=bounded-nested-loop-memoryphi-summary-composition
+writer_value_kind=constant-integer
+writer_width_boundary=byte-complete 8--64-bit integer
+writer_identity=actual lowered store ordinal plus address/lane/inner-induction value
+byte_order=LLVM DataLayout producer; program endianness strict consumer
+case_order=descending inner-induction then descending writer ordinal
+case_predicate=inner bound at least inner-induction plus one
+outer_activation=outer bound positive
+selection=first match
+fallback=uninitialized
+dynamic_value_fallback=valid F416 v6 initializedness summary without F417 capability
+non_byte_value_fallback=reject summary; do not assign padding-bit semantics
+runtime_authority=actual stores plus path-local byte-init bitmap
+claim_boundary=no LLVM latency, solver throughput, coverage, defect yield, or end-to-end speedup claim

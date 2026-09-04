@@ -1,0 +1,5 @@
+<?xml version="1.0"?><!DOCTYPE dy>
+
+
+[<!ENTENT note (to,from,body)><!ELEMENT to (#PCDATA)><!E<body>C</body></note>
+<!ELEMENT body (#PCDATA)>]><note><to>A</to><from>B</from><body>C</body></note>

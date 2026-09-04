@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080" role="img" aria-labelledby="title desc">
+  <title id="title">F361 canonical pytest identity inventory</title>
+  <desc id="desc">A canonical committed node-id manifest detects equal-count test replacement that a numerical collection floor cannot distinguish.</desc>
+  <defs>
+    <filter id="shadow" x="-12%" y="-12%" width="124%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#17364a" flood-opacity="0.14"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#26758a"/>
+    </marker>
+    <style>
+      .title { font: 700 43px 'WenQuanYi Zen Hei', sans-serif; fill: #17364a; }
+      .subtitle { font: 400 21px 'WenQuanYi Zen Hei', sans-serif; fill: #536d7a; }
+      .heading { font: 700 23px 'WenQuanYi Zen Hei', sans-serif; fill: #17364a; }
+      .body { font: 400 18px 'WenQuanYi Zen Hei', sans-serif; fill: #31505f; }
+      .small { font: 400 16px 'WenQuanYi Zen Hei', sans-serif; fill: #536d7a; }
+      .mono { font: 700 16px 'WenQuanYi Zen Hei Mono', monospace; fill: #17364a; }
+      .metric { font: 700 22px 'WenQuanYi Zen Hei', sans-serif; fill: #ffffff; }
+      .white { fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1080" fill="#f6f9fa"/>
+  <rect x="0" y="0" width="1600" height="14" fill="#26758a"/>
+  <text x="84" y="76" class="title">F361 · Canonical Pytest Identity Inventory</text>
+  <text x="84" y="116" class="subtitle">从“收集了多少”升级为“具体收集了谁”</text>
+
+  <rect x="82" y="154" width="1436" height="142" rx="8" fill="#fff7ee" stroke="#d69a5f" stroke-width="2" filter="url(#shadow)"/>
+  <text x="116" y="196" class="heading">计数门的盲区：等量替换</text>
+  <rect x="116" y="220" width="344" height="48" rx="5" fill="#ffffff" stroke="#d4b28e"/>
+  <text x="143" y="250" class="mono">before = 787 · contains A</text>
+  <path d="M478 244 H562" fill="none" stroke="#b96935" stroke-width="4" marker-end="url(#arrow)"/>
+  <rect x="580" y="220" width="344" height="48" rx="5" fill="#ffffff" stroke="#d4b28e"/>
+  <text x="607" y="250" class="mono">after = 787 · contains B</text>
+  <rect x="1040" y="211" width="428" height="66" rx="6" fill="#b65e32"/>
+  <text x="1080" y="251" class="metric">count ≥ 778 仍然 PASS</text>
+
+  <text x="84" y="354" class="heading">规范 inventory 生成</text>
+  <rect x="82" y="382" width="290" height="218" rx="8" fill="#ffffff" stroke="#97b2bd" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="82" y="382" width="290" height="56" rx="8" fill="#17364a"/>
+  <rect x="82" y="425" width="290" height="13" fill="#17364a"/>
+  <text x="112" y="419" class="metric">1 · Hermetic collect</text>
+  <text x="112" y="482" class="body">test/ · collect-only</text>
+  <text x="112" y="517" class="body">plugin autoload = off</text>
+  <text x="112" y="552" class="body">session.items = 787</text>
+
+  <path d="M372 491 H422" fill="none" stroke="#26758a" stroke-width="5" marker-end="url(#arrow)"/>
+
+  <rect x="438" y="382" width="290" height="218" rx="8" fill="#ffffff" stroke="#72aaa1" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="438" y="382" width="290" height="56" rx="8" fill="#2a7d70"/>
+  <rect x="438" y="425" width="290" height="13" fill="#2a7d70"/>
+  <text x="468" y="419" class="metric">2 · Canonicalize</text>
+  <text x="468" y="482" class="body">root-bound UTF-8</text>
+  <text x="468" y="517" class="body">sorted · unique</text>
+  <text x="468" y="552" class="body">count 与列表一致</text>
+
+  <path d="M728 491 H778" fill="none" stroke="#26758a" stroke-width="5" marker-end="url(#arrow)"/>
+
+  <rect x="794" y="382" width="320" height="218" rx="8" fill="#ffffff" stroke="#d49a58" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="794" y="382" width="320" height="56" rx="8" fill="#b86c27"/>
+  <rect x="794" y="425" width="320" height="13" fill="#b86c27"/>
+  <text x="824" y="419" class="metric">3 · Content digest</text>
+  <text x="824" y="482" class="body">nodeid + LF 规范转录</text>
+  <text x="824" y="517" class="body">SHA-256</text>
+  <text x="824" y="552" class="mono">18596f…33c00</text>
+
+  <path d="M1114 491 H1164" fill="none" stroke="#26758a" stroke-width="5" marker-end="url(#arrow)"/>
+
+  <rect x="1180" y="382" width="338" height="218" rx="8" fill="#ffffff" stroke="#8f7aaa" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1180" y="382" width="338" height="56" rx="8" fill="#675181"/>
+  <rect x="1180" y="425" width="338" height="13" fill="#675181"/>
+  <text x="1210" y="419" class="metric">4 · Review boundary</text>
+  <text x="1210" y="482" class="body">committed JSON manifest</text>
+  <text x="1210" y="517" class="body">CI 不自动重写</text>
+  <text x="1210" y="552" class="body">变更必须形成 diff</text>
+
+  <path d="M800 600 V650" fill="none" stroke="#26758a" stroke-width="5" marker-end="url(#arrow)"/>
+
+  <rect x="82" y="666" width="1436" height="178" rx="8" fill="#17364a" filter="url(#shadow)"/>
+  <text x="116" y="710" class="metric">Gate v2 · 完整集合核对</text>
+  <line x1="116" y1="728" x2="1484" y2="728" stroke="#688696" stroke-width="2"/>
+  <rect x="116" y="752" width="288" height="58" rx="5" fill="#2a7d70"/>
+  <text x="150" y="788" class="metric">missing = 0</text>
+  <rect x="438" y="752" width="316" height="58" rx="5" fill="#2a7d70"/>
+  <text x="470" y="788" class="metric">unexpected = 0</text>
+  <rect x="788" y="752" width="306" height="58" rx="5" fill="#2a7d70"/>
+  <text x="822" y="788" class="metric">duplicate = 0</text>
+  <rect x="1128" y="752" width="356" height="58" rx="5" fill="#ffffff"/>
+  <text x="1170" y="788" class="heading">identity matched · PASS</text>
+
+  <rect x="82" y="886" width="692" height="116" rx="8" fill="#f5e3e1" stroke="#c8766e" stroke-width="2"/>
+  <text x="116" y="928" class="heading">等量替换反事实</text>
+  <text x="116" y="968" class="body">787 = 787，但 missing 1 + unexpected 1 → FAIL</text>
+
+  <rect x="826" y="886" width="692" height="116" rx="8" fill="#e4f1ee" stroke="#69a79c" stroke-width="2"/>
+  <text x="860" y="928" class="heading">完整回归</text>
+  <text x="860" y="968" class="body">787 tests + 125 subtests · identity exact · 16 capabilities</text>
+
+  <text x="84" y="1046" class="small">边界：nodeid 证明测试身份，不证明测试体或 oracle 语义未被弱化。</text>
+</svg>

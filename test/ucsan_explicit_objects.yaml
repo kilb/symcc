@@ -1,0 +1,5 @@
+entry: exercise
+scope:
+  - exercise
+  - escaped_stack
+external: pure

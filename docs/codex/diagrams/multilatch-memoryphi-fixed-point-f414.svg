@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">F414 multi-latch MemoryPhi fixed-point certificate</title>
+  <desc id="desc">Schematic of a four-latch loop, mutually exclusive MemoryPhi transfers, finite byte-lane fixed point, and runtime bitmap authority.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#34445c"/></marker>
+    <marker id="arrowTeal" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#087f8c"/></marker>
+    <style>
+      .title{font:700 34px Inter,Arial,sans-serif;fill:#172033}.subtitle{font:400 16px Inter,Arial,sans-serif;fill:#526077}
+      .kicker{font:700 12px Inter,Arial,sans-serif;fill:#087f8c}.panel{font:700 20px Inter,Arial,sans-serif;fill:#172033}
+      .node{font:700 14px Inter,Arial,sans-serif;fill:#172033}.copy{font:400 12px Inter,Arial,sans-serif;fill:#526077}
+      .mono{font:600 14px 'DejaVu Sans Mono',monospace;fill:#172033}.small{font:500 11px Inter,Arial,sans-serif;fill:#526077}
+      .edge{fill:none;stroke:#34445c;stroke-width:2;marker-end:url(#arrow)}.back{fill:none;stroke:#087f8c;stroke-width:2.4;marker-end:url(#arrowTeal)}
+      .dash{fill:none;stroke:#64748b;stroke-width:1.8;stroke-dasharray:6 5;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1440" height="900" fill="#f7f9fc"/>
+  <rect x="48" y="42" width="8" height="76" fill="#087f8c"/>
+  <text class="title" x="76" y="76">F414  Multi-Latch MemoryPhi Fixed Point</text>
+  <text class="subtitle" x="76" y="107">Multiple backedges are alternative SCC transfers; finite byte-lane closure is replayed, not trusted</text>
+  <rect x="1132" y="54" width="255" height="44" rx="6" fill="#172033"/>
+  <text x="1259" y="82" text-anchor="middle" style="font:700 14px Inter,Arial,sans-serif;fill:#fff">PROOF-CARRYING v4</text>
+
+  <rect x="48" y="146" width="694" height="494" rx="8" fill="#fff" stroke="#d6deea" stroke-width="1.5"/>
+  <text class="kicker" x="76" y="177">01 / REAL LLVM CONTROL FLOW</text>
+  <text class="panel" x="76" y="205">Bounded decision tree with 2-4 latch backedges</text>
+
+  <rect x="306" y="226" width="176" height="52" rx="6" fill="#e9f5f5" stroke="#087f8c" stroke-width="2"/>
+  <text class="node" x="394" y="248" text-anchor="middle">header H</text><text class="copy" x="394" y="266" text-anchor="middle">iv &lt; bound ?</text>
+  <rect x="306" y="306" width="176" height="52" rx="6" fill="#fff6dc" stroke="#d6a419" stroke-width="2"/>
+  <text class="node" x="394" y="328" text-anchor="middle">root decision</text><text class="copy" x="394" y="347" text-anchor="middle">g0 = icmp(...)</text>
+  <rect x="137" y="386" width="174" height="48" rx="6" fill="#fffaf0" stroke="#d6a419" stroke-width="1.7"/>
+  <text class="node" x="224" y="407" text-anchor="middle">left decision</text><text class="copy" x="224" y="424" text-anchor="middle">g1 true / false</text>
+  <rect x="477" y="386" width="174" height="48" rx="6" fill="#fffaf0" stroke="#d6a419" stroke-width="1.7"/>
+  <text class="node" x="564" y="407" text-anchor="middle">right decision</text><text class="copy" x="564" y="424" text-anchor="middle">g2 true / false</text>
+
+  <rect x="74" y="474" width="140" height="70" rx="6" fill="#e8f5ed" stroke="#27864d" stroke-width="2"/>
+  <text class="node" x="144" y="498" text-anchor="middle">T0 / latch A</text><text class="copy" x="144" y="519" text-anchor="middle">writer MemoryDef</text><text class="small" x="144" y="536" text-anchor="middle">iv += step</text>
+  <rect x="238" y="474" width="140" height="70" rx="6" fill="#f1f4f8" stroke="#64748b" stroke-width="2"/>
+  <text class="node" x="308" y="498" text-anchor="middle">T1 / latch B</text><text class="copy" x="308" y="519" text-anchor="middle">header carry</text><text class="small" x="308" y="536" text-anchor="middle">iv += step</text>
+  <rect x="410" y="474" width="140" height="70" rx="6" fill="#e8f5ed" stroke="#27864d" stroke-width="2"/>
+  <text class="node" x="480" y="498" text-anchor="middle">T2 / latch C</text><text class="copy" x="480" y="519" text-anchor="middle">writer MemoryDef</text><text class="small" x="480" y="536" text-anchor="middle">iv += step</text>
+  <rect x="574" y="474" width="140" height="70" rx="6" fill="#f1f4f8" stroke="#64748b" stroke-width="2"/>
+  <text class="node" x="644" y="498" text-anchor="middle">T3 / latch D</text><text class="copy" x="644" y="519" text-anchor="middle">header carry</text><text class="small" x="644" y="536" text-anchor="middle">iv += step</text>
+
+  <path class="edge" d="M394 278 L394 305"/><path class="edge" d="M340 358 C307 370 273 377 242 385"/><path class="edge" d="M448 358 C481 370 515 377 546 385"/>
+  <path class="edge" d="M195 434 L156 473"/><path class="edge" d="M253 434 L296 473"/><path class="edge" d="M535 434 L492 473"/><path class="edge" d="M593 434 L632 473"/>
+  <path class="back" d="M144 544 C142 592 212 604 307 265"/><path class="back" d="M308 544 C318 570 345 571 369 279"/>
+  <path class="back" d="M480 544 C470 570 443 571 419 279"/><path class="back" d="M644 544 C646 592 576 604 481 265"/>
+  <rect x="524" y="226" width="156" height="52" rx="6" fill="#fcecea" stroke="#c6534b" stroke-width="2"/>
+  <text class="node" x="602" y="248" text-anchor="middle">exit + load</text><text class="copy" x="602" y="266" text-anchor="middle">header false edge</text>
+  <path class="edge" d="M482 252 L523 252"/>
+  <text class="small" x="78" y="618">Each execution selects exactly one T<tspan baseline-shift="sub">j</tspan> per iteration. Backedges never execute left-to-right.</text>
+
+  <rect x="776" y="146" width="616" height="220" rx="8" fill="#fff" stroke="#d6deea" stroke-width="1.5"/>
+  <text class="kicker" x="804" y="177">02 / MEMORYSSA SCC EQUATION</text>
+  <text class="panel" x="804" y="205">Backedge identity defines alternative transfers</text>
+  <rect x="804" y="230" width="560" height="78" rx="6" fill="#eef0fb" stroke="#5965a8" stroke-width="1.5"/>
+  <text class="mono" x="832" y="259">H = phi(liveOnEntry, T0(H), T1(H), T2(H), T3(H))</text>
+  <text class="copy" x="832" y="286">writer: T<tspan baseline-shift="sub">j</tspan>(H) = W<tspan baseline-shift="sub">j</tspan>(H)   ·   carry: T<tspan baseline-shift="sub">j</tspan>(H) = H</text>
+  <rect x="804" y="322" width="267" height="25" rx="4" fill="#e8f5ed"/><text x="937" y="339" text-anchor="middle" style="font:700 11px Inter,Arial,sans-serif;fill:#27864d">MAY-REACH EFFECT PROVENANCE</text>
+  <rect x="1085" y="322" width="279" height="25" rx="4" fill="#fcecea"/><text x="1224" y="339" text-anchor="middle" style="font:700 11px Inter,Arial,sans-serif;fill:#a6413b">NOT MUST-INITIALIZATION</text>
+
+  <rect x="776" y="392" width="616" height="248" rx="8" fill="#fff" stroke="#d6deea" stroke-width="1.5"/>
+  <text class="kicker" x="804" y="423">03 / FINITE MONOTONE CLOSURE</text>
+  <text class="panel" x="804" y="451">Bounded induction replay reaches a stable closure</text>
+  <text class="mono" x="804" y="484">L<tspan baseline-shift="sub">k+1</tspan> = L<tspan baseline-shift="sub">k</tspan> ∪ ⋃ effects(T<tspan baseline-shift="sub">j</tspan>, iv<tspan baseline-shift="sub">k</tspan>)</text>
+  <g transform="translate(804 510)">
+    <rect x="0" y="0" width="54" height="36" fill="#def1e5" stroke="#27864d"/><rect x="56" y="0" width="54" height="36" fill="#def1e5" stroke="#27864d"/><rect x="112" y="0" width="54" height="36" fill="#def1e5" stroke="#27864d"/><rect x="168" y="0" width="54" height="36" fill="#def1e5" stroke="#27864d"/>
+    <rect x="224" y="0" width="54" height="36" fill="#def1e5" stroke="#27864d"/><rect x="280" y="0" width="54" height="36" fill="#def1e5" stroke="#27864d"/><rect x="336" y="0" width="54" height="36" fill="#def1e5" stroke="#27864d"/><rect x="392" y="0" width="54" height="36" fill="#def1e5" stroke="#27864d"/>
+    <text class="small" x="27" y="23" text-anchor="middle">b0</text><text class="small" x="83" y="23" text-anchor="middle">b1</text><text class="small" x="139" y="23" text-anchor="middle">b2</text><text class="small" x="195" y="23" text-anchor="middle">b3</text>
+    <text class="small" x="251" y="23" text-anchor="middle">b4</text><text class="small" x="307" y="23" text-anchor="middle">b5</text><text class="small" x="363" y="23" text-anchor="middle">b6</text><text class="small" x="419" y="23" text-anchor="middle">b7</text>
+    <rect x="466" y="0" width="92" height="36" rx="5" fill="#e9f5f5" stroke="#087f8c"/><text x="512" y="23" text-anchor="middle" style="font:700 11px Inter,Arial,sans-serif;fill:#087f8c">stable +0</text>
+  </g>
+  <text class="copy" x="804" y="575">Witness: (load address, lane) → all matching (transfer, writer start, writer lane, iv).</text>
+  <text class="copy" x="804" y="601">Complete alias domain and no-wrap bound are independently reconstructed by the consumer.</text>
+
+  <rect x="48" y="674" width="1344" height="178" rx="8" fill="#172033"/>
+  <text x="76" y="707" style="font:700 12px Inter,Arial,sans-serif;fill:#71d5d8">04 / SOUNDNESS BOUNDARY</text>
+  <text x="76" y="736" style="font:700 20px Inter,Arial,sans-serif;fill:#fff">Static closure says “a writer transfer can cover this lane”; the executed path remains authoritative</text>
+  <rect x="76" y="760" width="330" height="58" rx="6" fill="#25324a" stroke="#64748b"/><text x="241" y="783" text-anchor="middle" style="font:700 14px Inter,Arial,sans-serif;fill:#fff">Select actual guard path</text><text x="241" y="804" text-anchor="middle" style="font:500 12px Inter,Arial,sans-serif;fill:#c9d3e2">one transfer per iteration</text>
+  <rect x="520" y="760" width="330" height="58" rx="6" fill="#214b3b" stroke="#5dbd82"/><text x="685" y="783" text-anchor="middle" style="font:700 14px Inter,Arial,sans-serif;fill:#fff">Apply only its real store</text><text x="685" y="804" text-anchor="middle" style="font:600 12px 'DejaVu Sans Mono',monospace;fill:#b8efd0">byte_init[actual lanes] := true</text>
+  <rect x="964" y="760" width="400" height="58" rx="6" fill="#4a2e35" stroke="#db7b75"/><text x="1164" y="783" text-anchor="middle" style="font:700 14px Inter,Arial,sans-serif;fill:#fff">Load checks every lane now</text><text x="1164" y="804" text-anchor="middle" style="font:600 12px 'DejaVu Sans Mono',monospace;fill:#ffd0cc">missing byte → infeasible state</text>
+  <path d="M406 789 L519 789" fill="none" stroke="#71d5d8" stroke-width="2.5" marker-end="url(#arrowTeal)"/><path d="M850 789 L963 789" fill="none" stroke="#71d5d8" stroke-width="2.5" marker-end="url(#arrowTeal)"/>
+  <text x="48" y="882" style="font:500 12px Inter,Arial,sans-serif;fill:#65748a">Sealed domain: reducible single-level loop · 2-4 latches · ≤3 decisions · shared affine step · 1-8 byte writers · finite aliases.</text>
+</svg>

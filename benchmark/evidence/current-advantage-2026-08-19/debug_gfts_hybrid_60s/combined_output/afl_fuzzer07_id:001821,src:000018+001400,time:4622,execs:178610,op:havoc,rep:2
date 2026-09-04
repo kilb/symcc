@@ -1,0 +1,4 @@
+<?xml version="1.0"?><!DOCTYPE root [<!ELEMENT root (ÿÿCDATA)
+
+
+<//iton="1.0"><!ATTLIST root id ID #IMPLIED>]><root id="a">content</root>

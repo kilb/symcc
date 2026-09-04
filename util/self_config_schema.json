@@ -1,0 +1,342 @@
+{
+  "schema": "symcc-self-config-parameter-schema-v1",
+  "parameters": {
+    "SYMCC_EXECUTOR_CLASS": {
+      "values": ["exact", "tailored", "sampling"]
+    },
+    "SYMCC_FAST_SOLVE": {
+      "values": ["0", "1"],
+      "active_when": {
+        "SYMCC_EXECUTOR_CLASS": ["tailored", "sampling"]
+      }
+    },
+    "SYMCC_MULTI_SOLVE": {
+      "values": ["0", "1", "2"],
+      "active_when": {
+        "SYMCC_EXECUTOR_CLASS": ["tailored", "sampling"]
+      }
+    },
+    "SYMCC_OPTIMISTIC_FIRST": {
+      "values": ["0", "1"],
+      "active_when": {
+        "SYMCC_EXECUTOR_CLASS": ["tailored", "sampling"]
+      }
+    },
+    "SYMCC_BACKSOLVER": {
+      "values": ["0", "1"]
+    },
+    "SYMCC_TACE": {
+      "scope": "coordinator-campaign",
+      "values": ["0", "1"]
+    },
+    "SYMCC_TACE_MIN_BYTES": {
+      "scope": "coordinator-campaign",
+      "values": ["1024", "4096", "16384"],
+      "numeric": true,
+      "min": 256,
+      "max": 1048576,
+      "active_when": {
+        "SYMCC_TACE": ["1"]
+      }
+    },
+    "SYMCC_UNSAT_CORE_CACHE": {
+      "values": ["0", "1"]
+    },
+    "SYMCC_QUERY_TRAVERSAL": {
+      "scope": "query-service",
+      "values": ["structural", "dfs", "bfs", "priority"]
+    },
+    "SYMCC_QUERY_SHAPE_SELECTION": {
+      "scope": "query-service",
+      "values": ["0", "1"]
+    },
+    "SYMCC_SELECTIVE_QUERY": {
+      "scope": "query-service",
+      "values": ["0", "1"]
+    },
+    "SYMCC_SELECTIVE_QUERY_MIN_FIXED": {
+      "scope": "query-service",
+      "values": ["1", "2", "4", "8"],
+      "numeric": true,
+      "min": 1,
+      "max": 4096,
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": ["1"]
+      }
+    },
+    "SYMCC_SELECTIVE_QUERY_MAX_FIXED": {
+      "scope": "query-service",
+      "values": ["16", "32", "64", "128"],
+      "numeric": true,
+      "min": 1,
+      "max": 4096,
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": ["1"]
+      }
+    },
+    "SYMCC_SELECTIVE_QUERY_MAX_SYMBOLIC": {
+      "scope": "query-service",
+      "values": ["4", "8", "16", "32"],
+      "numeric": true,
+      "min": 1,
+      "max": 4096,
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": ["1"]
+      }
+    },
+    "SYMCC_SELECTIVE_QUERY_TIMEOUT": {
+      "scope": "query-service",
+      "values": ["10", "25", "50", "100"],
+      "numeric": true,
+      "min": 1,
+      "max": 1000,
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": ["1"]
+      }
+    },
+    "SYMCC_SELECTIVE_QUERY_COMPLETIONS": {
+      "scope": "query-service",
+      "values": ["1", "2", "3", "4"],
+      "numeric": true,
+      "min": 0,
+      "max": 8,
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": ["1"]
+      }
+    },
+    "SYMCC_SELECTIVE_QUERY_GRAPH_PARTITION": {
+      "scope": "query-service",
+      "values": ["0", "1"],
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": ["1"]
+      }
+    },
+    "SYMCC_SELECTIVE_QUERY_GRAPH_MIN_COSTLY": {
+      "scope": "query-service",
+      "values": ["1", "2", "4", "8"],
+      "numeric": true,
+      "min": 1,
+      "max": 64,
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": ["1"],
+        "SYMCC_SELECTIVE_QUERY_GRAPH_PARTITION": ["1"]
+      }
+    },
+    "SYMCC_SELECTIVE_QUERY_LEARNING": {
+      "scope": "query-service",
+      "values": ["0", "1"],
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": ["1"]
+      }
+    },
+    "SYMCC_SELECTIVE_QUERY_POLICY_EXPLORE": {
+      "scope": "query-service",
+      "values": ["2", "4", "8", "16"],
+      "numeric": true,
+      "min": 0,
+      "max": 1024,
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": ["1"],
+        "SYMCC_SELECTIVE_QUERY_LEARNING": ["1"]
+      }
+    },
+    "SYMCC_SELECTIVE_QUERY_POLICY_MIN_SAVINGS_US": {
+      "scope": "query-service",
+      "values": ["0", "100", "1000", "10000"],
+      "numeric": true,
+      "min": 0,
+      "max": 3600000000,
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": ["1"],
+        "SYMCC_SELECTIVE_QUERY_LEARNING": ["1"]
+      }
+    },
+    "SYMCC_SELECTIVE_QUERY_POLICY_MIN_TIMEOUT": {
+      "scope": "query-service",
+      "values": ["2", "5", "10", "25"],
+      "numeric": true,
+      "min": 1,
+      "max": 1000,
+      "active_when": {
+        "SYMCC_SELECTIVE_QUERY": ["1"],
+        "SYMCC_SELECTIVE_QUERY_LEARNING": ["1"]
+      }
+    },
+    "SYMCC_PREFIX_CONTEXT_CACHE": {
+      "values": ["0", "1"]
+    },
+    "SYMCC_POLY_CACHE": {
+      "values": ["0", "1"],
+      "active_when": {
+        "SYMCC_EXECUTOR_CLASS": ["sampling"]
+      }
+    },
+    "SYMCC_POLY_CROSS_PREFIX": {
+      "values": ["0", "1"],
+      "active_when": {
+        "SYMCC_EXECUTOR_CLASS": ["sampling"],
+        "SYMCC_POLY_CACHE": ["1"]
+      }
+    },
+    "SYMCC_POLY_PROJECTED_REUSE": {
+      "values": ["0", "1"],
+      "active_when": {
+        "SYMCC_POLY_CROSS_PREFIX": ["1"]
+      }
+    },
+    "SYMCC_POLY_EXACT_PROJECTION": {
+      "values": ["0", "1"],
+      "active_when": {
+        "SYMCC_POLY_PROJECTED_REUSE": ["1"]
+      }
+    },
+    "SYMCC_POLY_EXACT_PROJECTION_VARS": {
+      "values": ["1", "2", "4", "6"],
+      "numeric": true,
+      "min": 1,
+      "max": 6,
+      "active_when": {
+        "SYMCC_POLY_EXACT_PROJECTION": ["1"]
+      }
+    },
+    "SYMCC_POLY_EXACT_PROJECTION_ROWS": {
+      "values": ["16", "32", "64", "128"],
+      "numeric": true,
+      "min": 1,
+      "max": 128,
+      "active_when": {
+        "SYMCC_POLY_EXACT_PROJECTION": ["1"]
+      }
+    },
+    "SYMCC_POLY_EXACT_PROJECTION_TIMEOUT": {
+      "values": ["5", "10", "25", "50"],
+      "numeric": true,
+      "min": 1,
+      "max": 1000,
+      "active_when": {
+        "SYMCC_POLY_EXACT_PROJECTION": ["1"]
+      }
+    },
+    "SYMCC_POLY_EXACT_PROJECTION_PROBES": {
+      "values": ["2", "4", "8", "16"],
+      "numeric": true,
+      "min": 1,
+      "max": 64,
+      "active_when": {
+        "SYMCC_POLY_EXACT_PROJECTION": ["1"]
+      }
+    },
+    "SYMCC_POLY_FIELD_RENAMING": {
+      "values": ["0", "1"],
+      "active_when": {
+        "SYMCC_POLY_CROSS_PREFIX": ["1"]
+      }
+    },
+    "SYMCC_POLY_RENAME_VARS": {
+      "values": ["4", "6", "8"],
+      "numeric": true,
+      "min": 1,
+      "max": 8,
+      "active_when": {
+        "SYMCC_POLY_FIELD_RENAMING": ["1"]
+      }
+    },
+    "SYMCC_POLY_RENAME_ATTEMPTS": {
+      "values": ["32", "64", "128", "256"],
+      "numeric": true,
+      "min": 1,
+      "max": 4096,
+      "active_when": {
+        "SYMCC_POLY_FIELD_RENAMING": ["1"]
+      }
+    },
+    "SYMCC_POLY_RENAME_EXACT_PROBES": {
+      "values": ["2", "4", "8", "16"],
+      "numeric": true,
+      "min": 1,
+      "max": 32,
+      "active_when": {
+        "SYMCC_POLY_FIELD_RENAMING": ["1"],
+        "SYMCC_POLY_EXACT_PROJECTION": ["1"]
+      }
+    },
+    "SYMCC_POLY_CROSS_PREFIX_PROBES": {
+      "values": ["8", "16", "32", "64"],
+      "numeric": true,
+      "min": 1,
+      "max": 256,
+      "active_when": {
+        "SYMCC_POLY_CROSS_PREFIX": ["1"]
+      }
+    },
+    "SYMCC_POLY_RANGE_BYTES": {
+      "values": ["4", "8", "12", "16"],
+      "numeric": true,
+      "min": 2,
+      "max": 16,
+      "active_when": {
+        "SYMCC_POLY_CACHE": ["1"]
+      }
+    },
+    "SYMCC_POLY_LINEAR_BYTES": {
+      "values": ["4", "6", "8", "12"],
+      "numeric": true,
+      "min": 2,
+      "max": 16,
+      "active_when": {
+        "SYMCC_POLY_CACHE": ["1"]
+      }
+    },
+    "SYMCC_POLY_TEMPLATE_BYTES": {
+      "values": ["4", "8", "12", "16"],
+      "numeric": true,
+      "min": 2,
+      "max": 16,
+      "active_when": {
+        "SYMCC_POLY_CACHE": ["1"]
+      }
+    },
+    "SYMCC_POLY_TEMPLATE_PAIRS": {
+      "values": ["8", "16", "24", "48"],
+      "numeric": true,
+      "min": 4,
+      "max": 128,
+      "active_when": {
+        "SYMCC_POLY_CACHE": ["1"]
+      }
+    },
+    "SYMCC_POLY_SAMPLES": {
+      "values": ["2", "4", "8", "16"],
+      "numeric": true,
+      "min": 1,
+      "max": 32,
+      "active_when": {
+        "SYMCC_POLY_CACHE": ["1"]
+      }
+    },
+    "SYMCC_POLY_DENSE_DIM": {
+      "values": ["8", "16", "32", "64"],
+      "numeric": true,
+      "min": 4,
+      "max": 64,
+      "active_when": {
+        "SYMCC_POLY_CACHE": ["1"]
+      }
+    },
+    "SYMCC_POLY_JOHN_STEPS": {
+      "values": ["2", "4", "8", "16"],
+      "numeric": true,
+      "min": 1,
+      "max": 32,
+      "active_when": {
+        "SYMCC_POLY_CACHE": ["1"]
+      }
+    },
+    "SYMCC_POLY_WALK": {
+      "values": ["john", "dikin", "coordinate"],
+      "active_when": {
+        "SYMCC_POLY_CACHE": ["1"]
+      }
+    }
+  }
+}

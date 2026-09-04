@@ -1,0 +1,32 @@
+{
+  "exact_limit": {
+    "accepted": true,
+    "configured_limit": 845,
+    "encoded_bytes": 845,
+    "query_id_length": 64
+  },
+  "schema": "symcc-f363-adversarial-query-admission-v1",
+  "single_snapshot_size_bound": {
+    "configured_limit": 64,
+    "encoded_bytes": 845,
+    "error": "query envelope exceeds 64 bytes",
+    "forged_stat_bytes": 1,
+    "path_stat_calls_during_load": 0,
+    "rejected": true
+  },
+  "strict_spool": {
+    "accepted_files": [
+      "good.json"
+    ],
+    "duplicate_error": "ValueError: duplicate JSON object member 'schema'",
+    "failed": 2,
+    "imported": 1,
+    "nonfinite_error": "ValueError: non-finite JSON number 'NaN' is not supported",
+    "rejected_files": [
+      "duplicate.json",
+      "nonfinite.json"
+    ],
+    "stored_queries": 1,
+    "stored_witnesses": 1
+  }
+}

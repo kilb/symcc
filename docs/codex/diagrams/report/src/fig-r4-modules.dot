@@ -1,0 +1,81 @@
+
+digraph G {
+  graph [
+    bgcolor="white", pad="0.28", nodesep="0.38", ranksep="0.58",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=26,
+    labelloc="t", labeljust="l"
+  ];
+  node [
+    shape=box, style="rounded,filled", margin="0.18,0.12",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=13,
+    color="#CBD5E1", penwidth=1.3, fillcolor="#F8FAFC"
+  ];
+  edge [
+    fontname="WenQuanYi Zen Hei", fontcolor="#64748B", fontsize=11,
+    color="#64748B", penwidth=1.5, arrowsize=0.75
+  ];
+
+  label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3"><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="26"><B>图 R-4　代码模块架构：五层，各层职责与规模</B></FONT><BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="14" COLOR="#64748B">依赖方向单向：benchmark → 包装脚本 / util → runtime；compiler 不知道上面几层的存在</FONT><BR ALIGN="LEFT"/></TD></TR></TABLE>>;
+  rankdir=TB; ranksep=0.34; nodesep=0.18; newrank=true;
+  node [fontsize=12, height=0.58];
+
+  subgraph cluster_bench {
+    label="④ 评测与证据层　benchmark/"; fontsize=14;
+    color="#93C5FD"; style="rounded,filled"; fillcolor="#EFF6FF";
+    b1 [label="run_benchmark.py  4.1k\n构建目标变体 · 起 AFL/MPI · 测覆盖率", fillcolor="#DBEAFE", color="#2563EB", penwidth=2, width=3.5];
+    b2 [label="research_protocol.py  1.9k\nsealed campaign · manifest · 随机区组", fillcolor="#DBEAFE", color="#2563EB", width=3.5];
+    b3 [label="analyze_current_evaluation.py\nbootstrap CI · sign-flip · Holm 校正", fillcolor="#DBEAFE", color="#2563EB", width=3.5];
+  }
+
+  subgraph cluster_orch {
+    label="③ 编排与算法层　util/　95.1k 行 · 64 模块（Python）"; fontsize=14;
+    color="#5EEAD4"; style="rounded,filled"; fillcolor="#F0FDFA";
+    u1 [label="mpi_fuzzing_helper.py  5.3k\nmaster/worker 协议 · 位图 B1/B2 · triage", fillcolor="#CCFBF1", color="#0F766E", penwidth=2, width=3.5];
+    u2 [label="concolic_engine.py\nConcolicEngine 契约", fillcolor="#CCFBF1", color="#0F766E", width=2.6];
+    u3 [label="query_store.py 3.8k\nstring_constraints.py 1.9k", fillcolor="#CCFBF1", color="#0F766E", width=2.6];
+    u4 [label="semantic_proposals.py 12.7k\n在线语法 · SPPF · PCFG", fillcolor="#CCFBF1", color="#0F766E", width=2.6];
+    u5 [label="live_continuation.py 13.5k\nschedule_exploration.py 6.8k", fillcolor="#CCFBF1", color="#0F766E", width=2.6];
+    u6 [label="hybrid_feedback.py 3.9k\ndistributed_state.py 2.1k", fillcolor="#CCFBF1", color="#0F766E", width=2.6];
+  }
+
+  subgraph cluster_rt {
+    label="② 运行时　runtime/src　5.7k 行（链进目标进程）"; fontsize=14;
+    color="#FDBA74"; style="rounded,filled"; fillcolor="#FFFBEB";
+    r1 [label="RuntimeCommon · Shadow · LibcWrappers\nGarbageCollection · UCSanRuntime · Config", fillcolor="#FFEDD5", color="#C2410C", width=4.2];
+    r2 [label="backends/qsym\n表达式 DAG + Z3 + 分支剪枝图 B3", fillcolor="#FFEDD5", color="#C2410C", width=3.4];
+    r3 [label="backends/simple\nSMT-LIB 转储（供 lit 断言）", fillcolor="#FFEDD5", color="#C2410C", width=3.0];
+  }
+
+  subgraph cluster_comp {
+    label="① 编译期　compiler/　36.6k 行 C++ · 25 文件"; fontsize=14;
+    color="#FCA5A5"; style="rounded,filled"; fillcolor="#FEF2F2";
+    c1 [label="symcc · sym++\n编译器包装脚本", fillcolor="#FEE2E2", color="#B91C1C", width=2.6];
+    c2 [label="Symbolizer · Pass · SiteId\n核心插桩", fillcolor="#FEE2E2", color="#B91C1C", penwidth=2, width=3.0];
+    c3 [label="8 个新增 pass：UCSan · Hydra ·\nIFSS{Exit,Switch,LoopSummary,Continuation…}", fillcolor="#FEE2E2", color="#B91C1C", width=4.4];
+  }
+
+  subgraph cluster_qa {
+    label="⑤ 质量与文档"; fontsize=14;
+    color="#C4B5FD"; style="rounded,filled"; fillcolor="#F5F3FF";
+    t1 [label="test/  231 个一级目录文件\n102 .ll · 54 .c · 52 .py · 17 .test32", fillcolor="#EDE9FE", color="#6D28D9", width=3.6];
+    d1 [label="docs/ 顶层  43.8k 行\n权威档案 F00–F296 · SOTA 审计 · 证据清单", fillcolor="#EDE9FE", color="#6D28D9", width=4.2];
+  }
+
+  {rank=same; b1; b2; b3;}
+  {rank=same; u1; u2; u3;}
+  {rank=same; u4; u5; u6;}
+  u2 -> u5 [style=invis];
+  {rank=same; r1; r2; r3;}
+  {rank=same; c1; c2; c3;}
+  {rank=same; t1; d1;}
+
+  b1 -> u1 [label="  起 mpirun", color="#2563EB"];
+  b1 -> c1 [label="  构建变体", color="#2563EB"];
+  u1 -> r1 [label="  argv + 环境（经 u2）", color="#0F766E"];
+  r2 -> u1 [label="  telemetry / 候选", color="#C2410C", dir=back];
+  c2 -> r1 [label="  插桩调用 _sym_*", color="#B91C1C"];
+  c3 -> r1 [style=invis];
+  t1 -> c2 [label="  验证接口与不变量", style=dashed, color="#6D28D9", fontsize=10];
+  b3 -> d1 [style=dashed, color="#6D28D9"];
+
+}

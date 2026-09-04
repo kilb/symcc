@@ -1,0 +1,33 @@
+{
+  "artifact_sha256": "223977d7a81daf0f13b6335710948fd56dffce062718ebe5e6e855cf5aa29322",
+  "cadical": {
+    "binary": "/tmp/f432.IGCKMF/cadical/build/cadical",
+    "binary_sha256": "c2377de6ce6310cc5fd85fc5a5a86679eda6dbb4eb4a3ff960d8aa9fa1be7bae",
+    "library": "/tmp/f432.IGCKMF/cadical-shared/build/libcadical.so",
+    "library_sha256": "41c728cadae29064f4f10472b8131139d4b842cc2dfa5789044943e4f01d0569",
+    "version": "cadical-3.0.1-c607304"
+  },
+  "claim_boundary": "same-process mechanism benchmark; no coverage, defect, or distributed scaling claim",
+  "cold_subprocess": {
+    "maximum_us": 39123,
+    "median_us": 27663,
+    "minimum_us": 26541,
+    "p95_us": 32442,
+    "rounds": 64,
+    "total_us": 1815886
+  },
+  "formula": "qfbv-38-operator-matrix-sat",
+  "median_speedup": 1.755266497461929,
+  "native_first_us": 45475,
+  "native_warm": {
+    "maximum_us": 19679,
+    "median_us": 15760,
+    "minimum_us": 15532,
+    "p95_us": 18467,
+    "rounds": 64,
+    "total_us": 1028909
+  },
+  "rounds": 64,
+  "schema": "symcc-f432-incremental-sat-benchmark-v1",
+  "total_speedup": 1.7648655031688905
+}

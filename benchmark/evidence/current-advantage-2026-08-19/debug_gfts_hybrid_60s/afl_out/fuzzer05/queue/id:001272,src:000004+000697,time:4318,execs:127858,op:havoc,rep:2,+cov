@@ -1,0 +1,1 @@
+<?xml vers.0"?><root xmlns:ns="htt" [<!ELEMENT note (to,from,body)><!ELEMENT to (#PCDATA)><!EMEMENT from (#PCDATA)><!ELEMENT body (#PCDATA)>]><note><to>A</to><from>B</from><body>C</body></note>

@@ -1,0 +1,15 @@
+command:
+  PYTHONPATH=benchmark python3 benchmark/check_nested_loop_memoryphi_two_dimensional_affine_oracles.py
+
+run 1 sha256:
+  7be3e10a9aead4949038be68c0bd5a4b82639156fa5c64f55df9494d2d1ddd4e
+
+run 2 sha256:
+  7be3e10a9aead4949038be68c0bd5a4b82639156fa5c64f55df9494d2d1ddd4e
+
+result:
+  byte-identical
+  byte_identical=yes
+
+scope:
+  finite reference-model equivalence only; see the JSON claim_boundary

@@ -1,0 +1,9 @@
+access_date=2026-08-17
+cvc5_output_tags=https://cvc5.github.io/docs/latest/output-tags.html
+cvc5_understanding_interfaces=https://cvc5.github.io/blog/2024/04/15/interfaces-for-understanding-cvc5.html
+cvc5_options=https://cvc5.github.io/docs/cvc5-1.3.0/options.html
+cvc5_proofs=https://cvc5.github.io/docs/latest/proofs/proofs.html
+cvc5_news=https://github.com/cvc5/cvc5/blob/main/NEWS.md
+ethos=https://github.com/cvc5/ethos
+tacas_2026_distributed_incremental_proof_checking=https://doi.org/10.1007/978-3-032-22752-2_18
+interpretation=F428 adopts proof-checked intermediate-knowledge exchange for exact ancestor prefixes. It does not claim native distributed clause-database transport, arbitrary clause dependency closure, or the cited paper's distributed scaling result.

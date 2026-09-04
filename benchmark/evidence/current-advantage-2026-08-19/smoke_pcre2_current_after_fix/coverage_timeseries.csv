@@ -1,0 +1,9 @@
+experiment_id,run_id,pair_id,target,configuration,mode,np,round,timestamp_sec,edge_cov_pct,edges_found,edges_total,total_cases
+symcc-8e31cbbb8b8e8db7,7bc8cac27cff278a76fe6e06,3f29422fe3692bf286bcb3a5,pcre2-pcre2_fuzzer,mpi,mpi,16,1,0.0,7.22,702,9728,8
+symcc-8e31cbbb8b8e8db7,7bc8cac27cff278a76fe6e06,3f29422fe3692bf286bcb3a5,pcre2-pcre2_fuzzer,mpi,mpi,16,1,15.0,14.47,1408,9728,846
+symcc-8e31cbbb8b8e8db7,7bc8cac27cff278a76fe6e06,3f29422fe3692bf286bcb3a5,pcre2-pcre2_fuzzer,mpi,mpi,16,1,30.0,15.22,1481,9728,2161
+symcc-8e31cbbb8b8e8db7,7bc8cac27cff278a76fe6e06,3f29422fe3692bf286bcb3a5,pcre2-pcre2_fuzzer,mpi,mpi,16,1,45.0,15.65,1522,9728,2980
+symcc-8e31cbbb8b8e8db7,8571b1351e1e2ba8519a61f8,3f29422fe3692bf286bcb3a5,pcre2-pcre2_fuzzer,hybrid,hybrid,16,1,0.0,7.22,702,9728,8
+symcc-8e31cbbb8b8e8db7,8571b1351e1e2ba8519a61f8,3f29422fe3692bf286bcb3a5,pcre2-pcre2_fuzzer,hybrid,hybrid,16,1,15.0,39.07,3801,9728,10521
+symcc-8e31cbbb8b8e8db7,8571b1351e1e2ba8519a61f8,3f29422fe3692bf286bcb3a5,pcre2-pcre2_fuzzer,hybrid,hybrid,16,1,30.0,39.07,3801,9728,10521
+symcc-8e31cbbb8b8e8db7,8571b1351e1e2ba8519a61f8,3f29422fe3692bf286bcb3a5,pcre2-pcre2_fuzzer,hybrid,hybrid,16,1,45.0,39.07,3801,9728,10521

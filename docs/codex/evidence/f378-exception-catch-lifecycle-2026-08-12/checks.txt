@@ -1,0 +1,50 @@
+F378 scalar exception token and catch lifecycle - final verification
+Date: 2026-08-12 UTC
+
+LLVM 18 build:
+  cmake --build build -j2
+  PASS; libsymcc.so rebuilt and linked
+
+LLVM 17 compatibility build:
+  cmake --build build-llvm17 -j2
+  PASS; libsymcc.so rebuilt and linked
+
+LLVM 18 integration lit:
+  lit -sv --filter='live_continuation_lowering' build/test
+  PASS; 1 passed, 0 failed, 236 excluded, 179.62 s
+
+Targeted Python regression:
+  exception lifecycle + cleanup + typed + live search suites
+  PASS; 26 passed, 22 subtests passed, 0 failed, 2.34 s
+
+Capability-closed Python gate:
+  PASS; 862 passed, 224 subtests passed, 127.31 s
+  collected=862; skipped=0; xfailed=0; xpassed=0; deselected=0
+  missing-nodeids=0; unexpected-nodeids=0
+  canonical nodeid SHA-256:
+    527dd426722b22b41954fe83b31539767f6647b73cdca3b5ad9161104ee3a6d4
+
+Generated artifact replay checks:
+  lifecycle-catch.json: values 7,123; lifecycle capability present
+  lifecycle-rethrow.json: values 7,222; rethrow + end-invoke path present
+  object-materialization-reject.json: rejected unsupported exception-object use
+
+Static gates:
+  ruff: PASS, 0 diagnostics
+  py_compile: PASS
+  git diff --check: PASS
+  SVG XML + rendered PNG: PASS, PNG 1800x1150
+
+Review findings retained in the record:
+  Three review rounds closed helper attribute misplacement, checkpoint/program
+  capability mismatch, exact token JSON schema, 32-bit null truncation, missing
+  search-graph edges, and Clang-style end-catch invoke coverage. A transient
+  review patch placed doesNotReturn on the end helper; the rethrow integration
+  test failed closed, the condition was moved to the rethrow helper, and both
+  LLVM builds plus all gates were rerun.
+
+Claim boundary:
+  These results establish a single-active, scalar, non-materialized exception
+  lifecycle subset. They do not establish complete Itanium C++ ABI behavior,
+  object destruction, inheritance matching, Windows funclets, throughput,
+  coverage, or vulnerability-discovery improvement.

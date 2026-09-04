@@ -1,0 +1,6 @@
+$ PYTHONDONTWRITEBYTECODE=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q test/test_query_store.py test/test_qf_bv_backend.py test/test_semantic_proposals.py test/test_distributed_state.py
+............................................................ [ 26%]
+.............................................................. [ 53%]
+................................................................ [ 81%]
+.........................................                                [100%]
+227 passed, 30 subtests passed in 30.77s

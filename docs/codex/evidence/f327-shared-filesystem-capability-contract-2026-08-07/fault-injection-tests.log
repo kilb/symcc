@@ -1,0 +1,3 @@
+$ pytest -q -W error test/test_distributed_state.py test/test_mpi_lifecycle.py -k 'shared_filesystem or mountinfo or fenced_table_can_require_filesystem_capabilities'
+.............                                                            [100%]
+13 passed, 142 deselected in 1.08s

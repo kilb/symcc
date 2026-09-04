@@ -1,0 +1,11 @@
+command=python3 benchmark/check_selective_concolic_mdp_oracles.py --output OUTPUT
+run_1_sha256=63b1cd0efc8194d21a565f9a18b51f9ff10988e8788820d7b262da6dbd313a99
+run_2_sha256=63b1cd0efc8194d21a565f9a18b51f9ff10988e8788820d7b262da6dbd313a99
+byte_identical=true
+configurations=16
+enumerated_assignments=65536
+false_sat=0
+false_unsat=0
+candidate_hits=16
+mdp_iterations=17
+mdp_residual=5.536682223805656e-13

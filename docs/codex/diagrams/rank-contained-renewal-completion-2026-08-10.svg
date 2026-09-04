@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1040" viewBox="0 0 1600 1040" role="img" aria-labelledby="title desc">
+  <title id="title">F354 Rank-Contained Renewal Completion</title>
+  <desc id="desc">Comparison of the previous exception escape with the new completion containment boundary and its four outcome classes.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#35536f"/>
+    </marker>
+    <style>
+      .bg { fill: #f7f9fb; }
+      .title { font: 700 36px Inter, Arial, sans-serif; fill: #142433; }
+      .subtitle { font: 400 18px Inter, Arial, sans-serif; fill: #40566a; }
+      .section { font: 700 23px Inter, Arial, sans-serif; fill: #142433; }
+      .label { font: 700 18px Inter, Arial, sans-serif; fill: #20384c; }
+      .body { font: 400 16px Inter, Arial, sans-serif; fill: #314b60; }
+      .small { font: 400 14px Inter, Arial, sans-serif; fill: #486176; }
+      .mono { font: 600 15px ui-monospace, SFMono-Regular, Consolas, monospace; fill: #243b50; }
+      .panel { fill: #ffffff; stroke: #cbd7e1; stroke-width: 2; }
+      .old { fill: #fff4f2; stroke: #d8675c; stroke-width: 2; }
+      .core { fill: #eef5fa; stroke: #3c7398; stroke-width: 2; }
+      .good { fill: #eef8f1; stroke: #3c8a5b; stroke-width: 2; }
+      .warn { fill: #fff8e8; stroke: #b98220; stroke-width: 2; }
+      .signal { fill: #f3f0f8; stroke: #725a91; stroke-width: 2; }
+      .line { fill: none; stroke: #35536f; stroke-width: 2.5; marker-end: url(#arrow); }
+      .dash { fill: none; stroke: #9b4c44; stroke-width: 2.5; stroke-dasharray: 9 7; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1600" height="1040"/>
+  <text class="title" x="70" y="66">F354 - Rank-Contained Renewal Completion</text>
+  <text class="subtitle" x="70" y="101">Connect F353 commit-or-rollback to the MPI fatal-control path</text>
+
+  <rect class="old" x="70" y="145" width="430" height="335" rx="8"/>
+  <text class="section" x="100" y="186">Before: Exception Escape</text>
+  <rect class="panel" x="105" y="218" width="360" height="66" rx="6"/>
+  <text class="label" x="129" y="246">controller.complete()</text>
+  <text class="small" x="129" y="270">F353 keeps local state rollback-safe</text>
+  <path class="dash" d="M285 284 L285 326"/>
+  <rect class="old" x="105" y="327" width="360" height="62" rx="6"/>
+  <text class="mono" x="129" y="354">OverflowError</text>
+  <text class="small" x="129" y="377">Missing from caller's type list</text>
+  <path class="dash" d="M285 389 L285 427"/>
+  <text class="label" x="129" y="444">Rank unwinds alone</text>
+  <text class="small" x="129" y="468">Peers remain in protocol/shutdown</text>
+
+  <rect class="core" x="555" y="145" width="975" height="335" rx="8"/>
+  <text class="section" x="585" y="186">After: one completion containment boundary</text>
+  <rect class="panel" x="590" y="220" width="310" height="92" rx="6"/>
+  <text class="label" x="615" y="251">Proof result + generation</text>
+  <text class="small" x="615" y="276">F352 transcript / F351 identity</text>
+  <text class="small" x="615" y="297">Current in-flight controller</text>
+  <path class="line" d="M900 266 L980 266"/>
+  <rect class="core" x="985" y="210" width="500" height="112" rx="6"/>
+  <text class="label" x="1015" y="243">complete_cluster_lock_renewal()</text>
+  <text class="body" x="1015" y="272">Call F353 complete once; catch Exception</text>
+  <text class="body" x="1015" y="298">Normalize diagnostics to &lt;= 512 characters</text>
+
+  <path class="line" d="M1235 322 L1235 365"/>
+  <rect class="good" x="590" y="365" width="270" height="82" rx="6"/>
+  <text class="mono" x="615" y="396">(True, "")</text>
+  <text class="small" x="615" y="421">Commit success; update capability</text>
+  <rect class="warn" x="885" y="365" width="280" height="82" rx="6"/>
+  <text class="mono" x="910" y="396">(False, "")</text>
+  <text class="small" x="910" y="421">Commit failure; proof rejected</text>
+  <rect class="old" x="1190" y="365" width="295" height="82" rx="6"/>
+  <text class="mono" x="1215" y="396">(False, detail)</text>
+  <text class="small" x="1215" y="421">Retain pre-state; fatal control</text>
+
+  <text class="section" x="70" y="545">Exact semantics of four outcomes</text>
+  <rect class="panel" x="70" y="575" width="1460" height="235" rx="8"/>
+  <line x1="435" y1="575" x2="435" y2="810" stroke="#d8e1e8" stroke-width="2"/>
+  <line x1="800" y1="575" x2="800" y2="810" stroke="#d8e1e8" stroke-width="2"/>
+  <line x1="1165" y1="575" x2="1165" y2="810" stroke="#d8e1e8" stroke-width="2"/>
+
+  <circle cx="112" cy="624" r="16" fill="#3c8a5b"/>
+  <text class="label" x="145" y="630">Valid proof</text>
+  <text class="mono" x="105" y="674">A+1, S+1, F</text>
+  <text class="body" x="105" y="706">Cross the single commit point</text>
+  <text class="small" x="105" y="737">Accounting error is empty</text>
+
+  <circle cx="477" cy="624" r="16" fill="#b98220"/>
+  <text class="label" x="510" y="630">proof rejection</text>
+  <text class="mono" x="470" y="674">A+1, S, F+1</text>
+  <text class="body" x="470" y="706">Commit exactly one failure</text>
+  <text class="small" x="470" y="737">Accounting error remains empty</text>
+
+  <circle cx="842" cy="624" r="16" fill="#d8675c"/>
+  <text class="label" x="875" y="630">Ordinary Exception</text>
+  <text class="mono" x="835" y="674">state' = state</text>
+  <text class="body" x="835" y="706">Error value enters ordered shutdown</text>
+  <text class="small" x="835" y="737">Overflow / Lookup / ... contained</text>
+
+  <circle cx="1207" cy="624" r="16" fill="#725a91"/>
+  <text class="label" x="1240" y="630">BaseException</text>
+  <text class="mono" x="1200" y="674">propagate</text>
+  <text class="body" x="1200" y="706">Preserve process-control semantics</text>
+  <text class="small" x="1200" y="737">KeyboardInterrupt / SystemExit</text>
+
+  <rect class="core" x="70" y="850" width="950" height="130" rx="8"/>
+  <text class="section" x="100" y="891">Composed invariants</text>
+  <text class="mono" x="100" y="929">committed: attempts = successes + failures</text>
+  <text class="mono" x="100" y="959">internal exception: exact pre-state retained</text>
+
+  <rect class="panel" x="1050" y="850" width="480" height="130" rx="8"/>
+  <text class="section" x="1080" y="891">Evidence and boundary</text>
+  <text class="label" x="1080" y="928">9 / 9 mechanism checks</text>
+  <text class="small" x="1080" y="956">Local mechanism evidence; no multi-host recovery</text>
+</svg>

@@ -1,0 +1,62 @@
+{
+  "all_checks_passed": true,
+  "checks": {
+    "exact_leaf_competitor_converges_inside_anchor": true,
+    "failed_operations_admit_no_verified_identity": true,
+    "live_read_shard_replacement_rejects_exact_alias": true,
+    "normal_publication_and_snapshot_round_trip": true,
+    "publication_never_redirects_and_detached_bytes_are_exact": true,
+    "root_replacement_during_publication_fails_closed": true,
+    "root_symlink_is_rejected_without_external_write": true,
+    "shard_replacement_during_publication_fails_closed": true,
+    "shard_symlink_is_rejected_without_external_write": true,
+    "temporary_publication_names_are_cleaned": true,
+    "verified_identity_fast_path_avoids_payload_rehash": true
+  },
+  "configuration": {
+    "cases": [
+      "normal-round-trip",
+      "root-symlink",
+      "shard-symlink",
+      "root-publication-replacement",
+      "shard-publication-replacement",
+      "exact-leaf-competitor",
+      "live-read-shard-replacement"
+    ],
+    "max_object_bytes": 128,
+    "source": "real regular files, directories, and symlinks with deterministic directory-replacement fault injection"
+  },
+  "observations": {
+    "cache_fallback_hashes": 0,
+    "competitor_fallback_hashes": 1,
+    "descriptor_relative_callbacks": {
+      "competitor": true,
+      "root_race": true,
+      "shard_race": true
+    },
+    "detached_objects_exact": true,
+    "errors": {
+      "live_read_race": "ValueError",
+      "root_alias": "NotADirectoryError",
+      "root_race": "NotADirectoryError",
+      "shard_alias": "NotADirectoryError",
+      "shard_race": "NotADirectoryError"
+    },
+    "failed_identity_caches": {
+      "live_read": [],
+      "root_race": [],
+      "shard_alias": [],
+      "shard_race": []
+    },
+    "normal_object_id": "33b78f369f841a1bd5b09078a1cf180dab714c7f5174bdea66baef3390da69b9",
+    "redirected_directory_entries": {
+      "root_alias": [],
+      "root_race": [],
+      "shard_alias": [],
+      "shard_race": []
+    },
+    "temporary_residue": []
+  },
+  "proof_boundary": "This local mechanism integration exercises production CAS and live-state directory-descriptor paths. It does not execute MPI, a target, afl-showmap, a symbolic solver, or a fuzzing campaign, and makes no throughput, coverage, bug-discovery, or LAVA-M uplift claim. Ancestors above the configured CAS root remain a trusted deployment boundary.",
+  "schema": "symcc-f349-descriptor-anchored-cas-namespace-v1"
+}

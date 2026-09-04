@@ -1,0 +1,22 @@
+F422 static, structural, and review checks
+
+build LLVM 18 SymCC: PASS
+build LLVM 17 SymCC: PASS
+py_compile changed Python modules: PASS
+ruff changed Python modules: PASS
+git diff --check relevant sources and docs: PASS
+diagram SVG render and visual inspection: PASS
+diagram PNG dimensions: 1600x950
+strict mutation battery: PASS
+late prepare failure leaves ExecutionState unchanged: PASS
+summary CFG exposes fallback and target: PASS
+summary CFG creates no path-cover/CBC/CGS branch token: PASS
+scalar live-out producer fail-closed: PASS
+F422 LLVM17 focused: 2/2 PASS
+F422 LLVM18 focused: 2/2 PASS
+F416--F422 LLVM17 related: 16/16 PASS
+F416--F422 LLVM18 related: 16/16 PASS
+F416--F422 Python related: 35/35 PASS
+complete Python: 1111 passed + 250 subtests PASS
+complete LLVM17: 302 passed + 2 unsupported PASS
+complete LLVM18: 303 passed + 1 unsupported PASS

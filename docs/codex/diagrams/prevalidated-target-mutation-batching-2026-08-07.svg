@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1200" viewBox="0 0 1900 1200" role="img" aria-labelledby="title desc">
+  <title id="title">F325 prevalidated shard-batched target-group mutations</title>
+  <desc id="desc">The target lease protocol validates a whole group before mutation, persists each record independently, batches directory barriers by shard, and rolls back detected failures from exact snapshots.</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#102a43" flood-opacity="0.15"/>
+    </filter>
+    <marker id="blue-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="green-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#16835b"/>
+    </marker>
+    <marker id="red-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#c2413a"/>
+    </marker>
+    <style>
+      text { font-family: "WenQuanYi Zen Hei", "Unifont", Arial, sans-serif; fill: #172b3a; letter-spacing: 0; }
+      .title { font-size: 38px; font-weight: 700; }
+      .subtitle { font-size: 20px; fill: #dbe7ef; }
+      .band { font-size: 22px; font-weight: 700; }
+      .head { font-size: 20px; font-weight: 700; }
+      .body { font-size: 18px; }
+      .small { font-size: 16px; fill: #526575; }
+      .mono { font-family: "DejaVu Sans Mono", monospace; font-size: 16px; }
+      .metric { font-size: 24px; font-weight: 700; }
+      .metric-green { font-size: 24px; font-weight: 700; fill: #9bd8bc; }
+      .metric-blue { font-size: 24px; font-weight: 700; fill: #a9c7ff; }
+      .light { fill: #ffffff; }
+      .light-muted { fill: #dbe7ef; }
+      .green { fill: #16835b; }
+      .red { fill: #c2413a; }
+    </style>
+  </defs>
+
+  <rect width="1900" height="1200" fill="#f5f8fa"/>
+  <rect x="0" y="0" width="1900" height="112" fill="#17324d"/>
+  <text x="65" y="58" class="title light">F325 Target-Group 全组预验证与分片 Mutation Batching</text>
+  <text x="65" y="91" class="subtitle">修复陈旧 token 引发的部分释放，同时把 claim / release 的目录屏障由 N 次降为 K 个 shard</text>
+
+  <rect x="50" y="142" width="500" height="820" rx="8" fill="#ffffff" stroke="#c7d4dd" filter="url(#shadow)"/>
+  <rect x="50" y="142" width="500" height="60" rx="8" fill="#fbe9e7"/>
+  <rect x="50" y="194" width="500" height="8" fill="#fbe9e7"/>
+  <text x="78" y="180" class="band">修复前：检查与删除交错</text>
+
+  <text x="82" y="243" class="head">release_group(A, B, C, old-token)</text>
+  <g transform="translate(82,274)">
+    <rect x="0" y="0" width="405" height="88" rx="7" fill="#eef7f2" stroke="#16835b"/>
+    <text x="22" y="34" class="body">A：token 匹配 → unlink(A)</text>
+    <text x="22" y="64" class="small">目录项已经被删除</text>
+    <line x1="202" y1="88" x2="202" y2="125" stroke="#2563eb" stroke-width="4" marker-end="url(#blue-arrow)"/>
+
+    <rect x="0" y="133" width="405" height="88" rx="7" fill="#eef7f2" stroke="#16835b"/>
+    <text x="22" y="167" class="body">B：token 匹配 → unlink(B)</text>
+    <text x="22" y="197" class="small">第二个成员也已删除</text>
+    <line x1="202" y1="221" x2="202" y2="258" stroke="#2563eb" stroke-width="4" marker-end="url(#blue-arrow)"/>
+
+    <rect x="0" y="266" width="405" height="105" rx="7" fill="#fbe9e7" stroke="#c2413a"/>
+    <text x="22" y="301" class="body">C：token 已被 replacement 替换</text>
+    <text x="22" y="333" class="mono">return False</text>
+    <text x="22" y="359" class="small">但 A / B 不会自动恢复</text>
+  </g>
+
+  <rect x="82" y="687" width="405" height="111" rx="8" fill="#fff8e8" stroke="#d79b22"/>
+  <text x="106" y="724" class="head">违反 group-level rejection</text>
+  <text x="106" y="758" class="body">失败返回 ≠ 零副作用</text>
+  <text x="106" y="786" class="small">重叠目标可被其他 coordinator 提前准入</text>
+
+  <rect x="82" y="831" width="405" height="91" rx="8" fill="#f8fbfd" stroke="#8ba6b9"/>
+  <text x="106" y="866" class="head">性能问题</text>
+  <text x="106" y="900" class="body">每个 record 各执行一次 fsync(parent)</text>
+
+  <line x1="550" y1="552" x2="602" y2="552" stroke="#2563eb" stroke-width="5" marker-end="url(#blue-arrow)"/>
+
+  <rect x="610" y="142" width="740" height="820" rx="8" fill="#ffffff" stroke="#c7d4dd" filter="url(#shadow)"/>
+  <rect x="610" y="142" width="740" height="60" rx="8" fill="#e7f0ff"/>
+  <rect x="610" y="194" width="740" height="8" fill="#e7f0ff"/>
+  <text x="638" y="180" class="band">修复后：锁内三阶段协议</text>
+
+  <rect x="647" y="234" width="666" height="171" rx="8" fill="#f8fbfd" stroke="#4d7bb8"/>
+  <circle cx="684" cy="272" r="20" fill="#2563eb"/>
+  <text x="684" y="279" text-anchor="middle" class="head light">1</text>
+  <text x="720" y="278" class="head">PREVALIDATE：任何 mutation 之前</text>
+  <text x="675" y="317" class="body">按 digest 全序获取全部 exact-target locks</text>
+  <text x="675" y="348" class="body">读取全组 → schema / ID / status / exact token 全量校验</text>
+  <text x="675" y="379" class="body">claim 额外执行 payload JSON 序列化预检与旧快照保存</text>
+
+  <line x1="980" y1="405" x2="980" y2="441" stroke="#2563eb" stroke-width="4" marker-end="url(#blue-arrow)"/>
+
+  <rect x="647" y="449" width="666" height="216" rx="8" fill="#eaf6f0" stroke="#16835b"/>
+  <circle cx="684" cy="488" r="20" fill="#16835b"/>
+  <text x="684" y="495" text-anchor="middle" class="head light">2</text>
+  <text x="720" y="494" class="head">MUTATE：逐 record 保留内容持久化</text>
+  <text x="675" y="535" class="body">claim：write temp → file fsync → same-dir rename</text>
+  <text x="675" y="568" class="body">release：unlink exact current-token record</text>
+  <text x="675" y="606" class="mono">pending_dirs.add(parent_shard)</text>
+  <text x="675" y="638" class="small">每条内容/可见切换独立；只延后并去重目录屏障</text>
+
+  <line x1="980" y1="665" x2="980" y2="701" stroke="#16835b" stroke-width="4" marker-end="url(#green-arrow)"/>
+
+  <rect x="647" y="709" width="666" height="104" rx="8" fill="#fff8e8" stroke="#d79b22"/>
+  <circle cx="684" cy="746" r="20" fill="#d79b22"/>
+  <text x="684" y="753" text-anchor="middle" class="head light">3</text>
+  <text x="720" y="750" class="head">COMMIT BARRIER：每个命中 shard 一次</text>
+  <text x="675" y="788" class="mono">for d in pending_dirs: fsync(d)</text>
+
+  <rect x="647" y="842" width="666" height="80" rx="8" fill="#eef7f2" stroke="#16835b"/>
+  <text x="675" y="875" class="head green">全部屏障成功后才返回 token / True</text>
+  <text x="675" y="905" class="small">锁保持到最终目录屏障完成，重叠组不能观察到“已确认但未稳定”的操作</text>
+
+  <line x1="1350" y1="552" x2="1402" y2="552" stroke="#16835b" stroke-width="5" marker-end="url(#green-arrow)"/>
+
+  <rect x="1410" y="142" width="440" height="820" rx="8" fill="#ffffff" stroke="#c7d4dd" filter="url(#shadow)"/>
+  <rect x="1410" y="142" width="440" height="60" rx="8" fill="#eaf6f0"/>
+  <rect x="1410" y="194" width="440" height="8" fill="#eaf6f0"/>
+  <text x="1438" y="180" class="band">失败语义与边界</text>
+
+  <rect x="1444" y="234" width="372" height="120" rx="8" fill="#eef7f2" stroke="#16835b"/>
+  <text x="1468" y="269" class="head">验证失败</text>
+  <text x="1468" y="303" class="body">立即返回 False / None</text>
+  <text x="1468" y="332" class="small">已证明零 record mutation</text>
+
+  <rect x="1444" y="385" width="372" height="173" rx="8" fill="#fff8e8" stroke="#d79b22"/>
+  <text x="1468" y="420" class="head">检测到 I/O 失败</text>
+  <text x="1468" y="454" class="body">仍持有全组锁</text>
+  <text x="1468" y="486" class="body">按 exact previous snapshot 回滚</text>
+  <text x="1468" y="518" class="body">再按 shard flush rollback</text>
+  <text x="1468" y="546" class="small">失败结果不会被误报为成功</text>
+
+  <rect x="1444" y="590" width="372" height="205" rx="8" fill="#fbe9e7" stroke="#c2413a"/>
+  <text x="1468" y="626" class="head red">不宣称跨文件 crash atomicity</text>
+  <text x="1468" y="662" class="body">进程崩溃 / 持续 EIO 时：</text>
+  <text x="1468" y="696" class="body">claim 残留是保守 lease</text>
+  <text x="1468" y="730" class="body">partial release 可削弱目标去重</text>
+  <text x="1468" y="763" class="small">work/result fence 仍是权威提交边界</text>
+
+  <rect x="1444" y="826" width="372" height="96" rx="8" fill="#f8fbfd" stroke="#8ba6b9"/>
+  <text x="1468" y="861" class="head">若需要真正 crash transaction</text>
+  <text x="1468" y="892" class="small">必须增加 durable intent / WAL</text>
+  <text x="1468" y="916" class="small">并实现 crash recovery</text>
+
+  <rect x="50" y="1000" width="1800" height="150" rx="8" fill="#17324d"/>
+  <text x="80" y="1038" class="head light">实测（本机 overlayfs，租约持久化路径）</text>
+  <text x="80" y="1081" class="metric-green">64-target claim + release：128 → 2 sync（1 shard），509.349 → 180.959 ms，2.815×</text>
+  <text x="80" y="1119" class="metric-blue">8 shards：128 → 16 sync，508.899 → 180.124 ms，2.825×</text>
+  <text x="1820" y="1081" text-anchor="end" class="body light">双进程重叠竞争：50/50 单赢家</text>
+  <text x="1820" y="1115" text-anchor="end" class="body light-muted">0 partial publication · 0 residual · 0 hang</text>
+  <text x="1820" y="1176" text-anchor="end" class="small">I/T/E-mechanism · 不外推 coverage、solver 或端到端 DSE 吞吐</text>
+</svg>

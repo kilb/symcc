@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="938"
+     viewBox="0 0 1600 938" role="img" aria-labelledby="title desc">
+  <title id="title">图 R-3　开发阶段时间线（P01–P10）</title>
+  <desc id="desc">从「给 SymCC 加一个 MPI master」到七层研究栈的实际推进顺序</desc>
+  <rect width="1600" height="938" fill="white"/>
+  <text x="48" y="54" font-family="WenQuanYi Zen Hei" font-size="28" font-weight="700" fill="#17212B" text-anchor="start">图 R-3　开发阶段时间线（P01–P10）</text>
+  <text x="48" y="86" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="400" fill="#64748B" text-anchor="start">从「给 SymCC 加一个 MPI master」到七层研究栈的实际推进顺序</text>
+  <rect x="48" y="120" width="1504" height="716" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+  <line x1="132" y1="158" x2="132" y2="774" stroke="#CBD5E1" stroke-width="3"/>
+  <circle cx="132" cy="176" r="9" fill="#DBEAFE" stroke="#2563EB" stroke-width="3"/>
+  <text x="74" y="182" font-family="WenQuanYi Zen Hei" font-size="17" font-weight="700" fill="#2563EB" text-anchor="start">P01</text>
+  <text x="160" y="172" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="400" fill="#64748B" text-anchor="start">02-26–02-28</text>
+  <text x="160" y="192" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">MPI 原型成型</text>
+  <text x="430" y="186" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">master/worker 协议、benchmark 骨架、公开目标、coverage/crash 口径</text>
+  <rect x="1330" y="163" width="190" height="26" rx="6" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2"/>
+  <text x="1425" y="181" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="650" fill="#2563EB" text-anchor="middle">F17,F21</text>
+  <circle cx="132" cy="240" r="9" fill="#DBEAFE" stroke="#2563EB" stroke-width="3"/>
+  <text x="74" y="246" font-family="WenQuanYi Zen Hei" font-size="17" font-weight="700" fill="#2563EB" text-anchor="start">P02</text>
+  <text x="160" y="236" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="400" fill="#64748B" text-anchor="start">03-10–03-31</text>
+  <text x="160" y="256" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">AFL hybrid 闭环</text>
+  <text x="430" y="250" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">LAVA-M / Google FTS、worker bitmap、streaming showmap、双向反馈</text>
+  <rect x="1330" y="227" width="190" height="26" rx="6" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.2"/>
+  <text x="1425" y="245" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="650" fill="#2563EB" text-anchor="middle">F17,F18,F21</text>
+  <circle cx="132" cy="304" r="9" fill="#CCFBF1" stroke="#0F766E" stroke-width="3"/>
+  <text x="74" y="310" font-family="WenQuanYi Zen Hei" font-size="17" font-weight="700" fill="#0F766E" text-anchor="start">P03</text>
+  <text x="160" y="300" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="400" fill="#64748B" text-anchor="start">04-01–04-20</text>
+  <text x="160" y="320" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">扩展性与负结果</text>
+  <text x="430" y="314" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">scaling、dictionary、CmpLog、full benchmark、CPU 争用结论修正</text>
+  <rect x="1330" y="291" width="190" height="26" rx="6" fill="#CCFBF1" stroke="#0F766E" stroke-width="1.2"/>
+  <text x="1425" y="309" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="650" fill="#0F766E" text-anchor="middle">F18,F20,F21</text>
+  <circle cx="132" cy="368" r="9" fill="#CCFBF1" stroke="#0F766E" stroke-width="3"/>
+  <text x="74" y="374" font-family="WenQuanYi Zen Hei" font-size="17" font-weight="700" fill="#0F766E" text-anchor="start">P04</text>
+  <text x="160" y="364" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="400" fill="#64748B" text-anchor="start">07-02</text>
+  <text x="160" y="384" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">吞吐加固</text>
+  <text x="430" y="378" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">persistent / shmem、focus partition、work stealing、分支密度平衡</text>
+  <rect x="1330" y="355" width="190" height="26" rx="6" fill="#CCFBF1" stroke="#0F766E" stroke-width="1.2"/>
+  <text x="1425" y="373" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="650" fill="#0F766E" text-anchor="middle">F18,F19,F20</text>
+  <circle cx="132" cy="432" r="9" fill="#DCFCE7" stroke="#15803D" stroke-width="3"/>
+  <text x="74" y="438" font-family="WenQuanYi Zen Hei" font-size="17" font-weight="700" fill="#15803D" text-anchor="start">P05</text>
+  <text x="160" y="428" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="400" fill="#64748B" text-anchor="start">07-03–07-13</text>
+  <text x="160" y="448" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">可交付性</text>
+  <text x="430" y="442" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">质量审计、一条命令安装、离线包、裸机验证</text>
+  <rect x="1330" y="419" width="190" height="26" rx="6" fill="#DCFCE7" stroke="#15803D" stroke-width="1.2"/>
+  <text x="1425" y="437" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="650" fill="#15803D" text-anchor="middle">F25</text>
+  <circle cx="132" cy="496" r="9" fill="#DCFCE7" stroke="#15803D" stroke-width="3"/>
+  <text x="74" y="502" font-family="WenQuanYi Zen Hei" font-size="17" font-weight="700" fill="#15803D" text-anchor="start">P06</text>
+  <text x="160" y="492" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="400" fill="#64748B" text-anchor="start">07-15–07-18</text>
+  <text x="160" y="512" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">可观测性</text>
+  <text x="430" y="506" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">phase timing、SIGTERM 归因、冗余漏斗、内容预去重、batch showmap</text>
+  <rect x="1330" y="483" width="190" height="26" rx="6" fill="#DCFCE7" stroke="#15803D" stroke-width="1.2"/>
+  <text x="1425" y="501" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="650" fill="#15803D" text-anchor="middle">F22</text>
+  <circle cx="132" cy="560" r="9" fill="#FFEDD5" stroke="#C2410C" stroke-width="3"/>
+  <text x="74" y="566" font-family="WenQuanYi Zen Hei" font-size="17" font-weight="700" fill="#C2410C" text-anchor="start">P07</text>
+  <text x="160" y="556" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="400" fill="#64748B" text-anchor="start">07-19–07-20</text>
+  <text x="160" y="576" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">双引擎</text>
+  <text x="430" y="570" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">solver telemetry、ConcolicEngine 契约、SymSan 迁移、RGD / JIGSAW</text>
+  <rect x="1330" y="547" width="190" height="26" rx="6" fill="#FFEDD5" stroke="#C2410C" stroke-width="1.2"/>
+  <text x="1425" y="565" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="650" fill="#C2410C" text-anchor="middle">F23,F24,F25</text>
+  <circle cx="132" cy="624" r="9" fill="#FFEDD5" stroke="#C2410C" stroke-width="3"/>
+  <text x="74" y="630" font-family="WenQuanYi Zen Hei" font-size="17" font-weight="700" fill="#C2410C" text-anchor="start">P08</text>
+  <text x="160" y="620" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="400" fill="#64748B" text-anchor="start">07-24–07-28</text>
+  <text x="160" y="640" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">求解与状态层</text>
+  <text x="430" y="634" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">求解复用 / portfolio / PSCache、字符串、schedule、continuation、研究协议</text>
+  <rect x="1330" y="611" width="190" height="26" rx="6" fill="#FFEDD5" stroke="#C2410C" stroke-width="1.2"/>
+  <text x="1425" y="629" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="650" fill="#C2410C" text-anchor="middle">F00–F187</text>
+  <circle cx="132" cy="688" r="9" fill="#FEE2E2" stroke="#B91C1C" stroke-width="3"/>
+  <text x="74" y="694" font-family="WenQuanYi Zen Hei" font-size="17" font-weight="700" fill="#B91C1C" text-anchor="start">P09</text>
+  <text x="160" y="684" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="400" fill="#64748B" text-anchor="start">07-28–07-29</text>
+  <text x="160" y="704" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">结构化与可信求解</text>
+  <text x="430" y="698" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">语法解析森林 / PCFG、QF_BV 三后端可信矩阵、sealed holdout</text>
+  <rect x="1330" y="675" width="190" height="26" rx="6" fill="#FEE2E2" stroke="#B91C1C" stroke-width="1.2"/>
+  <text x="1425" y="693" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="650" fill="#B91C1C" text-anchor="middle">F188–F259</text>
+  <circle cx="132" cy="752" r="9" fill="#EDE9FE" stroke="#6D28D9" stroke-width="3"/>
+  <text x="74" y="758" font-family="WenQuanYi Zen Hei" font-size="17" font-weight="700" fill="#6D28D9" text-anchor="start">P10</text>
+  <text x="160" y="748" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="400" fill="#64748B" text-anchor="start">07-29–07-30</text>
+  <text x="160" y="768" font-family="WenQuanYi Zen Hei" font-size="16" font-weight="700" fill="#17212B" text-anchor="start">编译期变换</text>
+  <text x="430" y="762" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">continuation 多出口 / 循环闭式 / 内存 tuple、Hydra 对齐、统一 seal</text>
+  <rect x="1330" y="739" width="190" height="26" rx="6" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.2"/>
+  <text x="1425" y="757" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="650" fill="#6D28D9" text-anchor="middle">F260 起</text>
+  <rect x="48" y="856" width="1504" height="62" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+  <text x="72" y="882" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">P01–P07 解决“能不能并行、能不能交付、能不能观测”；P08–P10 把求解、结构化输入、并发调度与编译期变换补齐为可验证的技术族。</text>
+  <text x="72" y="904" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">日期为 2026 年；提交区间与逐项功能映射见 docs/Development_History_Traceability.md 第 3 节。P08 起为当前工作树，尚未提交。</text>
+</svg>

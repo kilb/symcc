@@ -1,0 +1,38 @@
+F439 multi-round review findings
+================================
+
+Round 1 - CLI, environment, and documentation contract
+Finding: the oracle examples used --lidrup-checker, but the official-oracle CLI
+accepts --lidrup-check. The service flag remains --qfbv-lidrup-checker.
+Fix: corrected docs/Testing.txt and benchmark/README.md and verified both help
+contracts independently.
+
+Round 2 - wire semantics and integer boundaries
+Finding: the official PalRUP tracer/converter negates signed inputs while
+encoding them, so INT_MIN/LONG_MIN are not portable values. The implementation
+already used the symmetric [-MAX, MAX] literal range and positive MAX IDs, but
+the rejection boundary was not explicit in tests.
+Fix: added INT_MIN and LONG_MAX+1 rejection assertions; retained exact official
+converter comparison, canonical-varint, truncation, overflow, and unknown-tag
+negative cases.
+
+Round 3 - external checker process and identity boundary
+Finding: reviewed executable replacement, output-pipe deadlock, unbounded
+stdout/stderr, timeout, marker/version/mode, and receipt-replay risks.
+Result: the checker executes a private content snapshot, binds its SHA-256,
+drains bounded output concurrently, enforces timeout, and validates receipts.
+No additional defect remained after the existing mutation tests.
+
+Round 4 - immutable CAS, concurrency, and commit authorization
+Finding: reviewed create-or-verify publication, quota races, staging leftovers,
+artifact/receipt substitution, and the backend-to-QueryStore trust handoff.
+Result: concurrent identical publication converges, conflicting content and
+quota overflow fail closed, and QueryStore reruns external verification before
+commit. Existing concurrency and mutation tests cover these cases.
+
+Round 5 - evidence closure and research claim boundary
+Finding: the implementation needed full-suite evidence and an explicit split
+between PalRUP fragment interoperability and global confirmation.
+Fix: sealed the 1320-test Python gate, serial LLVM 17/18 gates, official-tool
+oracle, source manifest, diagrams, five reviews, and machine-readable claim
+boundary. local_check/redistribute/confirm remains deliberately outside F439.

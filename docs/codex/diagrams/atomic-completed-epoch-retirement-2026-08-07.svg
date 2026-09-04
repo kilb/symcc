@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1400" viewBox="0 0 1900 1400">
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#102a43" flood-opacity="0.14"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#2166ac"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#18794e"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#b42318"/>
+    </marker>
+    <style>
+      .title { font: 700 34px Arial, sans-serif; fill: #102a43; }
+      .subtitle { font: 400 17px Arial, sans-serif; fill: #486581; }
+      .panel-title { font: 700 23px Arial, sans-serif; fill: #102a43; }
+      .heading { font: 700 17px Arial, sans-serif; fill: #243b53; }
+      .body { font: 400 15px Arial, sans-serif; fill: #334e68; }
+      .small { font: 400 13px Arial, sans-serif; fill: #486581; }
+      .mono { font: 600 14px "DejaVu Sans Mono", monospace; fill: #243b53; }
+      .white { fill: #ffffff; font-family: Arial, sans-serif; }
+    </style>
+  </defs>
+
+  <rect width="1900" height="1400" fill="#f4f7fa"/>
+  <rect x="0" y="0" width="1900" height="105" fill="#ffffff"/>
+  <rect x="0" y="101" width="1900" height="4" fill="#2166ac"/>
+  <text x="60" y="52" class="title">F335: Atomic Completed-Epoch Retirement and Deferred Reclamation</text>
+  <text x="60" y="82" class="subtitle">Move recursive storage reclamation out of the MPI completion critical path without weakening crash semantics</text>
+
+  <g filter="url(#shadow)">
+    <rect x="55" y="140" width="1790" height="285" rx="10" fill="#ffffff" stroke="#d7e0e8" stroke-width="2"/>
+  </g>
+  <text x="85" y="183" class="panel-title">Critical-path transformation</text>
+
+  <rect x="90" y="215" width="715" height="160" rx="8" fill="#fff1f0" stroke="#d92d20"/>
+  <text x="120" y="250" class="heading">F334: durable recursive deletion before Finalize</text>
+  <rect x="120" y="278" width="205" height="58" rx="6" fill="#ffffff" stroke="#d92d20"/>
+  <text x="222" y="302" text-anchor="middle" class="mono">active tree</text>
+  <text x="222" y="325" text-anchor="middle" class="small">n state objects</text>
+  <line x1="325" y1="307" x2="425" y2="307" stroke="#b42318" stroke-width="3" marker-end="url(#arrow-red)"/>
+  <rect x="440" y="278" width="205" height="58" rx="6" fill="#ffffff" stroke="#d92d20"/>
+  <text x="542" y="302" text-anchor="middle" class="mono">rmtree + fsync</text>
+  <text x="542" y="325" text-anchor="middle" class="small">O(n) namespace walk</text>
+  <text x="675" y="311" class="heading">all ranks wait</text>
+  <text x="120" y="360" class="small">Correct, but completion latency grows with manifests, locks, staging, and shards.</text>
+
+  <rect x="845" y="215" width="955" height="160" rx="8" fill="#eaf7f0" stroke="#45a879"/>
+  <text x="875" y="250" class="heading">F335: persist logical retirement, reclaim storage later</text>
+  <rect x="875" y="278" width="190" height="58" rx="6" fill="#ffffff" stroke="#45a879"/>
+  <text x="970" y="302" text-anchor="middle" class="mono">active E</text>
+  <text x="970" y="325" text-anchor="middle" class="small">exact 64-hex name</text>
+  <line x1="1065" y1="307" x2="1150" y2="307" stroke="#18794e" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <rect x="1165" y="278" width="250" height="58" rx="6" fill="#ffffff" stroke="#45a879"/>
+  <text x="1290" y="302" text-anchor="middle" class="mono">rename + parent fsync</text>
+  <text x="1290" y="325" text-anchor="middle" class="small">retired E-R, O(1) name switch</text>
+  <line x1="1415" y1="307" x2="1500" y2="307" stroke="#18794e" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <rect x="1515" y="278" width="245" height="58" rx="6" fill="#ffffff" stroke="#45a879"/>
+  <text x="1638" y="302" text-anchor="middle" class="mono">post barrier</text>
+  <text x="1638" y="325" text-anchor="middle" class="small">Finalize may proceed</text>
+  <text x="875" y="360" class="small">A later startup reclaims exact retired roots under one crash-released GC lock.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="55" y="460" width="1090" height="500" rx="10" fill="#ffffff" stroke="#d7e0e8" stroke-width="2"/>
+  </g>
+  <text x="85" y="503" class="panel-title">Namespace state machine and durability points</text>
+
+  <rect x="105" y="555" width="260" height="105" rx="8" fill="#e9f2fb" stroke="#6aa4d8"/>
+  <text x="235" y="588" text-anchor="middle" class="heading">ACTIVE</text>
+  <text x="235" y="617" text-anchor="middle" class="mono">.standalone-work-E</text>
+  <text x="235" y="644" text-anchor="middle" class="small">recovery-visible WAL-like state</text>
+
+  <line x1="365" y1="607" x2="520" y2="607" stroke="#2166ac" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <text x="442" y="530" text-anchor="middle" class="small">same-directory rename</text>
+  <text x="442" y="548" text-anchor="middle" class="small">then fsync(shared root)</text>
+
+  <rect x="535" y="555" width="300" height="105" rx="8" fill="#eaf7f0" stroke="#45a879"/>
+  <text x="685" y="588" text-anchor="middle" class="heading">RETIRED</text>
+  <text x="685" y="617" text-anchor="middle" class="mono">.retired-...-E-R</text>
+  <text x="685" y="644" text-anchor="middle" class="small">never interpreted as recoverable</text>
+
+  <line x1="835" y1="607" x2="950" y2="607" stroke="#18794e" stroke-width="4" marker-end="url(#arrow-green)"/>
+  <text x="892" y="530" text-anchor="middle" class="small">locked durable_rmtree</text>
+  <text x="892" y="548" text-anchor="middle" class="small">on a later startup</text>
+
+  <rect x="965" y="555" width="135" height="105" rx="8" fill="#f3f5f7" stroke="#8492a6"/>
+  <text x="1032" y="598" text-anchor="middle" class="heading">ABSENT</text>
+  <text x="1032" y="629" text-anchor="middle" class="small">space reclaimed</text>
+
+  <rect x="105" y="710" width="995" height="205" rx="8" fill="#fff8e6" stroke="#d99a00"/>
+  <text x="135" y="750" class="heading">Failure interpretation</text>
+  <circle cx="150" cy="791" r="7" fill="#2166ac"/>
+  <text x="170" y="797" class="body">Before rename: ACTIVE remains; Abort(72); matching epoch may recover.</text>
+  <circle cx="150" cy="830" r="7" fill="#d99a00"/>
+  <text x="170" y="836" class="body">Rename visible but directory fsync failed: RETIRED may exist; durability unknown; never report success.</text>
+  <circle cx="150" cy="869" r="7" fill="#18794e"/>
+  <text x="170" y="875" class="body">After parent fsync: logical completion is durable; physical deletion is no longer on the Finalize path.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="1180" y="460" width="665" height="500" rx="10" fill="#ffffff" stroke="#d7e0e8" stroke-width="2"/>
+  </g>
+  <text x="1210" y="503" class="panel-title">Bounded startup reclamation</text>
+
+  <rect x="1220" y="545" width="585" height="335" rx="8" fill="#f8fafc" stroke="#b9c6d2"/>
+  <circle cx="1260" cy="588" r="18" fill="#2166ac"/>
+  <text x="1260" y="594" text-anchor="middle" class="white" font-size="15" font-weight="700">1</text>
+  <text x="1295" y="594" class="body">Read strict GC limit (default 1; zero disables).</text>
+  <circle cx="1260" cy="643" r="18" fill="#2166ac"/>
+  <text x="1260" y="649" text-anchor="middle" class="white" font-size="15" font-weight="700">2</text>
+  <text x="1295" y="649" class="body">Acquire stable no-follow flock with deadline.</text>
+  <circle cx="1260" cy="698" r="18" fill="#2166ac"/>
+  <text x="1260" y="704" text-anchor="middle" class="white" font-size="15" font-weight="700">3</text>
+  <text x="1295" y="704" class="body">Prevalidate every reserved-name object and type.</text>
+  <circle cx="1260" cy="753" r="18" fill="#18794e"/>
+  <text x="1260" y="759" text-anchor="middle" class="white" font-size="15" font-weight="700">4</text>
+  <text x="1295" y="759" class="body">Sort and durably remove at most limit roots.</text>
+  <circle cx="1260" cy="808" r="18" fill="#18794e"/>
+  <text x="1260" y="814" text-anchor="middle" class="white" font-size="15" font-weight="700">5</text>
+  <text x="1295" y="814" class="body">Close lock, broadcast result, then start service.</text>
+  <text x="1245" y="856" class="small">Malformed prefix, symlink, lock timeout, or rmtree/fsync failure -> Abort(66).</text>
+
+  <g filter="url(#shadow)">
+    <rect x="55" y="995" width="1790" height="330" rx="10" fill="#ffffff" stroke="#d7e0e8" stroke-width="2"/>
+  </g>
+  <text x="85" y="1038" class="panel-title">Measured evidence and strict boundary</text>
+
+  <rect x="90" y="1075" width="560" height="195" rx="8" fill="#e9f2fb" stroke="#6aa4d8"/>
+  <text x="120" y="1112" class="heading">Real Open MPI fault -> convergence</text>
+  <text x="120" y="1146" class="mono">7 ranks / 2 masters / 5 workers</text>
+  <text x="120" y="1180" class="body">ACK 3/3 + 2/2 -> visible rename -> injected fsync fail -> exit 72</text>
+  <text x="120" y="1214" class="body">same epoch: GC 1 old root -> clean retirement -> exit 0</text>
+  <text x="120" y="1248" class="small">same host; real MPI transport; no synthetic processor topology</text>
+
+  <rect x="680" y="1075" width="560" height="195" rx="8" fill="#eaf7f0" stroke="#45a879"/>
+  <text x="710" y="1112" class="heading">Completion-boundary median cost</text>
+  <text x="710" y="1148" class="body">3 files</text>
+  <rect x="810" y="1130" width="155" height="24" rx="4" fill="#9fbad0"/>
+  <text x="990" y="1149" class="mono">0.990x</text>
+  <text x="710" y="1188" class="body">129 files</text>
+  <rect x="810" y="1170" width="195" height="24" rx="4" fill="#62b58a"/>
+  <text x="1030" y="1189" class="mono">1.243x</text>
+  <text x="710" y="1228" class="body">1025 files</text>
+  <rect x="810" y="1210" width="370" height="24" rx="4" fill="#18794e"/>
+  <text x="1065" y="1257" text-anchor="middle" class="mono">3.133x (6132.870 us saved)</text>
+
+  <rect x="1270" y="1075" width="530" height="195" rx="8" fill="#fff8e6" stroke="#d99a00"/>
+  <text x="1300" y="1112" class="heading">Proof scope</text>
+  <text x="1300" y="1148" class="body">[OK] 708 passed + 58 subtests</text>
+  <text x="1300" y="1182" class="body">[OK] exact namespace, no-follow lock, fail-closed GC</text>
+  <text x="1300" y="1216" class="body">[OUT] remote power loss / NFS failover / cross-job lock</text>
+  <text x="1300" y="1250" class="body">[OUT] end-to-end DSE, solver, coverage, or LAVA-M uplift</text>
+
+  <text x="55" y="1370" class="small">Evidence: docs/codex/evidence/f335-atomic-epoch-retirement-2026-08-07/</text>
+</svg>

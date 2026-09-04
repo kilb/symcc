@@ -1,0 +1,7 @@
+F421 oracle reproducibility
+
+oracle-run-1.json sha256: 235b7fed1b5110e125d56fe04752edd0b92ad3003821cef31b195398a50fcf13
+oracle-run-2.json sha256: 235b7fed1b5110e125d56fe04752edd0b92ad3003821cef31b195398a50fcf13
+byte comparison: identical
+all_passed: true
+

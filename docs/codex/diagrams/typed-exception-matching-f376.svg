@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="790" viewBox="0 0 1440 790" role="img" aria-labelledby="title desc">
+  <title id="title">F376 exact typed exception matching</title>
+  <desc id="desc">A global typeinfo identity is normalized to a collision-checked selector shared by typed throw, landingpad matching, and the eh.typeid.for intrinsic; mismatch continues stack unwinding.</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#1b2b40" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#53677c"/>
+    </marker>
+    <style>
+      .title { font: 700 30px Inter, Arial, sans-serif; fill: #17283d; }
+      .subtitle { font: 400 16px Inter, Arial, sans-serif; fill: #53677c; }
+      .heading { font: 700 19px Inter, Arial, sans-serif; fill: #17283d; }
+      .label { font: 600 15px Inter, Arial, sans-serif; fill: #20344b; }
+      .small { font: 400 13px Inter, Arial, sans-serif; fill: #465b70; }
+      .code { font: 600 13px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #20344b; }
+      .arrow { fill: none; stroke: #53677c; stroke-width: 2.5; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1440" height="790" fill="#f7f9fc"/>
+  <text x="55" y="58" class="title">F376 Collision-Checked Exact Typed Exception Matching</text>
+  <text x="55" y="88" class="subtitle">one normalized selector across throw, landingpad admission, LLVM dispatch, and distributed checkpoints</text>
+
+  <g filter="url(#shadow)">
+    <rect x="55" y="128" width="295" height="220" rx="8" fill="#fff" stroke="#9db5cf"/>
+    <rect x="55" y="128" width="295" height="45" rx="8" fill="#dcecff"/>
+    <text x="77" y="157" class="heading">1  Typeinfo Identity</text>
+    <text x="77" y="207" class="code">@exception_type_A</text>
+    <text x="77" y="236" class="small">module identity + global name</text>
+    <text x="77" y="265" class="small">stable 64-bit site identity</text>
+    <rect x="77" y="287" width="249" height="38" rx="5" fill="#f1f6fc"/>
+    <text x="94" y="312" class="label">fold → positive i32 selector</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="397" y="128" width="304" height="220" rx="8" fill="#fff" stroke="#85b89a"/>
+    <rect x="397" y="128" width="304" height="45" rx="8" fill="#dff3e5"/>
+    <text x="419" y="157" class="heading">2  Lowering Contract</text>
+    <text x="419" y="205" class="code">throw_if(type_id=T)</text>
+    <text x="419" y="234" class="code">exception_match(types=[T])</text>
+    <text x="419" y="263" class="code">exception_type(dst, i32)</text>
+    <text x="419" y="292" class="code">eh.typeid.for(@A) → T</text>
+    <text x="419" y="322" class="small">selector collision rejects the module</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="748" y="128" width="300" height="220" rx="8" fill="#fff" stroke="#d4ad62"/>
+    <rect x="748" y="128" width="300" height="45" rx="8" fill="#fff0cf"/>
+    <text x="770" y="157" class="heading">3  Checkpoint State</text>
+    <text x="770" y="205" class="code">@exception:active = 1</text>
+    <text x="770" y="234" class="code">@exception:value = payload</text>
+    <text x="770" y="263" class="code">@exception:type = T</text>
+    <text x="770" y="292" class="code">@exception:handler-depth = d</text>
+    <text x="770" y="322" class="small">validated before instruction resume</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1095" y="128" width="290" height="220" rx="8" fill="#fff" stroke="#d38c86"/>
+    <rect x="1095" y="128" width="290" height="45" rx="8" fill="#ffe5e1"/>
+    <text x="1117" y="157" class="heading">4  Landingpad Gate</text>
+    <text x="1117" y="207" class="label">enter if</text>
+    <text x="1117" y="236" class="code">cleanup ∨ catch_all ∨ T∈types</text>
+    <text x="1117" y="276" class="label">otherwise</text>
+    <text x="1117" y="305" class="code">resume to caller unwind edge</text>
+  </g>
+
+  <path d="M350 238 H389" class="arrow"/>
+  <path d="M701 238 H740" class="arrow"/>
+  <path d="M1048 238 H1087" class="arrow"/>
+
+  <text x="55" y="416" class="heading">Outcome Semantics</text>
+  <g filter="url(#shadow)">
+    <rect x="55" y="450" width="407" height="190" rx="8" fill="#fff" stroke="#6fab88"/>
+    <rect x="55" y="450" width="10" height="190" rx="5" fill="#3e9b67"/>
+    <text x="88" y="489" class="heading">Exact Match</text>
+    <text x="88" y="527" class="small">Landingpad IR receives normalized selector T.</text>
+    <text x="88" y="557" class="small">Existing icmp/switch dispatch remains executable.</text>
+    <rect x="88" y="584" width="342" height="31" rx="5" fill="#e7f6ec"/>
+    <text x="106" y="605" class="label">handler return clears all exception metadata</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="517" y="450" width="407" height="190" rx="8" fill="#fff" stroke="#d5a14c"/>
+    <rect x="517" y="450" width="10" height="190" rx="5" fill="#e3a324"/>
+    <text x="550" y="489" class="heading">Cleanup or Catch-All</text>
+    <text x="550" y="527" class="small">Cleanup runs for every in-flight exception.</text>
+    <text x="550" y="557" class="small">catch ptr null admits typed and untyped throws.</text>
+    <rect x="550" y="584" width="342" height="31" rx="5" fill="#fff4d9"/>
+    <text x="568" y="605" class="label">resume preserves payload and type selector</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="979" y="450" width="406" height="190" rx="8" fill="#fff" stroke="#d17c75"/>
+    <rect x="979" y="450" width="10" height="190" rx="5" fill="#cc5e56"/>
+    <text x="1012" y="489" class="heading">Type Mismatch</text>
+    <text x="1012" y="527" class="small">No handler instructions execute at this frame.</text>
+    <text x="1012" y="557" class="small">Frame locals are removed before caller search.</text>
+    <rect x="1012" y="584" width="341" height="31" rx="5" fill="#ffebe8"/>
+    <text x="1030" y="605" class="label">root mismatch → unhandled-exception(T)</text>
+  </g>
+
+  <rect x="55" y="690" width="1330" height="63" rx="8" fill="#edf2f7" stroke="#c4cfda"/>
+  <text x="78" y="717" class="label">Soundness boundary</text>
+  <text x="270" y="717" class="small">Exact identity only: no C++ base/derived matching, RTTI ABI objects, filter clauses, exception-pointer extraction, or nested active exceptions.</text>
+  <text x="78" y="741" class="small">Unsupported uses reject during lowering; malformed checkpoint metadata rejects before resume.</text>
+</svg>

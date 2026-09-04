@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="660" viewBox="0 0 1120 660" role="img" aria-labelledby="title desc">
+  <title id="title">Public benchmark screening and XML parallel scaling</title>
+  <desc id="desc">Two-panel chart summarizing public benchmark screening and 3-round XML MPI scaling results.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f7f8fb; }
+      .panel { fill: #ffffff; stroke: #d7dce5; stroke-width: 1; rx: 12; }
+      .title { font: 700 26px Arial, sans-serif; fill: #18212f; }
+      .subtitle { font: 14px Arial, sans-serif; fill: #5f6b7a; }
+      .axis { stroke: #aeb7c4; stroke-width: 1; }
+      .grid { stroke: #e8ecf2; stroke-width: 1; }
+      .label { font: 13px Arial, sans-serif; fill: #263241; }
+      .small { font: 12px Arial, sans-serif; fill: #5f6b7a; }
+      .value { font: 700 12px Arial, sans-serif; fill: #18212f; }
+      .seed { fill: #91a3b8; }
+      .mpi { fill: #2f80ed; }
+      .mpi2 { fill: #6f9df4; }
+      .mpi4 { fill: #4c86ed; }
+      .mpi8 { fill: #296bd8; }
+      .mpi16 { fill: #153f8f; }
+      .gain { fill: #2a9d8f; }
+      .warn { fill: #d97706; }
+      .note { font: 12px Arial, sans-serif; fill: #6c7786; }
+    </style>
+  </defs>
+  <rect class="bg" width="1120" height="660"/>
+  <text class="title" x="48" y="48">公开测试集筛选与 XML 并行扩展验证</text>
+  <text class="subtitle" x="48" y="74">SymCC MPI-only, afl-showmap edge coverage; 2026-08-19</text>
+
+  <rect class="panel" x="40" y="105" width="500" height="475" rx="12"/>
+  <text class="label" x="70" y="138" font-weight="700">一轮公开目标筛选：np=8 相对 seed 的覆盖提升</text>
+  <text class="small" x="70" y="160">用于筛选复杂公开目标，不作为最终统计结论</text>
+
+  <line class="axis" x1="190" y1="500" x2="500" y2="500"/>
+  <line class="axis" x1="190" y1="190" x2="190" y2="500"/>
+  <line class="grid" x1="190" y1="422" x2="500" y2="422"/>
+  <line class="grid" x1="190" y1="344" x2="500" y2="344"/>
+  <line class="grid" x1="190" y1="266" x2="500" y2="266"/>
+  <line class="grid" x1="190" y1="188" x2="500" y2="188"/>
+  <text class="small" x="165" y="505">0%</text>
+  <text class="small" x="158" y="427">10%</text>
+  <text class="small" x="158" y="349">20%</text>
+  <text class="small" x="158" y="271">30%</text>
+  <text class="small" x="158" y="193">40%</text>
+
+  <text class="label" x="70" y="220">FTS XML</text>
+  <rect class="gain" x="190" y="203" width="281" height="24" rx="4"/>
+  <text class="value" x="478" y="220">+36.3%</text>
+
+  <text class="label" x="70" y="270">FTS PNG</text>
+  <rect class="gain" x="190" y="253" width="268" height="24" rx="4"/>
+  <text class="value" x="465" y="270">+34.6%</text>
+
+  <text class="label" x="70" y="320">SQLite</text>
+  <rect class="warn" x="190" y="303" width="57" height="24" rx="4"/>
+  <text class="value" x="254" y="320">+7.4%</text>
+
+  <text class="label" x="70" y="370">FreeType2</text>
+  <rect class="warn" x="190" y="353" width="14" height="24" rx="4"/>
+  <text class="value" x="213" y="370">+1.8%</text>
+
+  <text class="label" x="70" y="420">LAVA who</text>
+  <rect class="seed" x="190" y="403" width="2" height="24" rx="1"/>
+  <text class="value" x="206" y="420">0.0%</text>
+
+  <text class="note" x="70" y="540">结论：FTS XML 是公开复杂目标里最干净的并行正例；PNG 有收益但扩展较弱。</text>
+
+  <rect class="panel" x="580" y="105" width="500" height="475" rx="12"/>
+  <text class="label" x="610" y="138" font-weight="700">Google FTS XML：3 轮均值下的 MPI 并行扩展</text>
+  <text class="small" x="610" y="160">np 包含 master；np=16 表示 15 个 SymCC worker</text>
+
+  <line class="axis" x1="650" y1="500" x2="1035" y2="500"/>
+  <line class="axis" x1="650" y1="190" x2="650" y2="500"/>
+  <line class="grid" x1="650" y1="428" x2="1035" y2="428"/>
+  <line class="grid" x1="650" y1="356" x2="1035" y2="356"/>
+  <line class="grid" x1="650" y1="284" x2="1035" y2="284"/>
+  <line class="grid" x1="650" y1="212" x2="1035" y2="212"/>
+  <text class="small" x="623" y="505">0%</text>
+  <text class="small" x="617" y="433">2%</text>
+  <text class="small" x="617" y="361">4%</text>
+  <text class="small" x="617" y="289">6%</text>
+  <text class="small" x="617" y="217">8%</text>
+
+  <rect class="seed" x="690" y="337" width="48" height="163" rx="5"/>
+  <text class="value" x="684" y="326">4.54%</text>
+  <text class="label" x="690" y="526">seed</text>
+
+  <rect class="mpi2" x="765" y="280" width="48" height="220" rx="5"/>
+  <text class="value" x="759" y="269">6.11%</text>
+  <text class="label" x="764" y="526">np=2</text>
+
+  <rect class="mpi4" x="840" y="276" width="48" height="224" rx="5"/>
+  <text class="value" x="834" y="265">6.21%</text>
+  <text class="label" x="839" y="526">np=4</text>
+
+  <rect class="mpi8" x="915" y="273" width="48" height="227" rx="5"/>
+  <text class="value" x="909" y="262">6.31%</text>
+  <text class="label" x="914" y="526">np=8</text>
+
+  <rect class="mpi16" x="990" y="257" width="48" height="243" rx="5"/>
+  <text class="value" x="984" y="246">6.76%</text>
+  <text class="label" x="984" y="526">np=16</text>
+
+  <text class="note" x="610" y="560">np=16 vs seed: +2.22pp / +49.0% relative；np=16 vs np=2: +331 edges。</text>
+  <text class="note" x="48" y="625">数据目录：benchmark/evidence/public-suite-screen-2026-08-19 与 benchmark/evidence/public-xml-parallel-r3-2026-08-19</text>
+</svg>

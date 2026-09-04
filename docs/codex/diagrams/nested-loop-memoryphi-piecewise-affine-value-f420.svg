@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">F420 guard-specialized piecewise-affine writer value summary</title>
+  <desc id="desc">Finite nested-loop instances specialize a direct induction guard, select one affine value arm, emit a proof-carrying byte witness, and are independently reconstructed before concrete execution.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#334155"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .title { font: 700 33px "WenQuanYi Zen Hei", sans-serif; fill: #ffffff; }
+      .subtitle { font: 400 18px "WenQuanYi Zen Hei", sans-serif; fill: #cbd5e1; }
+      .h { font: 700 21px "WenQuanYi Zen Hei", sans-serif; fill: #0f172a; }
+      .t { font: 400 16px "WenQuanYi Zen Hei", sans-serif; fill: #1e293b; }
+      .s { font: 400 14px "WenQuanYi Zen Hei", sans-serif; fill: #475569; }
+      .mono { font: 600 15px "WenQuanYi Zen Hei Mono", monospace; fill: #172554; }
+      .white { fill: #ffffff; }
+      .arrow { stroke: #334155; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .dash { stroke: #64748b; stroke-width: 2; stroke-dasharray: 8 7; fill: none; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1000" fill="#f8fafc"/>
+  <rect x="0" y="0" width="1600" height="96" fill="#111827"/>
+  <text x="68" y="51" class="title">F420  Guard-Specialized Piecewise-Affine Value Summary</text>
+  <text x="68" y="79" class="subtitle">有限二维迭代域内求值 guard，选择仿射臂，并生成可独立复算的 byte-lane last-write 证明</text>
+
+  <rect x="48" y="132" width="345" height="270" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="2" filter="url(#shadow)"/>
+  <circle cx="84" cy="169" r="18" fill="#2563eb"/>
+  <text x="78" y="176" class="h white">1</text>
+  <text x="115" y="176" class="h">复用 F418/F419 证明域</text>
+  <text x="76" y="216" class="t">两层 natural loop + 双 recurrence</text>
+  <text x="76" y="248" class="t">二维 affine 地址与有限 instance closure</text>
+  <text x="76" y="280" class="t">ordered stores / alias / object / byte width</text>
+  <rect x="76" y="316" width="289" height="58" rx="4" fill="#ffffff" stroke="#93c5fd"/>
+  <text x="92" y="340" class="mono">A(o,i)=B+p(c+ao*o+ai*i)</text>
+  <text x="92" y="363" class="s">最多 64 x 64，乘积最多 256 instances</text>
+
+  <rect x="438" y="132" width="655" height="270" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="2" filter="url(#shadow)"/>
+  <circle cx="474" cy="169" r="18" fill="#059669"/>
+  <text x="468" y="176" class="h white">2</text>
+  <text x="505" y="176" class="h">直接 guard + 两条 affine bit-vector 臂</text>
+  <rect x="470" y="204" width="591" height="48" rx="4" fill="#ffffff" stroke="#6ee7b7"/>
+  <text x="492" y="234" class="mono">g(o,i) := icmp P (outer|inner), C</text>
+  <rect x="470" y="268" width="278" height="72" rx="4" fill="#dcfce7" stroke="#22c55e"/>
+  <text x="490" y="294" class="s">guard = true</text>
+  <text x="490" y="322" class="mono">Vt=c+t_o*o+t_i*i+t_x*x</text>
+  <rect x="783" y="268" width="278" height="72" rx="4" fill="#ffedd5" stroke="#f97316"/>
+  <text x="803" y="294" class="s">guard = false</text>
+  <text x="803" y="322" class="mono">Vf=d+f_o*o+f_i*i+f_x*x</text>
+  <text x="470" y="375" class="s">P in {eq,ne,ugt,uge,ult,ule}；结果和值均遵循 LLVM 固定位宽语义</text>
+
+  <rect x="1138" y="132" width="414" height="270" rx="6" fill="#fef3c7" stroke="#ca8a04" stroke-width="2" filter="url(#shadow)"/>
+  <circle cx="1174" cy="169" r="18" fill="#ca8a04"/>
+  <text x="1168" y="176" class="h white">3</text>
+  <text x="1205" y="176" class="h">逐 instance 专门化</text>
+  <text x="1167" y="216" class="t">对每个 (o_k, i_k) 静态求 g_k</text>
+  <text x="1167" y="248" class="t">只选择 Vt 或 Vf，不把 select 留给消费端猜测</text>
+  <rect x="1167" y="276" width="356" height="98" rx="4" fill="#ffffff" stroke="#fcd34d"/>
+  <text x="1187" y="302" class="mono">g_k = true  -&gt;  arm=true</text>
+  <text x="1187" y="329" class="mono">C_k = c + t_o*o_k + t_i*i_k</text>
+  <text x="1187" y="356" class="mono">byte = extract(C_k + t_x*x)</text>
+
+  <path d="M393 267 L428 267" class="arrow"/>
+  <path d="M1093 267 L1128 267" class="arrow"/>
+
+  <rect x="155" y="462" width="1290" height="205" rx="6" fill="#ffffff" stroke="#7c3aed" stroke-width="3" filter="url(#shadow)"/>
+  <text x="190" y="505" class="h" fill="#6d28d9">v10 proof-carrying certificate</text>
+  <line x1="190" y1="523" x2="1410" y2="523" stroke="#ddd6fe" stroke-width="2"/>
+  <text x="195" y="558" class="t">writer.stored_value</text>
+  <text x="195" y="586" class="mono">piecewise { guard, when_true, when_false, modulo-2^bits }</text>
+  <text x="820" y="558" class="t">last_write_case.value_byte_expression</text>
+  <text x="820" y="586" class="mono">guard-specialized { result, selected_arm, affine-byte }</text>
+  <text x="195" y="628" class="s">case order：outer desc -&gt; inner desc -&gt; writer ordinal desc；常量 overlay 可与 piecewise writer 混合</text>
+  <text x="1115" y="628" class="s" fill="#6d28d9">v6 -&gt; v7 -&gt; v8 -&gt; v9 -&gt; v10 能力闭包</text>
+
+  <path d="M765 402 L765 452" class="arrow"/>
+  <path d="M1345 402 L1345 452" class="arrow"/>
+
+  <rect x="48" y="728" width="690" height="205" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="2" filter="url(#shadow)"/>
+  <circle cx="84" cy="765" r="18" fill="#dc2626"/>
+  <text x="78" y="772" class="h white">4</text>
+  <text x="115" y="772" class="h">strict consumer 独立重建</text>
+  <text x="76" y="813" class="t">从 lowered CFG 复查 icmp/select 顺序、operand 和真实 store</text>
+  <text x="76" y="845" class="t">重算两臂系数、入口 ABI、模等价、guard 结果和端序 byte</text>
+  <text x="76" y="877" class="t">schema、父能力、use-point、witness 任一不一致即执行前拒绝</text>
+  <text x="76" y="907" class="s" fill="#b91c1c">signed/input-dependent guard、不同输入、等价臂、nuw/nsw：fail closed</text>
+
+  <rect x="862" y="728" width="690" height="205" rx="6" fill="#e2e8f0" stroke="#475569" stroke-width="2" filter="url(#shadow)"/>
+  <circle cx="898" cy="765" r="18" fill="#475569"/>
+  <text x="892" y="772" class="h white">5</text>
+  <text x="929" y="772" class="h">runtime 权威边界</text>
+  <text x="890" y="813" class="t">当前仍执行真实 outer/inner loop、icmp、select 和 store</text>
+  <text x="890" y="845" class="t">path-local byte-init bitmap 裁决具体输入下的 definedness</text>
+  <text x="890" y="877" class="t">证书用于可审计分析，不替代循环，也不宣称 coverage 或速度提升</text>
+  <text x="890" y="907" class="s">后续 loop transformer 必须另建 refinement proof 与端到端消融</text>
+
+  <path d="M530 667 L390 718" class="arrow"/>
+  <path d="M1070 667 L1210 718" class="arrow"/>
+  <path d="M738 830 L852 830" class="arrow"/>
+  <path d="M1210 933 C1210 970 390 970 390 943" class="dash"/>
+  <text x="646" y="988" class="s">concrete execution feedback + differential oracle + mutation rejection</text>
+</svg>

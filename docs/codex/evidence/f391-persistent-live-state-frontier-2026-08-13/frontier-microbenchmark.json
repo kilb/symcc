@@ -1,0 +1,40 @@
+{
+  "clock": "time.perf_counter_ns",
+  "durability": "file-fsync+directory-fsync",
+  "rows": [
+    {
+      "abandon_ms": 5.637,
+      "bytes": 889,
+      "claim_ms": 6.323,
+      "snapshot_median_ms": 0.044,
+      "snapshot_p95_ms": 0.1,
+      "states": 2
+    },
+    {
+      "abandon_ms": 5.026,
+      "bytes": 7522,
+      "claim_ms": 5.111,
+      "snapshot_median_ms": 0.176,
+      "snapshot_p95_ms": 0.353,
+      "states": 101
+    },
+    {
+      "abandon_ms": 7.616,
+      "bytes": 67822,
+      "claim_ms": 8.657,
+      "snapshot_median_ms": 1.324,
+      "snapshot_p95_ms": 1.619,
+      "states": 1001
+    },
+    {
+      "abandon_ms": 17.132,
+      "bytes": 335822,
+      "claim_ms": 19.082,
+      "snapshot_median_ms": 5.984,
+      "snapshot_p95_ms": 7.184,
+      "states": 5001
+    }
+  ],
+  "samples": 31,
+  "schema": "symcc-f391-frontier-microbenchmark-v1"
+}

@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080" role="img" aria-labelledby="title desc">
+  <title id="title">F360 capability-closed Python CI gate</title>
+  <desc id="desc">The CI environment is constructed explicitly, preflighted for required capabilities, observed through pytest hooks, checked against zero-degradation limits, and recorded as an atomic JSON artifact.</desc>
+  <defs>
+    <filter id="shadow" x="-12%" y="-12%" width="124%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#18364a" flood-opacity="0.14"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#28748a"/>
+    </marker>
+    <style>
+      .title { font: 700 44px 'WenQuanYi Zen Hei', sans-serif; fill: #18364a; }
+      .subtitle { font: 400 22px 'WenQuanYi Zen Hei', sans-serif; fill: #536b78; }
+      .step { font: 700 23px 'WenQuanYi Zen Hei', sans-serif; fill: #18364a; }
+      .body { font: 400 18px 'WenQuanYi Zen Hei', sans-serif; fill: #314f5f; }
+      .small { font: 400 16px 'WenQuanYi Zen Hei', sans-serif; fill: #536b78; }
+      .mono { font: 700 17px 'WenQuanYi Zen Hei Mono', monospace; fill: #18364a; }
+      .white { fill: #ffffff; }
+      .metric { font: 700 22px 'WenQuanYi Zen Hei', sans-serif; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1080" fill="#f6f9fa"/>
+  <rect x="0" y="0" width="1600" height="14" fill="#28748a"/>
+  <text x="86" y="78" class="title">F360 · Capability-Closed Python CI Gate</text>
+  <text x="86" y="118" class="subtitle">环境完整性 → 测试发现完整性 → 结果完整性 → 可审计制品</text>
+
+  <rect x="80" y="162" width="270" height="250" rx="8" fill="#ffffff" stroke="#9bb3bd" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="80" y="162" width="270" height="58" rx="8" fill="#18364a"/>
+  <rect x="80" y="207" width="270" height="13" fill="#18364a"/>
+  <circle cx="115" cy="191" r="18" fill="#ffffff" opacity="0.2"/>
+  <text x="109" y="198" class="metric">1</text>
+  <text x="148" y="199" class="metric">构造环境</text>
+  <text x="108" y="260" class="body">Checkout + submodules</text>
+  <text x="108" y="294" class="body">Python 3.12 + pip deps</text>
+  <text x="108" y="328" class="body">AFL++ / LLVM / MPI</text>
+  <text x="108" y="362" class="body">Pinned Bitwuzla 0.9.1</text>
+  <rect x="108" y="378" width="214" height="20" rx="4" fill="#e7eef1"/>
+
+  <path d="M350 287 H405" fill="none" stroke="#28748a" stroke-width="5" marker-end="url(#arrow)"/>
+
+  <rect x="420" y="162" width="270" height="250" rx="8" fill="#ffffff" stroke="#6ea9a3" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="420" y="162" width="270" height="58" rx="8" fill="#287a70"/>
+  <rect x="420" y="207" width="270" height="13" fill="#287a70"/>
+  <circle cx="455" cy="191" r="18" fill="#ffffff" opacity="0.2"/>
+  <text x="449" y="198" class="metric">2</text>
+  <text x="488" y="199" class="metric">能力前检</text>
+  <text x="448" y="260" class="body">10 executable commands</text>
+  <text x="448" y="294" class="body">5 Python modules</text>
+  <text x="448" y="328" class="body">1 dynamic library</text>
+  <rect x="448" y="354" width="214" height="44" rx="5" fill="#e3f1ed"/>
+  <text x="476" y="382" class="mono">missing = 0</text>
+
+  <path d="M690 287 H745" fill="none" stroke="#28748a" stroke-width="5" marker-end="url(#arrow)"/>
+
+  <rect x="760" y="162" width="270" height="250" rx="8" fill="#ffffff" stroke="#d39a58" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="760" y="162" width="270" height="58" rx="8" fill="#b66b28"/>
+  <rect x="760" y="207" width="270" height="13" fill="#b66b28"/>
+  <circle cx="795" cy="191" r="18" fill="#ffffff" opacity="0.2"/>
+  <text x="789" y="198" class="metric">3</text>
+  <text x="828" y="199" class="metric">执行与观测</text>
+  <text x="788" y="260" class="body">Root pytest discovery</text>
+  <text x="788" y="294" class="body">Public pytest hooks</text>
+  <text x="788" y="328" class="body">Tests + subtests</text>
+  <rect x="788" y="354" width="214" height="44" rx="5" fill="#f8eadb"/>
+  <text x="815" y="382" class="mono">784 + 125 pass</text>
+
+  <path d="M1030 287 H1085" fill="none" stroke="#28748a" stroke-width="5" marker-end="url(#arrow)"/>
+
+  <rect x="1100" y="162" width="420" height="250" rx="8" fill="#ffffff" stroke="#8c78a8" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1100" y="162" width="420" height="58" rx="8" fill="#66507f"/>
+  <rect x="1100" y="207" width="420" height="13" fill="#66507f"/>
+  <circle cx="1135" cy="191" r="18" fill="#ffffff" opacity="0.2"/>
+  <text x="1129" y="198" class="metric">4</text>
+  <text x="1168" y="199" class="metric">零降级准入</text>
+  <text x="1128" y="260" class="body">collected ≥ historical floor 778</text>
+  <text x="1128" y="294" class="body">skip / xfail / xpass = 0</text>
+  <text x="1128" y="328" class="body">deselected / collection error = 0</text>
+  <rect x="1128" y="354" width="364" height="44" rx="5" fill="#eee9f3"/>
+  <text x="1197" y="382" class="mono">gate.passed = true</text>
+
+  <path d="M1310 412 V472" fill="none" stroke="#28748a" stroke-width="5" marker-end="url(#arrow)"/>
+
+  <rect x="80" y="490" width="1440" height="188" rx="8" fill="#ffffff" stroke="#9bb3bd" stroke-width="2" filter="url(#shadow)"/>
+  <text x="116" y="536" class="step">原子证据提交</text>
+  <text x="116" y="570" class="body">临时 JSON → os.replace → python-test-gate.json → upload-artifact (always)</text>
+  <rect x="116" y="600" width="416" height="48" rx="5" fill="#e4f1f3"/>
+  <text x="142" y="630" class="mono">schema: symcc-python-test-gate-v1</text>
+  <rect x="566" y="600" width="278" height="48" rx="5" fill="#e3f1ed"/>
+  <text x="604" y="630" class="mono">exit 0 · PASS</text>
+  <rect x="878" y="600" width="278" height="48" rx="5" fill="#fff0df"/>
+  <text x="913" y="630" class="mono">exit 1 · degraded</text>
+  <rect x="1190" y="600" width="294" height="48" rx="5" fill="#f7e5e5"/>
+  <text x="1225" y="630" class="mono">exit 2 · capability</text>
+
+  <rect x="80" y="730" width="450" height="250" rx="8" fill="#18364a"/>
+  <text x="116" y="778" class="metric">环境完整性</text>
+  <line x1="116" y1="795" x2="494" y2="795" stroke="#668393" stroke-width="2"/>
+  <text x="116" y="836" class="body white">缺少 solver / AFL / MPI / parser</text>
+  <text x="116" y="870" class="body white">在 pytest 前失败，不接受条件跳过</text>
+  <text x="116" y="925" class="small" style="fill:#c8d8df">能力路径和缺失项进入 JSON</text>
+
+  <rect x="575" y="730" width="450" height="250" rx="8" fill="#287a70"/>
+  <text x="611" y="778" class="metric">结果完整性</text>
+  <line x1="611" y1="795" x2="989" y2="795" stroke="#80b7ad" stroke-width="2"/>
+  <text x="611" y="836" class="body white">普通测试与重复-label subtest</text>
+  <text x="611" y="870" class="body white">均按真实 hook 事件独立计数</text>
+  <text x="611" y="925" class="small" style="fill:#d2e7e1">终端 125 = JSON 125</text>
+
+  <rect x="1070" y="730" width="450" height="250" rx="8" fill="#66507f"/>
+  <text x="1106" y="778" class="metric">结论边界</text>
+  <line x1="1106" y1="795" x2="1484" y2="795" stroke="#9d8caf" stroke-width="2"/>
+  <text x="1106" y="836" class="body white">本地等价门禁 + actionlint</text>
+  <text x="1106" y="870" class="body white">≠ GitHub 托管 runner 已通过</text>
+  <text x="1106" y="925" class="small" style="fill:#ddd5e5">不提供性能、覆盖或 SOTA 提升结论</text>
+
+  <text x="82" y="1042" class="small">Evidence: full gate JSON · clean venv · negative contracts · actionlint · SHA-256 manifest</text>
+</svg>

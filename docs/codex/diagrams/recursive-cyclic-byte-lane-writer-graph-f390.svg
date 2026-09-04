@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1067" viewBox="0 0 1440 960">
+  <defs>
+    <style>
+      .title{font:700 34px 'WenQuanYi Zen Hei','Unifont',sans-serif;fill:#f8fafc}
+      .sub{font:400 18px 'WenQuanYi Zen Hei','Unifont',sans-serif;fill:#cbd5e1}
+      .h{font:700 20px 'WenQuanYi Zen Hei','Unifont',sans-serif;fill:#17212b}
+      .t{font:500 16px 'WenQuanYi Zen Hei','Unifont',sans-serif;fill:#334155}
+      .s{font:400 14px 'WenQuanYi Zen Hei','Unifont',sans-serif;fill:#475569}
+      .light{fill:#f8fafc}.edge{stroke:#64748b;stroke-width:3;fill:none}.proof{stroke:#0f766e;stroke-width:5;fill:none}.carry{stroke:#2563eb;stroke-width:4;fill:none;stroke-dasharray:10 8}
+    </style>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="10" refY="5.5" orient="auto"><path d="M0,0 L11,5.5 L0,11 z" fill="#64748b"/></marker>
+    <marker id="proofArrow" markerWidth="11" markerHeight="11" refX="10" refY="5.5" orient="auto"><path d="M0,0 L11,5.5 L0,11 z" fill="#0f766e"/></marker>
+    <marker id="carryArrow" markerWidth="11" markerHeight="11" refX="10" refY="5.5" orient="auto"><path d="M0,0 L11,5.5 L0,11 z" fill="#2563eb"/></marker>
+    <filter id="shadow"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-opacity=".16"/></filter>
+  </defs>
+  <rect width="1440" height="960" fill="#f8fafc"/>
+  <rect width="1440" height="122" fill="#17212b"/>
+  <text x="70" y="57" class="title">F390 递归条件树的 Proof-Carrying Last-Writer Graph</text>
+  <text x="70" y="91" class="sub">父分支由验证器重建；seed、join-prefix 与每条 leaf path 分域重放</text>
+
+  <rect x="55" y="155" width="920" height="680" rx="8" fill="#ffffff" stroke="#cbd5e1" filter="url(#shadow)"/>
+  <text x="85" y="195" class="h">经验证的递归二叉树（direct / forwarded）</text>
+
+  <rect x="405" y="225" width="220" height="66" rx="7" fill="#dbeafe" stroke="#2563eb"/>
+  <text x="515" y="252" text-anchor="middle" class="h">Root branch B0</text><text x="515" y="275" text-anchor="middle" class="s">depth 0</text>
+  <rect x="610" y="355" width="220" height="66" rx="7" fill="#dbeafe" stroke="#2563eb"/>
+  <text x="720" y="382" text-anchor="middle" class="h">Branch B1</text><text x="720" y="405" text-anchor="middle" class="s">depth 1</text>
+  <rect x="710" y="490" width="220" height="66" rx="7" fill="#dbeafe" stroke="#2563eb"/>
+  <text x="820" y="517" text-anchor="middle" class="h">Branch B2</text><text x="820" y="540" text-anchor="middle" class="s">depth 2</text>
+
+  <rect x="105" y="355" width="235" height="88" rx="7" fill="#dcfce7" stroke="#15803d"/>
+  <text x="222" y="383" text-anchor="middle" class="h">Leaf L0 · store lane 0</text><text x="222" y="408" text-anchor="middle" class="s">boundary P(L0)=B0</text><text x="222" y="429" text-anchor="middle" class="s">poison identity bound</text>
+  <rect x="365" y="490" width="235" height="88" rx="7" fill="#dcfce7" stroke="#15803d"/>
+  <text x="482" y="518" text-anchor="middle" class="h">Leaf L1 · store lane 1</text><text x="482" y="543" text-anchor="middle" class="s">boundary P(L1)=B1</text><text x="482" y="564" text-anchor="middle" class="s">poison identity bound</text>
+  <rect x="555" y="625" width="235" height="88" rx="7" fill="#dcfce7" stroke="#15803d"/>
+  <text x="672" y="653" text-anchor="middle" class="h">Leaf L2 · store lane 0</text><text x="672" y="678" text-anchor="middle" class="s">boundary P(L2)=B2</text><text x="672" y="699" text-anchor="middle" class="s">poison identity bound</text>
+  <rect x="815" y="625" width="125" height="88" rx="7" fill="#eff6ff" stroke="#2563eb"/>
+  <text x="877" y="654" text-anchor="middle" class="h">Leaf L3</text><text x="877" y="678" text-anchor="middle" class="s">pure carry</text><text x="877" y="699" text-anchor="middle" class="s">P(L3)=B2</text>
+
+  <path d="M440 291 L285 355" class="edge" marker-end="url(#arrow)"/><path d="M585 291 L675 355" class="edge" marker-end="url(#arrow)"/>
+  <path d="M665 421 L545 490" class="edge" marker-end="url(#arrow)"/><path d="M765 421 L800 490" class="edge" marker-end="url(#arrow)"/>
+  <path d="M780 556 L710 625" class="edge" marker-end="url(#arrow)"/><path d="M855 556 L875 625" class="edge" marker-end="url(#arrow)"/>
+
+  <rect x="290" y="755" width="470" height="52" rx="7" fill="#f1f5f9" stroke="#94a3b8"/>
+  <text x="525" y="787" text-anchor="middle" class="h">Join J · 4 leaf edges（只做 lane transfer）</text>
+  <path d="M222 443 C220 630 310 720 390 755" class="proof" marker-end="url(#proofArrow)"/>
+  <path d="M482 578 C480 665 455 715 465 755" class="proof" marker-end="url(#proofArrow)"/>
+  <path d="M672 713 L610 755" class="proof" marker-end="url(#proofArrow)"/>
+  <path d="M877 713 L690 755" class="carry" marker-end="url(#carryArrow)"/>
+
+  <rect x="1005" y="155" width="380" height="680" rx="8" fill="#ffffff" stroke="#cbd5e1" filter="url(#shadow)"/>
+  <text x="1035" y="195" class="h">组合证明与失败关闭</text>
+  <rect x="1035" y="225" width="320" height="100" rx="7" fill="#ecfeff" stroke="#0f766e"/>
+  <text x="1058" y="256" class="h">1 · Seed proof</text><text x="1058" y="283" class="t">初始 endpoint → merge load</text><text x="1058" y="307" class="s">store ID / address / byte offset / width</text>
+  <rect x="1035" y="345" width="320" height="100" rx="7" fill="#eff6ff" stroke="#2563eb"/>
+  <text x="1058" y="376" class="h">2 · Join-prefix proof</text><text x="1058" y="403" class="t">merge edge → Join J</text><text x="1058" y="427" class="s">remaining lanes 必须全部为 carry</text>
+  <rect x="1035" y="465" width="320" height="125" rx="7" fill="#ecfdf5" stroke="#15803d"/>
+  <text x="1058" y="496" class="h">3 · Parent-bounded leaf proof</text><text x="1058" y="523" class="t">leaf edge → reconstructed P(L)</text><text x="1058" y="547" class="s">首个覆盖写精确匹配；不跨兄弟子树</text><text x="1058" y="571" class="s">corridor ≤16 blocks；writer path ≤64</text>
+  <rect x="1035" y="615" width="320" height="170" rx="7" fill="#fff7ed" stroke="#b45309"/>
+  <text x="1058" y="646" class="h">保守边界</text><text x="1058" y="675" class="t">覆盖 · base recursive / forwarded</text><text x="1058" y="701" class="t">排除 · grouped / repeated / multicarry</text><text x="1058" y="727" class="t">排除 · symbolic pointer / general SCC</text><text x="1058" y="753" class="t">排除 · concurrent MemorySSA / performance claim</text>
+
+  <rect x="55" y="865" width="1330" height="55" rx="7" fill="#17212b"/>
+  <text x="720" y="900" text-anchor="middle" class="light" style="font:600 17px 'WenQuanYi Zen Hei','Unifont',sans-serif">核心不变量：source=store ⇒ first covering writer 精确一致；source=carry ⇒ 到达直接父分支前不存在覆盖写</text>
+</svg>

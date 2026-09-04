@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="820" viewBox="0 0 1500 820" role="img" aria-labelledby="title desc">
+  <title id="title">F457 AFL and SymCC global coverage convergence</title>
+  <desc id="desc">AFL queue coverage is replayed into the master union bitmap, distributed to workers, batch claimed across coordinators, and drained before benchmark shutdown.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+    </marker>
+    <style>
+      .title{font:700 30px Arial,sans-serif;fill:#111827}.sub{font:16px Arial,sans-serif;fill:#475569}
+      .lane{fill:#f8fafc;stroke:#cbd5e1;stroke-width:2}.box{fill:#fff;stroke:#64748b;stroke-width:2}
+      .afl{fill:#ecfdf5;stroke:#059669}.master{fill:#eff6ff;stroke:#2563eb}.worker{fill:#fff7ed;stroke:#ea580c}
+      .owner{fill:#f5f3ff;stroke:#7c3aed}.bench{fill:#fefce8;stroke:#ca8a04}
+      .h{font:700 18px Arial,sans-serif;fill:#0f172a}.t{font:15px Arial,sans-serif;fill:#334155}.small{font:13px Arial,sans-serif;fill:#475569}
+      .flow{fill:none;stroke:#334155;stroke-width:3;marker-end:url(#arrow)}.feedback{fill:none;stroke:#059669;stroke-width:3;stroke-dasharray:9 7;marker-end:url(#arrow)}
+      .num{fill:#0f172a}.numt{font:700 14px Arial,sans-serif;fill:#fff;text-anchor:middle;dominant-baseline:middle}
+    </style>
+  </defs>
+  <rect width="1500" height="820" fill="#ffffff"/>
+  <text x="60" y="54" class="title">F457: global coverage convergence and parallel conversion</text>
+  <text x="60" y="82" class="sub">One novelty definition, bounded state propagation, batched ownership, and measurable shutdown completeness</text>
+
+  <rect x="45" y="110" width="1410" height="125" rx="6" class="lane"/>
+  <rect x="45" y="255" width="1410" height="180" rx="6" class="lane"/>
+  <rect x="45" y="455" width="1410" height="145" rx="6" class="lane"/>
+  <rect x="45" y="620" width="1410" height="145" rx="6" class="lane"/>
+  <text x="65" y="138" class="h">AFL++ campaign</text>
+  <text x="65" y="283" class="h">SymCC master and coverage authority</text>
+  <text x="65" y="483" class="h">Parallel workers</text>
+  <text x="65" y="648" class="h">Experiment boundary and evidence</text>
+
+  <rect x="220" y="135" width="255" height="72" rx="6" class="box afl"/>
+  <text x="242" y="165" class="h">AFL queue</text><text x="242" y="190" class="t">monotonic IDs + concrete inputs</text>
+  <rect x="610" y="135" width="280" height="72" rx="6" class="box afl"/>
+  <text x="632" y="165" class="h">AFL concrete replay</text><text x="632" y="190" class="t">edge and hit-count features</text>
+  <rect x="1040" y="135" width="300" height="72" rx="6" class="box afl"/>
+  <text x="1062" y="165" class="h">Native peer import</text><text x="1062" y="190" class="t">.synced/symcc01 cursor</text>
+
+  <rect x="185" y="310" width="285" height="88" rx="6" class="box master"/>
+  <text x="207" y="340" class="h">AFL coverage bridge</text><text x="207" y="365" class="t">full startup baseline</text><text x="207" y="386" class="small">incremental ingest + retry ledger</text>
+  <rect x="590" y="310" width="300" height="88" rx="6" class="box master"/>
+  <text x="612" y="340" class="h">Union coverage bitmap</text><text x="612" y="365" class="t">AFL-known OR SymCC-new</text><text x="612" y="386" class="small">single corpus novelty definition</text>
+  <rect x="1010" y="310" width="330" height="88" rx="6" class="box owner"/>
+  <text x="1032" y="340" class="h">Durable triage + owner shards</text><text x="1032" y="365" class="t">queue first, then ordered claim_many</text><text x="1032" y="386" class="small">multi-master: one write per touched shard/batch</text>
+
+  <rect x="170" y="505" width="315" height="65" rx="6" class="box worker"/>
+  <text x="192" y="534" class="h">Worker 1 ... N</text><text x="192" y="557" class="t">MPI full/delta at dispatch</text>
+  <rect x="605" y="505" width="315" height="65" rx="6" class="box worker"/>
+  <text x="627" y="534" class="h">Concolic execution</text><text x="627" y="557" class="t">independent symbolic tasks</text>
+  <rect x="1040" y="505" width="315" height="65" rx="6" class="box worker"/>
+  <text x="1062" y="534" class="h">Pre-triage refresh</text><text x="1062" y="557" class="t">atomic shared coverage snapshot</text>
+
+  <rect x="190" y="675" width="320" height="62" rx="6" class="box bench"/>
+  <text x="212" y="703" class="h">Freeze producers</text><text x="212" y="725" class="t">campaign clock stops here</text>
+  <rect x="610" y="675" width="310" height="62" rx="6" class="box bench"/>
+  <text x="632" y="703" class="h">Bounded AFL drain</text><text x="632" y="725" class="t">published vs cursor progress</text>
+  <rect x="1020" y="675" width="335" height="62" rx="6" class="box bench"/>
+  <text x="1042" y="703" class="h">Final evidence</text><text x="1042" y="725" class="t">sync completeness + cleanup time</text>
+
+  <path d="M475 171 H610" class="flow"/><path d="M750 207 V245 H510 V380 H470" class="flow"/>
+  <path d="M470 354 H590" class="flow"/><path d="M1010 354 H890" class="feedback"/>
+  <path d="M740 398 V470 H330 V505" class="flow"/><path d="M485 538 H605" class="flow"/><path d="M920 538 H1040" class="flow"/>
+  <path d="M740 398 V430 H1040 V505" class="feedback"/>
+  <path d="M1355 538 H1390 V430 H1175 V398" class="flow"/>
+  <text x="1210" y="422" class="small">candidate + bitmap</text>
+  <path d="M1175 310 V245 H1190 V207" class="feedback"/>
+  <path d="M510 706 H610" class="flow"/><path d="M920 706 H1020" class="flow"/>
+
+  <g><circle cx="505" cy="157" r="13" class="num"/><text x="505" y="157" class="numt">1</text></g>
+  <g><circle cx="505" cy="340" r="13" class="num"/><text x="505" y="340" class="numt">2</text></g>
+  <g><circle cx="945" cy="340" r="13" class="num"/><text x="945" y="340" class="numt">3</text></g>
+  <g><circle cx="965" cy="524" r="13" class="num"/><text x="965" y="524" class="numt">4</text></g>
+  <g><circle cx="560" cy="692" r="13" class="num"/><text x="560" y="692" class="numt">5</text></g>
+</svg>

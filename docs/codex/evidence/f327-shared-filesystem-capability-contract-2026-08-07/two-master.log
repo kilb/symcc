@@ -1,0 +1,28 @@
+SymCC MPI Parallel Concolic Execution
+  Processes:     8
+  Mode:          multi-master (2 masters, auto-scaled at 3 workers/master)
+    Master 0: 3 workers
+    Master 1: 3 workers
+  Shared dir:    /tmp/symcc-f327-mpi-o9p4shvj/two-master
+  Input dir:     /tmp/symcc-f327-mpi-o9p4shvj/input
+  Target:        /bin/true
+  Timeout:       1s per execution
+  Work epoch:    fbe63fc808144913021cac57453e36c1e423a7538b8c23159ddf9be4d5438e14 (new)
+
+[Master] Imported 2 initial inputs from /tmp/symcc-f327-mpi-o9p4shvj/input
+[Master] Using 2 master(s), 3 workers in this group
+[Master] Durable work ownership: rendezvous + 64 fenced shards, lease=120s
+[Master] Shared filesystem capabilities: {'schema': 'symcc-shared-filesystem-capabilities-v1', 'root': '/tmp/symcc-f327-mpi-o9p4shvj/two-master/.standalone-work-fbe63fc808144913021cac57453e36c1e423a7538b8c23159ddf9be4d5438e14', 'publication_root': '/tmp/symcc-f327-mpi-o9p4shvj/two-master', 'device': 92, 'filesystem_id': 18395215968828387670, 'publication_device': 92, 'publication_filesystem_id': 18395215968828387670, 'filesystem_type': 'overlay', 'mount_point': '/', 'mount_source': 'overlay', 'distributed_filesystem': False, 'cluster_lock_verified': False, 'probe_scope': 'same-host-subprocess-v1', 'file_fsync': True, 'directory_fsync': True, 'same_directory_replace': True, 'cross_directory_replace': True, 'publication_replace': True, 'hard_link': True, 'durable_unlink': True, 'advisory_lock_exclusion': True, 'advisory_lock_release': True}
+[Master] Global quiescence commit proposed after 1.055s (limit 1s).
+[Master 1] Worker shutdown: acked=3/3 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+[Master] Global quiescence committed by all masters.
+[Master 0] Worker shutdown: acked=3/3 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+
+[Master] === Final Statistics ===
+[Master] Total analysis observations:       2
+[Master] Total test cases generated:  0
+[Master] New interesting test cases:  0
+[Master] Throughput:                  0.0 tc/s
+[Master] Masters used:               2
+[Master] Workers used:               6
+[Master] Analysis by master:         0=2, 1=0

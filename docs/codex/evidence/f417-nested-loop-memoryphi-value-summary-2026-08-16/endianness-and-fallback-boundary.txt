@@ -1,0 +1,7 @@
+big_endian_program=big
+big_endian_schema=symcc-loop-memoryphi-byte-lane-induction-v7
+big_endian_i16_bytes=18,52
+big_endian_value_semantics=big
+non_byte_schema=symcc-llvm-continuation-lowering-v1
+non_byte_status=rejected
+non_byte_diagnostic=nested_non_byte_constant_fallback_i1:exit: stack load lacks a dominating full-width initializing store [load]

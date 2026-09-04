@@ -1,0 +1,50 @@
+{
+  "all_checks_passed": true,
+  "checks": {
+    "content_resend_repairs_cache": true,
+    "contentless_reuse_verified": true,
+    "corruption_rejected_and_ack_evicted": true,
+    "first_queue_snapshot_exact": true,
+    "first_transfer_and_ack_exact": true,
+    "oversized_and_symlink_inputs_rejected": true,
+    "path_mode_is_digest_fenced": true,
+    "replacement_invalidates_queue_score": true,
+    "rescored_master_admission_exact": true,
+    "self_contained_continuation_uses_checkpoint_identity": true,
+    "top_k_score_fence_survives_cache_eviction": true
+  },
+  "configuration": {
+    "input_limit_bytes": 64,
+    "object_transport_modes": [
+      "content-object",
+      "path-digest"
+    ],
+    "small_limit_bytes": 4,
+    "source": "real regular files on a temporary local filesystem"
+  },
+  "observations": {
+    "admitted_object_id": "a78d986a5010b4f0a1390092180a3282c448619ad4a2833be5688524f98efada",
+    "continuation_dispatch_identity": "2cf497146993db3cdbf58cfc77e416ec6de27d9cc5caeec1a29122ee5dc45822",
+    "corruption_rejected": true,
+    "first_sha256": "cb8f3a160bdac8da0606d2dd85d50284f5034f935846cd5746cda83d61574ebe",
+    "oversized_rejected": true,
+    "path_replacement_rejected": true,
+    "replacement_rejected": true,
+    "second_sha256": "a78d986a5010b4f0a1390092180a3282c448619ad4a2833be5688524f98efada",
+    "selected_replacement_rejected": true,
+    "symlink_rejected": true,
+    "top_k_cache_names": [
+      "id:000003,+cov,orig:ranked",
+      "id:000005,orig:ranked"
+    ],
+    "top_k_selected_names": [
+      "id:000003,+cov,orig:ranked",
+      "id:000005,orig:ranked"
+    ],
+    "worker_cached_objects": [
+      "a78d986a5010b4f0a1390092180a3282c448619ad4a2833be5688524f98efada"
+    ]
+  },
+  "proof_boundary": "This local integration exercises production queue admission, content-addressed stores, worker materialization, digest fences, Top-K score-fence retention, self-contained continuation identity, and acknowledgement accounting on real files. It does not run MPI transport, afl-showmap, a target, a symbolic solver, or a fuzzing campaign, and makes no coverage, throughput, bug-discovery, or LAVA-M uplift claim.",
+  "schema": "symcc-f345-stable-hybrid-input-integration-v1"
+}

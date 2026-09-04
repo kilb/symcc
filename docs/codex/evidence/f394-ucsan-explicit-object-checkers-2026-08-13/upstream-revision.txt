@@ -1,0 +1,5 @@
+paper_url=https://www.usenix.org/system/files/osdi26-yin.pdf
+paper_section=3.4 Memory Safety Checkers
+official_repository=https://github.com/R-Fuzz/UCSan
+official_commit=fb524c7bdf1663f2d78a94399ff6583a05bdbe6b
+official_commit_date=2026-07-15T01:24:07-07:00

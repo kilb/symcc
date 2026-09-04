@@ -1,0 +1,156 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#334155"/>
+    </marker>
+    <marker id="teal-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#0f766e"/>
+    </marker>
+    <filter id="shadow" x="-15%" y="-20%" width="130%" height="150%">
+      <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.13"/>
+    </filter>
+    <style>
+      text { font-family: "WenQuanYi Zen Hei", "Noto Sans CJK SC", Arial, sans-serif; fill: #172033; letter-spacing: 0; }
+      .title { font-size: 38px; font-weight: 700; fill: #ffffff; }
+      .subtitle { font-size: 19px; fill: #cbd5e1; }
+      .lane { font-size: 18px; font-weight: 700; fill: #ffffff; }
+      .head { font-size: 22px; font-weight: 700; }
+      .body { font-size: 17px; }
+      .small { font-size: 15px; fill: #475569; }
+      .mono { font-family: "DejaVu Sans Mono", monospace; font-size: 16px; }
+      .metric { font-size: 20px; font-weight: 700; }
+      .box { stroke-width: 2; filter: url(#shadow); }
+      .arrow { fill: none; stroke: #334155; stroke-width: 3; marker-end: url(#arrow); }
+      .teal { fill: none; stroke: #0f766e; stroke-width: 3.5; marker-end: url(#teal-arrow); }
+      .dash { fill: none; stroke: #64748b; stroke-width: 2.5; stroke-dasharray: 9 7; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#f7f9fc"/>
+  <rect x="0" y="0" width="1920" height="118" fill="#172033"/>
+  <text x="64" y="56" class="title">F405 · 有限 points-to 证书驱动的堆生命周期合并</text>
+  <text x="64" y="91" class="subtitle">编译期闭合候选基址，运行期用条件表达式更新对象状态；控制路径不因 free 的别名选择额外分叉</text>
+
+  <rect x="38" y="145" width="40" height="360" rx="5" fill="#2563eb"/>
+  <text class="lane" transform="translate(65 458) rotate(-90)">编译器证明平面</text>
+  <rect x="38" y="530" width="40" height="300" rx="5" fill="#0f766e"/>
+  <text class="lane" transform="translate(65 795) rotate(-90)">可执行语义平面</text>
+  <rect x="38" y="855" width="40" height="175" rx="5" fill="#475569"/>
+  <text class="lane" transform="translate(65 1003) rotate(-90)">验证与边界</text>
+
+  <g>
+    <rect class="box" x="110" y="154" width="350" height="310" rx="8" fill="#ffffff" stroke="#2563eb"/>
+    <rect x="110" y="154" width="350" height="52" rx="8" fill="#dbeafe"/>
+    <text x="136" y="188" class="head">1 · LLVM 指针来源恢复</text>
+    <text x="136" y="238" class="body">识别 select / PHI 形成的有限并集</text>
+    <text x="136" y="274" class="mono">p = select(c, heap_A, heap_B)</text>
+    <text x="136" y="316" class="body">逐候选验证：</text>
+    <text x="158" y="348" class="small">· 已布局普通 C heap object base</text>
+    <text x="158" y="378" class="small">· 无动态 index、无 interior offset</text>
+    <text x="158" y="408" class="small">· null 仅允许干净 provenance</text>
+    <text x="136" y="442" class="small">global / stack / exception arena / 未知来源：拒绝 lowering</text>
+  </g>
+
+  <path class="arrow" d="M460 308 H515"/>
+
+  <g>
+    <rect class="box" x="515" y="154" width="420" height="310" rx="8" fill="#ffffff" stroke="#7c3aed"/>
+    <rect x="515" y="154" width="420" height="52" rx="8" fill="#ede9fe"/>
+    <text x="541" y="188" class="head">2 · 闭合 points-to 证书</text>
+    <text x="541" y="237" class="body">排序、去重、最多 256 个普通 heap base</text>
+    <rect x="541" y="263" width="368" height="126" rx="6" fill="#fafafa" stroke="#cbd5e1"/>
+    <text x="561" y="293" class="mono">{ "op": "heap_free",</text>
+    <text x="561" y="321" class="mono">  "address": expr(p),</text>
+    <text x="561" y="349" class="mono">  "addresses": [64, 80],</text>
+    <text x="561" y="377" class="mono">  "bits": 64 }</text>
+    <text x="541" y="425" class="small">capability: bounded-heap-lifetime-pointer-union</text>
+    <text x="541" y="450" class="small">producer 对有限域闭合负责；consumer 严格校验证书形状</text>
+  </g>
+
+  <path class="arrow" d="M935 308 H990"/>
+
+  <g>
+    <rect class="box" x="990" y="154" width="410" height="310" rx="8" fill="#ffffff" stroke="#d97706"/>
+    <rect x="990" y="154" width="410" height="52" rx="8" fill="#ffedd5"/>
+    <text x="1016" y="188" class="head">3 · 制品准入与宽度绑定</text>
+    <text x="1016" y="238" class="body">schema + capability + 精确字段集合</text>
+    <text x="1016" y="274" class="body">addresses 必须升序、唯一、域内</text>
+    <text x="1016" y="310" class="body">每个 base 必须对应普通 heap object</text>
+    <text x="1016" y="346" class="body">执行时 expr bits 必须等于证书 bits</text>
+    <rect x="1016" y="375" width="358" height="58" rx="6" fill="#fff7ed" stroke="#fdba74"/>
+    <text x="1034" y="400" class="small">foreign / unsorted / missing capability /</text>
+    <text x="1034" y="423" class="small">width mismatch 均失败关闭</text>
+  </g>
+
+  <path class="arrow" d="M1400 308 H1455"/>
+
+  <g>
+    <rect class="box" x="1455" y="154" width="355" height="310" rx="8" fill="#ffffff" stroke="#dc2626"/>
+    <rect x="1455" y="154" width="355" height="52" rx="8" fill="#fee2e2"/>
+    <text x="1481" y="188" class="head">拒绝域</text>
+    <text x="1481" y="238" class="body">任意/未闭合 pointer arithmetic</text>
+    <text x="1481" y="274" class="body">interior pointer 与跨对象越界</text>
+    <text x="1481" y="310" class="body">exception arena 或非 heap 对象</text>
+    <text x="1481" y="346" class="body">超过 64-bit / 256 候选预算</text>
+    <text x="1481" y="382" class="body">一般初始符号堆 materialization</text>
+    <text x="1481" y="425" class="small">不猜测、不截断候选；lowering 失败并报告原因</text>
+  </g>
+
+  <path class="teal" d="M725 464 V545"/>
+  <path class="teal" d="M1195 464 V545"/>
+
+  <g>
+    <rect class="box" x="110" y="552" width="590" height="238" rx="8" fill="#ffffff" stroke="#0f766e"/>
+    <rect x="110" y="552" width="590" height="52" rx="8" fill="#ccfbf1"/>
+    <text x="136" y="586" class="head">4 · 单状态条件释放</text>
+    <text x="136" y="638" class="mono">release_i = (p == base_i) ∧ live_i</text>
+    <text x="136" y="674" class="mono">valid = (p == NULL) OR any(release_i)</text>
+    <text x="136" y="710" class="mono">live_i' = live_i ∧ ¬release_i</text>
+    <text x="136" y="746" class="mono">size_i' = ite(release_i, 0, size_i)</text>
+    <text x="136" y="778" class="small">逐字节 init marker 同步执行 conditionally-clear；NULL 不改变状态</text>
+  </g>
+
+  <path class="teal" d="M700 671 H760"/>
+
+  <g>
+    <rect class="box" x="760" y="552" width="500" height="238" rx="8" fill="#ffffff" stroke="#0f766e"/>
+    <rect x="760" y="552" width="500" height="52" rx="8" fill="#ccfbf1"/>
+    <text x="786" y="586" class="head">5 · 持久 continuation</text>
+    <text x="786" y="637" class="body">表达式 DAG 与 path constraint 写入 CAS checkpoint</text>
+    <text x="786" y="674" class="body">pause → fresh executor → resume 保持逐字节一致</text>
+    <text x="786" y="711" class="body">没有额外 control-flow fork；后续访问再消费 live 条件</text>
+    <rect x="786" y="738" width="448" height="34" rx="5" fill="#f0fdfa" stroke="#5eead4"/>
+    <text x="806" y="761" class="small">地址有效性由 valid 约束失败关闭，不产生伪释放</text>
+  </g>
+
+  <path class="arrow" d="M1260 671 H1320"/>
+
+  <g>
+    <rect class="box" x="1320" y="552" width="490" height="238" rx="8" fill="#ffffff" stroke="#475569"/>
+    <rect x="1320" y="552" width="490" height="52" rx="8" fill="#e2e8f0"/>
+    <text x="1346" y="586" class="head">状态数对照（机制层）</text>
+    <text x="1346" y="642" class="body">传统对象枚举参考</text>
+    <text x="1692" y="642" class="metric" text-anchor="end">N states</text>
+    <rect x="1346" y="662" width="342" height="30" rx="4" fill="#fecaca"/>
+    <text x="1346" y="731" class="body">F405 条件生命周期更新</text>
+    <text x="1692" y="731" class="metric" text-anchor="end">1 state</text>
+    <rect x="1346" y="751" width="46" height="18" rx="3" fill="#5eead4"/>
+    <text x="1410" y="765" class="small">N=16 时：16 → 1（分析态数量）</text>
+  </g>
+
+  <g>
+    <rect class="box" x="110" y="872" width="780" height="130" rx="8" fill="#ffffff" stroke="#2563eb"/>
+    <rect x="110" y="872" width="780" height="45" rx="8" fill="#dbeafe"/>
+    <text x="136" y="902" class="head">独立正确性证据</text>
+    <text x="136" y="948" class="body">domain 1..16 × 256 输入；34,816 个 live-marker 判定全部通过</text>
+    <text x="136" y="980" class="small">restart equivalence + 4 类证书篡改拒绝；oracle 独立解释表达式 DAG</text>
+  </g>
+
+  <g>
+    <rect class="box" x="930" y="872" width="880" height="130" rx="8" fill="#ffffff" stroke="#d97706"/>
+    <rect x="930" y="872" width="880" height="45" rx="8" fill="#ffedd5"/>
+    <text x="956" y="902" class="head">声明边界</text>
+    <text x="956" y="948" class="body">16 候选、11 次 resume 中位 1.203925470 s；0 forks、49 interpreted steps</text>
+    <text x="956" y="980" class="small">本地 Python 机制成本，不是 POSE 复现、公共 benchmark coverage、solver throughput 或总体 speedup</text>
+  </g>
+</svg>

@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#334155"/>
+    </marker>
+    <marker id="arrow-teal" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#0f766e"/>
+    </marker>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="1000" fill="#f8fafc"/>
+  <rect x="0" y="0" width="1600" height="126" fill="#172554"/>
+  <text x="70" y="58" fill="#ffffff" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="34" font-weight="700">F385 · Proof-Carrying Byte-Lane Writer Graph</text>
+  <text x="70" y="96" fill="#bfdbfe" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="21">从 lane 元数据升级为可重演的地址、顺序与 poison-transfer 证书</text>
+
+  <g filter="url(#shadow)">
+    <rect x="55" y="168" width="430" height="745" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+    <rect x="585" y="168" width="470" height="745" rx="8" fill="#ffffff" stroke="#99f6e4" stroke-width="2"/>
+    <rect x="1155" y="168" width="390" height="745" rx="8" fill="#ffffff" stroke="#fed7aa" stroke-width="2"/>
+  </g>
+
+  <circle cx="92" cy="214" r="21" fill="#ef4444"/>
+  <text x="85" y="222" fill="#ffffff" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="22" font-weight="700">1</text>
+  <text x="128" y="222" fill="#0f172a" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="27" font-weight="700">旧合同的盲区</text>
+  <text x="88" y="263" fill="#475569" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="18">字段合法，不代表 writer 语义正确</text>
+
+  <text x="88" y="320" fill="#334155" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="18" font-weight="700">时间顺序</text>
+  <line x1="105" y1="365" x2="430" y2="365" stroke="#94a3b8" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="93" y="395" width="150" height="82" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="113" y="426" fill="#1e3a8a" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="18" font-weight="700">wide store</text>
+  <text x="113" y="455" fill="#1e40af" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="17">@64 · 2 bytes</text>
+  <rect x="282" y="395" width="150" height="82" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+  <text x="298" y="426" fill="#7c2d12" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="18" font-weight="700">narrow store</text>
+  <text x="312" y="455" fill="#9a3412" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="17">@65 · 1 byte</text>
+
+  <text x="88" y="532" fill="#334155" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="18" font-weight="700">load @64 · 2 bytes</text>
+  <rect x="92" y="558" width="165" height="72" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <rect x="257" y="558" width="165" height="72" rx="4" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+  <text x="142" y="588" fill="#1e3a8a" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="17" font-weight="700">lane 0</text>
+  <text x="119" y="614" fill="#1e40af" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="15">wide byte 0</text>
+  <text x="307" y="588" fill="#7c2d12" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="17" font-weight="700">lane 1</text>
+  <text x="278" y="614" fill="#9a3412" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="15">narrow byte 0</text>
+
+  <rect x="88" y="678" width="364" height="166" rx="6" fill="#fff1f2" stroke="#fb7185" stroke-width="2"/>
+  <text x="112" y="716" fill="#9f1239" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="19" font-weight="700">过去可伪造</text>
+  <text x="112" y="754" fill="#881337" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="17">• store_byte 在范围内但地址不对应</text>
+  <text x="112" y="787" fill="#881337" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="17">• wide byte 1 冒充被覆盖后的 lane 1</text>
+  <text x="112" y="820" fill="#881337" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="17">• sidecar 改绑到另一个 1-bit 变量</text>
+
+  <circle cx="624" cy="214" r="21" fill="#0f766e"/>
+  <text x="617" y="222" fill="#ffffff" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="22" font-weight="700">2</text>
+  <text x="660" y="222" fill="#0f172a" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="27" font-weight="700">恢复端反向重演</text>
+  <text x="620" y="263" fill="#475569" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="18">最多 64 blocks；未完成时仅沿唯一 predecessor</text>
+
+  <rect x="630" y="310" width="375" height="92" rx="6" fill="#ecfeff" stroke="#0891b2" stroke-width="2"/>
+  <text x="657" y="345" fill="#155e75" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="19" font-weight="700">从 load 位置开始</text>
+  <text x="657" y="376" fill="#164e63" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="17">remaining = { lane 0, lane 1 }</text>
+
+  <line x1="817" y1="403" x2="817" y2="450" stroke="#0f766e" stroke-width="4" marker-end="url(#arrow-teal)"/>
+  <rect x="630" y="454" width="375" height="110" rx="6" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
+  <text x="657" y="489" fill="#9a3412" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="19" font-weight="700">先遇到 narrow store @65</text>
+  <text x="657" y="521" fill="#9a3412" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="17">覆盖 lane 1 → 固定最后 writer</text>
+  <text x="657" y="548" fill="#9a3412" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="17">remaining = { lane 0 }</text>
+
+  <line x1="817" y1="565" x2="817" y2="612" stroke="#0f766e" stroke-width="4" marker-end="url(#arrow-teal)"/>
+  <rect x="630" y="616" width="375" height="110" rx="6" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+  <text x="657" y="651" fill="#1e40af" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="19" font-weight="700">再遇到 wide store @64</text>
+  <text x="657" y="683" fill="#1e40af" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="17">只接管尚未覆盖的 lane 0</text>
+  <text x="657" y="710" fill="#1e40af" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="17">remaining = ∅ → 图闭合</text>
+
+  <rect x="630" y="773" width="375" height="81" rx="6" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
+  <text x="657" y="807" fill="#166534" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="18" font-weight="700">地址等式</text>
+  <text x="657" y="835" fill="#166534" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="16">load_addr + lane = store_addr + store_byte</text>
+
+  <circle cx="1194" cy="214" r="21" fill="#d97706"/>
+  <text x="1187" y="222" fill="#ffffff" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="22" font-weight="700">3</text>
+  <text x="1230" y="222" fill="#0f172a" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="27" font-weight="700">准入闭包</text>
+  <text x="1190" y="263" fill="#475569" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="18">graph、CFG 与 poison sidecar 一致</text>
+
+  <rect x="1190" y="310" width="320" height="92" rx="6" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/>
+  <text x="1215" y="345" fill="#065f46" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="19" font-weight="700">Last-writer edge</text>
+  <text x="1215" y="376" fill="#047857" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="16">ID · byte offset · width 全相等</text>
+
+  <rect x="1190" y="438" width="320" height="124" rx="6" fill="#fefce8" stroke="#eab308" stroke-width="2"/>
+  <text x="1215" y="473" fill="#854d0e" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="19" font-weight="700">Poison transfer</text>
+  <text x="1215" y="504" fill="#713f12" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="16">declared source</text>
+  <line x1="1345" y1="499" x2="1420" y2="499" stroke="#a16207" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="1215" y="538" fill="#713f12" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="16">1-bit identity → store sidecar</text>
+
+  <rect x="1190" y="598" width="320" height="124" rx="6" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+  <text x="1215" y="633" fill="#075985" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="19" font-weight="700">Capability closure</text>
+  <text x="1215" y="665" fill="#0c4a6e" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="16">capability ⇄ writer_graph</text>
+  <text x="1215" y="696" fill="#0c4a6e" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="16">函数内 store ID，不跨函数串联</text>
+
+  <rect x="1190" y="758" width="320" height="96" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="1215" y="796" fill="#166534" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="21" font-weight="700">ADMIT</text>
+  <text x="1215" y="827" fill="#166534" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="16">否则在执行 checkpoint 前失败关闭</text>
+
+  <line x1="491" y1="535" x2="570" y2="535" stroke="#334155" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="1061" y1="535" x2="1140" y2="535" stroke="#334155" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <text x="800" y="958" text-anchor="middle" fill="#64748b" font-family="WenQuanYi Zen Hei, Arial, sans-serif" font-size="17">严格边界：非 atomic / 非 volatile · 2–8 bytes · 单前驱有界路径 · 非一般 MemorySSA</text>
+</svg>

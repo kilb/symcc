@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1450" viewBox="0 0 1900 1450" role="img" aria-labelledby="title desc">
+  <title id="title">F344 Bounded Hybrid Worker Result Admission</title>
+  <desc id="desc">Comparison of the former unbounded hybrid worker collector and the F344 budget-first stable two-pass admission pipeline, with invariants and measured costs.</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#16202a" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#34495e"/>
+    </marker>
+    <style>
+      .title { font: 700 46px Arial, sans-serif; fill: #17202a; }
+      .subtitle { font: 400 23px Arial, sans-serif; fill: #52606d; }
+      .section { font: 700 28px Arial, sans-serif; fill: #17202a; }
+      .box-title { font: 700 22px Arial, sans-serif; fill: #17202a; }
+      .body { font: 400 18px Arial, sans-serif; fill: #34495e; }
+      .small { font: 400 16px Arial, sans-serif; fill: #52606d; }
+      .metric { font: 700 25px Arial, sans-serif; fill: #17202a; }
+      .mono { font: 600 17px 'Courier New', monospace; fill: #25313c; }
+      .white { fill: #ffffff; }
+      .line { stroke: #34495e; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1900" height="1450" fill="#f7f9fb"/>
+  <rect x="0" y="0" width="1900" height="14" fill="#1f7a8c"/>
+  <text x="90" y="82" class="title">F344 - Bounded Hybrid Worker Result Admission</text>
+  <text x="90" y="122" class="subtitle">Budget first - stable inode - digest-first two-pass collection - whole-parent rejection</text>
+
+  <text x="90" y="182" class="section">Former path: result volume directly amplified Python heap and MPI payload</text>
+  <g filter="url(#shadow)">
+    <rect x="90" y="210" width="1720" height="235" rx="8" fill="#fff3f0" stroke="#cf5c4f" stroke-width="2"/>
+  </g>
+  <rect x="125" y="250" width="270" height="130" rx="7" fill="#ffffff" stroke="#cf5c4f" stroke-width="2"/>
+  <text x="260" y="288" class="box-title" text-anchor="middle">Output directory</text>
+  <text x="260" y="323" class="body" text-anchor="middle">N arbitrarily sized files</text>
+  <text x="260" y="352" class="small" text-anchor="middle">Path objects may be followed</text>
+  <path d="M395 315 H510" class="line"/>
+  <rect x="510" y="250" width="310" height="130" rx="7" fill="#ffffff" stroke="#cf5c4f" stroke-width="2"/>
+  <text x="665" y="288" class="box-title" text-anchor="middle">list(scandir)</text>
+  <text x="665" y="323" class="body" text-anchor="middle">Materialize every DirEntry</text>
+  <text x="665" y="352" class="small" text-anchor="middle">Unbounded namespace cardinality</text>
+  <path d="M820 315 H935" class="line"/>
+  <rect x="935" y="250" width="330" height="130" rx="7" fill="#ffffff" stroke="#cf5c4f" stroke-width="2"/>
+  <text x="1100" y="288" class="box-title" text-anchor="middle">read() + uniq</text>
+  <text x="1100" y="323" class="body" text-anchor="middle">Retain all unique byte strings</text>
+  <text x="1100" y="352" class="small" text-anchor="middle">Peak approximates sum(result bytes)</text>
+  <path d="M1265 315 H1380" class="line"/>
+  <rect x="1380" y="250" width="360" height="130" rx="7" fill="#ffffff" stroke="#cf5c4f" stroke-width="2"/>
+  <text x="1560" y="288" class="box-title" text-anchor="middle">showmap + MPI</text>
+  <text x="1560" y="323" class="body" text-anchor="middle">Overflow visible after allocation</text>
+  <text x="1560" y="352" class="small" text-anchor="middle">OOM / large messages / bias</text>
+  <text x="125" y="417" class="mono">Former peak: O(directory entries + all unique result bytes + interesting bytes)</text>
+
+  <text x="90" y="505" class="section">F344: prove the complete boundary before any payload I/O</text>
+  <g filter="url(#shadow)">
+    <rect x="90" y="535" width="1720" height="410" rx="8" fill="#eef8f5" stroke="#24856f" stroke-width="2"/>
+  </g>
+  <rect x="125" y="580" width="280" height="145" rx="7" fill="#ffffff" stroke="#24856f" stroke-width="2"/>
+  <text x="265" y="615" class="box-title" text-anchor="middle">1 - Single scan</text>
+  <text x="265" y="650" class="body" text-anchor="middle">scandir + lstat</text>
+  <text x="265" y="680" class="small" text-anchor="middle">Flat regular files only</text>
+  <text x="265" y="706" class="small" text-anchor="middle">No payload read</text>
+  <path d="M405 652 H485" class="line"/>
+  <rect x="485" y="580" width="335" height="145" rx="7" fill="#ffffff" stroke="#d1942a" stroke-width="2"/>
+  <text x="652" y="615" class="box-title" text-anchor="middle">2 - Complete preflight</text>
+  <text x="652" y="648" class="mono" text-anchor="middle">N &lt;= object_limit</text>
+  <text x="652" y="677" class="mono" text-anchor="middle">sum(size + hints) &lt;= byte_limit</text>
+  <text x="652" y="706" class="small" text-anchor="middle">One object &lt;= MPI transport limit</text>
+  <path d="M820 652 H900" class="line"/>
+  <rect x="900" y="580" width="335" height="145" rx="7" fill="#ffffff" stroke="#1f7a8c" stroke-width="2"/>
+  <text x="1067" y="615" class="box-title" text-anchor="middle">3 - Stable digest pass</text>
+  <text x="1067" y="648" class="body" text-anchor="middle">O_NOFOLLOW regular fd</text>
+  <text x="1067" y="677" class="body" text-anchor="middle">before / after / path identity</text>
+  <text x="1067" y="706" class="small" text-anchor="middle">Retain only 16 B BLAKE2 per object</text>
+  <path d="M1235 652 H1315" class="line"/>
+  <rect x="1315" y="580" width="390" height="145" rx="7" fill="#ffffff" stroke="#6c5aa7" stroke-width="2"/>
+  <text x="1510" y="615" class="box-title" text-anchor="middle">4 - On-demand content pass</text>
+  <text x="1510" y="648" class="body" text-anchor="middle">Reopen and verify same identity</text>
+  <text x="1510" y="677" class="body" text-anchor="middle">Retain interesting bytes only</text>
+  <text x="1510" y="706" class="small" text-anchor="middle">Structured rejection reaches master</text>
+
+  <rect x="125" y="770" width="500" height="125" rx="7" fill="#ffffff" stroke="#24856f" stroke-width="2"/>
+  <text x="155" y="806" class="box-title">Success invariant</text>
+  <text x="155" y="839" class="body">Complete set proven; path identity closed</text>
+  <text x="155" y="870" class="mono">heap = O(N metadata + one object + interesting)</text>
+  <rect x="700" y="770" width="500" height="125" rx="7" fill="#ffffff" stroke="#cf5c4f" stroke-width="2"/>
+  <text x="730" y="806" class="box-title">Overflow invariant</text>
+  <text x="730" y="839" class="body">Reject whole parent; never truncate prefix</text>
+  <text x="730" y="870" class="mono">{resource, observed, limit, objects}</text>
+  <rect x="1275" y="770" width="430" height="125" rx="7" fill="#ffffff" stroke="#d1942a" stroke-width="2"/>
+  <text x="1305" y="806" class="box-title">Observability</text>
+  <text x="1305" y="839" class="body">Preserve return code / timing / killed</text>
+  <text x="1305" y="870" class="small">Master logs rejection; campaign continues</text>
+
+  <text x="90" y="1005" class="section">Fresh-process mechanism results - unique sparse regular outputs</text>
+  <g filter="url(#shadow)">
+    <rect x="90" y="1035" width="1090" height="330" rx="8" fill="#ffffff" stroke="#c7d0d9" stroke-width="2"/>
+  </g>
+  <text x="130" y="1080" class="box-title">Python traced peak (lower is better)</text>
+  <text x="130" y="1130" class="body">32 MiB</text>
+  <rect x="250" y="1105" width="560" height="34" rx="4" fill="#cf5c4f"/>
+  <rect x="250" y="1150" width="18" height="34" rx="4" fill="#24856f"/>
+  <text x="835" y="1131" class="metric">33.57 MiB</text>
+  <text x="290" y="1176" class="metric">1.09 MiB - 30.79x lower</text>
+  <text x="130" y="1235" class="body">128 MiB</text>
+  <rect x="250" y="1210" width="760" height="34" rx="4" fill="#cf5c4f"/>
+  <rect x="250" y="1255" width="9" height="34" rx="4" fill="#24856f"/>
+  <text x="1030" y="1236" class="metric">134.28 MiB</text>
+  <text x="290" y="1281" class="metric">1.16 MiB - 115.31x lower</text>
+  <rect x="130" y="1320" width="18" height="18" fill="#cf5c4f"/>
+  <text x="160" y="1336" class="small">legacy retained read-all</text>
+  <rect x="390" y="1320" width="18" height="18" fill="#24856f"/>
+  <text x="420" y="1336" class="small">F344 stable two-pass</text>
+
+  <g filter="url(#shadow)">
+    <rect x="1220" y="1035" width="590" height="330" rx="8" fill="#fffaf0" stroke="#d1942a" stroke-width="2"/>
+  </g>
+  <text x="1260" y="1080" class="box-title">Cost, correctness, and proof boundary</text>
+  <text x="1260" y="1125" class="metric">1.58x / 1.65x local time</text>
+  <text x="1260" y="1157" class="small">Visible cost of identity checks + second read</text>
+  <text x="1260" y="1202" class="metric">40 / 40 retained exact</text>
+  <text x="1260" y="1234" class="small">Object count, bytes, and digest vector all exact</text>
+  <text x="1260" y="1279" class="metric">739 tests + 94 subtests</text>
+  <text x="1260" y="1311" class="small">Complete warnings-as-errors Python regression</text>
+  <text x="1260" y="1343" class="small">No MPI / solver / campaign / coverage / LAVA-M uplift claim</text>
+
+  <text x="90" y="1410" class="small">Measured on Linux / overlayfs, 2026-08-10 - tracemalloc excludes native and kernel allocations</text>
+</svg>

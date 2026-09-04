@@ -1,0 +1,21 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/ubuntu/venv/symcc/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/ubuntu/code/symcc
+collecting ... collected 175 items / 163 deselected / 12 selected
+
+test/test_distributed_state.py::ShardedDistributedStateTests::test_coverage_gossip_rejects_nonfinite_lock_configuration PASSED [  8%]
+test/test_distributed_state.py::ShardedDistributedStateTests::test_coverage_shard_corruption_fails_closed_without_overwrite 
+test/test_distributed_state.py::ShardedDistributedStateTests::test_coverage_shard_corruption_fails_closed_without_overwrite PASSED [ 16%]
+test/test_distributed_state.py::ShardedDistributedStateTests::test_coverage_shard_lock_is_bounded_and_never_age_stolen PASSED [ 25%]
+test/test_distributed_state.py::ShardedDistributedStateTests::test_coverage_shard_write_failure_cleans_temporary_record PASSED [ 33%]
+test/test_distributed_state.py::ShardedDistributedStateTests::test_coverage_timestamps_reject_nonfinite_values PASSED [ 41%]
+test/test_distributed_state.py::ShardedDistributedStateTests::test_nonfinite_peer_heartbeat_cannot_become_immortal_owner PASSED [ 50%]
+test/test_distributed_state.py::FencedWorkLeaseTableTests::test_fenced_lock_is_reclaimed_after_sigkill_without_finally PASSED [ 58%]
+test/test_distributed_state.py::FencedWorkLeaseTableTests::test_fenced_lock_is_released_after_exception PASSED [ 66%]
+test/test_distributed_state.py::FencedWorkLeaseTableTests::test_fenced_lock_never_falls_back_when_flock_is_unsupported PASSED [ 75%]
+test/test_distributed_state.py::FencedWorkLeaseTableTests::test_fenced_lock_rejects_nonregular_lock_path PASSED [ 83%]
+test/test_distributed_state.py::FencedWorkLeaseTableTests::test_lock_acquisition_is_bounded_and_never_steals_by_wall_clock PASSED [ 91%]
+test/test_afl_profile_orchestration.py::AflProfileOrchestrationTests::test_bounded_finite_float_rejects_nonfinite_lock_timeouts PASSED [100%]
+
+============ 12 passed, 163 deselected, 3 subtests passed in 0.64s =============

@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1100" viewBox="0 0 1800 1100">
+  <defs>
+    <style>
+      .title { font: 700 38px 'DejaVu Sans', sans-serif; fill: #f7fbff; }
+      .subtitle { font: 20px 'DejaVu Sans', sans-serif; fill: #c7d8e8; }
+      .heading { font: 700 23px 'DejaVu Sans', sans-serif; fill: #17324d; }
+      .body { font: 18px 'DejaVu Sans', sans-serif; fill: #23384b; }
+      .small { font: 16px 'DejaVu Sans', sans-serif; fill: #4d6173; }
+      .mono { font: 17px 'DejaVu Sans Mono', monospace; fill: #183146; }
+      .white { fill: #ffffff; }
+      .arrow { stroke: #315d7b; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .dash { stroke: #a54b35; stroke-width: 3; stroke-dasharray: 10 8; fill: none; marker-end: url(#redarrow); }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#315d7b"/>
+    </marker>
+    <marker id="redarrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#a54b35"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <rect width="1800" height="1100" fill="#f3f6f8"/>
+  <rect width="1800" height="130" fill="#17324d"/>
+  <text x="70" y="62" class="title">F382  Constant-GEP Exception Object Fields</text>
+  <text x="70" y="101" class="subtitle">DataLayout-precise subobjects, migratable identity, and a source-to-export canonicalization contract</text>
+
+  <rect x="65" y="175" width="470" height="255" rx="8" fill="#ffffff" stroke="#8ba9bd" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="65" y="175" width="470" height="55" rx="8" fill="#dcebf2"/>
+  <text x="90" y="211" class="heading">1  Real C++ source</text>
+  <text x="90" y="267" class="mono">throw Payload{5, {19, 23}}</text>
+  <text x="90" y="308" class="body">Clang frontend emits aggregate GEPs,</text>
+  <text x="90" y="338" class="body">landingpad, begin_catch and resume.</text>
+  <rect x="90" y="365" width="390" height="40" rx="5" fill="#f7e7d7" stroke="#c97b43"/>
+  <text x="110" y="391" class="small">No host exception pointer enters a checkpoint</text>
+
+  <rect x="665" y="175" width="470" height="255" rx="8" fill="#ffffff" stroke="#8ba9bd" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="665" y="175" width="470" height="55" rx="8" fill="#e4efd9"/>
+  <text x="690" y="211" class="heading">2  Canonicalization boundary</text>
+  <text x="690" y="267" class="mono">Clang -O0 -disable-O0-optnone</text>
+  <text x="690" y="307" class="mono">SROA → mem2reg → instcombine</text>
+  <text x="690" y="348" class="body">Removes frontend temporaries while</text>
+  <text x="690" y="378" class="body">preserving branch exploration.</text>
+  <text x="690" y="408" class="small">Explicit exporter stage; no pipeline-start ambiguity</text>
+
+  <rect x="1265" y="175" width="470" height="255" rx="8" fill="#ffffff" stroke="#8ba9bd" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1265" y="175" width="470" height="55" rx="8" fill="#e8e2f2"/>
+  <text x="1290" y="211" class="heading">3  Provenance validation</text>
+  <text x="1290" y="267" class="body">Constant DataLayout offsets only</text>
+  <text x="1290" y="302" class="body">Integer scalar stores / loads only</text>
+  <text x="1290" y="337" class="body">Base pointer required by __cxa_throw</text>
+  <text x="1290" y="372" class="body">Dynamic, escape and OOB paths reject</text>
+  <text x="1290" y="407" class="small">Use-DAG traversal is finite and fail-closed</text>
+
+  <path class="arrow" d="M535 302 L650 302"/>
+  <path class="arrow" d="M1135 302 L1250 302"/>
+
+  <rect x="65" y="505" width="760" height="420" rx="8" fill="#ffffff" stroke="#7096ad" stroke-width="2" filter="url(#shadow)"/>
+  <text x="95" y="550" class="heading">Throw side: guarded arena slots</text>
+  <text x="95" y="585" class="small">Each allocation site owns a fixed-capacity pool; only one guarded slot is active.</text>
+
+  <g transform="translate(110,625)">
+    <rect x="0" y="0" width="650" height="78" rx="6" fill="#e6f0f4" stroke="#54829b" stroke-width="2"/>
+    <rect x="0" y="0" width="215" height="78" rx="6" fill="#b9dce6"/>
+    <rect x="215" y="0" width="215" height="78" fill="#cfe6d2"/>
+    <rect x="430" y="0" width="220" height="78" rx="6" fill="#f3dfbd"/>
+    <text x="70" y="32" class="mono">base + 0</text><text x="89" y="59" class="small">i32 = 5</text>
+    <text x="278" y="32" class="mono">base + 4</text><text x="298" y="59" class="small">i32 = 19</text>
+    <text x="494" y="32" class="mono">base + 8</text><text x="517" y="59" class="small">i32 = 23</text>
+  </g>
+  <text x="110" y="750" class="body">Slot 0  base 64</text><text x="315" y="750" class="small">guard: object == 64</text>
+  <text x="110" y="790" class="body">Slot 1  base 80</text><text x="315" y="790" class="small">guard: object == 80</text>
+  <text x="110" y="830" class="body">Slot 2  base 96</text><text x="315" y="830" class="small">guard: object == 96</text>
+  <text x="110" y="870" class="body">Slot 3  base 112</text><text x="315" y="870" class="small">guard: object == 112</text>
+  <rect x="520" y="746" width="240" height="128" rx="6" fill="#f5f7f8" stroke="#9aacb8"/>
+  <text x="545" y="778" class="small">Owner + generation</text>
+  <text x="545" y="810" class="small">move across unwind</text>
+  <text x="545" y="842" class="small">base-only throw</text>
+
+  <rect x="975" y="505" width="760" height="420" rx="8" fill="#ffffff" stroke="#7096ad" stroke-width="2" filter="url(#shadow)"/>
+  <text x="1005" y="550" class="heading">Catch side: active-object projection</text>
+  <text x="1005" y="585" class="small">GEP values are not serialized; each load carries its exact constant offset.</text>
+
+  <rect x="1015" y="625" width="315" height="230" rx="6" fill="#edf3f6" stroke="#7393a7"/>
+  <text x="1040" y="665" class="heading">Checkpoint metadata</text>
+  <text x="1040" y="708" class="mono">object-address</text>
+  <text x="1040" y="744" class="mono">object-generation</text>
+  <text x="1040" y="780" class="mono">object-size</text>
+  <text x="1040" y="816" class="mono">catch-depth</text>
+
+  <rect x="1390" y="625" width="290" height="230" rx="6" fill="#e9f1e2" stroke="#72945d"/>
+  <text x="1420" y="665" class="heading">Runtime gates</text>
+  <text x="1420" y="708" class="body">generation current</text>
+  <text x="1420" y="744" class="body">range in one slot</text>
+  <text x="1420" y="780" class="body">all bytes initialized</text>
+  <text x="1420" y="816" class="body">target endianness</text>
+
+  <path class="arrow" d="M1330 740 L1375 740"/>
+  <text x="1215" y="894" class="mono">load[0] + load[4] + load[8] = 47</text>
+
+  <path class="dash" d="M500 975 L1300 975"/>
+  <text x="70" y="1025" class="heading" fill="#8e3f2f">Fail closed</text>
+  <text x="250" y="1025" class="body">dynamic GEP · OOB · escape · atomic/volatile · pointer/float payload · interior throw</text>
+  <text x="70" y="1065" class="small">Verified on LLVM 17/18.  This is a bounded trivial-integer ABI subset, not general C++ exception semantics.</text>
+</svg>

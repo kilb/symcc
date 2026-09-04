@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <style>
+      .title{font:700 42px 'DejaVu Sans',sans-serif;fill:#172033}
+      .sub{font:400 21px 'DejaVu Sans',sans-serif;fill:#526078}
+      .head{font:700 24px 'DejaVu Sans',sans-serif;fill:#172033}
+      .body{font:400 19px 'DejaVu Sans',sans-serif;fill:#354158}
+      .mono{font:600 18px 'DejaVu Sans Mono',monospace;fill:#172033}
+      .small{font:400 16px 'DejaVu Sans',sans-serif;fill:#526078}
+      .box{fill:#fff;stroke:#c9d2e3;stroke-width:2}
+      .blue{fill:#eaf3ff;stroke:#4787c7;stroke-width:2.5}
+      .green{fill:#e9f7ef;stroke:#3a9462;stroke-width:2.5}
+      .orange{fill:#fff3e3;stroke:#d98b2b;stroke-width:2.5}
+      .red{fill:#fff0f0;stroke:#cb5b62;stroke-width:2.5}
+      .arrow{fill:none;stroke:#526078;stroke-width:3;marker-end:url(#arrow)}
+      .dash{fill:none;stroke:#7f8da6;stroke-width:2.5;stroke-dasharray:10 8;marker-end:url(#arrow)}
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#526078"/>
+    </marker>
+  </defs>
+  <rect width="1920" height="1080" fill="#f7f9fc"/>
+  <text x="90" y="78" class="title">F411  Loop-Carried MemoryPhi Byte-Lane Induction</text>
+  <text x="90" y="113" class="sub">Static potential cover + strict artifact replay + runtime byte-definedness authority</text>
+
+  <rect x="80" y="155" width="500" height="790" rx="8" class="box"/>
+  <text x="110" y="198" class="head">1  LLVM producer proof</text>
+
+  <rect x="125" y="235" width="410" height="88" rx="7" class="blue"/>
+  <text x="150" y="270" class="mono">MemoryUse(load) -&gt; MemoryPhi</text>
+  <text x="150" y="298" class="small">exact defining access, not dominance guessing</text>
+
+  <rect x="125" y="370" width="410" height="225" rx="7" class="blue"/>
+  <text x="150" y="407" class="head">Canonical loop identity</text>
+  <text x="150" y="443" class="body">preheader  -&gt;  header</text>
+  <text x="150" y="477" class="mono">iv = phi [0], [next]</text>
+  <text x="150" y="511" class="mono">continue = ult(iv, bound)</text>
+  <text x="150" y="545" class="body">body -&gt; latch -&gt; header</text>
+  <text x="150" y="575" class="small">single latch / single exit / unit step</text>
+
+  <rect x="125" y="642" width="410" height="115" rx="7" class="green"/>
+  <text x="150" y="681" class="head">MemoryPhi incoming</text>
+  <text x="150" y="718" class="mono">preheader : liveOnEntry</text>
+  <text x="150" y="746" class="mono">latch : unique byte store</text>
+
+  <rect x="125" y="804" width="410" height="94" rx="7" class="green"/>
+  <text x="150" y="842" class="head">Finite cover</text>
+  <text x="150" y="875" class="body">load address x lane -&gt; iteration</text>
+
+  <path d="M330 323 L330 370" class="arrow"/>
+  <path d="M330 595 L330 642" class="arrow"/>
+  <path d="M330 757 L330 804" class="arrow"/>
+
+  <rect x="650" y="155" width="560" height="790" rx="8" class="box"/>
+  <text x="680" y="198" class="head">2  Proof-carrying artifact</text>
+
+  <rect x="700" y="235" width="460" height="128" rx="7" class="orange"/>
+  <text x="725" y="273" class="mono">loop + memory_phi</text>
+  <text x="725" y="306" class="body">7 block identities, 2 incoming roles</text>
+  <text x="725" y="337" class="small">edge-copy names bind scalar PHI lowering</text>
+
+  <rect x="700" y="405" width="460" height="128" rx="7" class="orange"/>
+  <text x="725" y="443" class="mono">induction + guard</text>
+  <text x="725" y="476" class="body">seed 0, step 1, ult, input bound</text>
+  <text x="725" y="507" class="small">source width must represent writer_max + 1</text>
+
+  <rect x="700" y="575" width="460" height="165" rx="7" class="orange"/>
+  <text x="725" y="613" class="mono">writer + load domains</text>
+  <text x="725" y="646" class="body">addresses and exact index values</text>
+  <text x="725" y="682" class="mono">(a, lane) -&gt; (a+lane, iv)</text>
+  <text x="725" y="714" class="small">ordered Cartesian witness list</text>
+
+  <rect x="700" y="784" width="460" height="114" rx="7" class="red"/>
+  <text x="725" y="822" class="head">Strict consumer replay</text>
+  <text x="725" y="856" class="body">CFG + copies + owner + domains + witnesses</text>
+  <text x="725" y="882" class="small">unknown, missing, transplanted facts fail closed</text>
+
+  <path d="M930 363 L930 405" class="arrow"/>
+  <path d="M930 533 L930 575" class="arrow"/>
+  <path d="M930 740 L930 784" class="arrow"/>
+
+  <rect x="1280" y="155" width="560" height="790" rx="8" class="box"/>
+  <text x="1310" y="198" class="head">3  Runtime authority</text>
+
+  <rect x="1330" y="235" width="460" height="128" rx="7" class="green"/>
+  <text x="1355" y="273" class="mono">execute actual loop store</text>
+  <text x="1355" y="307" class="mono">I[base + iv] := 1</text>
+  <text x="1355" y="338" class="small">out-of-domain concrete digest uses alias constraint</text>
+
+  <rect x="1330" y="405" width="460" height="156" rx="7" class="green"/>
+  <text x="1355" y="443" class="head">Dynamic load candidate a</text>
+  <text x="1355" y="480" class="mono">address == a</text>
+  <text x="1355" y="514" class="mono">AND I[a] ... I[a+w-1]</text>
+  <text x="1355" y="545" class="small">stack owner / heap live and size still apply</text>
+
+  <rect x="1330" y="610" width="460" height="130" rx="7" class="red"/>
+  <text x="1355" y="649" class="head">Zero-trip / early exit</text>
+  <text x="1355" y="685" class="body">missing lane marker -&gt; infeasible state</text>
+  <text x="1355" y="717" class="small">MemoryPhi never implies definite initialization</text>
+
+  <rect x="1330" y="784" width="460" height="114" rx="7" class="blue"/>
+  <text x="1355" y="822" class="head">Sealed boundary at C=64, w=8</text>
+  <text x="1355" y="856" class="mono">64 writers / 57 loads / 456 lanes</text>
+  <text x="1355" y="882" class="small">certificate cardinality, not a speedup claim</text>
+
+  <path d="M1560 363 L1560 405" class="arrow"/>
+  <path d="M1560 561 L1560 610" class="arrow"/>
+  <path d="M1560 740 L1560 784" class="arrow"/>
+
+  <path d="M580 520 C615 520 615 520 650 520" class="arrow"/>
+  <path d="M1210 520 C1245 520 1245 520 1280 520" class="arrow"/>
+  <path d="M535 850 C640 1000 1260 1000 1330 850" class="dash"/>
+  <text x="738" y="1010" class="sub">Certificate proves possible coverage; bitmap proves this path actually wrote every lane.</text>
+</svg>

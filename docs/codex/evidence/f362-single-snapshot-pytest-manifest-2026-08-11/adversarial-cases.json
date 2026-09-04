@@ -1,0 +1,25 @@
+{
+  "duplicate_json_member": {
+    "collected": 0,
+    "gate_passed": false,
+    "manifest_error": "duplicate JSON object member 'count'",
+    "pytest_exit_code": null,
+    "returncode": 2
+  },
+  "empty_plugin_environment": {
+    "collected": 1,
+    "gate_passed": true,
+    "passed": 1,
+    "plugin_autoload_disabled": true,
+    "returncode": 0
+  },
+  "schema": "symcc-f362-adversarial-manifest-check-v1",
+  "single_snapshot_size_bound": {
+    "configured_limit": 32,
+    "encoded_bytes": 226,
+    "error": "manifest exceeds 32 bytes",
+    "forged_stat_bytes": 1,
+    "path_stat_calls_during_load": 0,
+    "rejected": true
+  }
+}

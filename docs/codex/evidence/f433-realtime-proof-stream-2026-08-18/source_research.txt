@@ -1,0 +1,20 @@
+F433 primary research and implementation pins (reviewed 2026-08-18)
+
+ImpCheck incremental head:
+  https://github.com/domschrei/impcheck/tree/incremental
+  b5f37b21385ee802ce015103b23aff62f92b1734
+
+Real-time Proof Checking for Distributed Incremental SAT Solving, TACAS 2026:
+  https://doi.org/10.1007/978-3-032-22752-2_18
+
+CaDiCaL 3.0, SAT 2026:
+  https://doi.org/10.4230/LIPIcs.SAT.2026.40
+
+CaDiCaL 3.0.1 source pin:
+  https://github.com/arminbiere/cadical/commit/c60730422e758ef1cebe7aeddf2dda31c996bf04
+
+PalRUP, SAT 2026:
+  https://doi.org/10.4230/LIPIcs.SAT.2026.17
+
+Boundary: F433 adopts checked-import/event/ACK semantics in project-native JSON
+and SQLite protocols. It does not claim byte-compatible ImpCheck wire support.

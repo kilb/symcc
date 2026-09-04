@@ -1,0 +1,27 @@
+{
+  "schema": "symcc-f422-full-suite-summary-v1",
+  "python": {
+    "collected": 1111,
+    "passed": 1111,
+    "subtests_passed": 250,
+    "skipped": 0,
+    "xfailed": 0,
+    "deselected": 0,
+    "elapsed_seconds": 147.77
+  },
+  "llvm17": {
+    "discovered": 304,
+    "passed": 302,
+    "unsupported": 2,
+    "workers": 4,
+    "elapsed_seconds": 459.46
+  },
+  "llvm18": {
+    "discovered": 304,
+    "passed": 303,
+    "unsupported": 1,
+    "workers": 4,
+    "elapsed_seconds": 464.38
+  },
+  "all_passed": true
+}

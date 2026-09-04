@@ -1,0 +1,824 @@
+[OK] local Markdown/entry-page links resolve (0 missing)
+[OK] report figure set is 21 SVG + 21 PNG
+[OK] QA figure set is 25 SVG + 25 PNG
+[OK] all 46 SVG files parse
+[OK] all 46 PNG files are nontrivial
+[OK] F299 correctness schematic has valid SVG and large PNG
+[OK] F300-F304 EVP schematic has valid SVG and large PNG
+[OK] F305 recovery schematic has valid SVG and large PNG
+[OK] F306 coverage-oracle schematic has valid SVG and large PNG
+[OK] F307 input-ABI schematic has valid SVG and large PNG
+[OK] F308 edge-utility replay schematic has valid large SVG
+[OK] F309 target-leasing schematic has valid large SVG
+[OK] F310 target-admission schematic has valid large SVG
+[OK] F311 cross-coordinator fencing schematic has valid large SVG
+[OK] F314 local-lease fencing schematic has valid large SVG
+[OK] F315 dispatch-generation fencing schematic has valid large SVG
+[OK] F316 generation-aware READY recovery schematic has valid large SVG
+[OK] F317 dispatch watchdog schematic has valid large SVG
+[OK] F318 acknowledged bounded MPI shutdown schematic has valid large SVG
+[OK] F319 shared MPI lifecycle schematic has valid large SVG
+[OK] F320 global-work ownership schematic has valid large SVG
+[OK] F321 failure-atomic frontier schematic has valid large SVG
+[OK] F322 durable result replay schematic has valid large SVG
+[OK] F323 directory durability schematic has valid large SVG
+[OK] F324 heartbeat group-commit schematic has valid large SVG
+[OK] F325 target-mutation batching schematic has valid large SVG
+[OK] F326 crash-released kernel-lock schematic has valid large SVG
+[OK] F327 shared-filesystem capability schematic has valid large SVG
+[OK] F328 path-specific filesystem schematic has valid large SVG
+[OK] F329 MPI cross-host lock schematic has valid large SVG
+[OK] F330 runtime lock-renewal schematic has valid large SVG
+[OK] F331 deterministic renewal-jitter schematic has valid large SVG
+[OK] F332 renewal-configuration consensus schematic has valid large SVG
+[OK] F333 durable renewal-configuration schematic has valid large SVG
+[OK] F334 durable completed-epoch cleanup schematic has valid large SVG
+[OK] F335 atomic completed-epoch retirement schematic has valid large SVG
+[OK] F336 kernel no-clobber retirement schematic has valid large SVG
+[OK] F337 resumable budgeted retired-tree GC schematic has valid large SVG
+[OK] F338 streaming retired-root discovery schematic has valid large SVG
+[OK] F339 streaming no-follow staging schematic has valid large SVG
+[OK] F340 bounded streaming result admission schematic has valid large SVG
+[OK] F341 stable streaming input admission schematic has valid large SVG
+[OK] F342 public provenance intersection schematic has valid large SVG
+[OK] F343 bounded streaming simulation schematic has valid large SVG
+[OK] F344 bounded hybrid worker result schematic has valid large SVG
+[OK] F345 stable hybrid input admission schematic has valid large SVG
+[OK] F346 descriptor-bound CAS publication schematic has valid large SVG
+[OK] F347 unified live-state CAS schematic has valid large SVG
+[OK] F348 budgeted transitive live-state schematic has valid large SVG
+[OK] F349 descriptor-anchored CAS namespace schematic has valid large SVG
+[OK] F350 component-wise anchored CAS root schematic has valid large SVG
+[OK] F351 identity-closed cluster-lock schematic has valid large SVG
+[OK] F352 generation-bound lock-proof schematic has valid large SVG
+[OK] F353 failure-atomic renewal admission schematic has valid large SVG
+[OK] F354 rank-contained renewal completion schematic has valid large SVG
+[OK] F355 total cluster-lock qualification schematic has valid large SVG
+[OK] F356 collective-safe input observation schematic has valid large SVG
+[OK] F357 heartbeat and completion-clock schematic has valid large SVG
+[OK] F358 renewal control-transport schematic has valid large SVG
+[OK] F359 hermetic pytest discovery schematic has valid large SVG
+[OK] F360 capability-closed Python CI schematic has valid large SVG
+[OK] F361 canonical pytest identity schematic has valid large SVG
+[OK] F362 single-snapshot manifest schematic has valid large SVG
+[OK] F363 bounded Query IR admission schematic has valid large SVG
+[OK] F364 stable Query spool admission schematic has valid large SVG
+[OK] F365 outcome-separated Query spool schematic has valid large SVG
+[OK] F366 verified Query artifact CAS schematic has valid large SVG
+[OK] F367 sealed Query artifact fd handoff schematic has valid large SVG
+[OK] F368 persistent solver generation reset schematic has valid large SVG
+[OK] F369 protocol-complete request preflight schematic has valid large SVG
+[OK] F370 deadline-bounded request commit schematic has valid large SVG
+[OK] F371 generation-unique request admission schematic has valid large SVG
+[OK] F372 bounded CAS publication revalidation schematic has valid large SVG
+[OK] F373 report-only artifact reachability schematic has valid large SVG
+[OK] F377 declarative pure external schematic has valid large SVG and PNG
+[OK] F378 exception catch lifecycle schematic has valid large SVG and PNG
+[OK] F379 trivial scalar catch schematic has valid large SVG and PNG
+[OK] F380 exception object arena schematic has valid large SVG and PNG
+[OK] F381 pre-I/O cancellation schematic has valid large SVG and PNG
+[OK] F382 constant-GEP exception fields schematic has valid large SVG and PNG
+[OK] F383 multi-cell alias graph schematic has valid large SVG and PNG
+[OK] F384 shared PHI edge schematic has valid large SVG and PNG
+[OK] F385 byte-lane writer graph schematic has valid large SVG and PNG
+[OK] F386 byte-lane PHI writer graph schematic has valid large SVG and PNG
+[OK] F387 cyclic byte-lane writer graph schematic has valid large SVG and PNG
+[OK] F388 conditional cyclic writer graph schematic has valid large SVG and PNG
+[OK] F389 multi-arm cyclic writer graph schematic has valid large SVG and PNG
+[OK] F390 recursive cyclic writer graph schematic has valid large SVG and PNG
+[OK] F391 persistent live-state frontier schematic has valid large SVG and PNG
+[OK] F392 interpreter ConDPOR schematic has valid large SVG and PNG
+[OK] F393 recoverable UCSan object-context schematic has valid large SVG and PNG
+[OK] F394 UCSan explicit-object checker schematic has valid large SVG and PNG
+[OK] feature IDs are continuous F00-F394 (395 total)
+[OK] Configuration.txt preserves at least 421 audited SYMCC_* names
+[OK] test/ contains 282 top-level regular files
+[OK] PPTX ZIP members pass CRC
+[OK] PPTX contains 28 slides and 27 notes
+[OK] PPTX contains 24 embedded PNG figures
+[OK] PPTX context-reuse boundary is synchronized
+[OK] main report contains current audited facts
+[OK] HTML report embeds all figure resources
+[OK] F302 evidence files match SHA-256 manifest
+[OK] F302 summary matches coordinator state and solver telemetry
+[OK] F302 evidence contains three generations and a verified tombstone
+[OK] F303 evidence files match SHA-256 manifest
+[OK] F303 runtime generations prove suppress and re-admit transitions
+[OK] F303 contains two canonical verified v2 artifacts
+[OK] F303 raw telemetry proves low yield, suppression, and re-query
+[OK] F303 summary and coordinator checkpoint agree
+[OK] F304 evidence files match SHA-256 manifest
+[OK] F304 runtimes prove suppress, cost-protect, and re-admit states
+[OK] F304 contains three canonical verified v3 artifacts
+[OK] F304 raw telemetry proves cost, suppression, and re-query
+[OK] F304 same feedback is suppressed at 0 us and retained at 143 us
+[OK] F304 summaries and coordinator checkpoints agree
+[OK] F305 evidence files match SHA-256 manifest
+[OK] F305 runtimes prove [1] -> replayed [2] -> [2,3]
+[OK] F305 contains three canonical verified v3 artifacts
+[OK] F305 detects record drift despite a preserved artifact label
+[OK] F305 checkpoint failure remains dirty and retry converges
+[OK] F306 evidence files match the complete SHA-256 manifest
+[OK] F306 schemas and target/seed/showmap identities are fixed
+[OK] F306 preserves three complete cyclic round orderings
+[OK] F306 replica maps independently reproduce selected edge sets
+[OK] F306 drift ledger recomputes 11 inputs and 46 unstable events
+[OK] F306 baseline, landing, union, and single-label exclusivity recompute
+[OK] F306 accounts for all 60 campaign and two probe observations
+[OK] F306 evidence records protocol bounds and the no-speedup claim
+[OK] F307 evidence files match the complete SHA-256 manifest
+[OK] F307 schemas, input ABI, status policy, and identities are fixed
+[OK] F307 preserves three complete cyclic round orderings
+[OK] F307 replica maps independently reproduce selected edge sets
+[OK] F307 drift ledger recomputes 20 inputs and 57 unstable events
+[OK] F307 baseline exclusion, landing, and novel union recompute
+[OK] F307 accounts for all 60 campaign and two probe observations
+[OK] F307 evidence records ABI, terminal policy, and no-speedup claim
+[OK] F320 evidence files match the complete SHA-256 manifest
+[OK] F320 evidence states its mechanism-only scope and baseline boundary
+[OK] F320 single-master evidence preserves one execution and exact ACKs
+[OK] F320 one-seed evidence proves global dedup and committed shutdown
+[OK] F320 24-seed evidence proves complete balanced ownership
+[OK] F320 shared-child evidence proves one globally interesting child
+[OK] F320 post-run checks prove clean exit, cleanup, and digest integrity
+[OK] F321 evidence files match the complete SHA-256 manifest
+[OK] F321 evidence states mechanism scope and pre-dispatch rejection
+[OK] F321 healthy MPI evidence proves complete balanced execution
+[OK] F321 staged-child evidence proves fenced promotion and dedup
+[OK] F321 single-master evidence preserves staged promotion
+[OK] F321 corruption evidence rejects wrong bytes before analysis
+[OK] F321 post-run checks account for exits, ACKs, and cleanup
+[OK] F322 evidence files match the complete SHA-256 manifest
+[OK] F322 evidence states mechanism and metric boundaries
+[OK] F322 normal single-master commit path is complete
+[OK] F322 normal multi-master commit path is complete
+[OK] F322 future-clock lease is force-recovered without normal TTL
+[OK] F322 partial publication is replayed and accounted once
+[OK] F322 missing manifest fails closed before analysis
+[OK] F322 checks account for tests, exits, ACKs, and state cleanup
+[OK] F323 evidence files match the complete SHA-256 manifest
+[OK] F323 evidence states durability and metric boundaries
+[OK] F323 fault injection covers ordering and uncertain publication
+[OK] F323 syscall trace orders file, public-dir, and source-dir sync
+[OK] F323 microbenchmark records synchronization cost without uplift claim
+[OK] F323 strict barriers preserve normal single-master execution
+[OK] F323 strict barriers preserve normal multi-master execution
+[OK] F323 checks account for tests, MPI exits, ACKs, and cleanup
+[OK] F324 evidence files match the complete SHA-256 manifest
+[OK] F324 evidence states benchmark and durability boundaries
+[OK] F324 directed tests cover batching, failures, and entry points
+[OK] F324 full scoped Python regression is recorded
+[OK] F324 microbenchmark records exact sync counts and scoped latency
+[OK] F324 real MPI run exercises successful grouped heartbeats
+[OK] F324 aggregate MPI metrics, ACKs, exit, and cleanup are conserved
+[OK] F325 evidence files match the complete SHA-256 manifest
+[OK] F325 evidence states transaction and performance boundaries
+[OK] F325 directed tests cover prevalidation and rollback failures
+[OK] F325 MPI lifecycle and AFL orchestration regressions are recorded
+[OK] F325 full scoped Python regression is recorded
+[OK] F325 microbenchmark records exact sync counts and scoped latency
+[OK] F325 multiprocess overlap race preserves single-winner groups
+[OK] F326 evidence files match the complete SHA-256 manifest
+[OK] F326 evidence states filesystem and performance boundaries
+[OK] F326 directed tests cover crash, contention, and corruption
+[OK] F326 shared-state and MPI/AFL regressions are recorded
+[OK] F326 full warnings-as-errors Python regression is recorded
+[OK] F326 process crash and concurrent coverage evidence is exact
+[OK] F326 microbenchmark records scoped lock cost and namespace work
+[OK] F326 syscall trace records stable-file nonblocking flock
+[OK] F327 evidence files match the complete SHA-256 manifest
+[OK] F327 evidence states startup-cost and proof-scope boundaries
+[OK] F327 directed, integration, and full regressions are recorded
+[OK] F327 60-run capability stress and startup costs are exact
+[OK] F327 real single/two-master MPI startup gates close cleanly
+[OK] F327 evidence drivers preserve independent-process and MPI scope
+[OK] F328 evidence files match the complete SHA-256 manifest
+[OK] F328 evidence states tri-state and proof-scope boundaries
+[OK] F328 directed, integration, and full regressions are recorded
+[OK] F328 full and partial snapshots preserve exact true/null semantics
+[OK] F328 operation reduction and residue evidence are exact
+[OK] F328 balanced 40-by-3 startup-cost observations are exact
+[OK] F328 evidence driver preserves balanced and scoped methodology
+[OK] F329 evidence files match the complete SHA-256 manifest
+[OK] F329 evidence states real-versus-synthetic proof boundaries
+[OK] F329 directed, integration, and full regressions are recorded
+[OK] F329 synthetic protocol artifact cannot masquerade as deployment evidence
+[OK] F329 synthetic holder/contention/release cardinalities are exact
+[OK] F329 adaptive polling before-after observations are exact and scoped
+[OK] F329 real same-host MPI run records membership without a false cluster claim
+[OK] F330 evidence files match the complete SHA-256 manifest
+[OK] F330 evidence states transport, topology, and performance boundaries
+[OK] F330 directed, integration, and full regressions are recorded
+[OK] F330 real MPI artifact is successful and explicitly synthetic
+[OK] F330 both masters complete three clean runtime renewals
+[OK] F330 generation-two semantic drift fails closed with exit 70
+[OK] F330 real-MPI driver cannot masquerade as multi-host evidence
+[OK] F330 benchmark has exact interleaved samples, proofs, and scope
+[OK] F330 protocol-cost observations are exact and non-uplift scoped
+[OK] F330 production frontend uses only real MPI processor identity
+[OK] F331 evidence files match the complete SHA-256 manifest
+[OK] F331 evidence states schedule, deployment, and uplift boundaries
+[OK] F331 directed, integration, and full regressions are recorded
+[OK] F331 cohort artifact has exact configuration and proof scope
+[OK] F331 fixed-versus-jitter event conservation and peaks are exact
+[OK] F331 generation-schedule cost samples are self-consistent and scoped
+[OK] F331 real MPI synthetic-topology artifact is explicit and clean
+[OK] F331 both masters report five consistent jittered generations
+[OK] F331 real same-host run cannot activate jitter without qualification
+[OK] F331 production wiring, cache, bounds, and identity are present
+[OK] F332 evidence files match the complete SHA-256 manifest
+[OK] F332 evidence states transport, topology, and uplift boundaries
+[OK] F332 directed, integration, and full regressions are recorded
+[OK] F332 real MPI artifact has exact topology and proof scope
+[OK] F332 healthy MPI run agrees before three renewal generations
+[OK] F332 sealed epoch reproduces fingerprint and outcomes twice
+[OK] F332 drift fails before renewal and ACKs precede bounded abort
+[OK] F332 2/4/8-master mechanism samples and medians recompute
+[OK] F332 MPI evidence driver labels injection and ACK criteria
+[OK] F332 production identity, consensus, and shutdown wiring exist
+[OK] F333 evidence files match the complete SHA-256 manifest
+[OK] F333 evidence states transport, sample, deployment, and uplift boundaries
+[OK] F333 directed, integration, race, and full regressions are recorded
+[OK] F333 real MPI artifact has exact topology, configuration, and proof scope
+[OK] F333 canonical durable manifest bytes and recorded SHA-256 agree
+[OK] F333 crash, drift rejection, and clean-recovery state transitions are exact
+[OK] F333 MPI run is -9 then pre-generation rejection 70 then three-generation recovery 0
+[OK] F333 mismatch is reported before bounded abort and both recoveries ACK workers
+[OK] F333 summarized mechanism-cost statistics are finite, ordered, and internally consistent
+[OK] F333 evidence drivers label topology injection, crash injection, and cost boundaries
+[OK] F333 production uses sealed exact-read/create-once wiring before service
+[OK] F333 tests cover typestate, fast path, corruption, symlink, retry, and race
+[OK] F334 evidence files match the complete SHA-256 manifest
+[OK] F334 evidence states topology, persistence, scale, and uplift boundaries
+[OK] F334 directed, integration, and full regressions are recorded
+[OK] F334 real MPI artifact has exact topology, epoch, and proof scope
+[OK] F334 cleanup failure retains exact recoverable state and matching restart removes it
+[OK] F334 MPI log proves ACK-before-Abort(72) and clean recovery
+[OK] F334 100+100 raw cleanup-cost samples and summaries recompute
+[OK] F334 evidence drivers label fault injection, real topology, raw samples, and boundaries
+[OK] F334 production orders pre-barrier, durable cleanup, post-barrier, then Finalize
+[OK] F334 tests cover deletion, fsync uncertainty, exact identity, scope, and owned-root cleanup
+[OK] F335 evidence files match the complete SHA-256 manifest
+[OK] F335 evidence states topology, failure, GC, and uplift boundaries
+[OK] F335 directed, integration, and full regressions are recorded
+[OK] F335 real MPI artifact has exact topology, epoch, and proof scope
+[OK] F335 uncertain retirement and matching restart namespace converge exactly
+[OK] F335 MPI log proves ACK-before-72, startup GC, and clean retirement
+[OK] F335 three-scale 30+30 raw samples and summaries recompute
+[OK] F335 evidence drivers label injection, topology, scales, raw data, and boundaries
+[OK] F335/F337 production orders startup GC, service, durable retirement, post-barrier, and Finalize
+[OK] F335 no-follow lock, namespace, uncertainty, limit tests, and configuration are wired
+[OK] F336 evidence files match the complete SHA-256 manifest
+[OK] F336 evidence states platform, collision, deployment, and uplift boundaries
+[OK] F336 directed, integration, and full regressions are recorded
+[OK] F336 real MPI artifact has exact topology, epoch, collision, and proof scope
+[OK] F336 collision preserves both states and matching restart converges exactly
+[OK] F336 MPI log proves qualification, ACK-before-72, GC, and clean recovery
+[OK] F336 60+60+60 raw samples and mechanism summaries recompute
+[OK] F336 syscall trace proves success, parent fsync, and EEXIST rejection
+[OK] F336 evidence drivers preserve production primitive, raw samples, and proof boundaries
+[OK] F336 production uses fail-closed kernel no-clobber before service and Finalize
+[OK] F336 tests and configuration cover primitive, race, probe, and failure semantics
+[OK] F337 evidence files match the complete SHA-256 manifest
+[OK] F337 evidence states cooperative-time, namespace, deployment, and uplift boundaries
+[OK] F337 directed, integration, and full regressions are recorded
+[OK] F337 real MPI artifact has exact topology, budgets, epoch, and proof scope
+[OK] F337 MPI state makes exact 5-to-3-to-1-to-absent progress and preserves corpus
+[OK] F337 MPI log proves effective budgets, partial identity, ACKs, and convergence
+[OK] F337 120 raw cost samples and default-budget convergence recompute
+[OK] F337 syscall evidence proves no-follow open, exactly two mutations, and durable partial state
+[OK] F337 evidence drivers use production paths, raw samples, and isolated fixture cleanup
+[OK] F337 durable step is descriptor-relative, bounded, resumable, and no-follow
+[OK] F337 startup prevalidates before triple-budget deletion and reports partial progress
+[OK] F337 tests and configuration cover budgets, symlinks, durability, EOF, and honest timing
+[OK] F338 evidence files match the complete SHA-256 manifest
+[OK] F338 evidence states validation, timing, memory, deployment, and uplift boundaries
+[OK] F338 directed, integration, and full regressions are recorded
+[OK] F338 real MPI artifact has exact topology, configuration, and proof scope
+[OK] F338 MPI state proves exact lexical top-k and retired-root conservation
+[OK] F338 MPI log proves scan telemetry, deletion, ACKs, and normal retirement
+[OK] F338 180 timing and 60 traced-memory samples recompute exactly
+[OK] F338 evidence drivers compare the old algorithm and exercise the production path
+[OK] F338 production uses complete streaming validation and bounded lexical top-k before deletion
+[OK] F338 result telemetry, bounded-heap test, and configuration boundary are wired
+[OK] F339 evidence files match the complete SHA-256 manifest
+[OK] F339 evidence states identity, memory, timing, deployment, and uplift boundaries
+[OK] F339 directed, integration, and full regressions are recorded
+[OK] F339 real MPI artifact has exact topology, configuration, and proof scope
+[OK] F339 MPI state proves exact public content identity and staging cleanup
+[OK] F339 MPI log proves worker staging, master promotion, and exact ACKs
+[OK] F339 240 timing and 60 traced-memory samples recompute exactly
+[OK] F339 evidence drivers compare the old algorithm and exercise the production path
+[OK] F339 corpus digest is bound to one stable no-follow opened regular inode
+[OK] F339 live and replay verification share streaming expected-first admission
+[OK] F339 failure-closed tests and configuration boundaries are wired
+[OK] F340 evidence files match the complete SHA-256 manifest
+[OK] F340 evidence preserves memory, deployment, solver, and uplift boundaries
+[OK] F340 directed, related, and full regressions are recorded
+[OK] F340 real MPI success and both overflow states recompute exactly
+[OK] F340 40 fresh-process raw staging samples recompute exactly
+[OK] F340 drivers exercise production streaming and an explicit legacy counterfactual
+[OK] F340 worker discovery and staging are no-follow, streamed, and hard bounded
+[OK] F340 worker/master protocol and rank-zero configuration consensus are wired
+[OK] F340 duplicate, overflow, cleanup, and replay boundaries are tested and documented
+[OK] F341 evidence files match the complete SHA-256 manifest
+[OK] F341 evidence preserves memory, deployment, solver, and uplift boundaries
+[OK] F341 directed, related, and full regressions are recorded
+[OK] F341 real MPI replacement, accounting, and overflow states recompute exactly
+[OK] F341 40 fresh-process raw input-admission samples recompute exactly
+[OK] F341 drivers exercise production MPI and an explicit legacy counterfactual
+[OK] F341 stream copy binds fixed-window bytes to one stable path identity
+[OK] F341 master import and replacement cache feed exact final provenance accounting
+[OK] F341 worker single-pass input verification and rank-zero budget consensus are wired
+[OK] F341 mutation, overflow, accounting, and configuration boundaries are tested and documented
+[OK] F342 evidence files match the complete SHA-256 manifest
+[OK] F342 evidence preserves injection, integrity, deployment, and uplift boundaries
+[OK] F342 directed, related, and full regressions are recorded
+[OK] F342 real MPI phantom provenance and final namespace recompute exactly
+[OK] F342 60 interleaved samples and provenance cardinalities recompute exactly
+[OK] F342 drivers expose delay injection and compare the production path
+[OK] F342 final scan computes public and external intersection in one no-follow pass
+[OK] F342 root statistics use present-external rather than observed cardinality
+[OK] F342 counterexample, invariant, configuration, and report are wired
+[OK] F343 evidence files match the complete SHA-256 manifest
+[OK] F343 evidence preserves solver, deployment, campaign, and uplift boundaries
+[OK] F343 directed, related, and full regressions are recorded
+[OK] F343 real MPI corpus, observations, hashes, budgets, and lifecycle recompute exactly
+[OK] F343 MPI log records the exact bounded production execution
+[OK] F343 40 fresh-process samples, summaries, scaling, and output vectors recompute exactly
+[OK] F343 drivers exercise production simulation and a fresh-process legacy baseline
+[OK] F343 descriptor writer closes partial and zero-write semantics
+[OK] F343 production path is budget-first, stable-source, and bounded-memory
+[OK] F343 publication is no-clobber, failure-clean, and uses authoritative budgets
+[OK] F343 equivalence, budget, race, failure, heap, configuration, and report are wired
+[OK] F344 evidence files match the complete SHA-256 manifest
+[OK] F344 evidence preserves MPI, solver, campaign, and uplift boundaries
+[OK] F344 directed, related, and full regressions are recorded
+[OK] F344 local production-wrapper success and exact rejection cases recompute
+[OK] F344 integration log is exact and driver launches the production wrapper
+[OK] F344 40 fresh-process samples, summaries, ratios, and vectors recompute
+[OK] F344 benchmark exercises the legacy model and production primitives
+[OK] F344 namespace admission proves every budget before payload reads
+[OK] F344 stable reader binds bounded bytes to one regular inode
+[OK] F344 two-pass collection, retry rollback, MPI result, and tests are wired
+[OK] F344 configuration, complexity, costs, and report boundaries are wired
+[OK] F345 evidence files match the complete SHA-256 manifest
+[OK] F345 evidence preserves MPI, solver, campaign, and uplift boundaries
+[OK] F345 directed, related, and full regressions are recorded
+[OK] F345 11 local production-primitive integration checks recompute
+[OK] F345 integration log is exact and driver uses production primitives
+[OK] F345 40 fresh-process samples, summaries, ratios, and hashes recompute
+[OK] F345 benchmark compares the legacy model with production snapshot code
+[OK] F345 stable snapshot is bounded, no-follow, and identity-closing
+[OK] F345 CAS verifies reuse, repairs exact content, and bounds identities
+[OK] F345 queue selection binds identities and keeps deterministic bounded Top-K
+[OK] F345 admission, path/object fences, ACK, and continuation flow are wired
+[OK] F345 replacement, Top-K, continuation, CAS, and ACK tests are wired
+[OK] F345 configuration, measured costs, and claim boundaries are documented
+[OK] F346 evidence files match the complete SHA-256 manifest
+[OK] F346 evidence preserves deployment, campaign, and uplift boundaries
+[OK] F346 directed, related, and full regressions are recorded
+[OK] F346 eight publication-race mechanism checks recompute exactly
+[OK] F346 integration log is exact and driver uses production CAS code
+[OK] F346 writer closes fd content and public-path identity before caching
+[OK] F346 unit tests pin zero-hash fast path and race arbitration
+[OK] F346 configuration, mechanism observations, and boundaries are documented
+[OK] F347 evidence files match the complete SHA-256 manifest
+[OK] F347 evidence preserves deployment, campaign, and uplift boundaries
+[OK] F347 directed, related, and full regressions are recorded
+[OK] F347 eight live-state CAS mechanism checks recompute exactly
+[OK] F347 integration log is exact and driver uses production live-state code
+[OK] F347 suffix-aware live writes reuse the verified CAS publication path
+[OK] F347 live reads bind identity, digest, and consumed JSON bytes
+[OK] F347 unit tests pin layout, repair, stable reads, and no-follow behavior
+[OK] F347 configuration, observations, and claim boundaries are documented
+[OK] F348 evidence files match the complete SHA-256 manifest
+[OK] F348 evidence preserves deployment, campaign, and uplift boundaries
+[OK] F348 directed, related, and full regressions are recorded
+[OK] F348 nine graph-budget mechanism checks recompute exactly
+[OK] F348 integration log is exact and driver uses production restore code
+[OK] F348 restore ledger checks exact budgets before parse and exposes totals
+[OK] F348 restore closes current and parent reachable graphs with one ledger
+[OK] F348 deep references reject duplicates and semantic failures revoke cache
+[OK] F348 master, worker, and inspection CLI consume and expose graph limits
+[OK] F348 exact limits, deep failures, cache, and runtime config are tested
+[OK] F348 configuration, observations, and claim boundaries are documented
+[OK] F349 evidence files match the complete SHA-256 manifest
+[OK] F349 evidence preserves deployment, ancestry, and uplift boundaries
+[OK] F349 directed, related, and full regressions are recorded
+[OK] F349 eleven namespace-closure mechanism checks recompute exactly
+[OK] F349 integration log is exact and driver uses production CAS paths
+[OK] F349 root and shard are no-follow capabilities closed after use
+[OK] F349 CAS publication remains shard-relative through cache admission
+[OK] F349 input and live-state reads share anchored snapshot semantics
+[OK] F349 tests cover root, shard, leaf, read, cache, and compatibility
+[OK] F349 configuration, observations, and claim boundaries are documented
+[OK] F350 evidence files match the complete SHA-256 manifest
+[OK] F350 evidence preserves openat2, deployment, and uplift boundaries
+[OK] F350 directed, related, and full regressions are recorded
+[OK] F350 eleven component-root mechanism checks recompute exactly
+[OK] F350 integration log is exact and driver uses production CAS paths
+[OK] F350 root creation is absolute, open-first, relative, and durable
+[OK] F350 every object transaction rewalks root ancestry before cache admission
+[OK] F350 tests cover create, reopen, write, read, cache, and chdir
+[OK] F350 configuration, reports, history, and claim boundaries are documented
+[OK] F351 evidence files match the complete SHA-256 manifest
+[OK] F351 evidence preserves deployment and uplift boundaries
+[OK] F351 directed, related, and full regressions are recorded
+[OK] F351 eight identity-closure mechanism checks recompute exactly
+[OK] F351 integration log is exact and driver uses production qualification
+[OK] F351 capability upgrade requires exact v2 identity evidence
+[OK] F351 qualification and runtime consumers fail closed on legacy proof
+[OK] F351 tests cover replacement, stale binding, exact count, and renewal
+[OK] F351 configuration, reports, history, and boundaries are documented
+[OK] F352 evidence files match the complete SHA-256 manifest
+[OK] F352 evidence preserves authentication, deployment, and uplift boundaries
+[OK] F352 directed, related, and full regressions are recorded
+[OK] F352 ten transcript, replay, and splice checks recompute exactly
+[OK] F352 integration log is exact and driver uses production admission
+[OK] F352 result and canonical transcript encoding are wired
+[OK] F352 completion and all-master commit reject replay and splicing
+[OK] F352 production runtime binds topology, capability, and audit log
+[OK] F352 tests cover field sensitivity, divergence, replay, and splicing
+[OK] F352 configuration, reports, history, and boundaries are documented
+[OK] F353 evidence files match the complete SHA-256 manifest
+[OK] F353 evidence preserves transaction, deployment, and uplift boundaries
+[OK] F353 directed, related, and full regressions are recorded
+[OK] F353 ten success, malformed, exception, and conservation checks recompute
+[OK] F353 integration log is exact and driver uses production admission
+[OK] F353 production admission is total and commits after all fallible work
+[OK] F353 tests cover malformed fields, injected exceptions, and bool generation
+[OK] F353 configuration, reports, history, and boundaries are documented
+[OK] F354 evidence files match the complete SHA-256 manifest
+[OK] F354 evidence preserves recovery, deployment, and uplift boundaries
+[OK] F354 directed, related, and full regressions are recorded
+[OK] F354 nine result, exception, diagnostic, and signal checks recompute
+[OK] F354 integration log is exact and driver uses production containment
+[OK] F354 completion boundary contains ordinary exceptions only
+[OK] F354 runtime distinguishes accounting exceptions from proof failure
+[OK] F354 tests cover overflow, unexpected exception, and invalid controller
+[OK] F354 configuration, reports, history, and boundaries are documented
+[OK] F355 evidence files match the complete SHA-256 manifest
+[OK] F355 evidence preserves deployment, recovery, and uplift boundaries
+[OK] F355 directed, related, and full regressions are recorded
+[OK] F355 ten protocol, exception, normalization, and signal checks recompute
+[OK] F355 integration log is exact and driver uses the production API
+[OK] F355 public qualification boundary totalizes ordinary exceptions
+[OK] F355 startup and renewal consume the same total public API
+[OK] F355 tests cover adapter, rendering, bounding, and signal cases
+[OK] F355 configuration, reports, history, and boundaries are documented
+[OK] F356 evidence files match the complete SHA-256 manifest
+[OK] F356 evidence preserves transport, storage, and uplift boundaries
+[OK] F356 directed, related, and full regressions are recorded
+[OK] F356 logs name the existing test modules that produced each count
+[OK] F356 twelve observation, schema, collective, and signal checks recompute
+[OK] F356 integration log is exact and driver uses production APIs
+[OK] F356 observer totalizes each ordinary provider failure once
+[OK] F356 membership schema admits only explicit failed empty identities
+[OK] F356 startup and renewal observe inputs before public qualification
+[OK] F356 tests cover providers, conditional schema, and process signals
+[OK] F356 configuration, reports, history, and boundaries are documented
+[OK] F357 evidence files match the complete SHA-256 manifest
+[OK] F357 evidence preserves side-effect, transport, and uplift boundaries
+[OK] F357 directed, related, and full regressions are recorded
+[OK] F357 logs identify every existing test module in each scope
+[OK] F357 fourteen heartbeat, clock, collective, and state checks recompute
+[OK] F357 integration log is exact and composes the production APIs
+[OK] F357 heartbeat observer is once-only, total, bounded, and ordered
+[OK] F357 coordinator admits a complete partition before local commit
+[OK] F357 runtime reuses schedule time and shares heartbeat observation
+[OK] F357 completion owns its clock inside the ordinary-exception boundary
+[OK] F357 tests cover provider, validation, clock, and coordinator failures
+[OK] F357 configuration, reports, history, and boundaries are documented
+[OK] F358 evidence files match the complete SHA-256 manifest
+[OK] F358 evidence preserves partial-send, transport, and uplift boundaries
+[OK] F358 directed, related, and full regressions are recorded
+[OK] F358 logs identify every existing test module and full test scope
+[OK] F358 fifteen begin, poll, delivery, state, and boundary checks recompute
+[OK] F358 integration log is exact and composes the production APIs
+[OK] F358 begin boundary retains typestate and partial send handles
+[OK] F358 peer poll distinguishes safe classification from local failure
+[OK] F358 delivery observation is unique, one-shot, total, and three-way
+[OK] F358 runtime wires partial delivery and peer failure classification
+[OK] F358 tests cover pre/post begin, poll, delivery, and process signals
+[OK] F358 configuration, reports, history, and boundaries are documented
+[OK] F359 evidence files match the complete SHA-256 manifest
+[OK] F359 evidence preserves discovery, QSYM, and uplift boundaries
+[OK] F359 directed, discovery, explicit-path, and full logs are recorded
+[OK] F359 twelve discovery boundary checks are recorded
+[OK] F359 integration log is exact and exercises four production invocations
+[OK] F359 project config is minimal and its contract avoids submodule coupling
+[OK] F359 documents separate Python, lit, and QSYM test lifecycles
+[OK] F359 configuration, reports, history, and boundaries are documented
+[OK] F359 twelve discovery checks recompute against the current worktree
+[OK] F360 evidence files match the complete SHA-256 manifest
+[OK] F360 full gate JSON is capability-closed and zero-degradation
+[OK] F360 clean-environment gate JSON records an exact smoke pass
+[OK] F360 directed, clean-environment, static, and full logs are recorded
+[OK] F360 evidence preserves hosted-CI, backend, campaign, and uplift boundaries
+[OK] F360 production recorder and six positive/negative contracts are wired
+[OK] F360 workflow, dependency, and operator documentation are strict
+[OK] F360 report, archive, history, index, and claim boundaries agree
+[OK] F360 production gate recomputes a capability-closed live smoke
+[OK] F361 evidence files match the complete SHA-256 manifest
+[OK] F361 committed snapshot is canonical, root-bound, unique, and hashed
+[OK] F361 committed and clean-venv collections exactly match 787 identities
+[OK] F361 full gate is capability-closed, identity-exact, and zero-degradation
+[OK] F361 valid equal-count replacement is rejected as 1 missing + 1 unexpected
+[OK] F361 directed, rebuild, counterfactual, clean, full, and static logs agree
+[OK] F361 evidence preserves semantic, hosted-CI, backend, and uplift boundaries
+[OK] F361 generator, strict reader, gate v2, and nine contracts are wired
+[OK] F361 CI and operator documentation keep inventory review explicit
+[OK] F361 report, archive, history, compendium, and entry page agree
+[OK] F361 production tools rebuild exact bytes and reject live equal-count drift
+[OK] F362 evidence files match the complete SHA-256 manifest
+[OK] F362 bounded-read, duplicate-member, and empty-env counterexamples close
+[OK] F362 full gate preserves 16 capabilities, 787 identities, and zero degradation
+[OK] F362 adversarial, directed, rebuild, full, and static logs agree
+[OK] F362 evidence preserves filesystem, hosted-CI, backend, and uplift boundaries
+[OK] F362 production reader is single-snapshot, bounded, strict, and isolated
+[OK] F362 keeps nine identities while expanding all three regression oracles
+[OK] F362 report, archive, history, compendium, and entry page agree
+[OK] F362 executable evidence driver exactly reproduces all counterexamples
+[OK] F363 evidence files match the complete SHA-256 manifest
+[OK] F363 exact/oversize, strict-JSON, and store-isolation counterexamples close
+[OK] F363 full gate preserves 16 capabilities, 787 identities, and zero degradation
+[OK] F363 adversarial, directed, affected, rebuild, full, and static logs agree
+[OK] F363 evidence preserves filesystem, hosted-CI, backend, and uplift boundaries
+[OK] F363 production Query IR reader is bounded, strict, and wired to spool
+[OK] F363 keeps twenty QueryStore identities while covering all strict inputs
+[OK] F363 report, archive, history, compendium, and entry page agree
+[OK] F363 executable evidence driver exactly reproduces all counterexamples
+[OK] F364 evidence files match the complete SHA-256 manifest
+[OK] F364 legacy race and real SIGKILL recovery counterexamples close
+[OK] F364 regular-file, path-identity, and lock-object gates fail closed
+[OK] F364 full gate preserves 16 capabilities, 787 identities, and zero degradation
+[OK] F364 executable, test, inventory, full-gate, and static logs agree
+[OK] F364 evidence preserves concurrency, filesystem, backend, and uplift boundaries
+[OK] F364 production Query IR reader is no-follow, regular-only, bounded, and identity-closed
+[OK] F364 production spool serializes cooperative consumers and releases on unwind
+[OK] F364 keeps twenty QueryStore identities while covering race, crash, and file types
+[OK] F364 report, archive, history, compendium, entry page, and configuration agree
+[OK] F364 executable evidence driver exactly reproduces all counterexamples
+[OK] F365 evidence files match the complete SHA-256 manifest
+[OK] F365 legacy publication failure is deterministically misclassified
+[OK] F365 invalid input alone reaches the compatibility dead-letter path
+[OK] F365 read, persist, and publish failures preserve input and recover idempotently
+[OK] F365 full gate preserves 16 capabilities, 787 identities, and zero degradation
+[OK] F365 executable, test, inventory, full-gate, and static logs agree
+[OK] F365 evidence preserves transaction, deployment, backend, and uplift boundaries
+[OK] F365 QueryStore validates once and types only pre-persistence rejection
+[OK] F365 spool dead-letters only admission errors before accepted publication
+[OK] F365 keeps twenty QueryStore identities while covering all outcome classes
+[OK] F365 report, archive, history, compendium, entry page, and configuration agree
+[OK] F365 executable evidence driver exactly reproduces all outcomes
+[OK] F366 evidence files match the complete SHA-256 manifest
+[OK] F366 existence-only artifact admission reproduces a digest split
+[OK] F366 production repairs known bytes and rejects unverifiable artifacts before lease
+[OK] F366 concurrent artifact writers converge without temporary residue
+[OK] F366 full gate preserves 16 capabilities, 787 identities, and zero degradation
+[OK] F366 executable, test, inventory, full-gate, and static logs agree
+[OK] F366 evidence preserves fd, storage, deployment, backend, and uplift boundaries
+[OK] F366 reuses the descriptor-anchored CAS with a compatible full-digest leaf
+[OK] F366 artifact publication and access are content- and path-verified
+[OK] F366 verifies all artifacts before mutating lease state
+[OK] F366 preserves test identities while covering corruption, types, paths, and layout
+[OK] F366 report, archive, history, compendium, entry page, and configuration agree
+[OK] F366 executable evidence driver exactly reproduces all outcomes
+[OK] F367 evidence files match the complete SHA-256 manifest
+[OK] F367 path-only lease consumer reproduces the post-claim digest split
+[OK] F367 sealed snapshots preserve all three digests and reject mutation
+[OK] F367 one-shot inheritance and request-bound SCM_RIGHTS consume exact snapshots
+[OK] F367 partial snapshot allocation closes descriptors and rolls back lease state
+[OK] F367 full gate preserves 16 capabilities, 787 identities, and zero degradation
+[OK] F367 executable, native-helper, lit, inventory, and full-gate logs agree
+[OK] F367 evidence preserves platform, deployment, campaign, and uplift boundaries
+[OK] F367 static, historical, diagram, hash, and delivery checks agree
+[OK] F367 creates digest-checked four-seal snapshots with bounded ownership
+[OK] F367 prepares all snapshots before lease commit and cleans partial state
+[OK] F367 wires one-shot inheritance and request-bound persistent descriptor transfer
+[OK] F367 C++ helper validates descriptor protocol, seals, identity, and bytes
+[OK] F367 preserves test identities while covering both helpers and cache hit
+[OK] F367 report, archive, history, compendium, entry page, and configuration agree
+[OK] F367 executable evidence driver exactly reproduces all outcomes
+[OK] F368 evidence files match the complete SHA-256 manifest
+[OK] F368 reproduces the orphan descriptor mismatch and every cold recovery
+[OK] F368 full gate preserves 16 capabilities, 787 identities, and zero degradation
+[OK] F368 executable, pytest, lit, inventory, and full-gate logs agree
+[OK] F368 evidence preserves mechanism, platform, campaign, and uplift boundaries
+[OK] F368 static, historical, diagram, hash, and delivery checks agree
+[OK] F368 gives each helper process, stream set, and socketpair one validity generation
+[OK] F368 invalidation monotonically detaches every helper-generation resource
+[OK] F368 response framing is deadline-bound, FD_SETSIZE-independent, and size-limited
+[OK] F368 validates before transport and fail-stops every post-selection exception
+[OK] F368 expands failure recovery coverage without changing test identities
+[OK] F368 report, archive, history, compendium, entry page, and configuration agree
+[OK] F368 executable evidence driver exactly reproduces all outcomes
+[OK] F369 evidence files match the complete SHA-256 manifest
+[OK] F369 reproduces delayed same-ID model injection and closes every preflight class
+[OK] F369 full gate preserves 16 capabilities, 787 identities, and zero degradation
+[OK] F369 executable, pytest, lit, inventory, and full-gate logs agree
+[OK] F369 evidence preserves protocol, platform, campaign, and uplift boundaries
+[OK] F369 static, historical, diagram, hash, and delivery checks agree
+[OK] F369 validates every frame delimiter and the native descriptor envelope
+[OK] F369 validates the exact commit image before all transport effects
+[OK] F369 expands all request-field classes without changing test identities
+[OK] F369 report, archive, history, compendium, entry page, and configuration agree
+[OK] F369 executable evidence driver exactly reproduces all outcomes
+[OK] F370 evidence files match the complete SHA-256 manifest
+[OK] F370 reproduces both blocking writes and bounds both production transports
+[OK] F370 full gate preserves 16 capabilities, 787 identities, and zero degradation
+[OK] F370 executable, pytest, lit, inventory, and full-gate logs agree
+[OK] F370 evidence preserves deadline, platform, campaign, and uplift boundaries
+[OK] F370 static, historical, diagram, hash, and delivery checks agree
+[OK] F370 freezes a typed, strict-UTF-8, bounded request commit frame
+[OK] F370 bounds both descriptor datagrams and partial pipe writes
+[OK] F370 response admission accepts the transaction's absolute deadline
+[OK] F370 preflights before selection and shares one deadline end to end
+[OK] F370 covers both blocked transports and pure preflight without new identities
+[OK] F370 report, archive, history, compendium, entry page, and configuration agree
+[OK] F370 executable evidence driver exactly reproduces all outcomes
+[OK] F371 evidence files match the complete SHA-256 manifest
+[OK] F371 reproduces stale same-ID admission and fences production retries
+[OK] F371 full gate preserves 16 capabilities, 787 identities, and zero degradation
+[OK] F371 executable, pytest, lit, inventory, and full-gate logs agree
+[OK] F371 evidence preserves correlation, platform, campaign, and uplift boundaries
+[OK] F371 static, historical, diagram, hash, and delivery checks agree
+[OK] F371 implements bounded generation-scoped fingerprint admission
+[OK] F371 admits before transport and rechecks cancellation after rotation
+[OK] F371 covers delayed duplicates and bounded history without new identities
+[OK] F371 report, archive, history, compendium, and entry page agree
+[OK] F371 executable evidence driver exactly reproduces all outcomes
+[OK] F372 evidence files match the complete SHA-256 manifest
+[OK] F372 distinguishes exact convergence, wrong content, and unstable exhaustion
+[OK] F372 full gate preserves 16 capabilities, 787 identities, and zero degradation
+[OK] F372 driver, stress, pytest, inventory, and full-gate logs agree
+[OK] F372 evidence preserves corruption, platform, campaign, and uplift boundaries
+[OK] F372 static, historical, diagram, hash, and delivery checks agree
+[OK] F372 implements bounded three-way stable publication observation
+[OK] F372 wires bounded revalidation into fail-closed publication cleanup
+[OK] F372 expands transient and exhaustion coverage without new identities
+[OK] F372 report, archive, history, compendium, and entry page agree
+[OK] F372 executable evidence driver exactly reproduces all outcomes
+[OK] F373 evidence files match the complete SHA-256 manifest
+[OK] F373 reproduces the database blind spot and report-only closure
+[OK] F373 full gate preserves 16 capabilities, 787 identities, and zero degradation
+[OK] F373 driver, historical replay, pytest, inventory, and gate logs agree
+[OK] F373 evidence preserves observation, deletion, platform, and uplift boundaries
+[OK] F373 static, historical, diagram, hash, and delivery checks agree
+[OK] F373 implements descriptor-anchored bounded physical inventory
+[OK] F373 joins one SQLite root snapshot with fenced three-store inventory
+[OK] F373 exposes complete/partial CLI states and extends one existing test identity
+[OK] F373 report, archive, history, compendium, and entry page agree
+[OK] F373 executable evidence driver exactly reproduces all outcomes
+[OK] F377 evidence files match their SHA-256 manifest
+[OK] F377 artifacts preserve model, capability, ABI, and invoke provenance
+[OK] F377 report, archive, compendium, and entry page preserve claim boundaries
+[OK] F377 compiler/runtime integration and fresh-process regression are present
+[OK] F378 evidence files match their SHA-256 manifest
+[OK] F378 artifacts preserve lifecycle capability, operations, and rejection
+[OK] F378 complete Python gate is capability-closed and identity-exact
+[OK] F378 report, archive, compendium, and entry page preserve boundaries
+[OK] F378 compiler/runtime/search integration and regressions are present
+[OK] F379 evidence files match their SHA-256 manifest
+[OK] F379 artifacts preserve scalar capability, value op, and rejections
+[OK] F379 complete Python gate is capability-closed and identity-exact
+[OK] F379 report, archive, compendium, and entry page preserve boundaries
+[OK] F379 compiler/runtime integration and regressions are present
+[OK] F380 evidence files match their SHA-256 manifest
+[OK] F380 artifacts preserve arena operations, metadata, and rejections
+[OK] F380 mixed producer ambiguity is rejected by its exact diagnostic
+[OK] F380 complete Python gate is capability-closed and identity-exact
+[OK] F380 report, archive, compendium, and entry page preserve boundaries
+[OK] F380 compiler/runtime integration and regressions are present
+[OK] F381 evidence files match their SHA-256 manifest
+[OK] F381 targeted, repeated, lit, and static gates are preserved
+[OK] F381 complete Python gate is capability-closed and identity-exact
+[OK] F381 report, archive, compendium, and entry page preserve boundaries
+[OK] F381 production registration and deterministic regression are present
+[OK] F382 evidence files match their SHA-256 manifest
+[OK] F382 semantic summary preserves results and explicit research boundaries
+[OK] F382 aggregate-fields.json preserves exact three-field projection contract
+[OK] F382 source-llvm18.json preserves exact three-field projection contract
+[OK] F382 source-llvm17.json preserves exact three-field projection contract
+[OK] F382 dynamic-field-reject.json is a diagnostic-bearing fail-closed artifact
+[OK] F382 dynamic-store-reject.json is a diagnostic-bearing fail-closed artifact
+[OK] F382 oob-store-reject.json is a diagnostic-bearing fail-closed artifact
+[OK] F382 targeted, source, full lit, and static gates are preserved
+[OK] F382 complete Python gate is capability-closed and identity-exact
+[OK] F382 report, archive, compendium, and entry page preserve boundaries
+[OK] F382 compiler, runtime, source driver, and regressions are present
+[OK] F383 evidence files match their SHA-256 manifest
+[OK] F383 semantic summary preserves graph witnesses and boundaries
+[OK] F383 fixed-heap.json preserves its executable graph witness
+[OK] F383 guard-correlated.json preserves its executable graph witness
+[OK] F383 symbolic-index.json preserves its executable graph witness
+[OK] F383 symbolic-index-llvm17.json preserves its executable graph witness
+[OK] F383 PHI-correlated boundary remains explicitly conservative
+[OK] F383 targeted, full lit, and static gates are preserved
+[OK] F383 complete Python gate is capability-closed and identity-exact
+[OK] F383 report, archive, compendium, and entry page preserve boundaries
+[OK] F383 compiler/runtime/checker integration and regressions are present
+[OK] F384 evidence files match their SHA-256 manifest
+[OK] F384 semantic summary preserves mechanisms and boundaries
+[OK] F384 phi-ordered.json preserves shared-edge graph semantics
+[OK] F384 phi-reordered.json preserves shared-edge graph semantics
+[OK] F384 phi-reordered-llvm17.json preserves shared-edge graph semantics
+[OK] F384 function-pointer discriminator uses its own capability dependency
+[OK] F384 artifact, targeted, full lit, and static gates are preserved
+[OK] F384 complete Python gate is capability-closed and identity-exact
+[OK] F384 report, archive, compendium, and entry page preserve boundaries
+[OK] F384 compiler/runtime/checker integration and regressions are present
+[OK] F385 evidence files match their SHA-256 manifest
+[OK] F385 semantic summary preserves mechanisms and boundaries
+[OK] F385 overlap-llvm18.json preserves overlapping last-writer semantics
+[OK] F385 overlap-llvm17.json preserves overlapping last-writer semantics
+[OK] F385 initial-memory artifact preserves one store and one initial lane
+[OK] F385 cross-function artifact keeps graph and PHI contracts scoped
+[OK] F385 artifact, targeted, lit, contention, and static gates are preserved
+[OK] F385 complete Python gate is capability-closed and identity-exact
+[OK] F385 report, archive, compendium, and entry page preserve boundaries
+[OK] F385 compiler/runtime/checker integration and regressions are present
+[OK] F386 evidence files match their SHA-256 manifest
+[OK] F386 semantic summary preserves mechanisms and boundaries
+[OK] F386 phi-llvm18.json preserves two endpoint-local writer proofs
+[OK] F386 phi-llvm17.json preserves two endpoint-local writer proofs
+[OK] F386 initial-memory artifact closes both endpoint paths
+[OK] F386 cross-function artifact keeps F385/F386 store IDs local
+[OK] F386 artifact, Python, lit, static, and delivery gates are preserved
+[OK] F386 complete Python gate is capability-closed and identity-exact
+[OK] F386 report, archive, compendium, and entry page preserve boundaries
+[OK] F386 compiler/runtime/checker integration and regressions are present
+[OK] F387 evidence files match their SHA-256 manifest
+[OK] F387 semantic summary preserves mechanisms and boundaries
+[OK] F387 cycle-llvm18.json preserves endpoint-local cyclic writer proofs
+[OK] F387 cycle-llvm17.json preserves endpoint-local cyclic writer proofs
+[OK] F387 conditional cyclic artifact remains outside the base capability
+[OK] F387 artifact, Python, lit, static, and delivery gates are preserved
+[OK] F387 complete Python gate is capability-closed and identity-exact
+[OK] F387 report, archive, compendium, and entry page preserve boundaries
+[OK] F387 compiler/runtime/checker integration and regressions are present
+[OK] F388 evidence files match their SHA-256 manifest
+[OK] F388 semantic summary preserves mechanisms and boundaries
+[OK] F388 conditional-llvm18.json preserves the direct two-leaf writer proof
+[OK] F388 conditional-llvm17.json preserves the direct two-leaf writer proof
+[OK] F388 forwarded artifact preserves corridor-aware leaf proofs
+[OK] F388 artifact, Python, lit, static, and delivery gates are preserved
+[OK] F388 complete Python gate is capability-closed and identity-exact
+[OK] F388 report, archive, compendium, and entry page preserve boundaries
+[OK] F388 compiler/runtime/checker integration and regressions are present
+[OK] F389 evidence files match their SHA-256 manifest
+[OK] F389 semantic summary preserves mechanisms and boundaries
+[OK] F389 multiarm-llvm18.json preserves the direct three-arm writer proof
+[OK] F389 multiarm-llvm17.json preserves the direct three-arm writer proof
+[OK] F389 forwarded artifact preserves three corridor-aware arm proofs
+[OK] F389 artifact, Python, lit, static, and delivery gates are preserved
+[OK] F389 complete Python gate is capability-closed and identity-exact
+[OK] F389 report, archive, compendium, and entry page preserve boundaries
+[OK] F389 compiler/runtime/checker integration and regressions are present
+[OK] F390 evidence files match their SHA-256 manifest
+[OK] F390 semantic summary preserves mechanisms and boundaries
+[OK] F390 recursive-llvm18.json preserves the direct four-leaf writer proof
+[OK] F390 recursive-llvm17.json preserves the direct four-leaf writer proof
+[OK] F390 forwarded artifact preserves corridor-aware leaf proofs
+[OK] F390 grouped recursive artifact remains outside the proof domain
+[OK] F390 artifact, Python, lit, static, and delivery gates are preserved
+[OK] F390 complete Python gate is capability-closed and identity-exact
+[OK] F390 report, archive, compendium, and entry page preserve boundaries
+[OK] F390 compiler/runtime/checker integration and regressions are present
+[OK] F391 evidence files match their SHA-256 manifest
+[OK] F391 semantic summary preserves protocol and research boundaries
+[OK] F391 targeted, repeated, full, static, and environment gates are preserved
+[OK] F391 complete Python gate is capability-closed and identity-exact
+[OK] F391 benchmark preserves bounded state sizes and durable cost observations
+[OK] F391 report, archive, compendium, and entry page preserve exact evidence
+[OK] F391 frontier/search/executor/CLI integration and regressions are present
+[OK] F392 evidence files match their SHA-256 manifest
+[OK] F392 semantic summary preserves executable scope and boundaries
+[OK] F392 targeted, related, warning, static, and environment gates are preserved
+[OK] F392 full Python identity gate and complete lit gate are preserved
+[OK] F392 mechanism evidence preserves exhaustive counts and claim boundary
+[OK] F392 executable certificate preserves regeneration and recomputation evidence
+[OK] F392 report, archive, and compendium preserve exact evidence and boundaries
+[OK] F392 interpreter, CLI, independent oracles, and benchmark are present
+[OK] F392 production verifier recomputes the sealed certificate
+[OK] F393 evidence files match their SHA-256 manifest
+[OK] F393 evidence summary preserves exact semantics and claim boundaries
+[OK] F393 targeted Python, warnings, cross-LLVM lit, and static gates are preserved
+[OK] F393 full Python identity and complete lit gates are preserved
+[OK] F393 snapshot is canonical, closed, and byte-identical after fresh-process replay
+[OK] F393 benchmark preserves deterministic output and its mechanism-only claim
+[OK] F393 report, archive, compendium, and index preserve evidence and gaps
+[OK] F393 runtime, strict tool, native regressions, and benchmark are present
+[OK] F394 evidence files match their SHA-256 manifest
+[OK] F394 evidence summary preserves exact semantics and claim boundaries
+[OK] F394 cross-LLVM targeted and static gates are preserved
+[OK] F394 full Python identity and complete lit gates are preserved
+[OK] F394 benchmark preserves all outcomes and its mechanism-only claim
+[OK] F394 report, archive, compendium, and index preserve evidence and gaps
+[OK] F394 compiler, runtime, native regressions, and benchmark are present
+[OK] top-level delivery files match the current SHA-256 manifest
+[OK] reviewed ZIP members pass CRC
+[OK] reviewed ZIP matches its SHA-256 content manifest
+
+All Codex delivery checks passed.

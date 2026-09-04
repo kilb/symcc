@@ -1,0 +1,56 @@
+{
+  "claim_boundary": "Mechanism-only synthetic clustering and persistence cost; no target coverage, solver-throughput, or bug-yield claim.",
+  "dataset": {
+    "expected_clusters": 2,
+    "observations": 8,
+    "threshold": 0.7
+  },
+  "determinism": {
+    "admitted_thresholds": 192,
+    "decision_digests": 1,
+    "labels": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1
+    ],
+    "runs": 1000,
+    "silhouette": 0.914156472,
+    "threshold_grid": 201
+  },
+  "iterations": 1000,
+  "latency": {
+    "adaptive_value_selection": {
+      "max_us": 123.936,
+      "median_us": 85.779,
+      "p95_us": 89.404
+    },
+    "analysis": {
+      "max_us": 225.97,
+      "median_us": 75.033,
+      "p95_us": 78.788
+    },
+    "bound_state_reload": {
+      "max_us": 3723.974,
+      "median_us": 668.729,
+      "p95_us": 691.378
+    },
+    "thompson_value_selection": {
+      "max_us": 10.966,
+      "median_us": 6.05,
+      "p95_us": 6.63
+    }
+  },
+  "schema": "symcc-f397-parasuit-value-policy-benchmark-v1",
+  "state": {
+    "base_bytes": 15585,
+    "restored_samples": 8,
+    "sidecar_bytes": 1376,
+    "state_rejections": 0
+  },
+  "upstream_revision": "e991924b827db80b117e1f5389fe07820bad13f0"
+}

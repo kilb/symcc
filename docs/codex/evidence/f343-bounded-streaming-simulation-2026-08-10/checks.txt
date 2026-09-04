@@ -1,0 +1,59 @@
+F343 bounded streaming simulation evidence
+Date: 2026-08-10 UTC
+Repository base commit: 146e01b2d6f8e02fd2526764d46ea0d80a4bb6f6 (dirty research worktree)
+Host: Linux 7.0.0-28-generic x86_64 GNU/Linux
+Python: 3.12.3
+MPI: Open MPI 4.1.6
+Evidence filesystem: overlay
+
+Implementation
+- result object and logical-byte budgets are proven before output creation
+- source is one O_NOFOLLOW regular fd with before/after/path identity closure
+- RNG draw order and repeated-position last-write-wins behavior are preserved
+- source is read in 1 MiB chunks and outputs in batches of at most 32 fds
+- only the currently patched chunk is materialized as a bytearray
+- partial writes are completed by a shared descriptor helper
+- all outputs remain private temporary names until source verification
+- hard-link publication is atomic/no-clobber; partial publication is rolled back
+- run_symcc passes its authoritative result budgets to simulation generation
+
+Directed regression
+- 53 passed + 43 subtests, warnings as errors, 0.92 s
+- fixed-seed legacy byte equivalence across 31-byte chunks and 2-output batches
+- forced <=7-byte partial writes complete correctly
+- object/byte budgets reject before output directory creation
+- empty/symlink source, pre-existing target, and publish-time racer covered
+- write failure, source identity change, and second-link failure leave no output
+- 8 MiB input / 5 outputs / 64 KiB chunk traced peak remains below 2 MiB
+
+Related regression
+- 342 passed + 70 subtests, warnings as errors, 16.79 s
+
+Full Python regression
+- 735 passed + 90 subtests, warnings as errors, 95.02 s
+
+Mechanism benchmark
+- 2 warm-ups + 10 retained samples per mechanism and scale
+- 8 MiB legacy/new traced peak: 25,175,994 / 3,152,950 bytes (7.984901x)
+- 32 MiB legacy/new traced peak: 100,673,466 / 3,152,990 bytes (31.929523x)
+- 8 MiB legacy/new RSS median: 66,968 / 40,098 KiB (1.670108x)
+- 32 MiB legacy/new RSS median: 133,868 / 39,866 KiB (3.357949x)
+- 8 MiB legacy/new elapsed median: 22,788.8745 / 10,617.483 us (2.146354x)
+- 32 MiB legacy/new elapsed median: 138,963.6725 / 28,821.772 us (4.821483x)
+- 4x input growth changes legacy/new traced peak by 3.998788x / 1.000013x
+- every retained count, total-byte result, and ordered output vector is exact
+
+Real Open MPI
+- actual mpirun -np 2: 1 master + 1 worker, production --simulate path
+- return 0 in 2.081313 s; result budget 5 objects / 5 bytes is reported
+- 1 external seed + 5 generated public one-byte objects
+- 6/6 public objects executed exactly once; 10 generated observations
+- 1/1 worker ACK; active/retired epochs 0/1; staging residue 0
+- 13/13 structured checks true
+
+Claim boundary
+- mechanism and same-host integration evidence only
+- synthetic mutation/observer target; no symbolic solver invocation
+- no multi-host/NFS/Lustre, campaign, coverage, bug-discovery, or LAVA-M claim
+- tracemalloc excludes native/kernel allocations; ru_maxrss is fresh-process peak
+- local timing describes this Linux/overlayfs host and is not campaign speedup

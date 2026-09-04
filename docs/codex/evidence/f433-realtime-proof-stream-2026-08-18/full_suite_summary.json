@@ -1,0 +1,43 @@
+{
+  "all_passed": true,
+  "benchmarks": {
+    "checked_import_cold_total_overhead_ratio": [
+      1.498515831658993,
+      1.4877720488605772
+    ],
+    "claim_scope": "same-process mechanism cost only",
+    "delivered_per_run": 64,
+    "rounds_per_run": 64
+  },
+  "focused_python": {
+    "passed": 49,
+    "subtests_passed": 38
+  },
+  "llvm17": {
+    "discovered": 323,
+    "failures": 0,
+    "unresolved": 0
+  },
+  "llvm18": {
+    "discovered": 323,
+    "failures": 0,
+    "unresolved": 0
+  },
+  "oracles": {
+    "ack_replays_per_run": 512,
+    "cases_per_run": 512,
+    "delivered_per_run": 512,
+    "mismatches_per_run": 0,
+    "runs": 2,
+    "seed": 62515
+  },
+  "python": {
+    "nodeid_sha256": "1f50051bbd981134cc71c0c9449c3ee62e841ae95cff815bbbfb69a95ff5788e",
+    "nodeids_expected": 1242,
+    "nodeids_observed": 1242,
+    "passed": 1242,
+    "subtests_passed": 291
+  },
+  "schema": "symcc-f433-full-suite-summary-v1",
+  "shim_sha256": "5afef95ef6744d9a5aed36a4cd4375b9268dcbe256439634f9999f6412a8cb06"
+}

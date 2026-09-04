@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080">
+  <defs>
+    <style>
+      .title{font:700 44px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#17364a}
+      .subtitle{font:400 23px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#557083}
+      .section{font:700 25px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#17364a}
+      .head{font:700 22px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#fff}
+      .body{font:400 18px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#36566b}
+      .strong{font:700 20px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#17364a}
+      .mono{font:600 17px 'DejaVu Sans Mono',monospace;fill:#17364a}
+      .small{font:400 16px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#557083}
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#287b90"/>
+    </marker>
+  </defs>
+  <rect width="1600" height="1080" fill="#f5f8fa"/>
+  <rect width="1600" height="14" fill="#287b90"/>
+
+  <text x="82" y="78" class="title">F362 · Single-Snapshot Pytest Manifest Admission</text>
+  <text x="84" y="118" class="subtitle">同一有界字节快照，支撑同一准入结论</text>
+
+  <text x="82" y="170" class="section">深度审查发现的三个歧义入口</text>
+  <g transform="translate(82 192)">
+    <rect width="452" height="164" rx="7" fill="#fff3ed" stroke="#df7442" stroke-width="2"/>
+    <rect width="452" height="48" rx="7" fill="#bd5e32"/>
+    <rect y="41" width="452" height="7" fill="#bd5e32"/>
+    <text x="25" y="32" class="head">1 · 两次路径观测</text>
+    <text x="25" y="84" class="mono">stat(path) → size(A)</text>
+    <text x="25" y="117" class="mono">read_text(path) → bytes(B)</text>
+    <text x="25" y="146" class="body">上限证明与解析对象可能不同</text>
+  </g>
+  <g transform="translate(574 192)">
+    <rect width="452" height="164" rx="7" fill="#fff7e7" stroke="#d39130" stroke-width="2"/>
+    <rect width="452" height="48" rx="7" fill="#b97422"/>
+    <rect y="41" width="452" height="7" fill="#b97422"/>
+    <text x="25" y="32" class="head">2 · 重复 JSON member</text>
+    <text x="25" y="88" class="mono">"count": 1, "count": 2</text>
+    <text x="25" y="122" class="body">默认解析器采用 last-member-wins</text>
+    <text x="25" y="149" class="body">审查文本存在解释歧义</text>
+  </g>
+  <g transform="translate(1066 192)">
+    <rect width="452" height="164" rx="7" fill="#f3effb" stroke="#7961a2" stroke-width="2"/>
+    <rect width="452" height="48" rx="7" fill="#6c558f"/>
+    <rect y="41" width="452" height="7" fill="#6c558f"/>
+    <text x="25" y="32" class="head">3 · 空环境变量绕过</text>
+    <text x="25" y="88" class="mono">setdefault(..., "1")</text>
+    <text x="25" y="122" class="body">变量已存在但为空时不覆盖</text>
+    <text x="25" y="149" class="body">plugin collection 域不再确定</text>
+  </g>
+
+  <text x="82" y="408" class="section">F362 规范准入流水线</text>
+  <g transform="translate(82 432)">
+    <rect width="1436" height="305" rx="7" fill="#17394d"/>
+    <text x="34" y="45" class="head">一个 descriptor · 一个 bounded snapshot · 一个解释</text>
+    <line x1="34" y1="65" x2="1402" y2="65" stroke="#86a9ba" stroke-width="1.5"/>
+
+    <g transform="translate(34 91)">
+      <rect width="238" height="166" rx="6" fill="#f8fbfc"/>
+      <rect width="238" height="44" rx="6" fill="#2d826f"/>
+      <rect y="38" width="238" height="6" fill="#2d826f"/>
+      <text x="18" y="29" class="head">1 · Force environment</text>
+      <text x="18" y="82" class="mono">PLUGIN_AUTOLOAD = 1</text>
+      <text x="18" y="116" class="body">无条件规范化</text>
+      <text x="18" y="145" class="body">显式 -p 仍可用</text>
+    </g>
+    <path d="M280 174 H320" stroke="#78c0cb" stroke-width="5" marker-end="url(#arrow)"/>
+    <g transform="translate(330 91)">
+      <rect width="238" height="166" rx="6" fill="#f8fbfc"/>
+      <rect width="238" height="44" rx="6" fill="#2d7c91"/>
+      <rect y="38" width="238" height="6" fill="#2d7c91"/>
+      <text x="18" y="29" class="head">2 · Open once</text>
+      <text x="18" y="82" class="mono">open(path, "rb")</text>
+      <text x="18" y="116" class="body">描述符绑定对象</text>
+      <text x="18" y="145" class="body">不做预读 path stat</text>
+    </g>
+    <path d="M576 174 H616" stroke="#78c0cb" stroke-width="5" marker-end="url(#arrow)"/>
+    <g transform="translate(626 91)">
+      <rect width="238" height="166" rx="6" fill="#f8fbfc"/>
+      <rect width="238" height="44" rx="6" fill="#bb7125"/>
+      <rect y="38" width="238" height="6" fill="#bb7125"/>
+      <text x="18" y="29" class="head">3 · Read MAX + 1</text>
+      <text x="18" y="82" class="mono">read(16 MiB + 1)</text>
+      <text x="18" y="116" class="body">解析前硬内存上限</text>
+      <text x="18" y="145" class="body">多一字节即可判超限</text>
+    </g>
+    <path d="M872 174 H912" stroke="#78c0cb" stroke-width="5" marker-end="url(#arrow)"/>
+    <g transform="translate(922 91)">
+      <rect width="238" height="166" rx="6" fill="#f8fbfc"/>
+      <rect width="238" height="44" rx="6" fill="#735b96"/>
+      <rect y="38" width="238" height="6" fill="#735b96"/>
+      <text x="18" y="29" class="head">4 · Strict decode</text>
+      <text x="18" y="82" class="mono">UTF-8 → pairs hook</text>
+      <text x="18" y="116" class="body">重复 member 立即失败</text>
+      <text x="18" y="145" class="body">无 first/last-wins</text>
+    </g>
+    <path d="M1168 174 H1208" stroke="#78c0cb" stroke-width="5" marker-end="url(#arrow)"/>
+    <g transform="translate(1218 91)">
+      <rect width="184" height="166" rx="6" fill="#e9f5f2"/>
+      <rect width="184" height="44" rx="6" fill="#2d826f"/>
+      <rect y="38" width="184" height="6" fill="#2d826f"/>
+      <text x="18" y="29" class="head">5 · Verify</text>
+      <text x="18" y="82" class="body">schema / root</text>
+      <text x="18" y="112" class="body">order / count</text>
+      <text x="18" y="142" class="body">SHA-256</text>
+    </g>
+  </g>
+
+  <text x="82" y="790" class="section">反事实证据与完整回归</text>
+  <g transform="translate(82 814)">
+    <rect width="452" height="174" rx="7" fill="#edf7f5" stroke="#42a18d" stroke-width="2"/>
+    <text x="26" y="39" class="strong">伪造 metadata 不再有效</text>
+    <text x="26" y="78" class="body">226 B manifest · limit 32 B</text>
+    <text x="26" y="111" class="body">forged stat = 1 B · stat calls = 0</text>
+    <text x="26" y="147" class="mono">REJECT · exceeds 32 bytes</text>
+  </g>
+  <g transform="translate(574 814)">
+    <rect width="452" height="174" rx="7" fill="#fff2ee" stroke="#dc6850" stroke-width="2"/>
+    <text x="26" y="39" class="strong">重复 member 在执行前失败</text>
+    <text x="26" y="78" class="body">duplicate “count” · pytest not started</text>
+    <text x="26" y="111" class="body">collected = 0 · gate passed = false</text>
+    <text x="26" y="147" class="mono">PREFLIGHT FAIL · exit 2</text>
+  </g>
+  <g transform="translate(1066 814)">
+    <rect width="452" height="174" rx="7" fill="#eef4fb" stroke="#5285aa" stroke-width="2"/>
+    <text x="26" y="39" class="strong">身份与结果保持不变</text>
+    <text x="26" y="78" class="body">empty env → forced “1” · 16 capabilities</text>
+    <text x="26" y="111" class="body">787 identities · zero drift</text>
+    <text x="26" y="147" class="mono">787 tests + 125 subtests · PASS</text>
+  </g>
+
+  <text x="84" y="1037" class="small">边界：单快照关闭 path reopen 竞态；不等同于 hostile-filesystem 完备证明、数字签名或性能提升。</text>
+</svg>

@@ -1,0 +1,2 @@
+(foo|bad)*
+(foo|-\222p|ba2d{bad)*

@@ -1,0 +1,28 @@
+F456 review record, 2026-08-26 UTC
+
+R1  Audited F405-F422 and separated finite compiler-known heap unions from an
+    initial unknown object graph. No old capability was relabelled as POSE.
+R2  Implemented stable reference/proxy/term/state identities and fixed graph
+    budgets; heap refinement has no state-fork operation.
+R3  Added quotient/disequality/path-condition model validation before concrete
+    materialization; contradictory solver output now fails closed.
+R4  Replaced the first byte-sized derived-reference draft with 64-bit
+    little-endian pointer fields and width-checked reference identities.
+R5  Added deterministic QF_BV SMT-LIB2 and required a real Z3 sat parse in the
+    test suite.
+R6  Hardened snapshot admission for exact schemas, DAG/arity/width, object
+    ordinal/bounds, relation conflicts, duplicate conditions and metric bounds.
+R7  Rejected model unknown references/scalars, invalid handles, bool/float
+    pseudo-integers and width overflow.
+R8  Expanded alias properties to all 256 assignments of four references and
+    27/27 read/store assignments in an independent oracle.
+R9  Ran distributed-state, persistent continuation/frontier and cross-worker
+    coupled regression; final result is 232 passed plus 282 subtests.
+R10  Re-audited arXiv v2 author/version/PDF identity and kept 21/23/78 trace
+    counts explicitly labelled as literature values.
+R11  The first full gate found missing lit RUN entries in both new test files.
+    Added hermetic per-file pytest entries, rechecked unchanged node IDs, then
+    passed the complete 1542-test/579-subtest capability-closed gate.
+
+No unresolved correctness finding remains in the bounded F456 contract.
+Residual research limits are documented in the report and SOTA gap audit.

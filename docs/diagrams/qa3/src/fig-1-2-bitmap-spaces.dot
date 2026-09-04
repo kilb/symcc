@@ -1,0 +1,57 @@
+
+digraph G {
+  graph [
+    bgcolor="white", pad="0.28", nodesep="0.38", ranksep="0.58",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=24,
+    labelloc="t", labeljust="l"
+  ];
+  node [
+    shape=box, style="rounded,filled", margin="0.18,0.12",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=12,
+    color="#CBD5E1", penwidth=1.3, fillcolor="#F8FAFC"
+  ];
+  edge [
+    fontname="WenQuanYi Zen Hei", fontcolor="#64748B", fontsize=10,
+    color="#64748B", penwidth=1.5, arrowsize=0.75
+  ];
+
+  label="图 1-2  位图与哈希空间：生成者、消费者和传播方向";
+  rankdir=TB;
+
+  subgraph cluster_afl_space {
+    label="AFL edge / feature ID 空间";
+    color="#93C5FD"; style="rounded,filled"; fillcolor="#EFF6FF";
+    afl [label="AFL 目标执行\nPCGUARD edge", fillcolor="#DBEAFE", color="#2563EB"];
+    b5 [label="B5  AFL 共享 shm\n数据进展 feature\nAFL_PRELOAD 写入", fillcolor="#DBEAFE", color="#2563EB"];
+    showmap [label="afl-showmap\n运行 AFL 插桩二进制\n产生稀疏边列表", fillcolor="#DBEAFE", color="#2563EB"];
+    b2 [label="B2  worker_cov\nworker 私有内存\n候选预过滤", fillcolor="#CCFBF1", color="#0F766E"];
+    b1 [label="B1  master coverage\n会话内存 · 最终裁决", fillcolor="#CCFBF1", color="#0F766E"];
+    b4 [label="B4  owner-shard gossip\n跨 master JSON 分片\nopt-in", fillcolor="#EDE9FE", color="#6D28D9"];
+    afl -> b5 [dir=both, label="同一 shm"];
+    showmap -> b2 [label="edge list"];
+    b2 -> b1 [label="TAG_RESULT\n稀疏 delta"];
+    b1 -> b2 [label="版本 + delta / snapshot", color="#0F766E"];
+    b1 -> b4 [dir=both, style=dashed, label="跨 master 仲裁"];
+  }
+
+  subgraph cluster_qsym_space {
+    label="QSYM 独立哈希空间";
+    color="#FDBA74"; style="rounded,filled"; fillcolor="#FFF7ED";
+    branch [label="符号分支\nsite_id + taken", fillcolor="#FFEDD5", color="#C2410C"];
+    b3 [label="B3  qsym_bitmap\n每 worker 私有文件 · 131072 B\ntrace 64 KB + context 64 KB", fillcolor="#FFEDD5", color="#C2410C"];
+    branch -> b3 [dir=both, label="XXH32 + prev_loc\n兴趣判断 / commit"];
+  }
+
+  content [label="内容哈希（非位图）\nblake2b 字节级预去重", fillcolor="#F1F5F9"];
+  b6 [label="B6  grammar bitmap\n结构化提议新颖性\nadaptive 路径", fillcolor="#DCFCE7", color="#15803D"];
+  candidate [label="concolic 候选输入", fillcolor="#FEF3C7", color="#D97706"];
+  candidate -> branch [label="执行时"];
+  candidate -> content [label="产出后"];
+  content -> showmap [label="内容新颖才重放"];
+  candidate -> b6 [style=dashed, label="语法提议时"];
+
+  barrier [shape=note, label="严格隔离\nB3 不读写 B1/B2\n索引空间不可互换", fillcolor="#FEE2E2", color="#B91C1C"];
+  b3 -> barrier [style=dotted, arrowhead=none, color="#B91C1C"];
+  barrier -> b2 [style=dotted, arrowhead=none, color="#B91C1C"];
+
+}

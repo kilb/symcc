@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="866"
+     viewBox="0 0 1600 866" role="img" aria-labelledby="title desc">
+  <title id="title">图 R-16　四组配置的 20 轮边覆盖率分布</title>
+  <desc id="desc">同一台机器、同一份当前 SymCC 目标二进制、同一批种子、15 s 配置预算；名义 8 核 Hybrid vs 1 核 AFL-only</desc>
+  <rect width="1600" height="866" fill="white"/>
+  <text x="48" y="54" font-family="WenQuanYi Zen Hei" font-size="28" font-weight="700" fill="#17212B" text-anchor="start">图 R-16　四组配置的 20 轮边覆盖率分布</text>
+  <text x="48" y="86" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="400" fill="#64748B" text-anchor="start">同一台机器、同一份当前 SymCC 目标二进制、同一批种子、15 s 配置预算；名义 8 核 Hybrid vs 1 核 AFL-only</text>
+  <rect x="48" y="120" width="740" height="640" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+  <text x="76" y="156" font-family="WenQuanYi Zen Hei" font-size="19" font-weight="700" fill="#17212B" text-anchor="start">libarchive 3.3.2</text>
+  <line x1="475.57894736842104" y1="182" x2="475.57894736842104" y2="700" stroke="#E2E8F0" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <text x="475.57894736842104" y="726" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="middle">14</text>
+  <line x1="530.7368421052631" y1="182" x2="530.7368421052631" y2="700" stroke="#E2E8F0" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <text x="530.7368421052631" y="726" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="middle">16</text>
+  <line x1="585.8947368421052" y1="182" x2="585.8947368421052" y2="700" stroke="#E2E8F0" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <text x="585.8947368421052" y="726" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="middle">18</text>
+  <line x1="641.0526315789474" y1="182" x2="641.0526315789474" y2="700" stroke="#E2E8F0" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <text x="641.0526315789474" y="726" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="middle">20</text>
+  <line x1="696.2105263157895" y1="182" x2="696.2105263157895" y2="700" stroke="#E2E8F0" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <text x="696.2105263157895" y="726" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="middle">22</text>
+  <text x="579.0" y="748" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="middle">并集语料边覆盖率（%）</text>
+  <text x="76" y="218" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">旧批次 AFL-only（1 核 sanity）</text>
+  <rect x="471.4421052631579" y="238" width="83.84000000000009" height="16" rx="4" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.2"/>
+  <line x1="504.2058947368421" y1="230" x2="504.2058947368421" y2="262" stroke="#94A3B8" stroke-width="3.4"/>
+  <text x="504.2058947368421" y="282" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#94A3B8" text-anchor="middle">15.038</text>
+  <text x="76" y="240" font-family="WenQuanYi Zen Hei" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">n=20，条=20 轮全距，竖线=均值</text>
+  <text x="76" y="340" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">旧组合（1 AFL + 6 SymCC，off）</text>
+  <rect x="477.78526315789475" y="360" width="75.2905263157894" height="16" rx="4" fill="#FFEDD5" stroke="#C2410C" stroke-width="1.2"/>
+  <line x1="517.168" y1="352" x2="517.168" y2="384" stroke="#C2410C" stroke-width="3.4"/>
+  <text x="517.168" y="404" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#C2410C" text-anchor="middle">15.508</text>
+  <text x="76" y="362" font-family="WenQuanYi Zen Hei" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">n=20，条=20 轮全距，竖线=均值</text>
+  <text x="76" y="462" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">当前批次 AFL-only（1 核 sanity）</text>
+  <rect x="479.44" y="482" width="54.33052631578943" height="16" rx="4" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.2"/>
+  <line x1="505.1435789473684" y1="474" x2="505.1435789473684" y2="506" stroke="#94A3B8" stroke-width="3.4"/>
+  <text x="505.1435789473684" y="526" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#94A3B8" text-anchor="middle">15.072</text>
+  <text x="76" y="484" font-family="WenQuanYi Zen Hei" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">n=20，条=20 轮全距，竖线=均值</text>
+  <text x="76" y="584" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">当前（4 AFL + 3 SymCC，basic）</text>
+  <rect x="511.70736842105265" y="604" width="59.846315789473636" height="16" rx="4" fill="#DCFCE7" stroke="#15803D" stroke-width="1.2"/>
+  <line x1="543.4231578947368" y1="596" x2="543.4231578947368" y2="628" stroke="#15803D" stroke-width="3.4"/>
+  <text x="543.4231578947368" y="648" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#15803D" text-anchor="middle">16.460</text>
+  <text x="76" y="606" font-family="WenQuanYi Zen Hei" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">n=20，条=20 轮全距，竖线=均值</text>
+  <rect x="812" y="120" width="740" height="640" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+  <text x="840" y="156" font-family="WenQuanYi Zen Hei" font-size="19" font-weight="700" fill="#17212B" text-anchor="start">SQLite 3.13.0</text>
+  <line x1="1239.578947368421" y1="182" x2="1239.578947368421" y2="700" stroke="#E2E8F0" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <text x="1239.578947368421" y="726" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="middle">14</text>
+  <line x1="1294.7368421052631" y1="182" x2="1294.7368421052631" y2="700" stroke="#E2E8F0" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <text x="1294.7368421052631" y="726" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="middle">16</text>
+  <line x1="1349.8947368421052" y1="182" x2="1349.8947368421052" y2="700" stroke="#E2E8F0" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <text x="1349.8947368421052" y="726" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="middle">18</text>
+  <line x1="1405.0526315789473" y1="182" x2="1405.0526315789473" y2="700" stroke="#E2E8F0" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <text x="1405.0526315789473" y="726" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="middle">20</text>
+  <line x1="1460.2105263157894" y1="182" x2="1460.2105263157894" y2="700" stroke="#E2E8F0" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <text x="1460.2105263157894" y="726" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="middle">22</text>
+  <text x="1343.0" y="748" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="middle">并集语料边覆盖率（%）</text>
+  <text x="840" y="218" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">旧批次 AFL-only（1 核 sanity）</text>
+  <rect x="1324.2463157894738" y="238" width="79.4273684210525" height="16" rx="4" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.2"/>
+  <line x1="1361.9467368421053" y1="230" x2="1361.9467368421053" y2="262" stroke="#94A3B8" stroke-width="3.4"/>
+  <text x="1361.9467368421053" y="282" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#94A3B8" text-anchor="middle">18.437</text>
+  <text x="840" y="240" font-family="WenQuanYi Zen Hei" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">n=20，条=20 轮全距，竖线=均值</text>
+  <text x="840" y="340" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">旧组合（1 AFL + 6 SymCC，off）</text>
+  <rect x="1317.3515789473684" y="360" width="78.60000000000014" height="16" rx="4" fill="#FFEDD5" stroke="#C2410C" stroke-width="1.2"/>
+  <line x1="1362.1122105263157" y1="352" x2="1362.1122105263157" y2="384" stroke="#C2410C" stroke-width="3.4"/>
+  <text x="1362.1122105263157" y="404" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#C2410C" text-anchor="middle">18.443</text>
+  <text x="840" y="362" font-family="WenQuanYi Zen Hei" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">n=20，条=20 轮全距，竖线=均值</text>
+  <text x="840" y="462" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">当前批次 AFL-only（1 核 sanity）</text>
+  <rect x="1316.2484210526316" y="482" width="87.97684210526313" height="16" rx="4" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.2"/>
+  <line x1="1371.4338947368421" y1="474" x2="1371.4338947368421" y2="506" stroke="#94A3B8" stroke-width="3.4"/>
+  <text x="1371.4338947368421" y="526" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#94A3B8" text-anchor="middle">18.781</text>
+  <text x="840" y="484" font-family="WenQuanYi Zen Hei" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">n=20，条=20 轮全距，竖线=均值</text>
+  <text x="840" y="584" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">当前（4 AFL + 3 SymCC，basic）</text>
+  <rect x="1387.1263157894737" y="604" width="63.983157894736905" height="16" rx="4" fill="#DCFCE7" stroke="#15803D" stroke-width="1.2"/>
+  <line x1="1415.8635789473683" y1="596" x2="1415.8635789473683" y2="628" stroke="#15803D" stroke-width="3.4"/>
+  <text x="1415.8635789473683" y="648" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#15803D" text-anchor="middle">20.392</text>
+  <text x="840" y="606" font-family="WenQuanYi Zen Hei" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">n=20，条=20 轮全距，竖线=均值</text>
+  <rect x="48" y="782" width="1504" height="56" rx="8" fill="#DCFCE7" stroke="#15803D" stroke-width="1.5"/>
+  <text x="72" y="806" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">关键结论：在同为名义 8 核的 Hybrid 内部，当前组合配置相对旧组合配置在两个目标上都显著提高离线候选并集覆盖。</text>
+  <text x="72" y="828" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#64748B" text-anchor="start">单实例 AFL-only 只用于批次 sanity 和系统配置参照；它不是等 CPU 基线，不能据此宣称 Hybrid 相对纯 AFL 的因果优势。</text>
+</svg>

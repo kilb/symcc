@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1040" viewBox="0 0 1600 1040" role="img" aria-labelledby="title desc">
+  <title id="title">F320 lease-fenced global work ownership and two-phase quiescence</title>
+  <desc id="desc">Content-addressed corpus flows through rendezvous ownership and fencing leases to disjoint master worker groups. A lower sequence diagram shows stable idle, prepare vote, commit acknowledgement, shutdown, statistics, and final barrier.</desc>
+  <defs>
+    <filter id="shadow" x="-12%" y="-12%" width="124%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#17212b" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#15803d"/>
+    </marker>
+    <marker id="arrowAmber" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#b45309"/>
+    </marker>
+    <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#b91c1c"/>
+    </marker>
+    <style>
+      .title{font:700 34px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#17212b}
+      .subtitle{font:400 18px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#52606d}
+      .section{font:700 22px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#17212b}
+      .head{font:700 18px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#17212b}
+      .body{font:400 15px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#334155}
+      .small{font:500 13px ui-monospace,SFMono-Regular,Consolas,monospace;fill:#475569}
+      .tiny{font:500 12px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#475569}
+      .white{fill:#ffffff}
+    </style>
+  </defs>
+
+  <rect width="1600" height="1040" fill="#f8fafc"/>
+  <rect x="0" y="0" width="1600" height="106" fill="#ffffff"/>
+  <path d="M0 105 H1600" stroke="#cbd5e1"/>
+  <text x="70" y="52" class="title">F320 租约围栏的全局任务所有权与两阶段静止提交</text>
+  <text x="70" y="82" class="subtitle">内容身份闭环 · rendezvous 放置 · exact-token 接管 · PREPARE / COMMIT 线性化边界</text>
+
+  <text x="70" y="145" class="section">A. 一个共享 frontier，多个互斥 owner</text>
+
+  <g filter="url(#shadow)">
+    <rect x="65" y="170" width="250" height="215" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+    <rect x="365" y="170" width="275" height="215" rx="8" fill="#ffffff" stroke="#60a5fa"/>
+    <rect x="690" y="170" width="270" height="215" rx="8" fill="#ffffff" stroke="#f59e0b"/>
+    <rect x="1010" y="170" width="525" height="215" rx="8" fill="#ffffff" stroke="#34d399"/>
+  </g>
+
+  <rect x="65" y="170" width="250" height="54" rx="8" fill="#e2e8f0"/>
+  <text x="190" y="204" text-anchor="middle" class="head">输入生产者</text>
+  <circle cx="120" cy="266" r="19" fill="#2563eb" opacity="0.18"/>
+  <circle cx="190" cy="266" r="19" fill="#16a34a" opacity="0.18"/>
+  <circle cx="260" cy="266" r="19" fill="#d97706" opacity="0.18"/>
+  <text x="120" y="272" text-anchor="middle" class="head">S</text>
+  <text x="190" y="272" text-anchor="middle" class="head">W</text>
+  <text x="260" y="272" text-anchor="middle" class="head">R</text>
+  <text x="190" y="316" text-anchor="middle" class="body">seed · worker output · recovery</text>
+  <text x="190" y="344" text-anchor="middle" class="small">h = SHA256(actual bytes)</text>
+  <text x="190" y="368" text-anchor="middle" class="tiny">原子发布；worker 复制后重算摘要</text>
+
+  <rect x="365" y="170" width="275" height="54" rx="8" fill="#dbeafe"/>
+  <text x="503" y="204" text-anchor="middle" class="head">共享内容语料库</text>
+  <rect x="405" y="250" width="195" height="42" rx="5" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="503" y="276" text-anchor="middle" class="small">a5dc…bc1</text>
+  <rect x="405" y="304" width="195" height="42" rx="5" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="503" y="330" text-anchor="middle" class="small">f061…9d7</text>
+  <text x="503" y="370" text-anchor="middle" class="tiny">文件名 = 内容 SHA-256；hash broadcast 已移除</text>
+
+  <rect x="690" y="170" width="270" height="54" rx="8" fill="#fef3c7"/>
+  <text x="825" y="204" text-anchor="middle" class="head">确定性放置</text>
+  <text x="825" y="260" text-anchor="middle" class="body">每个 master 独立计算</text>
+  <text x="825" y="293" text-anchor="middle" class="small">arg max H(domain || h || rank)</text>
+  <path d="M735 325 H915" stroke="#b45309" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="760" cy="325" r="12" fill="#b45309"/>
+  <circle cx="835" cy="325" r="12" fill="#64748b"/>
+  <circle cx="900" cy="325" r="12" fill="#64748b"/>
+  <text x="825" y="368" text-anchor="middle" class="tiny">HRW 选首选 owner；不是 correctness fence</text>
+
+  <rect x="1010" y="170" width="525" height="54" rx="8" fill="#d1fae5"/>
+  <text x="1273" y="204" text-anchor="middle" class="head">64-way shared fenced lease table</text>
+  <rect x="1048" y="246" width="142" height="94" rx="6" fill="#ecfdf5" stroke="#34d399"/>
+  <text x="1119" y="273" text-anchor="middle" class="head">LEASED</text>
+  <text x="1119" y="300" text-anchor="middle" class="tiny">owner + token T1</text>
+  <text x="1119" y="323" text-anchor="middle" class="tiny">heartbeat</text>
+  <rect x="1202" y="246" width="142" height="94" rx="6" fill="#fff7ed" stroke="#fb923c"/>
+  <text x="1273" y="273" text-anchor="middle" class="head">COMMIT</text>
+  <text x="1273" y="300" text-anchor="middle" class="small">begin(T1)</text>
+  <text x="1273" y="323" text-anchor="middle" class="tiny">子任务可见后完成</text>
+  <rect x="1356" y="246" width="142" height="94" rx="6" fill="#f0fdf4" stroke="#22c55e"/>
+  <text x="1427" y="273" text-anchor="middle" class="head">DONE</text>
+  <text x="1427" y="300" text-anchor="middle" class="small">complete(T1)</text>
+  <text x="1427" y="323" text-anchor="middle" class="tiny">永久拒绝再 claim</text>
+  <path d="M1190 293 H1200" stroke="#15803d" stroke-width="3" marker-end="url(#arrowGreen)"/>
+  <path d="M1344 293 H1354" stroke="#15803d" stroke-width="3" marker-end="url(#arrowGreen)"/>
+  <text x="1273" y="369" text-anchor="middle" class="tiny">T1 过期后 T2 可接管；T1 晚到结果无法提交</text>
+
+  <path d="M315 278 H363" stroke="#2563eb" stroke-width="3" marker-end="url(#arrowBlue)"/>
+  <path d="M640 278 H688" stroke="#2563eb" stroke-width="3" marker-end="url(#arrowBlue)"/>
+  <path d="M960 278 H1008" stroke="#b45309" stroke-width="3" marker-end="url(#arrowAmber)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="170" y="420" width="550" height="128" rx="8" fill="#ffffff" stroke="#60a5fa"/>
+    <rect x="880" y="420" width="550" height="128" rx="8" fill="#ffffff" stroke="#34d399"/>
+  </g>
+  <rect x="170" y="420" width="550" height="42" rx="8" fill="#dbeafe"/>
+  <rect x="880" y="420" width="550" height="42" rx="8" fill="#d1fae5"/>
+  <text x="445" y="448" text-anchor="middle" class="head">Master 0 · local queue · workers 2/4/6</text>
+  <text x="1155" y="448" text-anchor="middle" class="head">Master 1 · local queue · workers 3/5/7</text>
+  <circle cx="270" cy="502" r="20" fill="#2563eb" opacity="0.18"/><text x="270" y="508" text-anchor="middle" class="head">W</text>
+  <circle cx="445" cy="502" r="20" fill="#2563eb" opacity="0.18"/><text x="445" y="508" text-anchor="middle" class="head">W</text>
+  <circle cx="620" cy="502" r="20" fill="#2563eb" opacity="0.18"/><text x="620" y="508" text-anchor="middle" class="head">W</text>
+  <circle cx="980" cy="502" r="20" fill="#16a34a" opacity="0.18"/><text x="980" y="508" text-anchor="middle" class="head">W</text>
+  <circle cx="1155" cy="502" r="20" fill="#16a34a" opacity="0.18"/><text x="1155" y="508" text-anchor="middle" class="head">W</text>
+  <circle cx="1330" cy="502" r="20" fill="#16a34a" opacity="0.18"/><text x="1330" y="508" text-anchor="middle" class="head">W</text>
+  <path d="M1090 385 C1050 420 865 428 720 473" fill="none" stroke="#15803d" stroke-width="3" marker-end="url(#arrowGreen)"/>
+  <path d="M1450 385 C1465 415 1460 445 1430 478" fill="none" stroke="#15803d" stroke-width="3" marker-end="url(#arrowGreen)"/>
+  <text x="800" y="522" text-anchor="middle" class="small">disjoint frontier</text>
+  <path d="M748 505 H852" stroke="#64748b" stroke-width="2" stroke-dasharray="6 6"/>
+
+  <text x="70" y="605" class="section">B. 全局静止不是“大家此刻没任务”，而是一次精确提交</text>
+  <g filter="url(#shadow)">
+    <rect x="65" y="630" width="1470" height="305" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  </g>
+
+  <text x="265" y="672" text-anchor="middle" class="head">Root master</text>
+  <text x="800" y="672" text-anchor="middle" class="head">Submaster(s)</text>
+  <text x="1330" y="672" text-anchor="middle" class="head">Lifecycle gates</text>
+  <line x1="265" y1="688" x2="265" y2="900" stroke="#60a5fa" stroke-width="2" stroke-dasharray="6 7"/>
+  <line x1="800" y1="688" x2="800" y2="900" stroke="#34d399" stroke-width="2" stroke-dasharray="6 7"/>
+  <line x1="1330" y1="688" x2="1330" y2="900" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 7"/>
+
+  <rect x="105" y="700" width="320" height="50" rx="6" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="265" y="722" text-anchor="middle" class="body">所有 status 新鲜且 stable idle</text>
+  <text x="265" y="742" text-anchor="middle" class="small">elapsed &gt;= --max-idle</text>
+  <path d="M425 725 H745" stroke="#2563eb" stroke-width="3" marker-end="url(#arrowBlue)"/>
+  <text x="585" y="715" text-anchor="middle" class="small">PREPARE(token Q)</text>
+
+  <rect x="655" y="755" width="290" height="62" rx="6" fill="#ecfdf5" stroke="#34d399"/>
+  <text x="800" y="779" text-anchor="middle" class="body">rescan inputs + corpus + expired</text>
+  <text x="800" y="802" text-anchor="middle" class="tiny">YES 后冻结 discovery，等待精确决定</text>
+  <path d="M745 830 H425" stroke="#15803d" stroke-width="3" marker-end="url(#arrowGreen)"/>
+  <text x="585" y="820" text-anchor="middle" class="small">VOTE(Q, idle=true)</text>
+
+  <path d="M425 856 H745" stroke="#b45309" stroke-width="3" marker-end="url(#arrowAmber)"/>
+  <text x="585" y="846" text-anchor="middle" class="small">COMMIT(Q) / BUSY → ABORT(Q)</text>
+  <path d="M745 884 H425" stroke="#15803d" stroke-width="3" marker-end="url(#arrowGreen)"/>
+  <text x="585" y="906" text-anchor="middle" class="small">exact COMMIT ACK(Q)</text>
+
+  <rect x="1090" y="704" width="400" height="62" rx="6" fill="#fff7ed" stroke="#fb923c"/>
+  <text x="1290" y="729" text-anchor="middle" class="head">线性化边界</text>
+  <text x="1290" y="752" text-anchor="middle" class="tiny">PREPARE 后新到外部输入留给下一 campaign</text>
+  <rect x="1090" y="782" width="400" height="62" rx="6" fill="#f0fdf4" stroke="#22c55e"/>
+  <text x="1290" y="807" text-anchor="middle" class="head">全部 ACK 后才关闭 worker</text>
+  <text x="1290" y="830" text-anchor="middle" class="tiny">STOP/ACK → stats ACK → bounded Ibarrier</text>
+  <rect x="1090" y="860" width="400" height="48" rx="6" fill="#fef2f2" stroke="#ef4444"/>
+  <text x="1290" y="890" text-anchor="middle" class="body">token 冲突 / deadline / MPI error → Abort(70/71)</text>
+
+  <rect x="65" y="965" width="1470" height="48" rx="7" fill="#17212b"/>
+  <text x="95" y="995" class="head white">实测不变量</text>
+  <text x="255" y="995" class="body white">1 seed：2 → 1 次分析；24 seeds：24 次且 12/12 分布；12 seeds 共享 1 child：仅 13 次总分析；成功退出后 lease 目录为 0。</text>
+</svg>

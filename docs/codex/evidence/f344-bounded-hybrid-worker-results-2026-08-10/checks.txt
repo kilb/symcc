@@ -1,0 +1,60 @@
+F344 bounded hybrid worker result evidence
+Date: 2026-08-10 UTC
+Repository base commit: 146e01b2d6f8e02fd2526764d46ea0d80a4bb6f6 (dirty research worktree)
+Host: Linux 7.0.0-28-generic x86_64 GNU/Linux
+Python: 3.12.3
+Evidence filesystem: overlay
+
+Implementation
+- object, aggregate logical-byte, single-object, hint, and directory-entry budgets
+- complete preflight before any result or hint payload read
+- one context-managed scandir; no list(scandir) namespace materialization
+- no-follow lstat accepts only flat regular candidates
+- O_NOFOLLOW|O_NONBLOCK descriptor read with before/after/path identity closure
+- pass one retains only 16-byte BLAKE2 digests; pass two reopens stable candidates
+- only coverage-interesting bytes survive into the final MPI result list
+- whole-parent rejection; no directory-order prefix truncation
+- structured resource/observed/limit/objects error preserves target timing/status
+- master logs rejection while the hybrid campaign remains available
+
+Directed regression
+- 57 passed + 47 subtests, warnings as errors, 1.02 s
+- normal output and hint compatibility
+- exact object, aggregate-byte, hint-file, and hint-record overflow payloads
+- aggregate-byte overflow precedes every payload read
+- symlink and path-replacement snapshots are rejected
+- a transient showmap I/O failure rolls back the tentative worker_seen digest
+- 32 x 1 MiB coverage-redundant outputs stay below 5 MiB traced heap
+
+Related regression
+- 346 passed + 74 subtests, warnings as errors, 16.77 s
+
+Full Python regression
+- 739 passed + 94 subtests, warnings as errors, 96.63 s
+
+Fresh-process mechanism benchmark
+- 2 warm-ups + 10 retained samples per mechanism and scale
+- 32 MiB legacy/F344 traced peak: 33,573,032 / 1,090,489 bytes (30.787135x lower)
+- 128 MiB legacy/F344 traced peak: 134,282,660 / 1,164,505 bytes (115.313082x lower)
+- 32 MiB legacy/F344 RSS median: 85,180 / 53,434 KiB (1.594116x lower)
+- 128 MiB legacy/F344 RSS median: 182,786 / 52,590 KiB (3.475680x lower)
+- 32-object legacy/F344 elapsed median: 33,771.3615 / 53,452.954 us (1.582789x cost)
+- 128-object legacy/F344 elapsed median: 129,073.793 / 212,854.175 us (1.649089x cost)
+- every retained object count, byte count, and output digest vector is exact
+
+Local production-wrapper integration
+- actual child process through production SymCCEngine + run_symcc_worker
+- success: 2/2 outputs returned, exact SHA-256 contents and comparison hint
+- object overflow: resource=objects, observed=3, limit=2, objects=3
+- byte overflow: resource=bytes, observed=6, limit=5, objects=2
+- hint overflow: resource=hints, observed=2, limit=1, objects=1
+- all target return codes remain 0; all four cases finish below 0.02 s
+- 6/6 structured checks true
+
+Claim boundary
+- mechanism and local production-wrapper evidence only
+- synthetic regular outputs and executable producer; no symbolic solver invocation
+- no MPI transport, multi-host/NFS/Lustre, afl-showmap, or fuzzing campaign
+- no coverage, throughput, bug-discovery, or LAVA-M uplift claim
+- tracemalloc excludes native/kernel allocations; ru_maxrss is fresh-process peak
+- local timing describes this Linux/overlayfs host and exposes the two-read cost

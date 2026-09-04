@@ -1,0 +1,150 @@
+=== injected post-rename fsync failure stdout ===
+SymCC MPI Parallel Concolic Execution
+  Processes:     7
+  Mode:          multi-master (2 masters, auto-scaled at 3 workers/master)
+    Master 0: 3 workers
+    Master 1: 2 workers
+  Shared dir:    /tmp/symcc-f335-retire-mpi-3cks5n5j/output
+  Input dir:     /tmp/symcc-f335-retire-mpi-3cks5n5j/input
+  Target:        /bin/true
+  Timeout:       1s per execution
+  Work epoch:    f335f335f335f335f335f335f335f335f335f335f335f335f335f335f335f335 (configured recovery)
+  Retired GC:    0 root(s) reclaimed
+  Wall timeout:  3s total
+
+[Master] Imported 1 initial inputs from /tmp/symcc-f335-retire-mpi-3cks5n5j/input
+[Master] Using 2 master(s), 3 workers in this group
+[Master] Durable work ownership: rendezvous + 64 fenced shards, lease=6s
+[Master] Shared filesystem capabilities: {'schema': 'symcc-shared-filesystem-capabilities-v1', 'root': '/tmp/symcc-f335-retire-mpi-3cks5n5j/output/.standalone-work-f335f335f335f335f335f335f335f335f335f335f335f335f335f335f335f335', 'publication_root': '/tmp/symcc-f335-retire-mpi-3cks5n5j/output', 'device': 92, 'filesystem_id': 18395215968828387670, 'publication_device': 92, 'publication_filesystem_id': 18395215968828387670, 'filesystem_type': 'overlay', 'mount_point': '/', 'mount_source': 'overlay', 'distributed_filesystem': False, 'cluster_lock_verified': False, 'probe_scope': 'same-host-subprocess-v1', 'cluster_lock_members': [{'rank': 0, 'processor': 'cuda-ke'}, {'rank': 1, 'processor': 'cuda-ke'}], 'cluster_lock_representatives': [0], 'cluster_lock_rounds': 0, 'cluster_lock_contention_checks': 0, 'cluster_lock_release_checks': 0, 'file_fsync': True, 'directory_fsync': True, 'same_directory_replace': True, 'cross_directory_replace': True, 'publication_replace': True, 'hard_link': True, 'durable_unlink': True, 'advisory_lock_exclusion': True, 'advisory_lock_release': True}
+[Master] 0 generated, 0 interesting, 0 analyzed, 0 busy (0 tc/s)
+[Master] Wall-clock timeout (3s) reached. Shutting down.
+[Master 0] Worker shutdown: acked=3/3 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+[Master 1] Worker shutdown: acked=2/2 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+[Master 1] Lease heartbeat group commit: batches=1 renewals=1 directory_syncs=1 directory_syncs_avoided=0 failures=0
+
+[Master] === Final Statistics ===
+[Master] Total analysis observations:       0
+[Master] Total test cases generated:  0
+[Master] New interesting test cases:  1
+[Master] Throughput:                  0.0 tc/s
+[Master] Masters used:               2
+[Master] Workers used:               5
+[Master] Analysis by master:         0=0, 1=0
+[Master] Durable completed-epoch retirement failed: injected post-rename directory fsync failure
+--------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 0 in communicator MPI_COMM_WORLD
+with errorcode 72.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------
+
+[Master 1] Received signal 15, shutting down...
+=== matching recovery stdout ===
+SymCC MPI Parallel Concolic Execution
+  Processes:     7
+  Mode:          multi-master (2 masters, auto-scaled at 3 workers/master)
+    Master 0: 3 workers
+    Master 1: 2 workers
+  Shared dir:    /tmp/symcc-f335-retire-mpi-3cks5n5j/output
+  Input dir:     /tmp/symcc-f335-retire-mpi-3cks5n5j/input
+  Target:        /bin/true
+  Timeout:       1s per execution
+  Work epoch:    f335f335f335f335f335f335f335f335f335f335f335f335f335f335f335f335 (configured recovery)
+  Retired GC:    1 root(s) reclaimed
+  Wall timeout:  3s total
+
+[Master] Imported 1 initial inputs from /tmp/symcc-f335-retire-mpi-3cks5n5j/input
+[Master] Using 2 master(s), 3 workers in this group
+[Master] Durable work ownership: rendezvous + 64 fenced shards, lease=6s
+[Master] Shared filesystem capabilities: {'schema': 'symcc-shared-filesystem-capabilities-v1', 'root': '/tmp/symcc-f335-retire-mpi-3cks5n5j/output/.standalone-work-f335f335f335f335f335f335f335f335f335f335f335f335f335f335f335f335', 'publication_root': '/tmp/symcc-f335-retire-mpi-3cks5n5j/output', 'device': 92, 'filesystem_id': 18395215968828387670, 'publication_device': 92, 'publication_filesystem_id': 18395215968828387670, 'filesystem_type': 'overlay', 'mount_point': '/', 'mount_source': 'overlay', 'distributed_filesystem': False, 'cluster_lock_verified': False, 'probe_scope': 'same-host-subprocess-v1', 'cluster_lock_members': [{'rank': 0, 'processor': 'cuda-ke'}, {'rank': 1, 'processor': 'cuda-ke'}], 'cluster_lock_representatives': [0], 'cluster_lock_rounds': 0, 'cluster_lock_contention_checks': 0, 'cluster_lock_release_checks': 0, 'file_fsync': True, 'directory_fsync': True, 'same_directory_replace': True, 'cross_directory_replace': True, 'publication_replace': True, 'hard_link': True, 'durable_unlink': True, 'advisory_lock_exclusion': True, 'advisory_lock_release': True}
+[Master] 0 generated, 0 interesting, 0 analyzed, 0 busy (0 tc/s)
+[Master] Wall-clock timeout (3s) reached. Shutting down.
+[Master 0] Worker shutdown: acked=3/3 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+[Master 1] Worker shutdown: acked=2/2 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+[Master 1] Lease heartbeat group commit: batches=1 renewals=1 directory_syncs=1 directory_syncs_avoided=0 failures=0
+
+[Master] === Final Statistics ===
+[Master] Total analysis observations:       0
+[Master] Total test cases generated:  0
+[Master] New interesting test cases:  1
+[Master] Throughput:                  0.0 tc/s
+[Master] Masters used:               2
+[Master] Workers used:               5
+[Master] Analysis by master:         0=0, 1=0
+=== result ===
+{
+  "actual_mpi_transport": true,
+  "actual_multi_host": false,
+  "all_checks_passed": true,
+  "checks": {
+    "all_workers_acknowledge_before_retirement_failure": true,
+    "both_runs_are_bounded": true,
+    "content_addressed_seed_remains_intact": true,
+    "matching_restart_reclaims_old_root_and_retires_new_epoch": true,
+    "post_rename_uncertainty_aborts_with_72": true,
+    "real_multi_master_frontend_exercised": true,
+    "uncertain_retirement_has_no_active_name_and_one_retired_root": true
+  },
+  "command": [
+    "mpirun",
+    "--oversubscribe",
+    "-np",
+    "7",
+    "python3",
+    "/tmp/symcc-f335-retire-mpi-3cks5n5j/atomic_retirement_wrapper.py",
+    "-i",
+    "/tmp/symcc-f335-retire-mpi-3cks5n5j/input",
+    "-o",
+    "/tmp/symcc-f335-retire-mpi-3cks5n5j/output",
+    "-t",
+    "1",
+    "--max-idle",
+    "1",
+    "--wall-timeout",
+    "3",
+    "--workers-per-master",
+    "3",
+    "--simulate",
+    "--",
+    "/bin/true"
+  ],
+  "configuration": {
+    "masters": 2,
+    "ranks": 7,
+    "retired_gc_limit": 1,
+    "work_epoch": "f335f335f335f335f335f335f335f335f335f335f335f335f335f335f335f335",
+    "workers": 5
+  },
+  "deployment_evidence": false,
+  "injected": {
+    "elapsed": 3.6238950230181217,
+    "returncode": 72
+  },
+  "post_rename_fsync_failure_injected": true,
+  "proof_boundary": "One physical host and a test-only rank-0 post-rename/pre-fsync fault prove production Abort(72), ACK-before-retirement order, reserved-root retention, startup GC, and same-epoch convergence. This does not prove remote-filesystem crash persistence, cross-job lock semantics, rank repair, DSE throughput, coverage, solver, or LAVA-M uplift.",
+  "recovered": {
+    "elapsed": 3.7320157941430807,
+    "returncode": 0
+  },
+  "schema": "symcc-f335-atomic-epoch-retirement-mpi-v1",
+  "state_observations": {
+    "active_exists_after_failed_retirement": false,
+    "active_exists_after_matching_recovery": false,
+    "corpus_seed_digest": "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd",
+    "corpus_seed_intact": true,
+    "retired_files_after_failed_retirement": [
+      "016/559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd.json",
+      "016/559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd.json.lock",
+      "state.json"
+    ],
+    "retired_roots_after_failed_retirement": [
+      ".retired-standalone-work-f335f335f335f335f335f335f335f335f335f335f335f335f335f335f335f335-b80b83ee07ceaebc336c333ef608ef2c"
+    ],
+    "retired_roots_after_matching_recovery": [
+      ".retired-standalone-work-f335f335f335f335f335f335f335f335f335f335f335f335f335f335f335f335-e3054b6a99a38565d9b9ba1e61b0b075"
+    ]
+  },
+  "synthetic_topology": false
+}

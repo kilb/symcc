@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">F427 QF_BV 可检查 UNSAT 回执闭环</title>
+  <desc id="desc">Worker 从 Query IR 生成主查询、CPC 证明查询和引用问题。cvc5 生成原始证明，Ethos 对绑定原问题的完整反证进行检查。内容寻址存储保存可移植证明和回执；另一 worker 与 QueryStore 均重新构造问题并独立检查后才能提交 UNSAT。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#334155"/>
+    </marker>
+    <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#B42318"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#0F172A" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .title { font: 700 34px "WenQuanYi Zen Hei", "DejaVu Sans", sans-serif; fill: #17212B; }
+      .subtitle { font: 400 17px "WenQuanYi Zen Hei", "DejaVu Sans", sans-serif; fill: #52606D; }
+      .lane { font: 700 20px "WenQuanYi Zen Hei", "DejaVu Sans", sans-serif; fill: #17212B; }
+      .head { font: 700 17px "WenQuanYi Zen Hei", "DejaVu Sans", sans-serif; fill: #17212B; }
+      .body { font: 400 14px "WenQuanYi Zen Hei", "DejaVu Sans", sans-serif; fill: #334155; }
+      .small { font: 400 12.5px "WenQuanYi Zen Hei", "DejaVu Sans", sans-serif; fill: #52606D; }
+      .mono { font: 400 12px "DejaVu Sans Mono", monospace; fill: #334155; }
+      .white { fill: #FFFFFF; }
+      .arrow { fill: none; stroke: #334155; stroke-width: 2.2; marker-end: url(#arrow); }
+      .fail { fill: none; stroke: #B42318; stroke-width: 2.2; stroke-dasharray: 7 5; marker-end: url(#arrowRed); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1000" fill="#F7F9FC"/>
+  <rect x="0" y="0" width="1600" height="112" fill="#FFFFFF"/>
+  <rect x="0" y="108" width="1600" height="4" fill="#0F766E"/>
+  <text x="70" y="55" class="title">F427：可独立检查的 QF_BV UNSAT 回执</text>
+  <text x="70" y="87" class="subtitle">从“相信 solver 状态”升级为“Query IR、证明、工具链和结果身份共同闭合”</text>
+
+  <rect x="50" y="145" width="485" height="672" rx="8" fill="#E8F3F8" stroke="#39728C" stroke-width="1.5"/>
+  <rect x="558" y="145" width="484" height="672" rx="8" fill="#FFF7E6" stroke="#A66A16" stroke-width="1.5"/>
+  <rect x="1065" y="145" width="485" height="672" rx="8" fill="#EAF6F1" stroke="#287A5B" stroke-width="1.5"/>
+  <text x="74" y="180" class="lane">Worker A：生成并首次裁决</text>
+  <text x="582" y="180" class="lane">共享 CAS：不可信传输</text>
+  <text x="1089" y="180" class="lane">Worker B / QueryStore：独立复验</text>
+
+  <g filter="url(#shadow)">
+    <rect x="82" y="214" width="421" height="90" rx="7" fill="#FFFFFF" stroke="#7A9EB0"/>
+    <text x="104" y="244" class="head">1. 稳定读取 Query IR</text>
+    <text x="104" y="270" class="body">prefix roots + target root + expression DAG</text>
+    <text x="104" y="291" class="mono">query_id · capability_sha256 · F426 context</text>
+
+    <rect x="82" y="340" width="421" height="128" rx="7" fill="#FFFFFF" stroke="#7A9EB0"/>
+    <text x="104" y="370" class="head">2. 双表示 lowering 与结构等价检查</text>
+    <text x="104" y="397" class="body">主查询：标准 indexed BV literal</text>
+    <text x="104" y="421" class="body">证明/引用：Ethos 可解析的 binary literal</text>
+    <text x="104" y="445" class="small">逐 SMT AST 验证：除常量拼写外结构和值完全相同</text>
+
+    <rect x="82" y="504" width="421" height="82" rx="7" fill="#DCEBFA" stroke="#39728C"/>
+    <text x="104" y="535" class="head">3. 主 QF_BV solver 返回 UNSAT</text>
+    <text x="104" y="561" class="body">状态只是触发器，不能直接授权全局剪枝</text>
+
+    <rect x="82" y="622" width="421" height="158" rx="7" fill="#FFFFFF" stroke="#7A9EB0"/>
+    <text x="104" y="652" class="head">4. cvc5 1.3.4 生成 CPC refutation</text>
+    <text x="104" y="678" class="body">安全模式 + dsl-rewrite granularity</text>
+    <text x="104" y="702" class="body">净化：仅允许 proof forms，末步必须证明 false</text>
+    <text x="104" y="726" class="body">本地 Ethos + reference 首次检查</text>
+    <text x="104" y="752" class="mono">stdout == "correct\n" · stderr == empty</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="592" y="214" width="416" height="126" rx="7" fill="#FFFFFF" stroke="#C09248"/>
+    <text x="614" y="244" class="head">结果键：语义与策略联合身份</text>
+    <text x="614" y="270" class="mono">H(query · solver SMT2 · proof SMT2 · reference)</text>
+    <text x="614" y="293" class="mono">H(lowering · capability · context · generator)</text>
+    <text x="614" y="316" class="mono">H(checker · CPC signatures · checker policy)</text>
+
+    <rect x="592" y="382" width="416" height="108" rx="7" fill="#FFF0C7" stroke="#A66A16"/>
+    <text x="614" y="412" class="head">不可变 proof CAS</text>
+    <text x="614" y="439" class="mono">proofs/ab/&lt;sha256&gt;.cpc</text>
+    <text x="614" y="466" class="small">portable body：不保存本机绝对 include/reference 路径</text>
+
+    <rect x="592" y="528" width="416" height="126" rx="7" fill="#FFF0C7" stroke="#A66A16"/>
+    <text x="614" y="558" class="head">规范 receipt CAS + SQLite winner index</text>
+    <text x="614" y="584" class="mono">receipts/cd/&lt;sha256&gt;.json</text>
+    <text x="614" y="609" class="body">跨进程 flock 串行化 quota + create-once 发布</text>
+    <text x="614" y="633" class="small">稳定 O_NOFOLLOW 读取；摘要、大小、inode 再验证</text>
+
+    <rect x="592" y="692" width="416" height="88" rx="7" fill="#FFFFFF" stroke="#C09248"/>
+    <text x="614" y="722" class="head">精确命中：复用证明，不复用信任</text>
+    <text x="614" y="748" class="body">跳过主 solver，但本地 checker 仍必须重新执行</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1097" y="214" width="421" height="102" rx="7" fill="#FFFFFF" stroke="#6B9C88"/>
+    <text x="1119" y="244" class="head">5. 从本地 Query IR 重新 lowering</text>
+    <text x="1119" y="270" class="body">不采用 worker 上传的 reference 或 lowering 文本</text>
+    <text x="1119" y="294" class="small">重新计算 result key、上下文和全部摘要</text>
+
+    <rect x="1097" y="352" width="421" height="166" rx="7" fill="#FFFFFF" stroke="#6B9C88"/>
+    <text x="1119" y="382" class="head">6. 重建本地完整检查脚本</text>
+    <text x="1119" y="408" class="mono">include Cpc.eo + CpcExpert.eo</text>
+    <text x="1119" y="432" class="mono">reference freshly-derived-query.smt2</text>
+    <text x="1119" y="456" class="mono">portable CPC proof body</text>
+    <text x="1119" y="486" class="small">Ethos 要求全局 assume 来自 reference assertions</text>
+
+    <rect x="1097" y="554" width="421" height="102" rx="7" fill="#DFF2E8" stroke="#287A5B"/>
+    <text x="1119" y="584" class="head">7. Ethos 只接受完整 refutation</text>
+    <text x="1119" y="611" class="body">correct：继续；incomplete / trust / hole：拒绝</text>
+    <text x="1119" y="635" class="small">checker、生成器与 51 个 CPC signature 文件均绑定内容身份</text>
+
+    <rect x="1097" y="692" width="421" height="88" rx="7" fill="#D7EFE6" stroke="#287A5B"/>
+    <text x="1119" y="722" class="head">8. QueryStore 再检查后提交 UNSAT</text>
+    <text x="1119" y="749" class="body">此后才允许缓存、子集复用和路径剪枝</text>
+  </g>
+
+  <path class="arrow" d="M292 304 L292 340"/>
+  <path class="arrow" d="M292 468 L292 504"/>
+  <path class="arrow" d="M292 586 L292 622"/>
+  <path class="arrow" d="M503 701 C545 701 545 445 592 445"/>
+  <path class="arrow" d="M800 490 L800 528"/>
+  <path class="arrow" d="M1008 591 C1052 591 1052 265 1097 265"/>
+  <path class="arrow" d="M1307 316 L1307 352"/>
+  <path class="arrow" d="M1307 518 L1307 554"/>
+  <path class="arrow" d="M1307 656 L1307 692"/>
+  <path class="arrow" d="M1008 736 C1055 736 1055 435 1097 435"/>
+
+  <rect x="50" y="850" width="1500" height="110" rx="8" fill="#FFF0EE" stroke="#B42318" stroke-width="1.5"/>
+  <text x="76" y="884" class="head" style="fill:#8A1C13">任一不一致均失败关闭为 unknown，不写 UNSAT 权威结果</text>
+  <text x="76" y="914" class="body">reference/receipt/CAS/工具链篡改 · 顶层 exit/reset/include/reference · 非 false 末步 · trust/hole · incomplete · stderr · deadline · quota · cancellation</text>
+  <text x="76" y="943" class="small">边界：F427 提供当前 QF_BV/CPC 支持域内的独立结果裁决；不等于 learned-clause 传输、solver heap snapshot、公开 benchmark 加速或完整分布式增量 SAT 复现。</text>
+  <path class="fail" d="M292 780 C292 825 460 827 460 850"/>
+  <path class="fail" d="M800 780 L800 850"/>
+  <path class="fail" d="M1307 780 C1307 825 1140 827 1140 850"/>
+</svg>

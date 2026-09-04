@@ -1,0 +1,22 @@
+{
+  "__version__": [
+    18,
+    1,
+    3
+  ],
+  "elapsed": 6.869901895523071,
+  "tests": [
+    {
+      "code": "PASS",
+      "elapsed": 6.861289024353027,
+      "name": "compiler :: test_qf_bv_backend.py",
+      "output": "Exit Code: 0\n\nCommand Output (stdout):\n--\n# RUN: at line 2\npython3 /home/ubuntu/code/symcc/test/test_qf_bv_backend.py\n# executed command: python3 /home/ubuntu/code/symcc/test/test_qf_bv_backend.py\n# .---command stderr------------\n# | .............\n# | ----------------------------------------------------------------------\n# | Ran 13 tests in 6.797s\n# | \n# | OK\n# `-----------------------------\n\n--\n"
+    },
+    {
+      "code": "PASS",
+      "elapsed": 0.7345287799835205,
+      "name": "compiler :: test_cross_worker_context.py",
+      "output": "Exit Code: 0\n\nCommand Output (stdout):\n--\n# RUN: at line 2\npython3 /home/ubuntu/code/symcc/test/test_cross_worker_context.py\n# executed command: python3 /home/ubuntu/code/symcc/test/test_cross_worker_context.py\n# .---command stderr------------\n# | ........\n# | ----------------------------------------------------------------------\n# | Ran 8 tests in 0.680s\n# | \n# | OK\n# `-----------------------------\n\n--\n"
+    }
+  ]
+}

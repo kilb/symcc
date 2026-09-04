@@ -1,0 +1,47 @@
+================================================================================
+  SymCC MPI Parallelization Benchmark Report
+  Generated: 2026-08-19 16:09:12
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+  Target: lava-base64_harness
+────────────────────────────────────────────────────────────────────────────────
+
+  Mode         NP       Time   SymCCGen    AFLExec   Unique  ShowmapCov          Edges  FstatsCov         FEdges      AFL/s
+  ────────── ──── ────────── ────────── ────────── ──────── ─────────── ────────────── ────────── ────────────── ──────────
+  afl-only      8      30.1s          0    2397569      553      47.92%         92/192     55.09%         92/167      79918
+  hybrid        8      31.1s          0        178       37      44.97%         86/192      0.12%       79/65699     178000
+  seed          0       0.0s          0          0       13      38.02%         73/192        N/A            N/A          0
+
+  Online SymCC -> AFL Native Peer Sync:
+    hybrid np=8: published=0.0, scanned=0.0, imported=0.0, not-retained=0.0, complete-runs=0/3
+
+  Edge Coverage Chart (afl-showmap):
+     afl-only np=8 |████████████████████████████████████████| 47.92%
+       hybrid np=8 |█████████████████████████████████████░░░| 44.97%
+              seed |███████████████████████████████░░░░░░░░░| 38.02%
+
+  Coverage Gain over Seed Baseline:
+    Seed baseline: 38.02% (73 edges)
+       afl-only np=8: 47.92% (+9.90pp, +26.0% relative)
+         hybrid np=8: 44.97% (+6.95pp, +18.3% relative)
+
+  Like-for-like Throughput Speedup vs Serial:
+    afl-only np=  8 |                  N/A                   | different unit: afl-executions-per-second
+    hybrid np=  8 |                  N/A                   | different unit: afl-executions-plus-symcc-candidates-per-second
+    seed np=  0 |                  N/A                   | different unit: not-applicable
+
+
+================================================================================
+  OVERALL SUMMARY
+================================================================================
+
+  lava-base64_harness: best = afl-only np=8 (30.1s, 553 retained unique, 0 SymCC candidates, 2397569 AFL executions, edge_cov=47.92%)
+
+  Report files:
+    Text:  /home/ubuntu/code/symcc/benchmark/evidence/hybrid-advantage-base64-harness-r3-2026-08-19/benchmark_report.txt
+    CSV:   /home/ubuntu/code/symcc/benchmark/evidence/hybrid-advantage-base64-harness-r3-2026-08-19/benchmark_data.csv
+    JSON:  /home/ubuntu/code/symcc/benchmark/evidence/hybrid-advantage-base64-harness-r3-2026-08-19/benchmark_data.json
+
+================================================================================

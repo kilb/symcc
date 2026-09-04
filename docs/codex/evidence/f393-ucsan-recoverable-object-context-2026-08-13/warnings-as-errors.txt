@@ -1,0 +1,15 @@
+test_alias_encodes_shared_and_cyclic_object_graph (__main__.UCSanSeedTests.test_alias_encodes_shared_and_cyclic_object_graph) ... ok
+test_alias_rejects_zero_object_id (__main__.UCSanSeedTests.test_alias_rejects_zero_object_id) ... ok
+test_canonical_payload_path_and_verification_report (__main__.UCSanSeedTests.test_canonical_payload_path_and_verification_report) ... ok
+test_canonicalize_preserves_aliases_with_deterministic_ids (__main__.UCSanSeedTests.test_canonicalize_preserves_aliases_with_deterministic_ids) ... ok
+test_learns_majority_alias_cycle_and_drops_rare_paths (__main__.UCSanSeedTests.test_learns_majority_alias_cycle_and_drops_rare_paths) ... ok
+test_object_path_uses_pointee_marker (__main__.UCSanSeedTests.test_object_path_uses_pointee_marker) ... ok
+test_read_rejects_symlink (__main__.UCSanSeedTests.test_read_rejects_symlink) ... ok
+test_rejects_duplicate_path_and_object_payload (__main__.UCSanSeedTests.test_rejects_duplicate_path_and_object_payload) ... ok
+test_rejects_invalid_shape_bounds_and_combined_kind (__main__.UCSanSeedTests.test_rejects_invalid_shape_bounds_and_combined_kind) ... ok
+test_round_trip_preserves_root_object_and_negative_bound (__main__.UCSanSeedTests.test_round_trip_preserves_root_object_and_negative_bound) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.040s
+
+OK

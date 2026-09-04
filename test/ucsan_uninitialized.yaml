@@ -1,0 +1,8 @@
+entry: exercise
+scope:
+  - exercise
+  - forward_int
+  - forward_pointer
+external: pure
+externals:
+  arbitrary_touch: arbitrary

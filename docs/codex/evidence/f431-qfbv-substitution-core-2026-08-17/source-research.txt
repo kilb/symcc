@@ -1,0 +1,26 @@
+Primary sources consulted for F431:
+
+1. Cache-a-lot: Pushing the Limits of Unsatisfiable Core Reuse in SMT-Based
+   Program Analysis (2025):
+   https://arxiv.org/abs/2504.07642
+2. cvc5 official proof production documentation:
+   https://cvc5.github.io/docs/cvc5-1.3.1/proofs/proofs.html
+3. cvc5 1.3.4 official release:
+   https://github.com/cvc5/cvc5/releases/tag/cvc5-1.3.4
+4. Real-time Proof Checking for Distributed Incremental SAT Solving,
+   TACAS 2026:
+   https://doi.org/10.1007/978-3-032-22752-2_18
+5. A Natively Parallel Proof Framework for Clause-Sharing SAT Solving
+   (PalRUP), SAT 2026:
+   https://doi.org/10.4230/LIPIcs.SAT.2026.17
+6. CaDiCaL 3.0, SAT 2026:
+   https://doi.org/10.4230/LIPIcs.SAT.2026.40
+7. PSCache, FSE 2024:
+   https://doi.org/10.1145/3660817
+8. Green constraint reuse infrastructure:
+   https://www.cs.sun.ac.za/~jaco/PAPERS/vgd12.pdf
+
+Interpretation: F431 migrates structural variable-substitution core matching
+into the existing proof-carrying QF_BV and QueryStore authority chain. Its
+current variable domain is 8-bit input reads. It does not claim to reproduce
+all SMT sorts, evaluation targets, or measured reuse rates from Cache-a-lot.

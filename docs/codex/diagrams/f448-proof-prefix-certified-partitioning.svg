@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820" role="img" aria-labelledby="title desc">
+  <title id="title">F448 proof-prefix guided certified partitioning</title>
+  <desc id="desc">Checked proof activity influences variable ordering, while an independent binary split replay proves exhaustive and disjoint cubes before CAS publication and malleable scheduling.</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#102a43" flood-opacity="0.13"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#334e68"/>
+    </marker>
+    <style>
+      .title{font:700 30px Inter,Arial,sans-serif;fill:#102a43;letter-spacing:0}
+      .subtitle{font:400 16px Inter,Arial,sans-serif;fill:#486581;letter-spacing:0}
+      .label{font:700 17px Inter,Arial,sans-serif;fill:#102a43;letter-spacing:0}
+      .body{font:400 14px Inter,Arial,sans-serif;fill:#334e68;letter-spacing:0}
+      .small{font:600 13px Inter,Arial,sans-serif;fill:#486581;letter-spacing:0}
+      .edge{fill:none;stroke:#334e68;stroke-width:2.5;marker-end:url(#arrow)}
+      .dash{fill:none;stroke:#829ab1;stroke-width:2;stroke-dasharray:8 7}
+    </style>
+  </defs>
+  <rect width="1400" height="820" fill="#f7fafc"/>
+  <text x="70" y="62" class="title">Proof-prefix guided, independently certified partitioning</text>
+  <text x="70" y="92" class="subtitle">Heuristics choose the split order; replayable certificates establish correctness.</text>
+
+  <rect x="55" y="125" width="1290" height="535" rx="8" fill="#ffffff" stroke="#d9e2ec" stroke-width="2"/>
+  <rect x="75" y="150" width="810" height="330" rx="8" fill="#f8fbfd" stroke="#9fb3c8" stroke-width="2" stroke-dasharray="9 7"/>
+  <text x="98" y="180" class="small">CERTIFICATE VERIFICATION DOMAIN</text>
+
+  <g filter="url(#shadow)">
+    <rect x="105" y="215" width="245" height="115" rx="7" fill="#fff7ed" stroke="#f59e0b" stroke-width="2"/>
+    <text x="128" y="249" class="label">Checked activity evidence</text>
+    <text x="128" y="277" class="body">proof record + import ACK</text>
+    <text x="128" y="301" class="body">unit/conflict receipt</text>
+
+    <rect x="410" y="215" width="245" height="115" rx="7" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/>
+    <text x="433" y="249" class="label">Independent replay</text>
+    <text x="433" y="277" class="body">LRUP/RUP proof checker</text>
+    <text x="433" y="301" class="body">exact plan and ACK binding</text>
+
+    <rect x="715" y="215" width="240" height="115" rx="7" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+    <text x="738" y="249" class="label">Activity ranking</text>
+    <text x="738" y="277" class="body">score by conflict/unit</text>
+    <text x="738" y="301" class="body">and decision level</text>
+
+    <rect x="410" y="370" width="245" height="80" rx="7" fill="#f5f3ff" stroke="#8b5cf6" stroke-width="2"/>
+    <text x="433" y="404" class="label">Bit-blast plan identity</text>
+    <text x="433" y="428" class="body">formula / CNF / assumptions</text>
+
+    <rect x="1015" y="215" width="285" height="235" rx="7" fill="#ecfeff" stroke="#0891b2" stroke-width="2"/>
+    <text x="1040" y="249" class="label">Binary split transcript</text>
+    <text x="1040" y="281" class="body">Start from one root cube</text>
+    <text x="1040" y="307" class="body">Split a leaf on x into</text>
+    <text x="1040" y="333" class="body">leaf and not-leaf children</text>
+    <line x1="1050" y1="363" x2="1265" y2="363" stroke="#67e8f9" stroke-width="2"/>
+    <text x="1040" y="394" class="small">Verifier replays K - 1 steps</text>
+    <text x="1040" y="419" class="small">and checks total mass = 1</text>
+  </g>
+
+  <path d="M350 272 H410" class="edge"/>
+  <path d="M655 272 H715" class="edge"/>
+  <path d="M955 272 H1015" class="edge"/>
+  <path d="M655 410 C815 410 855 357 1015 333" class="edge"/>
+  <path d="M532 370 V330" class="edge"/>
+
+  <rect x="725" y="343" width="238" height="44" rx="5" fill="#ffffff" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="742" y="371" class="small">Ranking affects efficiency only</text>
+  <path d="M844 343 V330" class="dash"/>
+
+  <g filter="url(#shadow)">
+    <rect x="105" y="520" width="330" height="100" rx="7" fill="#ffffff" stroke="#475569" stroke-width="2"/>
+    <text x="130" y="554" class="label">Content-addressed certificate</text>
+    <text x="130" y="581" class="body">strict JSON + SHA-256 + exact cubes</text>
+    <text x="130" y="604" class="body">partition -&gt; sat-proof lifecycle edges</text>
+
+    <rect x="535" y="520" width="330" height="100" rx="7" fill="#ffffff" stroke="#0f766e" stroke-width="2"/>
+    <text x="560" y="554" class="label">Malleable job catalog</text>
+    <text x="560" y="581" class="body">one stable job identity per cube</text>
+    <text x="560" y="604" class="body">formula family + bounded backlog</text>
+
+    <rect x="965" y="520" width="335" height="100" rx="7" fill="#ffffff" stroke="#be123c" stroke-width="2"/>
+    <text x="990" y="554" class="label">Parallel cube consumers</text>
+    <text x="990" y="581" class="body">consume exact assumption vectors</text>
+    <text x="990" y="604" class="body">results remain independently checked</text>
+  </g>
+  <path d="M1157 450 C1157 490 435 480 435 520" class="edge"/>
+  <path d="M435 570 H535" class="edge"/>
+  <path d="M865 570 H965" class="edge"/>
+
+  <rect x="75" y="690" width="590" height="82" rx="7" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/>
+  <text x="98" y="724" class="label">Correctness root</text>
+  <text x="98" y="751" class="body">Exact plan binding + proof replay + complete binary split replay</text>
+  <rect x="735" y="690" width="590" height="82" rx="7" fill="#fff7ed" stroke="#f59e0b" stroke-width="2"/>
+  <text x="758" y="724" class="label">Explicit boundary</text>
+  <text x="758" y="751" class="body">No end-to-end speedup or coverage claim without a controlled campaign</text>
+</svg>

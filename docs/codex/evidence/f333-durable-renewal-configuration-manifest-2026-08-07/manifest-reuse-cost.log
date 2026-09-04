@@ -1,0 +1,35 @@
+{
+  "all_samples_completed": true,
+  "configuration_fingerprint": "3c4c7e30bfb130dd269375c6e8e99120c2e1d3cee002da0541e48fb6ba5d46c0",
+  "counterfactual_to_fast_median_ratio": 257.45716057628084,
+  "fast_exact_reuse": {
+    "maximum_us": 91.057,
+    "median_us": 10.481000000000002,
+    "minimum_us": 9.985,
+    "p95_us": 22.774
+  },
+  "first_publish": {
+    "maximum_us": 7677.059,
+    "median_us": 7372.645,
+    "minimum_us": 7289.865,
+    "p95_us": 7469.837
+  },
+  "first_publish_samples": 30,
+  "host": "cuda-ke",
+  "kernel": "7.0.0-28-generic",
+  "manifest_sha256": "0965f43175fcd19164b2978fd72d48e2fdad5a998cb8fa367c75706e83e1253a",
+  "mechanism_only": true,
+  "median_saved_us": 2687.9275,
+  "pre_fast_path_counterfactual": {
+    "maximum_us": 2858.475,
+    "median_us": 2698.4085,
+    "minimum_us": 1998.567,
+    "p95_us": 2749.05
+  },
+  "proof_boundary": "Interleaved local-filesystem startup-control measurements; the counterfactual reproduces the removed temp-file fsync/link/unlink prefix. Results do not measure DSE throughput, solver time, coverage, remote storage, or LAVA-M.",
+  "python": "3.12.3",
+  "repetitions": 100,
+  "schema": "symcc-f333-manifest-reuse-cost-v1",
+  "temporary_residue_count": 0,
+  "warmups": 10
+}

@@ -55,6 +55,24 @@ if [ -f "$PATCH" ] && ! grep -q "focus_bytes" "$SS/runtime/dfsan/dfsan_flags.inc
     || echo "WARN: 技术补丁应用失败(upstream 可能已改动),请手工核对 $PATCH"
 fi
 
+# 2.6) fgtest/fgtest_rgd 目标 argv 透传协议。旧 driver 只接受
+#      ``fgtest target input``，会静默丢掉 benchmark 给目标的模式、字典或 @@
+#      参数。增量补丁在既有技术补丁之后应用；以特征串检查保持幂等。
+ARGV_PATCH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/symsan_patches/symsan_target_argv.patch"
+if [ -f "$ARGV_PATCH" ] && ! grep -q "target_argc" "$SS/driver/fgtest.cpp"; then
+  applied=0
+  if command -v patch >/dev/null 2>&1; then
+    ( cd "$SS" && patch -p1 --silent < "$ARGV_PATCH" ) && applied=1
+  elif command -v git >/dev/null 2>&1; then
+    ( cd "$SS" && git apply --whitespace=nowarn "$ARGV_PATCH" ) && applied=1
+  else
+    echo "WARN: 既无 patch 也无 git，无法应用 SymSan target argv 补丁"
+  fi
+  [ "$applied" = 1 ] \
+    && echo "symsan target-argv patch applied (fgtest/fgtest_rgd)" \
+    || { echo "ERROR: target argv 补丁应用失败；拒绝构建会静默丢参数的 driver"; exit 1; }
+fi
+
 # 3) 构建 + 安装(install 生成 ko-clang 期望的 ../lib/symsan/ 布局:passes + runtime + *.a + taint.ld + abilist)
 #
 # CMAKE_INSTALL_RPATH='$ORIGIN/../lib':让【安装后】的 fgtest/fgtest_rgd 按【相对自身位置】

@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1067" viewBox="0 0 1440 960">
+  <defs>
+    <style>
+      .title{font:700 34px 'WenQuanYi Zen Hei','Unifont',sans-serif;fill:#f8fafc}
+      .sub{font:400 18px 'WenQuanYi Zen Hei','Unifont',sans-serif;fill:#cbd5e1}
+      .h{font:700 20px 'WenQuanYi Zen Hei','Unifont',sans-serif;fill:#17212b}
+      .t{font:500 16px 'WenQuanYi Zen Hei','Unifont',sans-serif;fill:#334155}
+      .s{font:400 14px 'WenQuanYi Zen Hei','Unifont',sans-serif;fill:#475569}
+      .edge{stroke:#64748b;stroke-width:3;fill:none}.claim{stroke:#0f766e;stroke-width:4;fill:none}.reject{stroke:#be123c;stroke-width:4;fill:none;stroke-dasharray:10 7}.recover{stroke:#b45309;stroke-width:4;fill:none;stroke-dasharray:9 7}
+    </style>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="10" refY="5.5" orient="auto"><path d="M0,0 L11,5.5 L0,11 z" fill="#64748b"/></marker>
+    <marker id="claimArrow" markerWidth="11" markerHeight="11" refX="10" refY="5.5" orient="auto"><path d="M0,0 L11,5.5 L0,11 z" fill="#0f766e"/></marker>
+    <marker id="rejectArrow" markerWidth="11" markerHeight="11" refX="10" refY="5.5" orient="auto"><path d="M0,0 L11,5.5 L0,11 z" fill="#be123c"/></marker>
+    <marker id="recoverArrow" markerWidth="11" markerHeight="11" refX="10" refY="5.5" orient="auto"><path d="M0,0 L11,5.5 L0,11 z" fill="#b45309"/></marker>
+    <filter id="shadow"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-opacity=".15"/></filter>
+  </defs>
+  <rect width="1440" height="960" fill="#f8fafc"/>
+  <rect width="1440" height="122" fill="#17212b"/>
+  <text x="70" y="57" class="title">F391 租约栅栏化持久 Live-State Frontier</text>
+  <text x="70" y="91" class="sub">CAS continuation + 可恢复搜索器 + generation CAS + token fencing + observation rebase</text>
+
+  <rect x="50" y="150" width="285" height="620" rx="8" fill="#ffffff" stroke="#cbd5e1" filter="url(#shadow)"/>
+  <text x="80" y="193" class="h">不可变 CAS 状态</text>
+  <rect x="80" y="225" width="225" height="90" rx="7" fill="#ecfeff" stroke="#0f766e"/>
+  <text x="192" y="258" text-anchor="middle" class="h">Checkpoint C0</text>
+  <text x="192" y="285" text-anchor="middle" class="s">PC · frames · solver root</text>
+  <rect x="80" y="340" width="225" height="90" rx="7" fill="#ecfeff" stroke="#0f766e"/>
+  <text x="192" y="373" text-anchor="middle" class="h">Checkpoint C1</text>
+  <text x="192" y="400" text-anchor="middle" class="s">symbolic store · COW memory</text>
+  <rect x="80" y="455" width="225" height="90" rx="7" fill="#ecfeff" stroke="#0f766e"/>
+  <text x="192" y="488" text-anchor="middle" class="h">Checkpoint C2</text>
+  <text x="192" y="515" text-anchor="middle" class="s">program root 精确一致</text>
+  <rect x="80" y="595" width="225" height="120" rx="7" fill="#f1f5f9" stroke="#94a3b8"/>
+  <text x="102" y="630" class="h">内容闭包</text>
+  <text x="102" y="661" class="t">SHA-256 identity</text>
+  <text x="102" y="687" class="t">完整 restore 后才接纳</text>
+
+  <rect x="370" y="150" width="650" height="620" rx="8" fill="#ffffff" stroke="#cbd5e1" filter="url(#shadow)"/>
+  <text x="400" y="193" class="h">单调持久状态机 · generation g</text>
+  <rect x="405" y="225" width="180" height="100" rx="7" fill="#dbeafe" stroke="#2563eb"/>
+  <text x="495" y="259" text-anchor="middle" class="h">READY</text>
+  <text x="495" y="286" text-anchor="middle" class="t">有序 checkpoint 队列</text>
+  <text x="495" y="309" text-anchor="middle" class="s">candidate window 有界</text>
+  <rect x="605" y="225" width="235" height="100" rx="7" fill="#fff7ed" stroke="#b45309"/>
+  <text x="722" y="259" text-anchor="middle" class="h">LEASED</text>
+  <text x="722" y="286" text-anchor="middle" class="t">token · owner · expiry</text>
+  <text x="722" y="309" text-anchor="middle" class="s">claimGeneration ≤ g</text>
+  <rect x="860" y="225" width="125" height="100" rx="7" fill="#dcfce7" stroke="#15803d"/>
+  <text x="922" y="259" text-anchor="middle" class="h">DONE</text>
+  <text x="922" y="286" text-anchor="middle" class="t">父状态</text>
+  <text x="922" y="309" text-anchor="middle" class="s">只增集合</text>
+  <path d="M585 275 L605 275" class="claim" marker-end="url(#claimArrow)"/>
+  <path d="M840 275 L860 275" class="claim" marker-end="url(#claimArrow)"/>
+
+  <rect x="405" y="365" width="580" height="150" rx="7" fill="#f8fafc" stroke="#94a3b8"/>
+  <text x="435" y="400" class="h">可恢复 Search Snapshot</text>
+  <rect x="435" y="422" width="150" height="62" rx="6" fill="#e0f2fe" stroke="#0284c7"/>
+  <text x="510" y="448" text-anchor="middle" class="t">策略轮次</text><text x="510" y="471" text-anchor="middle" class="s">恰好 +1 selection</text>
+  <rect x="605" y="422" width="160" height="62" rx="6" fill="#e0f2fe" stroke="#0284c7"/>
+  <text x="685" y="448" text-anchor="middle" class="t">SplitMix64</text><text x="685" y="471" text-anchor="middle" class="s">state + draw count</text>
+  <rect x="785" y="422" width="170" height="62" rx="6" fill="#e0f2fe" stroke="#0284c7"/>
+  <text x="870" y="448" text-anchor="middle" class="t">覆盖 / subpath</text><text x="870" y="471" text-anchor="middle" class="s">completion 时 rebase</text>
+
+  <rect x="405" y="550" width="580" height="165" rx="7" fill="#ecfdf5" stroke="#0f766e"/>
+  <text x="435" y="585" class="h">原子公开边界</text>
+  <text x="435" y="617" class="t">1 · lock 内验证 generation、partition、token 与搜索转移</text>
+  <text x="435" y="647" class="t">2 · canonical JSON + payload SHA-256 + 有界 regular-file read</text>
+  <text x="435" y="677" class="t">3 · write → fsync(file) → rename → fsync(directory)</text>
+
+  <rect x="1055" y="150" width="335" height="620" rx="8" fill="#ffffff" stroke="#cbd5e1" filter="url(#shadow)"/>
+  <text x="1085" y="193" class="h">并发执行器</text>
+  <rect x="1085" y="225" width="275" height="90" rx="7" fill="#ecfeff" stroke="#0f766e"/>
+  <text x="1222" y="258" text-anchor="middle" class="h">Worker A · token TA</text>
+  <text x="1222" y="285" text-anchor="middle" class="s">heartbeat · execute · children</text>
+  <rect x="1085" y="340" width="275" height="90" rx="7" fill="#ecfeff" stroke="#0f766e"/>
+  <text x="1222" y="373" text-anchor="middle" class="h">Worker B · token TB</text>
+  <text x="1222" y="400" text-anchor="middle" class="s">独立 claim · observation</text>
+  <path d="M1085 270 L840 270" class="claim" marker-end="url(#claimArrow)"/>
+  <path d="M1085 385 C980 385 970 320 840 305" class="claim" marker-end="url(#claimArrow)"/>
+
+  <rect x="1085" y="475" width="275" height="105" rx="7" fill="#fff7ed" stroke="#b45309"/>
+  <text x="1110" y="508" class="h">Crash / timeout</text>
+  <text x="1110" y="537" class="t">TTL 回收：LEASED → READY</text>
+  <text x="1110" y="562" class="s">新 claim 获得不同 token</text>
+  <path d="M1085 528 C1000 528 1010 330 585 305" class="recover" marker-end="url(#recoverArrow)"/>
+  <rect x="1085" y="605" width="275" height="110" rx="7" fill="#fff1f2" stroke="#be123c"/>
+  <text x="1110" y="638" class="h">Late / conflicting result</text>
+  <text x="1110" y="667" class="t">旧 token → STALE，拒绝</text>
+  <text x="1110" y="692" class="s">generation drift → reload + rebase</text>
+  <path d="M1085 660 C1010 660 1020 535 985 500" class="reject" marker-end="url(#rejectArrow)"/>
+
+  <rect x="50" y="805" width="1340" height="105" rx="8" fill="#17212b"/>
+  <text x="720" y="840" text-anchor="middle" class="title" style="font-size:22px">状态守恒与结果接纳条件</text>
+  <text x="720" y="873" text-anchor="middle" fill="#f8fafc" style="font:600 17px 'WenQuanYi Zen Hei','Unifont',sans-serif">R∩L = R∩D = L∩D = ∅ · root 始终可达 · generation 单调</text>
+  <text x="720" y="899" text-anchor="middle" fill="#cbd5e1" style="font:500 15px 'WenQuanYi Zen Hei','Unifont',sans-serif">Accept(result) ⇔ checkpoint、token、program root、child closure、generation CAS 与 search transition 全部成立</text>
+</svg>

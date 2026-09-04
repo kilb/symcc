@@ -1,0 +1,18 @@
+{
+  "attempts": 4,
+  "checkpoint_truncations": 0,
+  "current_profile_count": 0,
+  "generations_published": 3,
+  "peer_queue": 3,
+  "profiles_loaded": 4,
+  "publication_failures": 0,
+  "records_observed": 17,
+  "return_code": 124,
+  "sat": 1,
+  "semantic_noops": 14,
+  "solver_queries": 4,
+  "unknown_fallbacks": 0,
+  "unsat_fallbacks": 3,
+  "validated": 1,
+  "validation_failures": 0
+}

@@ -1,0 +1,34 @@
+Review 1 - process and timeout safety
+- Confirmed the helper disables Z3 parallel mode before creating the context.
+- Confirmed target solver writes occur only after fork in the child.
+- Audited normal, timeout, oversized-response, read-error, and poll-error child
+  reaping paths. Focused tests also observe an empty /proc child list.
+- Deterministic delayed-child test confirms timeout kills only the child and the
+  next query reuses the same parent generation.
+
+Review 2 - protocol and correctness authority
+- Metadata parser requires one complete form, bounded numeric fields, exact
+  status agreement, warm/generation consistency, and one-step query sequencing.
+- Missing or regressing metadata evicts the context before reuse.
+- SAT models are parsed before snapshot retention and validated again by the
+  existing backend and QueryStore. UNSAT authorization semantics are unchanged.
+
+Review 3 - configuration and integration
+- native_state_fork is an explicit Boolean restricted to persistent QF_BV.
+- It is rejected on the same backend as cvc5 learned-literal publication.
+- Deployment mode does not change the F426 capability/context identity.
+- Both LLVM build trees link the pinned Z3 5.0.0 library and pass full gates.
+
+Review 4 - claim and documentation integrity
+- Replaced preliminary oracle timings with the final sealed runs.
+- Documented configuration, tests, benchmark protocol, implementation details,
+  research provenance, and known limitations.
+- Explicitly excluded portable heap transport, guaranteed clause retention, and
+  application-level coverage/bug-finding claims.
+
+Residual risks
+- Z3 does not define a stable serialized internal-state ABI; the snapshot is
+  deliberately process-local and version-local.
+- Per-target fork remains serial per backend, and COW memory pressure is not yet
+  governed by an adaptive concurrent-child quota.
+- Public multi-node paired campaigns are still required for R-level uplift.

@@ -1,0 +1,5 @@
+experiment_id,run_id,pair_id,target,configuration,mode,np,round,timestamp_sec,edge_cov_pct,edges_found,edges_total,total_cases
+symcc-8b68fb172a7e3ecd,1e4a87ddd522f33cfe64aace,4237fb34f54796563fc9f5ed,libarchive-archive_fuzzer,afl-only,afl-only,16,1,0.0,6.1,835,13696,13
+symcc-8b68fb172a7e3ecd,1e4a87ddd522f33cfe64aace,4237fb34f54796563fc9f5ed,libarchive-archive_fuzzer,afl-only,afl-only,16,1,15.0,16.75,2294,13696,13895
+symcc-8b68fb172a7e3ecd,1e4a87ddd522f33cfe64aace,4237fb34f54796563fc9f5ed,libarchive-archive_fuzzer,afl-only,afl-only,16,1,30.0,17.82,2441,13696,18759
+symcc-8b68fb172a7e3ecd,1e4a87ddd522f33cfe64aace,4237fb34f54796563fc9f5ed,libarchive-archive_fuzzer,afl-only,afl-only,16,1,45.0,20.94,2868,13696,22442

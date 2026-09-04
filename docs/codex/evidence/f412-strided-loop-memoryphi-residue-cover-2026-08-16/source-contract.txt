@@ -1,0 +1,35 @@
+F412 production and verification contract
+
+Producer
+- compiler/ContinuationLowering.cpp
+- LoopMemoryPhiByteLaneCertificate::isStrided
+- loopMemoryPhiByteLaneInitialization
+- loopMemoryPhiByteLaneRecord
+- bounded-strided-loop-memoryphi-byte-lane-induction
+- symcc-loop-memoryphi-byte-lane-induction-v2
+
+Consumer and runtime
+- util/live_continuation.py
+- LiveContinuationExecutor._loop_memoryphi_byte_lane_initialization
+- exact base/extension capability closure
+- scalar PHI edge-copy and latch-step replay
+- pointer_offset base/index/scale/ordering replay
+- complete aliases versus recurrence-reachable writer subset
+- unique writer byte owner and load-lane Cartesian product
+- bound capacity and whole-domain no-wrap proof
+- path-local byte-init authority
+
+Production fixtures and checkers
+- test/live_strided_loop_memoryphi_byte_lane_induction.ll
+- util/check_live_continuation_lowering.py
+- benchmark/generate_strided_loop_memoryphi_byte_lane_fixture.py
+
+Independent semantics and mechanism cost
+- benchmark/check_strided_loop_memoryphi_byte_lane_oracles.py
+- benchmark/benchmark_strided_loop_memoryphi_byte_lane.py
+- test/test_strided_loop_memoryphi_byte_lane_induction.py
+
+Documentation and diagram
+- docs/codex/research-progress/Strided_Loop_MemoryPhi_Residue_Cover_F412_2026-08-16.md
+- docs/codex/diagrams/strided-loop-memoryphi-residue-cover-f412.svg
+- docs/codex/diagrams/strided-loop-memoryphi-residue-cover-f412.png

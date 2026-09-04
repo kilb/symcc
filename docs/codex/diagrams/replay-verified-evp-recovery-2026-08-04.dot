@@ -1,0 +1,82 @@
+digraph evp_recovery {
+  graph [
+    rankdir=TB,
+    bgcolor="#f8fafc",
+    pad="0.35",
+    nodesep="0.42",
+    ranksep="0.68",
+    fontname="DejaVu Sans",
+    labelloc="t",
+    label="F305: replay-verified online EVP recovery and durable checkpoint retry"
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#334155",
+    fillcolor="#ffffff",
+    fontcolor="#0f172a",
+    fontname="DejaVu Sans",
+    fontsize=11,
+    margin="0.16,0.11",
+    penwidth=1.2
+  ];
+  edge [
+    color="#475569",
+    fontcolor="#334155",
+    fontname="DejaVu Sans",
+    fontsize=9,
+    penwidth=1.2,
+    arrowsize=0.72
+  ];
+
+  subgraph cluster_recovery {
+    label="Restart: prove before reuse";
+    color="#94a3b8";
+    style="rounded";
+    state [label="Bounded state.json\ncanonical rolling records\npolicy counters + artifact label", fillcolor="#ede9fe", color="#6d28d9"];
+    artifact [label="Immutable v3 artifact\ncanonical SHA-256 proof", fillcolor="#f7fee7", color="#4d7c0f"];
+    runtime [label="current.runtime\ncontent-addressed sidecar", fillcolor="#fef9c3", color="#a16207"];
+    byte_verify [label="Byte-level verification\nartifact digest + exact materialization", fillcolor="#e0f2fe", color="#0369a1"];
+    replay [label="Deterministic record replay\naggregate + admission + materialize\nusing current policy", fillcolor="#ecfdf5", color="#15803d"];
+    compare [shape=diamond, label="Runtime semantics\nmatch?", fillcolor="#ffedd5", color="#c2410c"];
+    trust [label="Reuse current generation", fillcolor="#dcfce7", color="#15803d"];
+    dirty [label="Mark dirty\nrebuild before next lease", fillcolor="#fee2e2", color="#b91c1c", penwidth=1.8];
+
+    artifact -> byte_verify;
+    runtime -> byte_verify;
+    state -> replay;
+    byte_verify -> compare [label="stored sidecar"];
+    replay -> compare [label="reconstructed sidecar"];
+    compare -> trust [label="yes", color="#15803d", fontcolor="#166534"];
+    compare -> dirty [label="no / malformed / incomplete", color="#b91c1c", fontcolor="#991b1b"];
+  }
+
+  subgraph cluster_publish {
+    label="Publication: durable evidence retry";
+    color="#94a3b8";
+    style="rounded";
+    publish [label="Atomic artifact + runtime publish", fillcolor="#fae8ff", color="#a21caf"];
+    checkpoint [label="Atomic state checkpoint", fillcolor="#fce7f3", color="#be185d"];
+    checkpoint_ok [label="Clear dirty\nstate and runtime aligned", fillcolor="#dcfce7", color="#15803d"];
+    checkpoint_fail [label="Increment checkpoint_failures\nkeep dirty; ordinary solving continues", fillcolor="#fee2e2", color="#b91c1c", penwidth=1.8];
+    retry [label="Next publish opportunity\nsemantic no-op may persist state", fillcolor="#fff7ed", color="#c2410c"];
+
+    publish -> checkpoint;
+    checkpoint -> checkpoint_ok [label="success", color="#15803d", fontcolor="#166534"];
+    checkpoint -> checkpoint_fail [label="I/O failure", color="#b91c1c", fontcolor="#991b1b"];
+    checkpoint_fail -> retry [label="bounded retry"];
+    retry -> checkpoint [label="same current generation"];
+  }
+
+  dirty -> publish [label="re-materialize", color="#b91c1c", fontcolor="#991b1b"];
+  trust -> publish [label="new telemetry later", style=dashed, color="#6d28d9", fontcolor="#6d28d9"];
+
+  boundary [
+    shape=note,
+    label="Failure boundary\nA stale or unproved optimization is withdrawn/rebuilt; full symbolic solving remains available.\nEvidence: [1] -> drifted [2] replay, then injected checkpoint failure and successful retry.",
+    fillcolor="#f1f5f9",
+    color="#64748b",
+    fontsize=10
+  ];
+  checkpoint_ok -> boundary [style=dotted, arrowhead=none, color="#64748b"];
+}

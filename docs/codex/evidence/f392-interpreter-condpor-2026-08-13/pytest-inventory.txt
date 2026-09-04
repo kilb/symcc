@@ -1,0 +1,5 @@
+schema=symcc-pytest-nodeid-manifest-v1
+root=test
+count=950
+nodeids_sha256=dff97eae0523f56a1cb56c66fc27b2b444c00a0db8a4ccb225f4d444f97b02dd
+rebuild=python3 util/python_test_inventory.py --output test/pytest-nodeids.json --root test --min-collected 938

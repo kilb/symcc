@@ -1,0 +1,17 @@
+Primary source reviewed: Agolic: Agentic Planning for Symbolic Execution
+URL: https://arxiv.org/abs/2608.06397
+arXiv version/date reviewed: v1, 2026-07-31
+
+Mechanisms used by F423:
+- a bounded symbolic-execution run is the planning unit;
+- harness-entry and witness-guided execution are distinct modes;
+- witness-guided execution retains one state before release and uses the
+  witness for supported choices without solver queries or forks;
+- ordinary solver-backed exploration resumes at release while retaining
+  memory, calling context, and accumulated route constraints;
+- generated artifacts require concrete replay before coverage attribution.
+
+Claim separation:
+The paper's reported public-program branch improvements were obtained with its
+own KLEE implementation and resource allocation. F423 does not reuse those
+numbers and does not claim an equal-CPU reproduction.

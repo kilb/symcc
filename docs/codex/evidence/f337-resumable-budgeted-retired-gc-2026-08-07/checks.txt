@@ -1,0 +1,55 @@
+F337 reproducibility and evidence boundary
+Date: 2026-08-07 UTC
+Platform: Linux 7.0.0-28-generic x86_64, glibc 2.39
+Python: 3.12.3
+Filesystem under test: local overlayfs
+
+Production mechanism:
+- root budget: SYMCC_RETIRED_WORK_STATE_GC_LIMIT
+- hard mutation budget: SYMCC_RETIRED_WORK_STATE_GC_ENTRY_BUDGET
+- cooperative time budget: SYMCC_RETIRED_WORK_STATE_GC_TIME_BUDGET_SECONDS
+- descriptor-relative iterative DFS with O_DIRECTORY and O_NOFOLLOW
+- successful unlink/rmdir operations consume the hard entry budget
+- dirty surviving directories are fsynced before a partial return
+- ENOTEMPTY after iterator EOF reopens the same directory descriptor
+- malformed reserved namespace or uncertain I/O aborts startup with code 66
+
+Automated tests:
+- directed: 204 passed, 43 subtests passed, 18.39 s
+- related six-module integration: 321 passed, 51 subtests passed, 18.33 s
+- full warnings-as-errors Python: 717 passed, 71 subtests passed, 99.48 s
+- Ruff: passed
+- in-memory compile: passed
+- git diff --check: passed
+
+Actual MPI transport:
+- Open MPI, 7 ranks, 2 masters, 5 workers
+- one physical host; actual_multi_host=false; synthetic_topology=false
+- old retired root starts with 5 files
+- root limit=1, entry budget=2, time budget=1.0 s
+- run 1: old files 5 -> 3, 0 roots reclaimed, exit 0, ACK 3/3 + 2/2
+- run 2: old files 3 -> 1, 0 roots reclaimed, exit 0, ACK 3/3 + 2/2
+- run 3: last file plus root removed, 1 root reclaimed, exit 0, ACK 3/3 + 2/2
+- all_checks_passed=true
+
+Syscall evidence:
+- root opened relative to parent with O_NOFOLLOW|O_DIRECTORY
+- exactly two F337 unlinkat mutations in the bounded core step
+- surviving tree directory fsync returns 0
+- machine result: removed_entries=2, complete=false, stop_reason=entry-limit
+
+Mechanism benchmark:
+- sizes: 129, 1025, 4097 files; entries including root: 130, 1026, 4098
+- 2 warmups plus 20 full and 20 bounded interleaved/alternating samples per size
+- fixed bounded step: 64 successful entry mutations, 10 s non-binding time limit
+- full-delete medians: 3371.600, 7364.5335, 28520.654 us
+- bounded-step medians: 3088.8045, 3578.996, 3648.115 us
+- bounded/full ratios: 0.916124, 0.485977, 0.127911
+- default 4096-entry/0.05-s convergence: 4096 + 2 entries, 30031.884 us total
+
+Strict boundary:
+- The time budget is cooperative and cannot preempt one blocking syscall.
+- Top-level namespace discovery is complete and not bounded by the entry count.
+- The lock excludes cooperating reclaimers, not arbitrary external writers.
+- No real multi-host, remote-filesystem failover, or power-loss evidence exists.
+- No DSE throughput, solver, coverage, bug-discovery, or LAVA-M uplift is claimed.

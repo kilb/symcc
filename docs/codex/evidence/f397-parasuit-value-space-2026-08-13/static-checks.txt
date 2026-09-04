@@ -1,0 +1,8 @@
+static checks: PASS
+ruff check: PASS
+ruff format check (new/small files): PASS
+py_compile: PASS
+git diff check root/runtime: PASS
+diagram SVG-to-PNG render and visual inspection: PASS
+clang-format: not applicable (F397 has no C/C++ source change)
+

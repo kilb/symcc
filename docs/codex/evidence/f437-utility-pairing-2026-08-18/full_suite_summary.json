@@ -1,0 +1,47 @@
+{
+  "all_passed": true,
+  "claim_boundary": "proof-first utility pairing and paired local MPI mechanism evidence only; no causal clause utility, solver speedup, fuzzing coverage, defect-yield, network, or multi-node scaling claim",
+  "focused_python": {
+    "passed": 68,
+    "subtests_passed": 25
+  },
+  "llvm17": {
+    "discovered": 327,
+    "failed": 0,
+    "passed": 325,
+    "unresolved": 0,
+    "unsupported": 2
+  },
+  "llvm18": {
+    "discovered": 327,
+    "failed": 0,
+    "passed": 326,
+    "unresolved": 0,
+    "unsupported": 1
+  },
+  "nodeids_sha256": "6a9f273eae9ca720fa9eb321775495523d5cef9803f97f7d8220c095b68117ba",
+  "paired_mpi": {
+    "baseline_activated": 12,
+    "baseline_delivered": 24,
+    "baseline_unactivated": 12,
+    "opportunities": 24,
+    "pairing_activated": 12,
+    "pairing_delivered": 20,
+    "pairing_unactivated": 8,
+    "repetitions": 2,
+    "suppressed": 4
+  },
+  "python": {
+    "collected": 1290,
+    "deselected": 0,
+    "failed": 0,
+    "passed": 1290,
+    "skipped": 0,
+    "subtests_failed": 0,
+    "subtests_passed": 291,
+    "subtests_skipped": 0,
+    "xfailed": 0,
+    "xpassed": 0
+  },
+  "schema": "symcc-f437-full-suite-summary-v1"
+}

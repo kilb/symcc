@@ -1,0 +1,70 @@
+F335 atomic completed-epoch retirement checks
+Date: 2026-08-07 UTC
+Host: cuda-ke
+Kernel: Linux 7.0.0-28-generic x86_64
+Python: 3.12.3
+MPI: Open MPI 4.1.6 / mpi4py 4.1.1 / MPI 3.1
+
+Static and syntax checks
+- ruff touched production/test/evidence Python: pass
+- Python bytecode compilation for touched Python: pass
+- git diff --check including untracked delivery files: pass
+- evidence-directory __pycache__ residue: none
+
+Tests
+- distributed/lifecycle/filesystem directed tests: 195 passed, 30 subtests in 15.74 s
+- related MPI/distributed/hybrid tests: 312 passed, 38 subtests in 16.62 s
+- full warnings-as-errors Python regression: 708 passed, 58 subtests in 96.23 s
+- retirement/GC negatives: active symlink, malformed reserved name, retired symlink, invalid limit, and post-rename fsync uncertainty all fail closed
+
+Real MPI post-rename uncertainty and convergence
+- ranks and masters/workers: 7 and 2/5
+- sealed work epoch: f335 repeated 16 times
+- actual MPI transport: true
+- actual multi-host: false
+- synthetic topology: false
+- injected failure point: rank-0 rename visible, parent-directory fsync not performed
+- injected worker ACKs before retirement failure: 3/3 + 2/2
+- injected return code and elapsed: 72 and 3.6238950230181217 s
+- active after injected failure: false
+- exact retired roots after injected failure: 1
+- matching recovery startup reclaimed roots: 1
+- matching recovery worker ACKs: 3/3 + 2/2
+- matching recovery return code and elapsed: 0 and 3.7320157941430807 s
+- active after matching recovery: false
+- exact new retired roots after matching recovery: 1
+- prior and new retirement identities differ: true
+- content-addressed seed digest and bytes intact: true
+- all JSON checks: pass
+
+Mechanism cost
+- warm-ups/repetitions per scale: 5/30 interleaved and alternating
+- 3 files recursive/retirement median and p95: 2593.562/2721.449 vs 2620.398/2661.56 us
+- 3 files median saved and speedup: -26.83600000000024 us and 0.9897588076315124x
+- 129 files recursive/retirement median and p95: 3280.4790000000003/3865.488 vs 2638.7405/2732.876 us
+- 129 files median saved and speedup: 641.7385000000004 us and 1.2431987912415035x
+- 1025 files recursive/retirement median and p95: 9008.330999999998/10274.199 vs 2875.4610000000002/3827.281 us
+- 1025 files median saved and speedup: 6132.869999999998 us and 3.1328301792303903x
+- raw sample counts: 30+30 at each of three scales
+- all samples complete: true
+
+Strict evidence boundaries
+- deployment_evidence=false
+- remote_power_loss_tested=false
+- real_fsync_failure_tested=false
+- actual_multi_host=false
+- cross_job_lock_exclusion_tested=false
+- nfs_server_failover_tested=false
+- mpi_rank_repair_tested=false
+- network_partition_tested=false
+- ulfm_repair_tested=false
+- end_to_end_campaign_benchmarked=false
+- dse_throughput_benchmarked=false
+- solver_or_coverage_uplift_measured=false
+- lava_m_campaign_run=false
+- GC limit bounds retired roots, not entries or wall time
+
+Repository inventory after F335
+- documented feature IDs: F00-F335 (336 total)
+- documented SYMCC configuration names: 411
+- top-level test files: 246

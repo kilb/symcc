@@ -1,0 +1,14 @@
+ruff 0.15.20
+Command scope: benchmark/check_qfbv_native_palrup_oracles.py,
+  util/qfbv_palrup_native_producer.py,
+  util/qfbv_palrup_native_pool_worker.py,
+  test/test_qfbv_palrup_native_producer.py
+Result: All checks passed.
+
+bash -n benchmark/install_cadical_palrup_sat2026.sh
+Result: passed.
+
+Both native wrappers were installed from the pinned source with:
+  g++ -std=c++17 -fPIC -shared -fvisibility=hidden
+      -Wall -Wextra -Werror -pthread
+Result: passed; exported C ABI symbols were checked by the installer.

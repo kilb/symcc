@@ -1,0 +1,28 @@
+F414 primary sources and scope
+
+LLVM Loop Terminology
+https://llvm.org/docs/LoopTerminology.html
+- A natural LLVM loop may have multiple latch blocks and backedges.
+- Loop Simplify Form is the form that additionally guarantees a single backedge.
+- The loop header dominates every block in the loop.
+
+LLVM MemorySSA
+https://llvm.org/docs/MemorySSA.html
+- MemoryPhi merges may-reach memory definitions at CFG join points.
+- F414 therefore treats writer transfers as potential provenance, not must-initialize facts.
+
+LLVM MemorySSA API source
+https://llvm.org/docs/doxygen/MemorySSA_8h_source.html
+- Incoming access/block pairs expose each latch identity on the header MemoryPhi.
+- Producer and consumer preserve that pairing rather than composing alternatives.
+
+Array-Carrying Symbolic Execution for Function Contract Generation (2026)
+https://arxiv.org/abs/2602.23216
+- Recent array-oriented symbolic execution carries loop invariants and assigns/effect information.
+- F414 is a narrower finite-alias initializedness certificate, not a reproduction
+  of general ACSE, SMT-array reasoning, or invariant inference.
+
+Claim discipline
+- Primary sources establish LLVM semantics and motivate the bounded representation.
+- Local implementation claims require source, dual-LLVM fixtures, strict artifact
+  mutation checks, an independent finite-domain oracle, and sealed evidence.

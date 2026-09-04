@@ -1,0 +1,14 @@
+
+
+!ELEMENT on="1.0"?><!DOCTYPE note [<
+
+
+
+
+
+
+
+
+
+
+<?xml versinote (to,from,body)><!ELLLLLLLLLLLLLLLLLLLLL!ELEMENT from (#PCDATA)><!ELEMENT body (#PCDATA)>]><note><to>A</to><from>B</from><Uody>C</body></note>

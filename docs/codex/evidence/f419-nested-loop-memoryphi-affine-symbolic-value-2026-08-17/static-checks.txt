@@ -1,0 +1,24 @@
+F419 static and structural checks
+
+build LLVM 18 SymCC: PASS (no work remaining)
+build LLVM 17 SymCC: PASS (no work remaining)
+py_compile changed Python modules: PASS
+ruff check changed Python modules and delivery verifier: PASS
+git diff --check: PASS
+technology index update/check: PASS
+JSON and JUnit XML parse: PASS
+changed-source trailing whitespace scan: PASS
+diagram render and visual inspection: PASS
+diagram PNG dimensions: 2400x1470 RGB
+focused fixture files: 3
+focused RUN commands: 24 (16 default/generated, 2 big-endian, 6 fallback)
+v9 schema references in strict consumer/checker: 28
+F419 LLVM17 focused: 3/3 PASS
+F419 LLVM18 focused: 3/3 PASS
+F416--F419 LLVM17 related: 9/9 PASS
+F416--F419 LLVM18 related: 9/9 PASS
+F419 Python targeted: 6/6 PASS
+F416--F419 Python related: 21/21 PASS
+full Python gate: 1097 tests + 250 subtests PASS
+full LLVM17 controlled gate: 292 PASS + 2 existing UNSUPPORTED
+

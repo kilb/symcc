@@ -1,0 +1,35 @@
+{
+  "convergence": {
+    "database_rows": 1,
+    "final_digest_verified": true,
+    "temporary_files": 0,
+    "unique_returned_digests": 1,
+    "writers": 8
+  },
+  "legacy": {
+    "expected_digest": "614fe27777cf1f372b816309e74b11428e56029e9593b71df201b28d9eb9c305",
+    "observed_digest": "69b0c4d9f3f50c5eacb27058d055a3d61bfdffa992b1ab25bb62f49ae922e3c4",
+    "observed_text": "(assert false)",
+    "silently_admitted_wrong_object": true
+  },
+  "production": {
+    "artifact_kind": "smt2",
+    "artifact_relative_path": "smt2/61/614fe27777cf1f372b816309e74b11428e56029e9593b71df201b28d9eb9c305.smt2",
+    "artifact_size": 56,
+    "claim_rejected_before_commit": true,
+    "database_path_tamper_rejected": true,
+    "digest": "614fe27777cf1f372b816309e74b11428e56029e9593b71df201b28d9eb9c305",
+    "fifo_repaired": true,
+    "post_commit_corruption_rejected": true,
+    "preexisting_corruption_repaired": true,
+    "query_attempts_after_failed_claim": 0,
+    "query_created": true,
+    "query_id": "78747056e14aae892f03c3497fe18df2742330a40be2b21d295b79447172ffc2",
+    "query_status_after_failed_claim": "pending",
+    "reopen_digest_verified": true,
+    "symlink_repaired": true,
+    "symlink_target_unchanged": true
+  },
+  "schema": "symcc-f366-verified-query-artifact-check-v1"
+}
+f366-verified-query-artifact-check: PASS (repair, reject, pre-lease rollback, convergence)

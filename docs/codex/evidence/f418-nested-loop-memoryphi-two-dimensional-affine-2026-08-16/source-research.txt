@@ -1,0 +1,40 @@
+F418 primary-source review, 2026-08-16
+
+LLVM SCEVAddRecExpr class reference
+https://llvm.org/doxygen/classllvm_1_1SCEVAddRecExpr.html
+- AddRec represents a polynomial recurrence over a loop trip count.
+- isAffine denotes A + B*x with loop-invariant A/B.
+
+LLVM ScalarEvolution implementation
+https://llvm.org/doxygen/ScalarEvolution_8cpp_source.html
+- AddRec canonicalization and no-wrap propagation are explicit and conditional.
+
+LLVM LoopTermFold implementation
+https://www.llvm.org/docs/doxygen/LoopTermFold_8cpp_source.html
+- Consumers of affine AddRec still check no-self-wrap and non-zero step before
+  evaluating an exit iteration.
+
+LLVM LoopAccessAnalysis
+https://llvm.org/docs/doxygen/LoopAccessAnalysis_8h.html
+- Constant pointer stride is recovered from affine AddRec with optional wrap
+  checking/predicates.
+
+Polly polyhedral model
+https://polly.llvm.org/publications/grosser-impact-2011.pdf
+- Static-control loop nests are represented by affine iteration domains,
+  schedules, and memory accesses.
+
+LoopSCC, arXiv:2411.02863, 2024
+https://arxiv.org/abs/2411.02863
+- General multi-branch loop summarization via path/SCC contraction and recursive
+  composition; broader than the sealed F418 two-level single-body domain.
+
+Affine Disjunctive Invariant Generation with Farkas' Lemma, VMCAI 2025
+https://conf.researchr.org/details/VMCAI-2025/VMCAI-2025-papers/3/Affine-Disjunctive-Invariant-Generation-with-Farkas-Lemma
+- Affine invariant propagation and nested-loop summary; broader invariant
+  synthesis is not implemented by F418.
+
+Positioning conclusion
+- F418 specializes polyhedral-style iteration/access modeling into a finite,
+  proof-carrying MemorySSA value certificate.
+- It is not a general SCEV, Polly/ISL, Farkas, or LoopSCC implementation.

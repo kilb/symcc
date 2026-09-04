@@ -1,0 +1,37 @@
+F320 real-MPI post-run checks, 2026-08-07 UTC
+
+Environment:
+  uid=1000
+  mpirun=Open MPI 4.1.6
+  execution_timeout_sec=1
+  max_idle_sec=1
+  shutdown_grace_sec=5
+  finalize_grace_sec=5
+
+single-master:
+  temp_dir=/tmp/symcc-f320-single.v6rrKd
+  exit_code=0
+  corpus_regular_files=1
+  standalone_work_directories=0
+  digest_mismatch_log_matches=0
+
+two-master-one-seed:
+  temp_dir=/tmp/symcc-f320-one.YsQ6Gg
+  exit_code=0
+  corpus_regular_files=1
+  standalone_work_directories=0
+  digest_mismatch_log_matches=0
+
+two-master-24-seeds:
+  temp_dir=/tmp/symcc-f320-distribution.N4IYiT
+  exit_code=0
+  corpus_regular_files=24
+  standalone_work_directories=0
+  digest_mismatch_log_matches=0
+
+two-master-shared-child:
+  temp_dir=/tmp/symcc-f320-integrity.wE0oss
+  exit_code=0
+  corpus_regular_files=13
+  standalone_work_directories=0
+  digest_mismatch_log_matches=0

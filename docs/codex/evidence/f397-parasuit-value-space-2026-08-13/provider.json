@@ -1,0 +1,79 @@
+{
+  "parameters": {
+    "SYMCC_SELF_CONFIG_CLUSTER_WINDOW": {
+      "active_when": {
+        "SYMCC_SELF_CONFIG_VALUE_POLICY": [
+          "hybrid",
+          "silhouette"
+        ]
+      },
+      "max": 256,
+      "min": 8,
+      "numeric": true,
+      "values": [
+        "16",
+        "32",
+        "64",
+        "128"
+      ]
+    },
+    "SYMCC_SELF_CONFIG_EXPLORATION_RESERVE": {
+      "active_when": {
+        "SYMCC_SELF_CONFIG_VALUE_POLICY": [
+          "hybrid",
+          "silhouette"
+        ]
+      },
+      "max": 0.5,
+      "min": 0.0,
+      "numeric": true,
+      "values": [
+        "0",
+        "0.1",
+        "0.2"
+      ]
+    },
+    "SYMCC_SELF_CONFIG_MIN_CLUSTER_SAMPLES": {
+      "active_when": {
+        "SYMCC_SELF_CONFIG_VALUE_POLICY": [
+          "hybrid",
+          "silhouette"
+        ]
+      },
+      "max": 64,
+      "min": 4,
+      "numeric": true,
+      "values": [
+        "4",
+        "6",
+        "8"
+      ]
+    },
+    "SYMCC_SELF_CONFIG_SILHOUETTE_THRESHOLD": {
+      "active_when": {
+        "SYMCC_SELF_CONFIG_VALUE_POLICY": [
+          "hybrid",
+          "silhouette"
+        ]
+      },
+      "max": 1.0,
+      "min": -1.0,
+      "numeric": true,
+      "values": [
+        "0.5",
+        "0.7",
+        "0.85"
+      ]
+    },
+    "SYMCC_SELF_CONFIG_VALUE_POLICY": {
+      "values": [
+        "hybrid",
+        "silhouette",
+        "thompson"
+      ]
+    }
+  },
+  "provider": "symcc-parasuit-value-policy",
+  "schema": "symcc-parameter-provider-v1",
+  "scope": "coordinator-campaign"
+}

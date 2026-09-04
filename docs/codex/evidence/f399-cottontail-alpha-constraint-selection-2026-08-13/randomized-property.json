@@ -1,0 +1,11 @@
+{
+  "checks": {
+    "alpha_renaming_equivalent": 1000,
+    "constant_change_separated": 1000,
+    "read_alias_change_separated": 1000
+  },
+  "runs": 1000,
+  "schema": "symcc-constraint-shape-property-check-v1",
+  "seed": 399,
+  "status": "PASS"
+}

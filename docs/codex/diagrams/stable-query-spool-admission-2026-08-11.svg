@@ -1,0 +1,167 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080">
+  <defs>
+    <style>
+      .title{font:700 43px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#16384b}
+      .subtitle{font:400 22px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#557082}
+      .section{font:700 25px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#16384b}
+      .head{font:700 21px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#fff}
+      .body{font:400 17px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#385a6d}
+      .strong{font:700 19px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#16384b}
+      .mono{font:600 16px 'DejaVu Sans Mono',monospace;fill:#173b4f}
+      .small{font:400 15px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#587486}
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#2c8192"/>
+    </marker>
+    <marker id="redarrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#c65d48"/>
+    </marker>
+  </defs>
+  <rect width="1600" height="1080" fill="#f5f8fa"/>
+  <rect width="1600" height="14" fill="#2b8091"/>
+
+  <text x="80" y="76" class="title">F364 · Stable Query IR + Crash-Released Spool Admission</text>
+  <text x="82" y="116" class="subtitle">稳定读取绑定消费对象，内核锁绑定唯一提交者，崩溃后无需租约即可接管</text>
+
+  <text x="80" y="166" class="section">修复前：同一个 query.json 被两个消费者同时提交</text>
+  <g transform="translate(80 190)">
+    <rect width="1440" height="175" rx="7" fill="#fff1ed" stroke="#d36b50" stroke-width="2"/>
+    <g transform="translate(28 27)">
+      <rect width="220" height="120" rx="6" fill="#fff" stroke="#cf806d"/>
+      <text x="20" y="34" class="strong">incoming/query.json</text>
+      <text x="20" y="70" class="body">两个 glob 看到同一名称</text>
+      <text x="20" y="98" class="mono">no claim / no lock</text>
+    </g>
+    <path d="M258 62 H330" stroke="#c65d48" stroke-width="4" marker-end="url(#redarrow)"/>
+    <path d="M258 123 H330" stroke="#c65d48" stroke-width="4" marker-end="url(#redarrow)"/>
+    <g transform="translate(340 17)">
+      <rect width="240" height="62" rx="6" fill="#fff" stroke="#cf806d"/>
+      <text x="18" y="26" class="strong">Consumer A · ingest #1</text>
+      <text x="18" y="50" class="body">暂停后恢复</text>
+    </g>
+    <g transform="translate(340 96)">
+      <rect width="240" height="62" rx="6" fill="#fff" stroke="#cf806d"/>
+      <text x="18" y="26" class="strong">Consumer B · ingest #2</text>
+      <text x="18" y="50" class="body">先移动到 accepted</text>
+    </g>
+    <path d="M590 48 H665" stroke="#c65d48" stroke-width="4" marker-end="url(#redarrow)"/>
+    <path d="M590 127 H665" stroke="#c65d48" stroke-width="4" marker-end="url(#redarrow)"/>
+    <g transform="translate(675 27)">
+      <rect width="315" height="120" rx="6" fill="#ffe4dc" stroke="#c65d48" stroke-width="2"/>
+      <text x="20" y="34" class="strong">错误收敛失败</text>
+      <text x="20" y="68" class="mono">ingest calls = 2</text>
+      <text x="20" y="98" class="mono">uncaught FileNotFoundError</text>
+    </g>
+    <path d="M1000 87 H1075" stroke="#c65d48" stroke-width="4" marker-end="url(#redarrow)"/>
+    <g transform="translate(1085 27)">
+      <rect width="327" height="120" rx="6" fill="#fff" stroke="#cf806d"/>
+      <text x="20" y="34" class="strong">诊断也被污染</text>
+      <text x="20" y="68" class="body">accepted/query.json 存在</text>
+      <text x="20" y="98" class="body">rejected/query.json.error 也存在</text>
+    </g>
+  </g>
+
+  <text x="80" y="418" class="section">F364 两层闭包</text>
+  <g transform="translate(80 442)">
+    <rect width="680" height="330" rx="7" fill="#173b4f"/>
+    <text x="27" y="42" class="head">A · Stable regular-file reader</text>
+    <line x1="27" y1="60" x2="653" y2="60" stroke="#7fa4b6" stroke-width="1.5"/>
+    <g transform="translate(27 84)">
+      <rect width="186" height="174" rx="6" fill="#f8fbfc"/>
+      <rect width="186" height="42" rx="6" fill="#2e7e91"/>
+      <rect y="36" width="186" height="6" fill="#2e7e91"/>
+      <text x="14" y="28" class="head">1 · Open</text>
+      <text x="14" y="76" class="mono">O_NOFOLLOW</text>
+      <text x="14" y="106" class="mono">O_NONBLOCK</text>
+      <text x="14" y="138" class="body">symlink 拒绝</text>
+      <text x="14" y="164" class="body">FIFO 不阻塞</text>
+    </g>
+    <path d="M220 170 H250" stroke="#70bdc8" stroke-width="5" marker-end="url(#arrow)"/>
+    <g transform="translate(260 84)">
+      <rect width="186" height="174" rx="6" fill="#f8fbfc"/>
+      <rect width="186" height="42" rx="6" fill="#b87a28"/>
+      <rect y="36" width="186" height="6" fill="#b87a28"/>
+      <text x="14" y="28" class="head">2 · Read</text>
+      <text x="14" y="76" class="mono">fstat(fd)</text>
+      <text x="14" y="106" class="mono">MAX + 1 bytes</text>
+      <text x="14" y="138" class="body">1 MiB chunks</text>
+      <text x="14" y="164" class="body">regular only</text>
+    </g>
+    <path d="M453 170 H483" stroke="#70bdc8" stroke-width="5" marker-end="url(#arrow)"/>
+    <g transform="translate(493 84)">
+      <rect width="160" height="174" rx="6" fill="#e8f5f1"/>
+      <rect width="160" height="42" rx="6" fill="#347d68"/>
+      <rect y="36" width="160" height="6" fill="#347d68"/>
+      <text x="14" y="28" class="head">3 · Validate</text>
+      <text x="14" y="76" class="mono">fstat-after</text>
+      <text x="14" y="106" class="mono">lstat(path)</text>
+      <text x="14" y="138" class="body">六字段身份</text>
+      <text x="14" y="164" class="body">一致才解析</text>
+    </g>
+    <text x="27" y="302" class="small">同一 descriptor：类型 → bytes → identity → strict JSON → Query IR</text>
+  </g>
+
+  <g transform="translate(840 442)">
+    <rect width="680" height="330" rx="7" fill="#173b4f"/>
+    <text x="27" y="42" class="head">B · Crash-released single-consumer admission</text>
+    <line x1="27" y1="60" x2="653" y2="60" stroke="#7fa4b6" stroke-width="1.5"/>
+    <g transform="translate(27 84)">
+      <rect width="186" height="174" rx="6" fill="#f8fbfc"/>
+      <rect width="186" height="42" rx="6" fill="#705896"/>
+      <rect y="36" width="186" height="6" fill="#705896"/>
+      <text x="14" y="28" class="head">1 · Lock object</text>
+      <text x="14" y="76" class="mono">.ingest.lock</text>
+      <text x="14" y="106" class="body">no-follow regular</text>
+      <text x="14" y="138" class="body">fd/path同inode</text>
+      <text x="14" y="164" class="body">投毒即失败</text>
+    </g>
+    <path d="M220 170 H250" stroke="#70bdc8" stroke-width="5" marker-end="url(#arrow)"/>
+    <g transform="translate(260 84)">
+      <rect width="186" height="174" rx="6" fill="#f8fbfc"/>
+      <rect width="186" height="42" rx="6" fill="#2e7e91"/>
+      <rect y="36" width="186" height="6" fill="#2e7e91"/>
+      <text x="14" y="28" class="head">2 · Try flock</text>
+      <text x="14" y="76" class="mono" style="font-size:14px">LOCK_EX | LOCK_NB</text>
+      <text x="14" y="110" class="body">busy → (0,0)</text>
+      <text x="14" y="140" class="body">store calls = 0</text>
+      <text x="14" y="166" class="body">无错误副作用</text>
+    </g>
+    <path d="M453 170 H483" stroke="#70bdc8" stroke-width="5" marker-end="url(#arrow)"/>
+    <g transform="translate(493 84)">
+      <rect width="160" height="174" rx="6" fill="#e8f5f1"/>
+      <rect width="160" height="42" rx="6" fill="#347d68"/>
+      <rect y="36" width="160" height="6" fill="#347d68"/>
+      <text x="14" y="28" class="head">3 · Commit</text>
+      <text x="14" y="76" class="body">scan / ingest</text>
+      <text x="14" y="106" class="body">accept / reject</text>
+      <text x="14" y="138" class="mono">close(fd)</text>
+      <text x="14" y="164" class="body">崩溃也释放</text>
+    </g>
+    <text x="27" y="302" class="small">查询留在 incoming 直到最终 move；commit 后崩溃可按内容身份幂等重放</text>
+  </g>
+
+  <text x="80" y="824" class="section">反事实、真实故障与完整回归</text>
+  <g transform="translate(80 848)">
+    <rect width="440" height="150" rx="7" fill="#fff2ed" stroke="#cf6b50" stroke-width="2"/>
+    <text x="22" y="34" class="strong">旧算法确定性失败</text>
+    <text x="22" y="68" class="body">2 ingest calls · 1 normal return</text>
+    <text x="22" y="100" class="body">1 uncaught FileNotFoundError</text>
+    <text x="22" y="130" class="mono">counterexample reproduced</text>
+  </g>
+  <g transform="translate(580 848)">
+    <rect width="440" height="150" rx="7" fill="#edf7f5" stroke="#3f9a84" stroke-width="2"/>
+    <text x="22" y="34" class="strong">真实 SIGKILL 接管</text>
+    <text x="22" y="68" class="body">holder exit = -9 · busy store calls = 0</text>
+    <text x="22" y="100" class="body">recovery = (1,0) · query/witness = 1/1</text>
+    <text x="22" y="130" class="mono">kernel-released lock · PASS</text>
+  </g>
+  <g transform="translate(1080 848)">
+    <rect width="440" height="150" rx="7" fill="#eef4fa" stroke="#5284a6" stroke-width="2"/>
+    <text x="22" y="34" class="strong">完整质量门</text>
+    <text x="22" y="68" class="body">symlink · FIFO · path identity · lock poison</text>
+    <text x="22" y="100" class="body">787 tests + 127 subtests · 16 capabilities</text>
+    <text x="22" y="130" class="mono">zero result / identity drift</text>
+  </g>
+
+  <text x="82" y="1044" class="small">证明边界：本机/语义一致flock文件系统上的协作式crash-only协议；不是跨主机共识、hostile namespace证明、全局exactly-once或性能提升。</text>
+</svg>

@@ -1,0 +1,15 @@
+Compiler: clang++-18
+Flags: -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -Wall -Wextra -Werror
+Headers/library: /opt/z3-5.0.0/include and /opt/z3-5.0.0/bin/libz3.so
+ASAN_OPTIONS: detect_leaks=0:abort_on_error=1
+UBSAN_OPTIONS: halt_on_error=1
+
+Focused result: 8 passed, 5 subtests passed
+Independent oracle: 32 targets, zero status mismatch, zero invalid model,
+32 unique child PIDs, deterministic timeout recovery passed
+Sanitized helper SHA-256: 4c1a768ccbd6339bfea914b487c5a49fb58fe3d1089295a3c0c7741939487c48
+Result: PASS
+
+LeakSanitizer is disabled because Z3 global/process-lifetime allocations are
+outside the helper's ownership contract. AddressSanitizer and UndefinedBehaviorSanitizer
+remain enabled for the helper and all forked child transactions.

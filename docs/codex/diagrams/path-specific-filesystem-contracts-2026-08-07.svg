@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1320" viewBox="0 0 1900 1320" role="img" aria-labelledby="title desc">
+  <title id="title">F328 path-specific shared-filesystem requirement profiles</title>
+  <desc id="desc">Standalone publication, lease tables, and coverage gossip are qualified against exact operation profiles. Co-located protocols use the union, required operations must pass, and untested operations are represented as null.</desc>
+  <defs>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#183047" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#40566d"/>
+    </marker>
+    <style>
+      text { font-family: Inter, "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; letter-spacing: 0; fill: #173047; }
+      .title { font-size: 45px; font-weight: 760; }
+      .subtitle { font-size: 21px; fill: #596b7c; }
+      .section { font-size: 23px; font-weight: 730; }
+      .body { font-size: 18px; }
+      .small { font-size: 15px; fill: #5d6e7f; }
+      .tiny { font-size: 14px; fill: #5d6e7f; }
+      .mono { font-family: "DejaVu Sans Mono", monospace; font-size: 15px; }
+      .light { fill: #fff; }
+      .center { text-anchor: middle; }
+      .check { font-size: 22px; font-weight: 800; fill: #14756c; text-anchor: middle; }
+      .skip { font-size: 22px; font-weight: 800; fill: #8a98a5; text-anchor: middle; }
+      .metric { font-size: 28px; font-weight: 780; text-anchor: middle; }
+    </style>
+  </defs>
+
+  <rect width="1900" height="1320" fill="#f4f7f9"/>
+  <rect width="1900" height="13" fill="#147f79"/>
+  <text x="72" y="73" class="title">F328 Path-Specific Filesystem Contracts</text>
+  <text x="72" y="108" class="subtitle">Qualify only the operations a distributed symbolic-execution protocol actually uses</text>
+
+  <g filter="url(#shadow)">
+    <rect x="72" y="145" width="1756" height="106" rx="6" fill="#fff" stroke="#c6d0d9" stroke-width="2"/>
+    <rect x="72" y="145" width="430" height="106" rx="6" fill="#9c3d4b"/>
+    <rect x="496" y="145" width="6" height="106" fill="#9c3d4b"/>
+    <text x="100" y="184" class="section light">F327 UNIVERSAL CONTRACT</text>
+    <text x="100" y="217" class="body light">Every root had to pass all 9 operations</text>
+    <text x="540" y="183" class="section">Correct for standalone publication, too strong for lease and coverage roots</text>
+    <text x="540" y="216" class="body">A coverage-only root could be rejected for hard-link support even though gossip never calls hard link.</text>
+  </g>
+
+  <line x1="950" y1="251" x2="950" y2="286" stroke="#40566d" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="72" y="298" width="1756" height="385" rx="6" fill="#fff" stroke="#aebdca" stroke-width="2"/>
+    <text x="102" y="338" class="section">1. Protocol-to-operation requirement matrix</text>
+    <text x="102" y="367" class="small">● required and exercised at startup　 ○ deliberately not tested; no capability claim</text>
+
+    <rect x="102" y="391" width="1696" height="48" fill="#263f58"/>
+    <text x="222" y="421" class="body light center">Protocol / path role</text>
+    <text x="500" y="413" class="tiny light center">file</text><text x="500" y="430" class="tiny light center">fsync</text>
+    <text x="630" y="413" class="tiny light center">dir</text><text x="630" y="430" class="tiny light center">fsync</text>
+    <text x="760" y="413" class="tiny light center">same-dir</text><text x="760" y="430" class="tiny light center">replace</text>
+    <text x="890" y="413" class="tiny light center">cross-dir</text><text x="890" y="430" class="tiny light center">replace</text>
+    <text x="1020" y="413" class="tiny light center">publication</text><text x="1020" y="430" class="tiny light center">replace</text>
+    <text x="1150" y="413" class="tiny light center">hard</text><text x="1150" y="430" class="tiny light center">link</text>
+    <text x="1280" y="413" class="tiny light center">durable</text><text x="1280" y="430" class="tiny light center">unlink</text>
+    <text x="1410" y="413" class="tiny light center">lock</text><text x="1410" y="430" class="tiny light center">exclude</text>
+    <text x="1540" y="413" class="tiny light center">lock</text><text x="1540" y="430" class="tiny light center">release</text>
+    <text x="1690" y="421" class="tiny light center">profile</text>
+
+    <rect x="102" y="439" width="1696" height="70" fill="#eef5f8"/>
+    <text x="122" y="468" class="body" font-weight="700">Standalone publication</text>
+    <text x="122" y="492" class="small">work state → corpus / epoch</text>
+    <text x="500" y="482" class="check">●</text><text x="630" y="482" class="check">●</text><text x="760" y="482" class="check">●</text>
+    <text x="890" y="482" class="check">●</text><text x="1020" y="482" class="check">●</text><text x="1150" y="482" class="check">●</text>
+    <text x="1280" y="482" class="check">●</text><text x="1410" y="482" class="check">●</text><text x="1540" y="482" class="check">●</text>
+    <text x="1690" y="478" class="mono center">full-shared-state-v1</text>
+
+    <rect x="102" y="509" width="1696" height="70" fill="#fff"/>
+    <text x="122" y="538" class="body" font-weight="700">Work / target lease table</text>
+    <text x="122" y="562" class="small">fenced record mutation</text>
+    <text x="500" y="552" class="check">●</text><text x="630" y="552" class="check">●</text><text x="760" y="552" class="check">●</text>
+    <text x="890" y="552" class="skip">○</text><text x="1020" y="552" class="skip">○</text><text x="1150" y="552" class="skip">○</text>
+    <text x="1280" y="552" class="check">●</text><text x="1410" y="552" class="check">●</text><text x="1540" y="552" class="check">●</text>
+    <text x="1690" y="548" class="mono center">lease-table-v1</text>
+
+    <rect x="102" y="579" width="1696" height="70" fill="#eef5f8"/>
+    <text x="122" y="608" class="body" font-weight="700">Coverage-owner gossip</text>
+    <text x="122" y="632" class="small">heartbeat + coverage shard</text>
+    <text x="500" y="622" class="check">●</text><text x="630" y="622" class="check">●</text><text x="760" y="622" class="check">●</text>
+    <text x="890" y="622" class="skip">○</text><text x="1020" y="622" class="skip">○</text><text x="1150" y="622" class="skip">○</text>
+    <text x="1280" y="622" class="skip">○</text><text x="1410" y="622" class="check">●</text><text x="1540" y="622" class="check">●</text>
+    <text x="1690" y="618" class="mono center">coverage-gossip-v1</text>
+
+    <text x="102" y="670" class="small">Lock exclusion and descriptor-close release remain paired; file and directory fsync are mandatory for every persistent shared-state profile.</text>
+  </g>
+
+  <line x1="950" y1="683" x2="950" y2="716" stroke="#40566d" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="72" y="728" width="855" height="225" rx="6" fill="#fff" stroke="#76a99e" stroke-width="2"/>
+    <text x="102" y="768" class="section">2. Canonical-path union and safe cache</text>
+    <rect x="102" y="795" width="255" height="56" rx="5" fill="#e8f4f1" stroke="#6da89b"/>
+    <text x="229" y="819" class="body center" font-weight="700">/shared/state</text>
+    <text x="229" y="841" class="small center">lease + coverage</text>
+    <path d="M357 823 L435 823" stroke="#40566d" stroke-width="3" marker-end="url(#arrow)"/>
+    <rect x="446" y="789" width="420" height="68" rx="5" fill="#dff0ed" stroke="#408d82"/>
+    <text x="656" y="817" class="body center" font-weight="700">union = lease-table-v1</text>
+    <text x="656" y="842" class="small center">Reuse only when cached verified set covers required set</text>
+    <rect x="102" y="875" width="764" height="49" rx="5" fill="#f0f4f7"/>
+    <text x="484" y="906" class="body center">Probe each canonical path once when its verified set covers later consumers</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="951" y="728" width="877" height="225" rx="6" fill="#fff" stroke="#869fbc" stroke-width="2"/>
+    <text x="981" y="768" class="section">3. Tri-state capability snapshot</text>
+    <rect x="981" y="795" width="379" height="128" rx="5" fill="#e9f1f8"/>
+    <text x="1005" y="824" class="body" font-weight="700">v1: complete contract</text>
+    <text x="1005" y="854" class="mono">all nine operations = true</text>
+    <text x="1005" y="885" class="small">Backward-compatible standalone schema</text>
+    <rect x="1380" y="795" width="418" height="128" rx="5" fill="#f1edf5"/>
+    <text x="1404" y="824" class="body" font-weight="700">v2: partial requirement profile</text>
+    <text x="1404" y="854" class="mono">required = true</text>
+    <text x="1404" y="880" class="mono">unverified = null</text>
+    <text x="1404" y="907" class="small">null means not tested, never unsupported</text>
+  </g>
+
+  <line x1="950" y1="953" x2="950" y2="986" stroke="#40566d" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="72" y="998" width="1756" height="171" rx="6" fill="#fff" stroke="#c0cad3" stroke-width="2"/>
+    <text x="102" y="1038" class="section">Measured one-time startup qualification on local overlayfs</text>
+    <rect x="102" y="1060" width="420" height="77" rx="5" fill="#e8eff5"/>
+    <text x="312" y="1093" class="metric">51.763 ms</text><text x="312" y="1122" class="small center">full median · 3 replace · 1 link</text>
+    <rect x="546" y="1060" width="420" height="77" rx="5" fill="#e8f4f1"/>
+    <text x="756" y="1093" class="metric" fill="#126e66">42.038 ms</text><text x="756" y="1122" class="small center">lease median · 1 replace · 1 unlink</text>
+    <rect x="990" y="1060" width="420" height="77" rx="5" fill="#f0edf5"/>
+    <text x="1200" y="1093" class="metric" fill="#664d7e">36.918 ms</text><text x="1200" y="1122" class="small center">coverage median · 1 replace · 0 unlink</text>
+    <rect x="1434" y="1060" width="364" height="77" rx="5" fill="#fbf0df"/>
+    <text x="1616" y="1093" class="metric" fill="#8a5b12">40 × 3</text><text x="1616" y="1122" class="small center">balanced interleaved runs · 0 residue</text>
+  </g>
+
+  <path d="M700 1169 L700 1194 L490 1194 L490 1215" fill="none" stroke="#147f79" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M1200 1169 L1200 1194 L1410 1194 L1410 1215" fill="none" stroke="#9c3d4b" stroke-width="4" marker-end="url(#arrow)"/>
+  <g filter="url(#shadow)">
+    <rect x="72" y="1226" width="855" height="62" rx="6" fill="#e3f3ee" stroke="#147f79" stroke-width="2"/>
+    <text x="499" y="1264" class="body center" font-weight="700">PASS: all required operations observed → start services / publish state</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="951" y="1226" width="877" height="62" rx="6" fill="#fae8eb" stroke="#9c3d4b" stroke-width="2"/>
+    <text x="1389" y="1264" class="body center" font-weight="700">FAIL: any required operation fails → bounded shutdown, no downgrade</text>
+  </g>
+
+  <rect x="72" y="1301" width="1756" height="12" fill="#263f58"/>
+</svg>

@@ -1,0 +1,27 @@
+F411 primary and official sources (accessed 2026-08-16)
+
+LLVM MemorySSA
+https://llvm.org/docs/MemorySSA.html
+MemoryUse/MemoryDef/MemoryPhi semantics. MemoryPhi is a may-reach join and is
+not, by itself, proof that a backedge definition executed on the current path.
+
+LLVM Loop Terminology
+https://llvm.org/docs/LoopTerminology.html
+Canonical terminology for preheader, latch, backedge, exit, and dedicated exits.
+
+A Bounded Symbolic-Size Model for Symbolic Execution (FSE 2021)
+https://www.cs.tau.ac.il/~maon/pubs/2021-fse.pdf
+Research basis for bounding symbolic memory sizes by concrete object capacity.
+
+LoopSCC: Loop Summarization with Path Graphs (2024)
+https://arxiv.org/abs/2411.02863
+Recent loop-summary context and the need to validate inductive path relations.
+
+Array-Carrying Symbolic Execution for Function Contract Generation (2026)
+https://arxiv.org/abs/2602.23216
+Recent array-segment invariant and assigns-style memory-effect context.
+
+Scope statement
+F411 is a bounded eager proof-carrying adaptation for one canonical byte-writer
+loop. It is not a full implementation or reproduction of LoopSCC, ACSE, a
+general array invariant engine, or a general loop summarizer.

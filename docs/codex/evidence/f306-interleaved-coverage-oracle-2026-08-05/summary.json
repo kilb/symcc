@@ -1,0 +1,145 @@
+{
+  "afl_binary_sha256": "68269c89d36da5046f1de0531ddab8b06775c4518f5272ff0aaeae5a24dd7e2f",
+  "baseline_intersection_edges": 1018,
+  "baseline_selected_edges": 1018,
+  "baseline_union_edges": 1020,
+  "campaign_observations": 60,
+  "candidate_inputs": 20,
+  "compatibility_probe_observations": 2,
+  "oracle_fallbacks": 1,
+  "oracle_mode": "one-shot",
+  "oracle_probe": {
+    "isolated_edges": 1019,
+    "isolated_status": "ok",
+    "result": "status-mismatch+edge-set-mismatch",
+    "streaming_edges": 933,
+    "streaming_status": "timeout",
+    "streaming_status_detail": 0
+  },
+  "oracle_restarts": 0,
+  "round_delay_ms": 1000,
+  "rounds": 3,
+  "schema": "symcc-qa3-interleaved-coverage-summary-v1",
+  "seed_sha256": "b97f4b93891b87eae9974d4922628b4cbd47cff79350a09253489acfcc10db33",
+  "showmap_binary_sha256": "feedfc2f5b2825fd7badeb098aa8b25c1857dc3e3afe8159688786997833791b",
+  "showmap_statuses": {
+    "ok": 60
+  },
+  "stability_policy": "intersection",
+  "strategies": {
+    "nominal": {
+      "exclusive_novel_edges": 1378,
+      "landing_rate_ppm": 950000,
+      "novel_edge_union": 1378,
+      "novel_edges_per_output_ppm": 68900000,
+      "outputs": 20,
+      "outputs_with_seed_novel_edges": 19
+    }
+  },
+  "strict_stability_passed": false,
+  "total_oracle_observations": 62,
+  "unique_measured_inputs": 20,
+  "unstable_edge_events": 46,
+  "unstable_input_count": 11,
+  "unstable_inputs": [
+    {
+      "input": "seed_01.xml",
+      "replica_edge_counts": [
+        1019,
+        1019,
+        1019
+      ],
+      "unstable_edges": 2
+    },
+    {
+      "input": "seed_02.xml",
+      "replica_edge_counts": [
+        1462,
+        1462,
+        1461
+      ],
+      "unstable_edges": 3
+    },
+    {
+      "input": "seed_08_comment.xml",
+      "replica_edge_counts": [
+        1098,
+        1098,
+        1098
+      ],
+      "unstable_edges": 2
+    },
+    {
+      "input": "seed_08_entity.xml",
+      "replica_edge_counts": [
+        1458,
+        1472,
+        1458
+      ],
+      "unstable_edges": 14
+    },
+    {
+      "input": "seed_09_mixed.xml",
+      "replica_edge_counts": [
+        1044,
+        1044,
+        1044
+      ],
+      "unstable_edges": 2
+    },
+    {
+      "input": "seed_10_empty.xml",
+      "replica_edge_counts": [
+        989,
+        989,
+        989
+      ],
+      "unstable_edges": 2
+    },
+    {
+      "input": "seed_11_entities.xml",
+      "replica_edge_counts": [
+        1019,
+        1019,
+        1019
+      ],
+      "unstable_edges": 2
+    },
+    {
+      "input": "seed_12_utf8.xml",
+      "replica_edge_counts": [
+        1059,
+        1059,
+        1059
+      ],
+      "unstable_edges": 2
+    },
+    {
+      "input": "seed_13_long.xml",
+      "replica_edge_counts": [
+        1013,
+        1013,
+        1013
+      ],
+      "unstable_edges": 2
+    },
+    {
+      "input": "seed_14_dtd.xml",
+      "replica_edge_counts": [
+        1413,
+        1405,
+        1415
+      ],
+      "unstable_edges": 13
+    },
+    {
+      "input": "seed_15_nums.xml",
+      "replica_edge_counts": [
+        1028,
+        1028,
+        1028
+      ],
+      "unstable_edges": 2
+    }
+  ]
+}

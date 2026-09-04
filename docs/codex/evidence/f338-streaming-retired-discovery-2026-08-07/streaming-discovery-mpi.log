@@ -1,0 +1,141 @@
+=== MPI output ===
+SymCC MPI Parallel Concolic Execution
+  Processes:     7
+  Mode:          multi-master (2 masters, auto-scaled at 3 workers/master)
+    Master 0: 3 workers
+    Master 1: 2 workers
+  Shared dir:    /tmp/symcc-f338-streaming-mpi-l5dy0bv3/output
+  Input dir:     /tmp/symcc-f338-streaming-mpi-l5dy0bv3/input
+  Target:        /bin/true
+  Timeout:       1s per execution
+  Work epoch:    f338f338f338f338f338f338f338f338f338f338f338f338f338f338f338f338 (configured recovery)
+  Retired GC:    4 root(s) reclaimed, 4 entry(s) removed, stop=root-limit
+  Retired budget: roots=4, entries=32, time=1s
+  Retired scan:   entries=19, candidates=17, selected=4
+  Retirement:    renameat2(RENAME_NOREPLACE) qualified
+  Wall timeout:  3s total
+
+[Master] Imported 1 initial inputs from /tmp/symcc-f338-streaming-mpi-l5dy0bv3/input
+[Master] Using 2 master(s), 3 workers in this group
+[Master] Durable work ownership: rendezvous + 64 fenced shards, lease=6s
+[Master] Shared filesystem capabilities: {'schema': 'symcc-shared-filesystem-capabilities-v1', 'root': '/tmp/symcc-f338-streaming-mpi-l5dy0bv3/output/.standalone-work-f338f338f338f338f338f338f338f338f338f338f338f338f338f338f338f338', 'publication_root': '/tmp/symcc-f338-streaming-mpi-l5dy0bv3/output', 'device': 92, 'filesystem_id': 18395215968828387670, 'publication_device': 92, 'publication_filesystem_id': 18395215968828387670, 'filesystem_type': 'overlay', 'mount_point': '/', 'mount_source': 'overlay', 'distributed_filesystem': False, 'cluster_lock_verified': False, 'probe_scope': 'same-host-subprocess-v1', 'cluster_lock_members': [{'rank': 0, 'processor': 'cuda-ke'}, {'rank': 1, 'processor': 'cuda-ke'}], 'cluster_lock_representatives': [0], 'cluster_lock_rounds': 0, 'cluster_lock_contention_checks': 0, 'cluster_lock_release_checks': 0, 'file_fsync': True, 'directory_fsync': True, 'same_directory_replace': True, 'cross_directory_replace': True, 'publication_replace': True, 'hard_link': True, 'durable_unlink': True, 'advisory_lock_exclusion': True, 'advisory_lock_release': True}
+[Master] 0 generated, 0 interesting, 0 analyzed, 0 busy (0 tc/s)
+[Master] Wall-clock timeout (3s) reached. Shutting down.
+[Master 0] Worker shutdown: acked=3/3 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+[Master 1] Worker shutdown: acked=2/2 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+[Master 1] Lease heartbeat group commit: batches=1 renewals=1 directory_syncs=1 directory_syncs_avoided=0 failures=0
+
+[Master] === Final Statistics ===
+[Master] Total analysis observations:       0
+[Master] Total test cases generated:  0
+[Master] New interesting test cases:  1
+[Master] Throughput:                  0.0 tc/s
+[Master] Masters used:               2
+[Master] Workers used:               5
+[Master] Analysis by master:         0=0, 1=0
+=== F338 result ===
+{
+  "actual_mpi_transport": true,
+  "actual_multi_host": false,
+  "all_checks_passed": true,
+  "checks": {
+    "all_workers_ack": true,
+    "content_addressed_seed_is_intact": true,
+    "current_epoch_is_retired_normally": true,
+    "lexical_top_k_is_reclaimed": true,
+    "multi_master_frontend_exercised": true,
+    "production_gc_summary_is_exact": true,
+    "real_mpi_run_succeeds": true,
+    "retired_root_conservation_holds": true,
+    "retirement_primitive_is_qualified": true,
+    "run_is_bounded": true,
+    "streaming_scan_telemetry_is_exact": true,
+    "unselected_fixture_roots_are_retained": true
+  },
+  "command": [
+    "mpirun",
+    "--oversubscribe",
+    "-np",
+    "7",
+    "python3",
+    "/home/ubuntu/code/symcc/util/mpi_concolic_execution.py",
+    "-i",
+    "/tmp/symcc-f338-streaming-mpi-l5dy0bv3/input",
+    "-o",
+    "/tmp/symcc-f338-streaming-mpi-l5dy0bv3/output",
+    "-t",
+    "1",
+    "--max-idle",
+    "1",
+    "--wall-timeout",
+    "3",
+    "--workers-per-master",
+    "3",
+    "--simulate",
+    "--",
+    "/bin/true"
+  ],
+  "configuration": {
+    "fixture_candidate_count": 17,
+    "masters": 2,
+    "ranks": 7,
+    "retired_gc_entry_budget": 32,
+    "retired_gc_root_limit": 4,
+    "retired_gc_time_budget_seconds": 1.0,
+    "work_epoch": "f338f338f338f338f338f338f338f338f338f338f338f338f338f338f338f338",
+    "workers": 5
+  },
+  "corpus_seed_digest": "c792c6aeabaeeca09fecce9a6ac6edf4438451cbb9fafdeaac1bc08106b8f76b",
+  "corpus_seed_intact": true,
+  "deployment_evidence": false,
+  "elapsed": 3.7090240519028157,
+  "expected_reclaimed_roots": [
+    ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000000-00000000000000000000000000000000",
+    ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000001-00000000000000000000000000000001",
+    ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000002-00000000000000000000000000000002",
+    ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000003-00000000000000000000000000000003"
+  ],
+  "new_epoch_roots": [
+    ".retired-standalone-work-f338f338f338f338f338f338f338f338f338f338f338f338f338f338f338f338-6a75e45753f6a987e4871417141b2d80"
+  ],
+  "proof_boundary": "One real Open MPI run on one physical host and local overlayfs proves production scan telemetry, deterministic lexical top-k selection, exact worker ACKs, and normal retirement. It does not prove bounded full-scan latency, multi-host shared-storage behavior, DSE throughput, solver, coverage, bug-discovery, or LAVA-M uplift.",
+  "retained_fixture_roots": [
+    ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000004-00000000000000000000000000000004",
+    ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000005-00000000000000000000000000000005",
+    ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000006-00000000000000000000000000000006",
+    ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000007-00000000000000000000000000000007",
+    ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000008-00000000000000000000000000000008",
+    ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000009-00000000000000000000000000000009",
+    ".retired-standalone-work-000000000000000000000000000000000000000000000000000000000000000a-0000000000000000000000000000000a",
+    ".retired-standalone-work-000000000000000000000000000000000000000000000000000000000000000b-0000000000000000000000000000000b",
+    ".retired-standalone-work-000000000000000000000000000000000000000000000000000000000000000c-0000000000000000000000000000000c",
+    ".retired-standalone-work-000000000000000000000000000000000000000000000000000000000000000d-0000000000000000000000000000000d",
+    ".retired-standalone-work-000000000000000000000000000000000000000000000000000000000000000e-0000000000000000000000000000000e",
+    ".retired-standalone-work-000000000000000000000000000000000000000000000000000000000000000f-0000000000000000000000000000000f",
+    ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000010-00000000000000000000000000000010"
+  ],
+  "retired_roots_after_run": [
+    ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000004-00000000000000000000000000000004",
+    ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000005-00000000000000000000000000000005",
+    ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000006-00000000000000000000000000000006",
+    ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000007-00000000000000000000000000000007",
+    ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000008-00000000000000000000000000000008",
+    ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000009-00000000000000000000000000000009",
+    ".retired-standalone-work-000000000000000000000000000000000000000000000000000000000000000a-0000000000000000000000000000000a",
+    ".retired-standalone-work-000000000000000000000000000000000000000000000000000000000000000b-0000000000000000000000000000000b",
+    ".retired-standalone-work-000000000000000000000000000000000000000000000000000000000000000c-0000000000000000000000000000000c",
+    ".retired-standalone-work-000000000000000000000000000000000000000000000000000000000000000d-0000000000000000000000000000000d",
+    ".retired-standalone-work-000000000000000000000000000000000000000000000000000000000000000e-0000000000000000000000000000000e",
+    ".retired-standalone-work-000000000000000000000000000000000000000000000000000000000000000f-0000000000000000000000000000000f",
+    ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000010-00000000000000000000000000000010",
+    ".retired-standalone-work-f338f338f338f338f338f338f338f338f338f338f338f338f338f338f338f338-6a75e45753f6a987e4871417141b2d80"
+  ],
+  "returncode": 0,
+  "scan_observation": {
+    "candidate_roots": 17,
+    "scanned_entries": 19,
+    "selected_roots": 4
+  },
+  "schema": "symcc-f338-streaming-retired-discovery-mpi-v1",
+  "synthetic_topology": false
+}

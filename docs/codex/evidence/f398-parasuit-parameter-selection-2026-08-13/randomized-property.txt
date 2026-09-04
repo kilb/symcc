@@ -1,0 +1,7 @@
+schema=symcc-f398-randomized-parameter-policy-property-v1
+seed=398
+bounded_random_analyses=1000/1000
+stable_minhash_feature_sets=1000/1000
+history_bound=256
+feature_bound=128
+status=PASS

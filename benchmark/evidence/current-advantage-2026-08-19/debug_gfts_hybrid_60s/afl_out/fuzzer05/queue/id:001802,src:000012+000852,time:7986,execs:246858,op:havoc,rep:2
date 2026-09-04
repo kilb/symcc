@@ -1,0 +1,2 @@
+<?xml version="1.0"?><!DOCTYPE d [<!ENTITY a "alpha"><!ENTITY b<!ENTITY a "alpha"><!ENTITY b >&a;&b;="2" z="3">&a;&b;</r>
+</r>

@@ -1,0 +1,3 @@
+(foR|bad)*
+(foo+[a-z]++$
+|bad)*

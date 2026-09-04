@@ -1,0 +1,14 @@
+# environment variables:
+AFL_AUTORESUME=1
+AFL_CUSTOM_INFO_PROGRAM=/home/ubuntu/code/symcc/benchmark/public/bin/pcre2-afl/pcre2_fuzzer
+AFL_CUSTOM_INFO_PROGRAM_ARGV=
+AFL_CUSTOM_INFO_OUT=/home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/debug_pcre2_hybrid_err_45s/afl_out/fuzzer01
+AFL_FINAL_SYNC=1
+AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1
+AFL_NO_UI=1
+AFL_PRELOAD=/home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/debug_pcre2_hybrid_err_45s/libafl_data_coverage_rt.so
+AFL_PYTHON_MODULE=util.afl_symcc_hint_mutator
+AFL_SKIP_CPUFREQ=1
+AFL_SYNC_TIME=1
+# command line:
+'afl-fuzz' '-M' 'fuzzer01' '-i' '/home/ubuntu/code/symcc/benchmark/public/seeds/pcre2/pcre2_fuzzer' '-o' '/home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/debug_pcre2_hybrid_err_45s/afl_out' '-m' 'none' '-c' '/home/ubuntu/code/symcc/benchmark/public/bin/pcre2-cmplog/pcre2_fuzzer' '-l' '2AT' '--' '/home/ubuntu/code/symcc/benchmark/public/bin/pcre2-afl/pcre2_fuzzer'

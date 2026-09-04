@@ -1,0 +1,26 @@
+F381 pre-I/O persistent portfolio cancellation - verification record
+Date: 2026-08-12 UTC
+
+Deterministic pre-I/O regression:
+  PASS; queued registration cancelled before I/O admission and cold recovery
+
+Repeated race regression:
+  PASS; 20/20 independent pytest processes
+
+Related QF_BV + QueryStore regression:
+  PASS; 38 passed, 22 subtests passed, warnings treated as errors
+
+Static checks:
+  PASS; Ruff, py_compile, and diff whitespace
+
+Complete LLVM lit and Python gate:
+  PASS; lit 238 passed, 1 unsupported, 0 failed, 239 discovered, 204.20 s
+  PASS; Python 877 passed, 229 subtests passed, 124.95 s
+  skipped=0; xfailed=0; xpassed=0; deselected=0
+  missing-nodeids=0; unexpected-nodeids=0
+  canonical nodeid SHA-256:
+    ef27c16fd28cffddc6b13658eb8e6f578a91257886ed1f4021de95bc56b343c4
+
+Claim boundary:
+  Local cancellation reachability and resource lifecycle only; no throughput,
+  coverage, solve-rate, campaign, or vulnerability-discovery claim.

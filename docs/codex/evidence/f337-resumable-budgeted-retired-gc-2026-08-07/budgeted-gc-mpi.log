@@ -1,0 +1,204 @@
+=== MPI run 1 ===
+SymCC MPI Parallel Concolic Execution
+  Processes:     7
+  Mode:          multi-master (2 masters, auto-scaled at 3 workers/master)
+    Master 0: 3 workers
+    Master 1: 2 workers
+  Shared dir:    /tmp/symcc-f337-budgeted-gc-rafyq3tl/output
+  Input dir:     /tmp/symcc-f337-budgeted-gc-rafyq3tl/input
+  Target:        /bin/true
+  Timeout:       1s per execution
+  Work epoch:    f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337 (configured recovery)
+  Retired GC:    0 root(s) reclaimed, 2 entry(s) removed, stop=entry-budget
+  Retired budget: roots=1, entries=2, time=1s
+  Retired partial: .retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000000-77777777777777777777777777777777
+  Retirement:    renameat2(RENAME_NOREPLACE) qualified
+  Wall timeout:  3s total
+
+[Master] Imported 1 initial inputs from /tmp/symcc-f337-budgeted-gc-rafyq3tl/input
+[Master] Using 2 master(s), 3 workers in this group
+[Master] Durable work ownership: rendezvous + 64 fenced shards, lease=6s
+[Master] Shared filesystem capabilities: {'schema': 'symcc-shared-filesystem-capabilities-v1', 'root': '/tmp/symcc-f337-budgeted-gc-rafyq3tl/output/.standalone-work-f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337', 'publication_root': '/tmp/symcc-f337-budgeted-gc-rafyq3tl/output', 'device': 92, 'filesystem_id': 18395215968828387670, 'publication_device': 92, 'publication_filesystem_id': 18395215968828387670, 'filesystem_type': 'overlay', 'mount_point': '/', 'mount_source': 'overlay', 'distributed_filesystem': False, 'cluster_lock_verified': False, 'probe_scope': 'same-host-subprocess-v1', 'cluster_lock_members': [{'rank': 0, 'processor': 'cuda-ke'}, {'rank': 1, 'processor': 'cuda-ke'}], 'cluster_lock_representatives': [0], 'cluster_lock_rounds': 0, 'cluster_lock_contention_checks': 0, 'cluster_lock_release_checks': 0, 'file_fsync': True, 'directory_fsync': True, 'same_directory_replace': True, 'cross_directory_replace': True, 'publication_replace': True, 'hard_link': True, 'durable_unlink': True, 'advisory_lock_exclusion': True, 'advisory_lock_release': True}
+[Master] 0 generated, 0 interesting, 0 analyzed, 0 busy (0 tc/s)
+[Master] Wall-clock timeout (3s) reached. Shutting down.
+[Master 0] Worker shutdown: acked=3/3 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+[Master 1] Worker shutdown: acked=2/2 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+[Master 1] Lease heartbeat group commit: batches=1 renewals=1 directory_syncs=1 directory_syncs_avoided=0 failures=0
+
+[Master] === Final Statistics ===
+[Master] Total analysis observations:       0
+[Master] Total test cases generated:  0
+[Master] New interesting test cases:  1
+[Master] Throughput:                  0.0 tc/s
+[Master] Masters used:               2
+[Master] Workers used:               5
+[Master] Analysis by master:         0=0, 1=0
+=== MPI run 2 ===
+SymCC MPI Parallel Concolic Execution
+  Processes:     7
+  Mode:          multi-master (2 masters, auto-scaled at 3 workers/master)
+    Master 0: 3 workers
+    Master 1: 2 workers
+  Shared dir:    /tmp/symcc-f337-budgeted-gc-rafyq3tl/output
+  Input dir:     /tmp/symcc-f337-budgeted-gc-rafyq3tl/input
+  Target:        /bin/true
+  Timeout:       1s per execution
+  Work epoch:    f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337 (configured recovery)
+  Retired GC:    0 root(s) reclaimed, 2 entry(s) removed, stop=entry-budget
+  Retired budget: roots=1, entries=2, time=1s
+  Retired partial: .retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000000-77777777777777777777777777777777
+  Retirement:    renameat2(RENAME_NOREPLACE) qualified
+  Wall timeout:  3s total
+
+[Master] Imported 1 initial inputs from /tmp/symcc-f337-budgeted-gc-rafyq3tl/input
+[Master] Using 2 master(s), 3 workers in this group
+[Master] Durable work ownership: rendezvous + 64 fenced shards, lease=6s
+[Master] Shared filesystem capabilities: {'schema': 'symcc-shared-filesystem-capabilities-v1', 'root': '/tmp/symcc-f337-budgeted-gc-rafyq3tl/output/.standalone-work-f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337', 'publication_root': '/tmp/symcc-f337-budgeted-gc-rafyq3tl/output', 'device': 92, 'filesystem_id': 18395215968828387670, 'publication_device': 92, 'publication_filesystem_id': 18395215968828387670, 'filesystem_type': 'overlay', 'mount_point': '/', 'mount_source': 'overlay', 'distributed_filesystem': False, 'cluster_lock_verified': False, 'probe_scope': 'same-host-subprocess-v1', 'cluster_lock_members': [{'rank': 0, 'processor': 'cuda-ke'}, {'rank': 1, 'processor': 'cuda-ke'}], 'cluster_lock_representatives': [0], 'cluster_lock_rounds': 0, 'cluster_lock_contention_checks': 0, 'cluster_lock_release_checks': 0, 'file_fsync': True, 'directory_fsync': True, 'same_directory_replace': True, 'cross_directory_replace': True, 'publication_replace': True, 'hard_link': True, 'durable_unlink': True, 'advisory_lock_exclusion': True, 'advisory_lock_release': True}
+[Master] 0 generated, 0 interesting, 0 analyzed, 0 busy (0 tc/s)
+[Master] Wall-clock timeout (3s) reached. Shutting down.
+[Master 0] Worker shutdown: acked=3/3 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+[Master 1] Worker shutdown: acked=2/2 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+[Master 1] Lease heartbeat group commit: batches=1 renewals=1 directory_syncs=1 directory_syncs_avoided=0 failures=0
+
+[Master] === Final Statistics ===
+[Master] Total analysis observations:       0
+[Master] Total test cases generated:  0
+[Master] New interesting test cases:  1
+[Master] Throughput:                  0.0 tc/s
+[Master] Masters used:               2
+[Master] Workers used:               5
+[Master] Analysis by master:         0=0, 1=0
+=== MPI run 3 ===
+SymCC MPI Parallel Concolic Execution
+  Processes:     7
+  Mode:          multi-master (2 masters, auto-scaled at 3 workers/master)
+    Master 0: 3 workers
+    Master 1: 2 workers
+  Shared dir:    /tmp/symcc-f337-budgeted-gc-rafyq3tl/output
+  Input dir:     /tmp/symcc-f337-budgeted-gc-rafyq3tl/input
+  Target:        /bin/true
+  Timeout:       1s per execution
+  Work epoch:    f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337 (configured recovery)
+  Retired GC:    1 root(s) reclaimed, 2 entry(s) removed, stop=root-limit
+  Retired budget: roots=1, entries=2, time=1s
+  Retirement:    renameat2(RENAME_NOREPLACE) qualified
+  Wall timeout:  3s total
+
+[Master] Imported 1 initial inputs from /tmp/symcc-f337-budgeted-gc-rafyq3tl/input
+[Master] Using 2 master(s), 3 workers in this group
+[Master] Durable work ownership: rendezvous + 64 fenced shards, lease=6s
+[Master] Shared filesystem capabilities: {'schema': 'symcc-shared-filesystem-capabilities-v1', 'root': '/tmp/symcc-f337-budgeted-gc-rafyq3tl/output/.standalone-work-f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337', 'publication_root': '/tmp/symcc-f337-budgeted-gc-rafyq3tl/output', 'device': 92, 'filesystem_id': 18395215968828387670, 'publication_device': 92, 'publication_filesystem_id': 18395215968828387670, 'filesystem_type': 'overlay', 'mount_point': '/', 'mount_source': 'overlay', 'distributed_filesystem': False, 'cluster_lock_verified': False, 'probe_scope': 'same-host-subprocess-v1', 'cluster_lock_members': [{'rank': 0, 'processor': 'cuda-ke'}, {'rank': 1, 'processor': 'cuda-ke'}], 'cluster_lock_representatives': [0], 'cluster_lock_rounds': 0, 'cluster_lock_contention_checks': 0, 'cluster_lock_release_checks': 0, 'file_fsync': True, 'directory_fsync': True, 'same_directory_replace': True, 'cross_directory_replace': True, 'publication_replace': True, 'hard_link': True, 'durable_unlink': True, 'advisory_lock_exclusion': True, 'advisory_lock_release': True}
+[Master] 0 generated, 0 interesting, 0 analyzed, 0 busy (0 tc/s)
+[Master] Wall-clock timeout (3s) reached. Shutting down.
+[Master 0] Worker shutdown: acked=3/3 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+[Master 1] Worker shutdown: acked=2/2 pending=[] drained_results=0 result_errors=[] quarantined={} communication_errors=[] elapsed=0.010s
+[Master 1] Lease heartbeat group commit: batches=1 renewals=1 directory_syncs=1 directory_syncs_avoided=0 failures=0
+
+[Master] === Final Statistics ===
+[Master] Total analysis observations:       0
+[Master] Total test cases generated:  0
+[Master] New interesting test cases:  1
+[Master] Throughput:                  0.0 tc/s
+[Master] Masters used:               2
+[Master] Workers used:               5
+[Master] Analysis by master:         0=0, 1=0
+=== F337 result ===
+{
+  "actual_mpi_transport": true,
+  "actual_multi_host": false,
+  "all_checks_passed": true,
+  "checks": {
+    "all_runs_are_bounded": true,
+    "all_three_real_mpi_runs_succeed": true,
+    "all_workers_ack_on_every_run": true,
+    "content_addressed_seed_remains_intact": true,
+    "each_successful_run_retires_its_own_epoch": true,
+    "first_two_runs_make_exact_bounded_partial_progress": true,
+    "real_multi_master_frontend_exercised": true,
+    "retirement_primitive_qualified_every_time": true,
+    "third_run_durably_completes_old_root": true
+  },
+  "command": [
+    "mpirun",
+    "--oversubscribe",
+    "-np",
+    "7",
+    "python3",
+    "/home/ubuntu/code/symcc/util/mpi_concolic_execution.py",
+    "-i",
+    "/tmp/symcc-f337-budgeted-gc-rafyq3tl/input",
+    "-o",
+    "/tmp/symcc-f337-budgeted-gc-rafyq3tl/output",
+    "-t",
+    "1",
+    "--max-idle",
+    "1",
+    "--wall-timeout",
+    "3",
+    "--workers-per-master",
+    "3",
+    "--simulate",
+    "--",
+    "/bin/true"
+  ],
+  "configuration": {
+    "masters": 2,
+    "old_epoch": "0000000000000000000000000000000000000000000000000000000000000000",
+    "old_retirement_id": "77777777777777777777777777777777",
+    "old_tree_files": 5,
+    "ranks": 7,
+    "retired_gc_entry_budget": 2,
+    "retired_gc_root_limit": 1,
+    "retired_gc_time_budget_seconds": 1.0,
+    "work_epoch": "f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337",
+    "workers": 5
+  },
+  "corpus_seed_digest": "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd",
+  "corpus_seed_intact": true,
+  "deployment_evidence": false,
+  "proof_boundary": "Three real Open MPI runs on one physical host and local overlayfs prove exact two-entry startup progress, partial-tree retention, cross-restart convergence, worker ACKs, and normal epoch retirement. They do not prove a hard wall-clock bound around blocking syscalls, remote-filesystem crash persistence, multi-host failover, DSE throughput, coverage, solver, or LAVA-M uplift.",
+  "runs": [
+    {
+      "elapsed": 3.7485774129163474,
+      "returncode": 0
+    },
+    {
+      "elapsed": 3.7317223970312625,
+      "returncode": 0
+    },
+    {
+      "elapsed": 3.7034892509691417,
+      "returncode": 0
+    }
+  ],
+  "schema": "symcc-f337-resumable-budgeted-retired-gc-mpi-v1",
+  "state_observations": [
+    {
+      "old_file_count": 3,
+      "old_root_exists": true,
+      "retired_roots": [
+        ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000000-77777777777777777777777777777777",
+        ".retired-standalone-work-f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337-0e927c4ba66435f313493d477aca88de"
+      ]
+    },
+    {
+      "old_file_count": 1,
+      "old_root_exists": true,
+      "retired_roots": [
+        ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000000-77777777777777777777777777777777",
+        ".retired-standalone-work-f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337-0e927c4ba66435f313493d477aca88de",
+        ".retired-standalone-work-f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337-27b53c238a1dc3ec17dd1856e87cbf9d"
+      ]
+    },
+    {
+      "old_file_count": 0,
+      "old_root_exists": false,
+      "retired_roots": [
+        ".retired-standalone-work-f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337-0e927c4ba66435f313493d477aca88de",
+        ".retired-standalone-work-f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337-27b53c238a1dc3ec17dd1856e87cbf9d",
+        ".retired-standalone-work-f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337-64cf63f079b3d4c25e6da53e5ac06481"
+      ]
+    }
+  ],
+  "synthetic_topology": false
+}

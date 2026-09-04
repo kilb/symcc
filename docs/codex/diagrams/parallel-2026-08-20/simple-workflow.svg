@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="650" viewBox="0 0 1280 650" role="img" aria-label="并行符号执行工作流图">
+  <defs>
+    <style>
+      .bg { fill: #f6f8fb; }
+      .title { font: 800 28px -apple-system,BlinkMacSystemFont,"Noto Sans SC","Microsoft YaHei",Arial,sans-serif; fill: #17202a; }
+      .subtitle { font: 500 15px -apple-system,BlinkMacSystemFont,"Noto Sans SC","Microsoft YaHei",Arial,sans-serif; fill: #5d6b7a; }
+      .lane { fill: #ffffff; stroke: #d9e1ec; stroke-width: 2; }
+      .lane-title { font: 800 18px -apple-system,BlinkMacSystemFont,"Noto Sans SC","Microsoft YaHei",Arial,sans-serif; fill: #17202a; }
+      .card { fill: #fbfdff; stroke: #c8d3e1; stroke-width: 2; }
+      .card-strong { fill: #eef5ff; stroke: #1f6feb; stroke-width: 2.5; }
+      .text { font: 800 17px -apple-system,BlinkMacSystemFont,"Noto Sans SC","Microsoft YaHei",Arial,sans-serif; fill: #17202a; }
+      .small { font: 500 13px -apple-system,BlinkMacSystemFont,"Noto Sans SC","Microsoft YaHei",Arial,sans-serif; fill: #5d6b7a; }
+      .num { fill: #1f6feb; }
+      .numtext { font: 800 14px -apple-system,BlinkMacSystemFont,"Noto Sans SC","Microsoft YaHei",Arial,sans-serif; fill: #ffffff; }
+      .main-flow { stroke: #1f6feb; stroke-width: 3.2; fill: none; marker-end: url(#arrowBlue); }
+      .feedback-flow { stroke: #168a58; stroke-width: 3; fill: none; stroke-dasharray: 8 7; marker-end: url(#arrowGreen); }
+      .evidence-flow { stroke: #7257c8; stroke-width: 2.6; fill: none; stroke-dasharray: 4 6; marker-end: url(#arrowViolet); }
+      .labelbox { fill: #ffffff; stroke: #d9e1ec; stroke-width: 1.5; }
+      .legend { font: 700 13px -apple-system,BlinkMacSystemFont,"Noto Sans SC","Microsoft YaHei",Arial,sans-serif; fill: #29415a; }
+    </style>
+    <marker id="arrowBlue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#1f6feb"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#168a58"/>
+    </marker>
+    <marker id="arrowViolet" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#7257c8"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1280" height="650"/>
+  <text class="title" x="48" y="54">AFL 与符号执行的双向反馈工作流</text>
+  <text class="subtitle" x="48" y="82">AFL 不只是接收 SymCC 产生的新输入，也把 queue、edge bitmap、data map 和覆盖停滞信号反馈给 Master 调度器。</text>
+
+  <rect class="lane" x="48" y="122" width="302" height="382" rx="14"/>
+  <text class="lane-title" x="78" y="158">AFL++</text>
+  <rect class="card-strong" x="78" y="188" width="242" height="70" rx="10"/>
+  <circle class="num" cx="104" cy="215" r="15"/><text class="numtext" x="100" y="220">1</text>
+  <text class="text" x="130" y="214">变异并执行</text>
+  <text class="small" x="130" y="238">产生高吞吐输入流</text>
+  <rect class="card" x="78" y="288" width="242" height="78" rx="10"/>
+  <circle class="num" cx="104" cy="318" r="15"/><text class="numtext" x="100" y="323">2</text>
+  <text class="text" x="130" y="315">更新 queue 与 bitmap</text>
+  <text class="small" x="130" y="340">edge 覆盖、data coverage、停滞窗口</text>
+  <rect class="card" x="78" y="400" width="242" height="66" rx="10"/>
+  <circle class="num" cx="104" cy="427" r="15"/><text class="numtext" x="100" y="432">7</text>
+  <text class="text" x="130" y="426">接收有效语料</text>
+  <text class="small" x="130" y="450">AFL sync 后继续变异</text>
+
+  <rect class="lane" x="402" y="122" width="392" height="382" rx="14"/>
+  <text class="lane-title" x="432" y="158">MPI Master</text>
+  <rect class="card-strong" x="432" y="188" width="300" height="78" rx="10"/>
+  <circle class="num" cx="458" cy="218" r="15"/><text class="numtext" x="454" y="223">3</text>
+  <text class="text" x="484" y="215">读取 AFL 反馈并生成任务</text>
+  <text class="small" x="484" y="240">输入哈希去重、目标分支、Prefix-DAG、收益评分</text>
+  <rect class="card" x="432" y="306" width="300" height="70" rx="10"/>
+  <circle class="num" cx="458" cy="334" r="15"/><text class="numtext" x="454" y="339">4</text>
+  <text class="text" x="484" y="332">派发 WORK</text>
+  <text class="small" x="484" y="356">worker READY 后下发任务和策略参数</text>
+  <rect class="card-strong" x="432" y="410" width="300" height="66" rx="10"/>
+  <circle class="num" cx="458" cy="437" r="15"/><text class="numtext" x="454" y="442">6</text>
+  <text class="text" x="484" y="436">覆盖准入与结果归因</text>
+  <text class="small" x="484" y="460">用 AFL edge bitmap 判定是否写回 AFL</text>
+
+  <rect class="lane" x="846" y="122" width="386" height="382" rx="14"/>
+  <text class="lane-title" x="876" y="158">SymCC Worker Pool</text>
+  <rect class="card" x="884" y="230" width="300" height="92" rx="10"/>
+  <circle class="num" cx="912" cy="262" r="15"/><text class="numtext" x="908" y="267">5</text>
+  <text class="text" x="938" y="260">并行符号执行与求解</text>
+  <text class="small" x="938" y="286">收集约束，选择快速求解或 Z3</text>
+  <text class="small" x="938" y="306">返回候选输入、耗时、profile</text>
+  <rect class="card" x="884" y="362" width="300" height="70" rx="10"/>
+  <text class="text" x="910" y="392">本地辅助过滤</text>
+  <text class="small" x="910" y="416">solver bitmap 只用于减少重复求解</text>
+
+  <path class="main-flow" d="M320 327 L432 227"/>
+  <path class="main-flow" d="M732 341 L884 276"/>
+  <path class="main-flow" d="M884 306 C815 392 770 433 732 443"/>
+  <path class="main-flow" d="M432 443 C352 474 288 471 320 433"/>
+  <path class="main-flow" d="M199 400 L199 366"/>
+
+  <path class="feedback-flow" d="M320 327 C382 325 390 233 432 227"/>
+  <path class="feedback-flow" d="M320 327 C482 545 720 545 884 397"/>
+  <rect class="labelbox" x="460" y="525" width="360" height="54" rx="8"/>
+  <text class="legend" x="482" y="548">AFL -> SymCC 反馈</text>
+  <text class="small" x="482" y="568">覆盖趋势、data map、hot bytes、停滞输入会影响下一轮任务优先级。</text>
+
+  <path class="evidence-flow" d="M582 476 C620 558 760 605 930 592"/>
+  <path class="evidence-flow" d="M1034 432 C1034 520 1000 570 930 592"/>
+  <rect class="labelbox" x="870" y="558" width="310" height="48" rx="8"/>
+  <text class="legend" x="892" y="580">Evidence</text>
+  <text class="small" x="970" y="580">profile / CSV / JSON 只用于复盘和汇报。</text>
+
+  <rect class="labelbox" x="920" y="48" width="306" height="52" rx="8"/>
+  <path class="main-flow" d="M940 68 L994 68"/>
+  <text class="small" x="1006" y="72">主执行与语料回流</text>
+  <path class="feedback-flow" d="M940 88 L994 88"/>
+  <text class="small" x="1006" y="92">AFL 到调度器的反馈</text>
+</svg>

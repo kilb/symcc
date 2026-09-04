@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1400" viewBox="0 0 1900 1400" role="img" aria-labelledby="title desc">
+  <title id="title">F342 public corpus provenance intersection</title>
+  <desc id="desc">Observed external hashes are intersected with canonical public corpus objects before generated objects are counted. A real MPI delayed-owner timeline demonstrates a phantom external observation.</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#1f2937" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#52606d"/>
+    </marker>
+    <style>
+      .sans { font-family: Inter, "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif; letter-spacing: 0; }
+      .title { font-size: 48px; font-weight: 750; fill: #ffffff; }
+      .subtitle { font-size: 23px; fill: #d8e3ea; }
+      .section { font-size: 27px; font-weight: 750; fill: #17212b; }
+      .label { font-size: 23px; font-weight: 700; fill: #17212b; }
+      .body { font-size: 20px; fill: #34414d; }
+      .small { font-size: 17px; fill: #53616d; }
+      .light-small { font-size: 17px; fill: #d8e3ea; }
+      .light-label { font-size: 23px; font-weight: 700; fill: #ffffff; }
+      .mono { font-family: "SFMono-Regular", Consolas, monospace; font-size: 19px; letter-spacing: 0; }
+      .card { fill: #ffffff; stroke: #ccd5dc; stroke-width: 2; rx: 8; filter: url(#shadow); }
+    </style>
+  </defs>
+
+  <rect width="1900" height="1400" fill="#f5f7f9"/>
+  <rect x="0" y="0" width="1900" height="230" fill="#172733"/>
+  <rect x="72" y="54" width="8" height="122" fill="#35a67b"/>
+  <text x="110" y="112" class="sans title">F342  公共 Corpus 来源交集</text>
+  <text x="110" y="158" class="sans subtitle">先把 provenance 投影到公共对象域，再计算新增量：G = P \ (P ∩ O)</text>
+  <rect x="1470" y="67" width="350" height="96" rx="8" fill="#203845" stroke="#52707e" stroke-width="2"/>
+  <text x="1645" y="106" text-anchor="middle" class="sans light-small">验证状态</text>
+  <text x="1645" y="141" text-anchor="middle" class="sans light-label">7 ranks · 10/10 checks</text>
+
+  <text x="80" y="278" class="sans section">同一统计问题中的三个集合</text>
+
+  <rect x="80" y="310" width="500" height="390" class="card"/>
+  <rect x="80" y="310" width="500" height="67" rx="8" fill="#eef3f5"/>
+  <text x="115" y="354" class="sans label">O · observed external</text>
+  <text x="115" y="407" class="sans body">阶段 A 稳定摘要的历史观察</text>
+  <rect x="115" y="443" width="430" height="82" rx="7" fill="#e4f4ec" stroke="#35a67b" stroke-width="2"/>
+  <circle cx="148" cy="484" r="14" fill="#35a67b"/>
+  <text x="178" y="480" class="sans mono" fill="#18684d">h_present</text>
+  <text x="178" y="507" class="sans small">已由 owner 发布的 external</text>
+  <rect x="115" y="547" width="430" height="106" rx="7" fill="#fff0ec" stroke="#d4664f" stroke-width="2"/>
+  <circle cx="148" cy="590" r="14" fill="#d4664f"/>
+  <text x="178" y="585" class="sans mono" fill="#9b3e2d">h_phantom</text>
+  <text x="178" y="614" class="sans small">源在阶段 B 前消失，从未发布</text>
+  <text x="500" y="620" text-anchor="end" class="sans label" fill="#b84a35">O \ P</text>
+
+  <path d="M600 505 L680 505" stroke="#52606d" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="700" y="310" width="500" height="390" class="card"/>
+  <rect x="700" y="310" width="500" height="67" rx="8" fill="#edf3fa"/>
+  <text x="735" y="354" class="sans label">P · canonical public corpus</text>
+  <text x="735" y="407" class="sans body">关闭时真实存在的 no-follow regular 对象</text>
+  <rect x="735" y="443" width="430" height="82" rx="7" fill="#e4f4ec" stroke="#35a67b" stroke-width="2"/>
+  <circle cx="768" cy="484" r="14" fill="#35a67b"/>
+  <text x="798" y="480" class="sans mono" fill="#18684d">h_present</text>
+  <text x="798" y="507" class="sans small">真实 external public object</text>
+  <rect x="735" y="547" width="430" height="82" rx="7" fill="#e8f0fb" stroke="#477db3" stroke-width="2"/>
+  <circle cx="768" cy="588" r="14" fill="#477db3"/>
+  <text x="798" y="584" class="sans mono" fill="#275b8e">g_generated</text>
+  <text x="798" y="611" class="sans small">由执行产生的 public object</text>
+  <text x="735" y="670" class="sans small">metadata、目录、symlink 与非规范名称均排除</text>
+
+  <path d="M1220 505 L1300 505" stroke="#52606d" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="1320" y="310" width="500" height="390" class="card"/>
+  <rect x="1320" y="310" width="500" height="67" rx="8" fill="#eef7f2"/>
+  <text x="1355" y="354" class="sans label">E = P ∩ O · present external</text>
+  <text x="1355" y="407" class="sans body">只有处于同一 public 域的来源才可扣除</text>
+  <rect x="1355" y="443" width="430" height="82" rx="7" fill="#e4f4ec" stroke="#35a67b" stroke-width="3"/>
+  <circle cx="1388" cy="484" r="14" fill="#35a67b"/>
+  <text x="1418" y="480" class="sans mono" fill="#18684d">h_present</text>
+  <text x="1418" y="507" class="sans small">计入 External input objects</text>
+  <rect x="1355" y="547" width="430" height="82" rx="7" fill="#e8f0fb" stroke="#477db3" stroke-width="3"/>
+  <circle cx="1388" cy="588" r="14" fill="#477db3"/>
+  <text x="1418" y="584" class="sans mono" fill="#275b8e">g_generated</text>
+  <text x="1418" y="611" class="sans small">保留为 New interesting</text>
+  <text x="1355" y="670" class="sans small">h_phantom 不在 P 中，因此不会抵消 g_generated</text>
+
+  <rect x="80" y="750" width="1740" height="218" class="card"/>
+  <text x="115" y="800" class="sans section">公式修正与 4096 对象对照</text>
+  <rect x="115" y="830" width="760" height="95" rx="7" fill="#fff0ec" stroke="#d4664f" stroke-width="2"/>
+  <text x="145" y="868" class="sans label" fill="#9b3e2d">F341 反事实 · 域不一致</text>
+  <text x="145" y="903" class="sans mono" fill="#9b3e2d">max(0, |P| - |O|) = 4096 - 4096 = 0  ✕</text>
+  <rect x="925" y="830" width="860" height="95" rx="7" fill="#e4f4ec" stroke="#35a67b" stroke-width="2"/>
+  <text x="955" y="868" class="sans label" fill="#18684d">F342 · 同域交集</text>
+  <text x="955" y="903" class="sans mono" fill="#18684d">|P| - |P ∩ O| = 4096 - 2048 = 2048  ✓</text>
+
+  <text x="80" y="1032" class="sans section">真实 MPI 确定性反例时间线</text>
+  <line x1="168" y1="1130" x2="1732" y2="1130" stroke="#9aa7b2" stroke-width="5" marker-end="url(#arrow)"/>
+
+  <circle cx="185" cy="1130" r="25" fill="#477db3"/>
+  <text x="185" y="1084" text-anchor="middle" class="sans label">rank 0</text>
+  <text x="185" y="1182" text-anchor="middle" class="sans body">观察 h_phantom</text>
+  <text x="185" y="1212" text-anchor="middle" class="sans small">O 加入摘要</text>
+
+  <circle cx="545" cy="1130" r="25" fill="#d4664f"/>
+  <text x="545" y="1084" text-anchor="middle" class="sans label">证据驱动</text>
+  <text x="545" y="1182" text-anchor="middle" class="sans body">删除 external 源</text>
+  <text x="545" y="1212" text-anchor="middle" class="sans small">owner 尚未服务</text>
+
+  <circle cx="905" cy="1130" r="25" fill="#d79a33"/>
+  <text x="905" y="1084" text-anchor="middle" class="sans label">rank 1 · owner</text>
+  <text x="905" y="1182" text-anchor="middle" class="sans body">延迟 6 s 后扫描</text>
+  <text x="905" y="1212" text-anchor="middle" class="sans small">h_phantom 不发布</text>
+
+  <circle cx="1265" cy="1130" r="25" fill="#477db3"/>
+  <text x="1265" y="1084" text-anchor="middle" class="sans label">worker</text>
+  <text x="1265" y="1182" text-anchor="middle" class="sans body">执行 g_generated</text>
+  <text x="1265" y="1212" text-anchor="middle" class="sans small">精确一次 · 5/5 ACK</text>
+
+  <circle cx="1625" cy="1130" r="25" fill="#35a67b"/>
+  <text x="1625" y="1084" text-anchor="middle" class="sans label">final scan</text>
+  <text x="1625" y="1182" text-anchor="middle" class="sans body">public=1 · external=0</text>
+  <text x="1625" y="1212" text-anchor="middle" class="sans small">new=1 · exit 0</text>
+
+  <rect x="80" y="1284" width="1740" height="70" rx="8" fill="#eaf0f3" stroke="#c5d0d8" stroke-width="2"/>
+  <text x="110" y="1328" class="sans body">证据边界：真实 Open MPI、单主机、显式 rank-delay、合成 observer；证明统计正确性，不代表 solver / coverage / campaign / LAVA-M 提升。</text>
+</svg>

@@ -1,0 +1,100 @@
+digraph F306 {
+  graph [
+    rankdir=TB,
+    bgcolor="white",
+    pad="0.35",
+    nodesep="0.34",
+    ranksep="0.55",
+    fontname="Noto Sans CJK SC",
+    label="F306  Interleaved, Fail-Closed Coverage Attribution",
+    labelloc="t",
+    fontsize=24,
+    fontcolor="#17212b"
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    fontname="Noto Sans CJK SC",
+    fontsize=12,
+    margin="0.16,0.11",
+    color="#9aa4ad",
+    fontcolor="#17212b",
+    fillcolor="#f8fafb",
+    penwidth=1.35
+  ];
+  edge [
+    fontname="Noto Sans CJK SC",
+    fontsize=10,
+    color="#65717c",
+    fontcolor="#49545e",
+    arrowsize=0.75,
+    penwidth=1.25
+  ];
+
+  corpus [label="Corpus + baseline seed\ncontent-addressed inputs", fillcolor="#e8f2fb", color="#3979a8"];
+
+  subgraph cluster_probe {
+    label="One-time compatibility probe";
+    color="#d8dee3";
+    style="rounded";
+    fontsize=14;
+    stream [label="AFL++ -S streaming\nstatus + sparse edge set", fillcolor="#e8f2fb", color="#3979a8"];
+    isolated [label="Isolated one-shot\nstatus + sparse edge set", fillcolor="#eef7ed", color="#4f8b4b"];
+    compare [shape=diamond, label="Same status\nand edge set?", fillcolor="#fff4dc", color="#b77a1f"];
+    reuse [label="Reuse one forkserver\nfast streaming mode", fillcolor="#eef7ed", color="#4f8b4b"];
+    fallback [label="Campaign-wide fallback\nnever mix oracle semantics", fillcolor="#fdecea", color="#b84a42"];
+    stream -> compare;
+    isolated -> compare;
+    compare -> reuse [label="yes"];
+    compare -> fallback [label="no", color="#b84a42", fontcolor="#9e332d"];
+  }
+
+  corpus -> stream;
+  corpus -> isolated;
+
+  subgraph cluster_rounds {
+    label="Blocked and interleaved replicas";
+    color="#d8dee3";
+    style="rounded";
+    fontsize=14;
+    r1 [label="Round 1\nA  B  C  ...", fillcolor="#f8fafb"];
+    wait1 [label="1 s separation", shape=plaintext, fillcolor="white"];
+    r2 [label="Round 2\nB  C  ...  A", fillcolor="#f8fafb"];
+    wait2 [label="1 s separation", shape=plaintext, fillcolor="white"];
+    r3 [label="Round 3\nC  ...  A  B", fillcolor="#f8fafb"];
+    r1 -> wait1 -> r2 -> wait2 -> r3;
+  }
+
+  reuse -> r1;
+  fallback -> r1;
+
+  per_input [label="Per-input replica sets\nE1, E2, E3", fillcolor="#e8f2fb", color="#3979a8"];
+  r3 -> per_input;
+
+  intersection [label="Stable core\nE∩ = E1 ∩ E2 ∩ E3", fillcolor="#eef7ed", color="#4f8b4b"];
+  instability [label="Instability witness\nE∪ \\ E∩", fillcolor="#fff4dc", color="#b77a1f"];
+  per_input -> intersection;
+  per_input -> instability;
+
+  strict_gate [shape=diamond, label="Strict policy?", fillcolor="#fff4dc", color="#b77a1f"];
+  intersection -> strict_gate;
+  instability -> strict_gate;
+  reject [label="Reject the report\nexit 2 + exact witness", fillcolor="#fdecea", color="#b84a42"];
+  select [label="Explicit intersection/union\nwith instability counters", fillcolor="#eef7ed", color="#4f8b4b"];
+  strict_gate -> reject [label="unstable", color="#b84a42", fontcolor="#9e332d"];
+  strict_gate -> select [label="stable / explicit policy"];
+
+  metrics [label="Single-source derived metrics\nlanding rate | novel-edge union | exclusive edges", fillcolor="#e8f2fb", color="#3979a8"];
+  evidence [label="Auditable evidence\nround order + every edge set + SHA-256 manifest", fillcolor="#eef7ed", color="#4f8b4b"];
+  select -> metrics;
+  select -> evidence;
+
+  note [
+    shape=note,
+    label="Measured F306 fixture\nstream: timeout / 933 edges\none-shot: ok / 1019 edges\n→ one campaign-wide fallback",
+    fillcolor="#fffaf0",
+    color="#b77a1f",
+    fontsize=11
+  ];
+  compare -> note [style=dashed, arrowhead=none, color="#b77a1f"];
+}

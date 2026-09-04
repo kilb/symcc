@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080" role="img" aria-labelledby="title desc">
+  <title id="title">F356 Collective-Safe Qualification Input Observation</title>
+  <desc id="desc">The old pre-protocol exception escape, unified local observation boundary, conditional membership schema, and startup and renewal consumption paths.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#38566f"/>
+    </marker>
+    <style>
+      .bg { fill: #f7f9fb; }
+      .title { font: 700 36px Inter, Arial, sans-serif; fill: #142433; }
+      .subtitle { font: 400 18px Inter, Arial, sans-serif; fill: #40566a; }
+      .section { font: 700 23px Inter, Arial, sans-serif; fill: #142433; }
+      .label { font: 700 18px Inter, Arial, sans-serif; fill: #20384c; }
+      .body { font: 400 16px Inter, Arial, sans-serif; fill: #314b60; }
+      .small { font: 400 14px Inter, Arial, sans-serif; fill: #486176; }
+      .mono { font: 600 15px ui-monospace, SFMono-Regular, Consolas, monospace; fill: #243b50; }
+      .panel { fill: #ffffff; stroke: #cbd7e1; stroke-width: 2; }
+      .old { fill: #fff3f1; stroke: #ce6158; stroke-width: 2; }
+      .core { fill: #edf5fa; stroke: #38769d; stroke-width: 2; }
+      .good { fill: #edf8f0; stroke: #39845a; stroke-width: 2; }
+      .warn { fill: #fff8e7; stroke: #b68020; stroke-width: 2; }
+      .signal { fill: #f3eff8; stroke: #735a91; stroke-width: 2; }
+      .line { fill: none; stroke: #38566f; stroke-width: 2.5; marker-end: url(#arrow); }
+      .dash { fill: none; stroke: #a04c45; stroke-width: 2.5; stroke-dasharray: 9 7; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1600" height="1080"/>
+  <text class="title" x="70" y="66">F356 - Collective-Safe Qualification Observation</text>
+  <text class="subtitle" x="70" y="101">Turn local probe failures into membership-visible negative evidence</text>
+
+  <rect class="old" x="70" y="145" width="430" height="330" rx="8"/>
+  <text class="section" x="100" y="185">Before: failure before F355</text>
+  <rect class="panel" x="105" y="216" width="360" height="70" rx="6"/>
+  <text class="label" x="130" y="245">Filesystem / processor probe</text>
+  <text class="small" x="130" y="271">Each caller owns a partial catch tuple</text>
+  <path class="dash" d="M285 286 L285 329"/>
+  <rect class="old" x="105" y="330" width="360" height="63" rx="6"/>
+  <text class="mono" x="130" y="359">LookupError escapes</text>
+  <text class="small" x="130" y="382">No ClusterLockQualificationResult exists</text>
+  <path class="dash" d="M285 393 L285 427"/>
+  <text class="label" x="130" y="446">Rank skips membership</text>
+  <text class="small" x="130" y="469">Peers can only wait for the deadline</text>
+
+  <rect class="core" x="555" y="145" width="975" height="330" rx="8"/>
+  <text class="section" x="585" y="185">After: one ordered observation boundary</text>
+  <rect class="panel" x="590" y="217" width="285" height="94" rx="6"/>
+  <text class="label" x="615" y="247">1. Existing error</text>
+  <text class="body" x="615" y="274">Sanitize upstream context</text>
+  <text class="small" x="615" y="298">Heartbeat detail can be carried in</text>
+  <path class="line" d="M875 264 L925 264"/>
+  <rect class="panel" x="930" y="217" width="250" height="94" rx="6"/>
+  <text class="label" x="955" y="247">2. Capability</text>
+  <text class="body" x="955" y="274">Probe once; catch Exception</text>
+  <text class="small" x="955" y="298">Failure does not short-circuit</text>
+  <path class="line" d="M1180 264 L1230 264"/>
+  <rect class="panel" x="1235" y="217" width="250" height="94" rx="6"/>
+  <text class="label" x="1260" y="247">3. Processor</text>
+  <text class="body" x="1260" y="274">Observe once; validate shape</text>
+  <text class="small" x="1260" y="298">BaseException still propagates</text>
+
+  <path class="line" d="M1038 311 L1038 354"/>
+  <rect class="core" x="730" y="355" width="615" height="91" rx="6"/>
+  <text class="label" x="760" y="386">ClusterLockQualificationObservation</text>
+  <text class="mono" x="760" y="416">{ capability | None, processor | "", error &lt;= 512 chars }</text>
+  <text class="small" x="1100" y="439">Always enter membership after ordinary errors</text>
+
+  <text class="section" x="70" y="540">Conditional membership schema: failure is expressible, success stays strict</text>
+  <rect class="good" x="70" y="575" width="460" height="215" rx="8"/>
+  <text class="label" x="105" y="615">Successful local observation</text>
+  <text class="mono" x="105" y="655">local_probe_ok = true</text>
+  <text class="mono" x="105" y="688">processor != ""</text>
+  <text class="body" x="105" y="728">Eligible for host representatives</text>
+  <text class="small" x="105" y="762">All existing type / length / NUL rules remain</text>
+
+  <rect class="warn" x="570" y="575" width="460" height="215" rx="8"/>
+  <text class="label" x="605" y="615">Failed local observation</text>
+  <text class="mono" x="605" y="655">local_probe_ok = false</text>
+  <text class="mono" x="605" y="688">processor may equal ""</text>
+  <text class="body" x="605" y="728">Carry exact bounded local_error</text>
+  <text class="small" x="605" y="762">Stop before representatives and lock rounds</text>
+
+  <rect class="core" x="1070" y="575" width="460" height="215" rx="8"/>
+  <text class="label" x="1105" y="615">Two-rank convergence</text>
+  <text class="mono" x="1105" y="655">members = [(0,node-a),(1,"")]</text>
+  <text class="mono" x="1105" y="688">proof counters = 0</text>
+  <text class="body" x="1105" y="728">Both ranks return the same failure</text>
+  <text class="small" x="1105" y="762">No malformed-record downgrade or hang</text>
+
+  <text class="section" x="70" y="858">Production paths and evidence boundary</text>
+  <rect class="core" x="70" y="890" width="700" height="135" rx="8"/>
+  <text class="label" x="105" y="929">Startup</text>
+  <text class="mono" x="105" y="961">local FS probe + processor -&gt; observe -&gt; qualify -&gt; Abort(65)</text>
+  <text class="small" x="105" y="992">One probe each; no extra MPI phase, hash, I/O, or schema version</text>
+
+  <rect class="core" x="800" y="890" width="455" height="135" rx="8"/>
+  <text class="label" x="835" y="929">Runtime renewal</text>
+  <text class="mono" x="835" y="961">existing cap + processor + prior error</text>
+  <text class="small" x="835" y="992">Heartbeat and clocks remain a later boundary</text>
+
+  <rect class="panel" x="1285" y="890" width="245" height="135" rx="8"/>
+  <text class="label" x="1315" y="929">12 / 12 checks</text>
+  <text class="body" x="1315" y="961">Deterministic local evidence</text>
+  <text class="small" x="1315" y="992">No real MPI / ULFM / uplift</text>
+</svg>

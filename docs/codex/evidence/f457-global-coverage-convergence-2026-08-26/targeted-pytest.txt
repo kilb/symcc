@@ -1,0 +1,13 @@
+................................... [ 11%]
+.......................................................................................................................... [ 49%]
+................................................................ [ 69%]
+................................................... [ 86%]
+............................................             [100%]
+=============================== warnings summary ===============================
+test/test_distributed_state.py::DurableFilesystemTests::test_noreplace_rename_has_one_multiprocess_winner
+test/test_distributed_state.py::DurableFilesystemTests::test_noreplace_rename_has_one_multiprocess_winner
+  /usr/lib/python3.12/multiprocessing/popen_fork.py:66: DeprecationWarning: This process (pid=140381) is multi-threaded, use of fork() may lead to deadlocks in the child.
+    self.pid = os.fork()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+316 passed, 2 warnings, 104 subtests passed in 25.21s

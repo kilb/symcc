@@ -1,0 +1,6 @@
+supported=For the tested Query IR QF_BV domain and pinned cvc5 1.3.4 CPC/Ethos policy, an UNSAT result is admitted only after proof/reference/toolchain/context identity checks and local Ethos verification; exact cross-worker reuse skips solving/generation but not checking.
+supported=The sealed mechanism tests reject the enumerated proof, reference, receipt, CAS, policy, signature-symlink, deadline, cancellation, and quota-race counterexamples.
+not_supported=No claim is made for arbitrary SMT theories, arbitrary cvc5 options, other solvers, or CPC fragments that Ethos reports incomplete.
+not_supported=No learned-clause or SMT-lemma dependency transport, prefix entailment protocol, solver heap/search-state snapshot, or cross-job CAS garbage collection is implemented by F427.
+not_supported=The timing samples are mechanism costs on one synthetic contradictory query, not solver speedup, coverage improvement, time-to-bug, LAVA-M yield, or public multi-node R-level evidence.
+

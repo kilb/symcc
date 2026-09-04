@@ -1,0 +1,65 @@
+F380 bounded exception object arena - final verification
+Date: 2026-08-12 UTC
+
+LLVM 18 build:
+  cmake --build build --target SymCC -j2
+  PASS; libsymcc.so current and linked
+
+LLVM 17 compatibility build:
+  cmake --build build-llvm17 --target SymCC -j2
+  PASS; ContinuationLowering.cpp rebuilt and libsymcc.so linked
+
+Complete LLVM lit:
+  cmake --build build --target check -j2
+  PASS; 238 passed, 1 unsupported, 0 failed, 239 discovered, 204.20 s
+
+Targeted Python regression:
+  arena + scalar catch + lifecycle + typed exception suites
+  PASS; 32 passed, 23 subtests passed, 0 failed, 10.46 s
+  Arena-specific suite: 8 passed, 0 failed
+
+Capability-closed Python gate:
+  PASS; 877 passed, 229 subtests passed, 124.95 s
+  collected=877; skipped=0; xfailed=0; xpassed=0; deselected=0
+  missing-nodeids=0; unexpected-nodeids=0
+  canonical nodeid SHA-256:
+    ef27c16fd28cffddc6b13658eb8e6f578a91257886ed1f4021de95bc56b343c4
+
+Generated artifact replay checks:
+  exception-object-arena.json: values 7,42; alloc/throw/load and arena metadata
+  exception-object-cross-frame.json: values 7,84; call-form cross-frame unwind
+  dynamic-size-reject.json: fixed non-zero-size admission rejection
+  destructor-reject.json: non-null destructor rejection
+  interior-throw-reject.json: non-base object pointer rejection
+  mixed-producer-reject.json: scalar/object producer ambiguity rejection
+
+Runtime fail-closed checks:
+  uninitialized catch bytes and out-of-bounds offset rejected
+  forged owner depth and stale object generation rejected on restore
+  ordinary heap alloc/free cannot alias exception arena metadata
+  unthrown owner is released on return; normal catch clears live/size/init
+  generation remains after destruction and advances from 1 to 2 on slot reuse
+
+Static and visual gates:
+  ruff: PASS, 0 diagnostics
+  py_compile: PASS
+  git diff whitespace: PASS
+  SVG XML + rendered PNG visual review: PASS, PNG 1800x1186 RGB
+
+Review findings retained in the record:
+  Round 1 established exact ABI admission and same-frame object lifetime.
+  Round 2 separated exception arena from ordinary heap operations and repaired
+  owner cleanup across return/unwind versus transferred objects.
+  Round 3 strengthened generation/owner/live/size fields to constant-width
+  certificate checks, required noreturn/unreachable throw CFG, and added
+  cross-frame, fresh-executor, ABA, tampering, bounds, initialization, and ABI
+  counterexamples. Complete gates were rerun after all fixes.
+  Round 4 rejected reachable scalar-summary/object-producer mixtures before
+  lowering because their catch payload representations are not yet per-source.
+
+Claim boundary:
+  These results establish the bounded fixed-size, trivial-destructor exception
+  object mechanism and checkpoint consistency. They do not establish runtime
+  exception headers, non-trivial destruction, RTTI inheritance adjustment,
+  nested caught stacks, full native C++ ABI equivalence, benchmark throughput,
+  coverage, or vulnerability-discovery improvement.

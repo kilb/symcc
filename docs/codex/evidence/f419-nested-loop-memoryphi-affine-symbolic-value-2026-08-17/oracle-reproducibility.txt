@@ -1,0 +1,10 @@
+oracle_run_1_sha256=fae5d9ccaaa58ed3735bfce1ca83885cb6f4d3b67087e0e3b636e196097dfa04
+oracle_run_2_sha256=fae5d9ccaaa58ed3735bfce1ca83885cb6f4d3b67087e0e3b636e196097dfa04
+byte_identical=true
+cases=1152
+accepted=6
+rejected=1146
+runtime_load_vector_equivalences=384
+runtime_value_byte_equivalences=1392
+mutations_rejected=18
+

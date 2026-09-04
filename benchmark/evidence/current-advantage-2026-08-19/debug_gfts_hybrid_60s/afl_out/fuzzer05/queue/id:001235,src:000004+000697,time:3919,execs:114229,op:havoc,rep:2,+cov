@@ -1,0 +1,1 @@
+<?xml version="1.0"?><!DOCTYPE oot><itOm>testnote [<!ELEMENT note (to,from,body)><!ELEMENT to (#PCDATA)><!ELEMoot><![CDATA[hello ENT from (#PCDATA)><!ELEMENT body (#PCDATA)>]><note><to>A</to><from>B</from><body>C</body></note>

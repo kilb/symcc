@@ -1,0 +1,3 @@
+$ PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q -W error test/test_mpi_filesystem_qualification.py test/test_mpi_lifecycle.py -k 'work_lease_heartbeat_observation_is_total_and_bounded or renewal_completion_observes_clock_inside_total_boundary or shared_work_coordinator_batches_heartbeats_and_tracks_failures'
+...                                                                  [100%]
+3 passed, 94 deselected, 4 subtests passed in 0.51s

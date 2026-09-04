@@ -1,0 +1,6 @@
+$ exact committed inventory, collect-only
+python-test-gate: PASS (collected=787, skipped=0, xfailed=0, deselected=0, missing-nodeids=0, unexpected-nodeids=0)
+exact_returncode=0
+$ equal-count mutated inventory, collect-only
+python-test-gate: FAIL (collected=787, skipped=0, xfailed=0, deselected=0, missing-nodeids=1, unexpected-nodeids=1)
+mutated_returncode=1

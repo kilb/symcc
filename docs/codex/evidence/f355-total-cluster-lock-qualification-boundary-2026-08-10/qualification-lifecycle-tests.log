@@ -1,0 +1,7 @@
+Command:
+
+PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q -W error test/test_mpi_filesystem_qualification.py test/test_mpi_lifecycle.py
+
+Result:
+
+94 passed, 75 subtests passed in 2.61s

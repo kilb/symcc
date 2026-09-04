@@ -1,0 +1,154 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="960" viewBox="0 0 1600 960" role="img" aria-labelledby="title desc">
+  <title id="title">F426 Cross-Worker Incremental QF_BV Context</title>
+  <desc id="desc">Query IR is lowered by two workers into a content-addressed prefix chain. Fenced leases control local solver materialization and QueryStore independently verifies context identity and SAT models.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M1,1 L11,6 L1,11 Z" fill="#334155"/>
+    </marker>
+    <marker id="greenArrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M1,1 L11,6 L1,11 Z" fill="#0f766e"/>
+    </marker>
+    <style>
+      .title { font: 700 34px "WenQuanYi Zen Hei", sans-serif; fill: #102a43; }
+      .subtitle { font: 400 17px "WenQuanYi Zen Hei", sans-serif; fill: #52667a; }
+      .lane { font: 700 19px "WenQuanYi Zen Hei", sans-serif; fill: #17324d; }
+      .head { font: 700 18px "WenQuanYi Zen Hei", sans-serif; fill: #102a43; }
+      .body { font: 400 15px "WenQuanYi Zen Hei", sans-serif; fill: #334e68; }
+      .small { font: 500 13px "WenQuanYi Zen Hei", sans-serif; fill: #486581; }
+      .mono { font: 600 13px "DejaVu Sans Mono", monospace; fill: #243b53; }
+      .step { font: 700 14px Inter, sans-serif; fill: white; }
+      .box { fill: white; stroke: #9fb3c8; stroke-width: 2; rx: 7; }
+      .trusted { fill: #ecfdf5; stroke: #0f766e; stroke-width: 2; rx: 7; }
+      .shared { fill: #eff6ff; stroke: #2563eb; stroke-width: 2; rx: 7; }
+      .solver { fill: #fff7ed; stroke: #c2410c; stroke-width: 2; rx: 7; }
+      .warn { fill: #fff1f2; stroke: #be123c; stroke-width: 2; rx: 7; }
+      .line { fill: none; stroke: #334155; stroke-width: 2.4; marker-end: url(#arrow); }
+      .greenline { fill: none; stroke: #0f766e; stroke-width: 2.4; marker-end: url(#greenArrow); }
+      .dash { fill: none; stroke: #64748b; stroke-width: 2; stroke-dasharray: 8 7; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="960" fill="#f8fafc"/>
+  <rect x="0" y="0" width="1600" height="104" fill="#eaf1f8"/>
+  <text x="64" y="50" class="title">F426  内容寻址的跨 Worker 增量 QF_BV 上下文</text>
+  <text x="64" y="80" class="subtitle">共享的是可验证的 prefix formula plan；本地物化 solver；提交前重新从 Query IR 复算</text>
+
+  <rect x="44" y="130" width="380" height="672" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2" rx="8"/>
+  <text x="68" y="165" class="lane">Worker A：发布与父上下文扩展</text>
+
+  <circle cx="78" cy="215" r="15" fill="#2563eb"/><text x="74" y="220" class="step">1</text>
+  <rect x="106" y="188" width="282" height="74" class="box"/>
+  <text x="126" y="216" class="head">稳定 Query IR</text>
+  <text x="126" y="242" class="body">roots + expressions + witness</text>
+
+  <path d="M247 262 L247 294" class="line"/>
+  <circle cx="78" cy="329" r="15" fill="#2563eb"/><text x="74" y="334" class="step">2</text>
+  <rect x="106" y="294" width="282" height="86" class="box"/>
+  <text x="126" y="322" class="head">确定性 QF_BV lowering</text>
+  <text x="126" y="348" class="body">root hash / canonical term</text>
+  <text x="126" y="369" class="small">capability + lowering certificate</text>
+
+  <path d="M247 380 L247 414" class="line"/>
+  <circle cx="78" cy="450" r="15" fill="#2563eb"/><text x="74" y="455" class="step">5</text>
+  <rect x="106" y="414" width="282" height="82" class="solver"/>
+  <text x="126" y="442" class="head">本地 LRU：父命中</text>
+  <text x="126" y="468" class="mono">C1 process + assert(delta)</text>
+  <text x="126" y="487" class="small">re-key C1 → C2；不复制 solver heap</text>
+
+  <path d="M247 496 L247 530" class="line"/>
+  <circle cx="78" cy="566" r="15" fill="#c2410c"/><text x="74" y="571" class="step">7</text>
+  <rect x="106" y="530" width="282" height="116" class="solver"/>
+  <text x="126" y="559" class="head">临时目标 frame</text>
+  <text x="126" y="586" class="mono">push 1; assert(T)</text>
+  <text x="126" y="608" class="mono">check-sat; get-value; pop 1</text>
+  <text x="126" y="632" class="small">prefix 永久保留，target 不污染上下文</text>
+
+  <path d="M247 646 L247 681" class="greenline"/>
+  <circle cx="78" cy="717" r="15" fill="#0f766e"/><text x="74" y="722" class="step">8</text>
+  <rect x="106" y="681" width="282" height="82" class="trusted"/>
+  <text x="126" y="710" class="head">backend SAT replay</text>
+  <text x="126" y="736" class="body">assignment → concrete witness</text>
+  <text x="126" y="756" class="small">Query IR evaluator 必须为 true</text>
+
+  <rect x="468" y="130" width="664" height="672" fill="#f8fbff" stroke="#93b4df" stroke-width="2" rx="8"/>
+  <text x="492" y="165" class="lane">共享存储：不可变 CAS + 可恢复租约</text>
+
+  <circle cx="502" cy="220" r="15" fill="#2563eb"/><text x="498" y="225" class="step">3</text>
+  <rect x="532" y="188" width="564" height="266" class="shared"/>
+  <text x="558" y="220" class="head">Merkle 式 prefix delta chain</text>
+
+  <rect x="566" y="250" width="222" height="132" fill="#ffffff" stroke="#60a5fa" stroke-width="2" rx="6"/>
+  <text x="586" y="278" class="head">Context C1</text>
+  <text x="586" y="305" class="mono">parent = empty</text>
+  <text x="586" y="328" class="mono">root r1 / term c1</text>
+  <text x="586" y="351" class="mono">depth 1 / F1</text>
+  <text x="586" y="373" class="small">filename = SHA-256(body)</text>
+
+  <path d="M788 316 L838 316" class="line"/>
+  <rect x="838" y="250" width="222" height="132" fill="#ffffff" stroke="#60a5fa" stroke-width="2" rx="6"/>
+  <text x="858" y="278" class="head">Context C2</text>
+  <text x="858" y="305" class="mono">parent = C1</text>
+  <text x="858" y="328" class="mono">root r2 / term c2</text>
+  <text x="858" y="351" class="mono">depth 2 / F2</text>
+  <text x="858" y="373" class="small">capability + cumulative offsets</text>
+
+  <text x="558" y="420" class="body">hard-link create-once · fsync · O_NOFOLLOW · stable inode read</text>
+
+  <circle cx="502" cy="503" r="15" fill="#7c3aed"/><text x="498" y="508" class="step">4</text>
+  <rect x="532" y="476" width="564" height="112" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2" rx="7"/>
+  <text x="558" y="506" class="head">正向全链复验</text>
+  <text x="558" y="534" class="body">parent / depth / root / term / offsets / formula digest</text>
+  <text x="558" y="560" class="small">任一身份、能力、顺序或边界不一致 → fail closed</text>
+
+  <circle cx="502" cy="638" r="15" fill="#be123c"/><text x="498" y="643" class="step">6</text>
+  <rect x="532" y="612" width="564" height="142" class="warn"/>
+  <text x="558" y="642" class="head">Fenced materialization lease</text>
+  <text x="558" y="670" class="mono">(context, owner, monotonic token, TTL)</text>
+  <text x="558" y="696" class="body">per-context 单物化者 + store-wide quota</text>
+  <text x="558" y="721" class="body">崩溃后到期接管；等待可取消；超时不启动 solver</text>
+  <text x="558" y="744" class="small">旧 token 即使 owner 同名也不能释放新 lease</text>
+
+  <path d="M388 337 C430 337 440 314 532 314" class="line"/>
+  <path d="M532 526 C455 526 448 455 388 455" class="dash"/>
+  <path d="M532 682 C450 682 438 588 388 588" class="dash"/>
+
+  <rect x="1176" y="130" width="380" height="672" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2" rx="8"/>
+  <text x="1200" y="165" class="lane">Worker B：跨进程精确命中</text>
+
+  <rect x="1212" y="188" width="308" height="92" class="box"/>
+  <text x="1234" y="218" class="head">同一 Query IR prefix</text>
+  <text x="1234" y="245" class="body">独立 lowering 得到 terminal C2</text>
+  <text x="1234" y="267" class="small">本地 LRU 尚无 C2 process</text>
+
+  <path d="M1366 280 L1366 319" class="line"/>
+  <rect x="1212" y="319" width="308" height="120" class="shared"/>
+  <text x="1234" y="350" class="head">shared exact hit</text>
+  <text x="1234" y="378" class="mono">shared_hit = true</text>
+  <text x="1234" y="402" class="mono">local_hit = false</text>
+  <text x="1234" y="426" class="small">含义仅为 prefix plan 身份相同</text>
+
+  <path d="M1366 439 L1366 478" class="line"/>
+  <rect x="1212" y="478" width="308" height="116" class="solver"/>
+  <text x="1234" y="509" class="head">cold reconstruction</text>
+  <text x="1234" y="537" class="body">申请 lease → 启动本地 solver</text>
+  <text x="1234" y="562" class="body">按 C1, C2 顺序重新 assert</text>
+  <text x="1234" y="584" class="small">不传输 learned clauses / solver heap</text>
+
+  <path d="M1366 594 L1366 633" class="line"/>
+  <rect x="1212" y="633" width="308" height="130" class="trusted"/>
+  <text x="1234" y="664" class="head">独立 QueryStore commit gate</text>
+  <text x="1234" y="692" class="body">重新 lowering 原 Query IR</text>
+  <text x="1234" y="717" class="body">复算 C2 / parent / depth / certificate</text>
+  <text x="1234" y="742" class="body">再次 replay SAT model 后提交</text>
+
+  <path d="M1212 374 C1160 374 1157 526 1096 526" class="dash"/>
+  <path d="M1096 682 C1160 682 1160 536 1212 536" class="dash"/>
+  <path d="M388 722 C704 862 1040 862 1212 705" class="greenline"/>
+
+  <rect x="44" y="832" width="1512" height="88" fill="#ffffff" stroke="#94a3b8" stroke-width="2" rx="7"/>
+  <rect x="68" y="852" width="16" height="16" fill="#0f766e" rx="2"/>
+  <text x="96" y="866" class="body">已验证：公式身份、父链、租约、SAT 模型、取消与崩溃恢复</text>
+  <rect x="640" y="852" width="16" height="16" fill="#be123c" rx="2"/>
+  <text x="668" y="866" class="body">明确未实现：可检查 SMT UNSAT proof、learned-clause 依赖、solver heap 传输</text>
+  <text x="68" y="897" class="small">Exact shared hit ≠ solver result hit。F426 是 W4 的公式上下文阶段，不是完整分布式证明求解器。</text>
+</svg>

@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900">
+  <defs>
+    <style>
+      text { font-family: "WenQuanYi Zen Hei", "Noto Sans CJK SC", Arial, sans-serif; fill: #142b44; letter-spacing: 0; }
+      .title { font-size: 37px; font-weight: 700; }
+      .subtitle { font-size: 17px; fill: #4d6885; }
+      .heading { font-size: 21px; font-weight: 700; }
+      .body { font-size: 16px; }
+      .small { font-size: 14px; fill: #4d6885; }
+      .mono { font-family: "DejaVu Sans Mono", monospace; font-size: 15px; }
+      .box { fill: #ffffff; stroke: #9cb4cc; stroke-width: 2; rx: 7; }
+      .arrow { fill: none; stroke: #486884; stroke-width: 4; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#486884"/>
+    </marker>
+  </defs>
+
+  <rect width="1440" height="900" fill="#f5f8fb"/>
+  <text x="64" y="64" class="title">F417 Nested-loop last-write value summary</text>
+  <text x="65" y="96" class="subtitle">真实 store operand → 端序字节 → 倒序最后写候选 → 严格消费与运行时一致性</text>
+
+  <rect x="54" y="135" width="330" height="535" rx="8" fill="#e3f3fb" stroke="#1877a5" stroke-width="3"/>
+  <text x="82" y="176" class="heading">1 真实 LLVM / MemorySSA</text>
+  <rect x="82" y="204" width="274" height="95" class="box"/>
+  <text x="104" y="235" class="body">inner iteration k</text>
+  <text x="104" y="265" class="mono">W0: store i8  -86</text>
+  <text x="104" y="289" class="mono">W1: store i16 4660</text>
+
+  <rect x="82" y="326" width="274" height="128" rx="7" fill="#fff7df" stroke="#d38a00" stroke-width="2"/>
+  <text x="104" y="359" class="body">little endian</text>
+  <text x="104" y="389" class="mono">W0 bytes = [AA]</text>
+  <text x="104" y="416" class="mono">W1 bytes = [34, 12]</text>
+  <text x="104" y="442" class="small">operand、bits、bytes 三者同时绑定</text>
+
+  <rect x="82" y="482" width="274" height="154" rx="7" fill="#e8f7ef" stroke="#218a62" stroke-width="2"/>
+  <text x="104" y="516" class="body">严格准入</text>
+  <text x="104" y="548" class="small">- 全部 writer 为 ConstantInt</text>
+  <text x="104" y="577" class="small">- 8-64 bit 完整字节宽度</text>
+  <text x="104" y="606" class="small">- DataLayout 端序逐字节展开</text>
+  <text x="104" y="631" class="small">动态值降为 v6；非整字节表示拒绝摘要</text>
+
+  <path d="M384 400 L438 400" class="arrow"/>
+
+  <rect x="438" y="135" width="462" height="535" rx="8" fill="#f1ebfb" stroke="#7650bd" stroke-width="3"/>
+  <text x="466" y="176" class="heading">2 v7 proof-carrying value summary</text>
+  <rect x="466" y="204" width="406" height="126" class="box"/>
+  <text x="490" y="236" class="body">writer value record</text>
+  <text x="490" y="267" class="mono">kind = constant-integer</text>
+  <text x="490" y="294" class="mono">bits = 16, operand = 4660</text>
+  <text x="490" y="319" class="mono">bytes = [52, 18]</text>
+
+  <rect x="466" y="358" width="406" height="218" class="box"/>
+  <text x="490" y="392" class="body">load lane 的 last_write_cases</text>
+  <text x="490" y="425" class="mono">1. (inner_iv=6, writer=1)</text>
+  <text x="512" y="451" class="small">minimum_inner_bound=7, value_byte=...</text>
+  <text x="490" y="484" class="mono">2. (inner_iv=6, writer=0)</text>
+  <text x="490" y="517" class="mono">3. (inner_iv=4, writer=1)</text>
+  <text x="490" y="551" class="small">顺序：inner_iv 降序；同轮 writer ordinal 降序</text>
+
+  <text x="466" y="612" class="mono">select = first enabled case</text>
+  <text x="466" y="642" class="small">outer_bound 必须大于 0；无命中即 uninitialized</text>
+
+  <path d="M900 400 L954 400" class="arrow"/>
+
+  <rect x="954" y="135" width="432" height="535" rx="8" fill="#fdebee" stroke="#bf2448" stroke-width="3"/>
+  <text x="982" y="176" class="heading">3 Consumer / 最终裁决</text>
+  <rect x="982" y="204" width="376" height="209" class="box"/>
+  <text x="1006" y="238" class="body">独立重算，而非信任 JSON</text>
+  <text x="1006" y="272" class="small">- 从 lowered store 读取 constant operand</text>
+  <text x="1006" y="303" class="small">- 按 program endianness 重建 byte vector</text>
+  <text x="1006" y="334" class="small">- 重排每个 lane 的最后写候选</text>
+  <text x="1006" y="365" class="small">- 重算 minimum bound 与 value byte</text>
+  <text x="1006" y="396" class="small">- capability / use point / dangling 闭合</text>
+
+  <rect x="982" y="442" width="376" height="194" rx="7" fill="#fff4f5" stroke="#bf2448" stroke-width="2"/>
+  <text x="1006" y="477" class="body">运行时权威不变</text>
+  <text x="1006" y="510" class="small">真实循环仍执行真实 store / load</text>
+  <text x="1006" y="542" class="small">byte-init bitmap 决定具体路径是否可读</text>
+  <line x1="1006" y1="567" x2="1333" y2="567" stroke="#d991a2" stroke-width="2"/>
+  <text x="1006" y="600" class="mono">static value proof ≠ forced memory write</text>
+  <text x="1006" y="625" class="small">zero trip / short prefix 仍然失败关闭</text>
+
+  <rect x="54" y="714" width="1332" height="132" rx="8" fill="#142f49"/>
+  <text x="82" y="755" class="heading" fill="#ffffff" style="fill:#ffffff">当前严格边界</text>
+  <text x="82" y="789" class="body" fill="#d9e7f3" style="fill:#d9e7f3">两层可归约循环；outer-invariant inner bound；1-4 个有序 simple store；8-64 bit 常量整数；有限同对象 affine aliases</text>
+  <text x="82" y="820" class="small" fill="#a9c3d8" style="fill:#a9c3d8">不宣称：符号/affine store value、outer-dependent 2D address、nested conditional/multi-latch、pointer union、多对象或一般 LoopSCC</text>
+</svg>

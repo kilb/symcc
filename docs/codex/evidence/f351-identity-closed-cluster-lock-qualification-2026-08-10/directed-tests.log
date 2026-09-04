@@ -1,0 +1,5 @@
+Command:
+PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q -W error test/test_mpi_filesystem_qualification.py test/test_distributed_state.py -k 'same_content_lock_replacement_fails_namespace_identity_closure or stale_capability_filesystem_identity_fails_before_lock_rounds or runtime_renewal_rejects_legacy_unclosed_lock_evidence or cluster_lock_upgrade_requires_complete_multi_host_evidence'
+
+Result:
+4 passed, 186 deselected in 0.63s

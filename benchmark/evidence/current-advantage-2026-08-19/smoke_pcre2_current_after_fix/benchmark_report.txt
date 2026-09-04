@@ -1,0 +1,47 @@
+================================================================================
+  SymCC MPI Parallelization Benchmark Report
+  Generated: 2026-08-19 12:51:25
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+  Target: pcre2-pcre2_fuzzer
+────────────────────────────────────────────────────────────────────────────────
+
+  Mode         NP       Time   SymCCGen    AFLExec   Unique  ShowmapCov          Edges  FstatsCov         FEdges      AFL/s
+  ────────── ──── ────────── ────────── ────────── ──────── ─────────── ────────────── ────────── ────────────── ──────────
+  hybrid       16      46.1s          0        301    10521      39.07%      3801/9728      0.95%      713/75238     301000
+  mpi          16      53.4s       6604          0     3313      15.75%      1532/9728        N/A            N/A          0
+  seed          0       0.0s          0          0        8       7.22%       702/9728        N/A            N/A          0
+
+  Online SymCC -> AFL Native Peer Sync:
+    hybrid np=16: published=0.0, scanned=0.0, imported=0.0, not-retained=0.0, complete-runs=0/1
+
+  Edge Coverage Chart (afl-showmap):
+      hybrid np=16 |████████████████████████████████████████| 39.07%
+         mpi np=16 |████████████████░░░░░░░░░░░░░░░░░░░░░░░░| 15.75%
+              seed |███████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░| 7.22%
+
+  Coverage Gain over Seed Baseline:
+    Seed baseline: 7.22% (702 edges)
+        hybrid np=16: 39.07% (+31.85pp, +441.1% relative)
+           mpi np=16: 15.75% (+8.53pp, +118.1% relative)
+
+  Like-for-like Throughput Speedup vs Serial:
+    hybrid np= 16 |                  N/A                   | different unit: afl-executions-plus-symcc-candidates-per-second
+    mpi np= 16 |                  N/A                   | different unit: symcc-candidates-per-second
+    seed np=  0 |                  N/A                   | different unit: not-applicable
+
+
+================================================================================
+  OVERALL SUMMARY
+================================================================================
+
+  pcre2-pcre2_fuzzer: best = hybrid np=16 (46.1s, 10521 retained unique, 0 SymCC candidates, 301 AFL executions, edge_cov=39.07%)
+
+  Report files:
+    Text:  /home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/smoke_pcre2_current_after_fix/benchmark_report.txt
+    CSV:   /home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/smoke_pcre2_current_after_fix/benchmark_data.csv
+    JSON:  /home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/smoke_pcre2_current_after_fix/benchmark_data.json
+
+================================================================================

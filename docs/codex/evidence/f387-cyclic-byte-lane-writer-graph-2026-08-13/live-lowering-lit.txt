@@ -1,0 +1,8 @@
+-- Testing: 1 of 245 tests, 1 workers --
+PASS: compiler :: live_continuation_lowering.ll (1 of 1)
+
+Testing Time: 186.17s
+
+Total Discovered Tests: 245
+  Excluded: 244 (99.59%)
+  Passed  :   1 (0.41%)

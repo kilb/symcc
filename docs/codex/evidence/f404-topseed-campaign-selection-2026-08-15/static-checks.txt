@@ -1,0 +1,16 @@
+ruff check: PASS
+py_compile: PASS
+generated technology index check: PASS
+git diff --check: PASS
+SVG ElementTree parse: PASS
+PNG dimensions/mode 2880x1620 RGB: PASS
+diagram visual inspection: PASS
+independent TopSeed oracle: PASS (11417 evaluations)
+transactional benchmark history: PASS (512 propose/commit/observe runs)
+snapshot stale-temporary regression: PASS
+snapshot symlink/corruption/context checks: PASS
+proposal/commit/observe fencing checks: PASS
+all-pending run-capacity preflight and proposal cleanup: PASS
+full Python exact-identity gate: PASS (1041 + 250 subtests)
+full LLVM 17 gate: PASS (262 passed + 2 existing unsupported)
+public coverage/solver/bug-yield/end-to-end speedup claim: intentionally absent

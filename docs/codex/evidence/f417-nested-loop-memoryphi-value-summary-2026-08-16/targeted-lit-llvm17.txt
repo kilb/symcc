@@ -1,0 +1,7 @@
+-- Testing: 2 tests, 2 workers --
+Testing:  0.. 10.. 20.. 30.. 40.. 50.. 60.. 70.. 80.. 90.. 
+
+Testing Time: 16.68s
+
+Total Discovered Tests: 2
+  Passed: 2 (100.00%)

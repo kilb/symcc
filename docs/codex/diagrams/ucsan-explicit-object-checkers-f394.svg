@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1100" viewBox="0 0 1600 1100">
+  <defs>
+    <style>
+      .title { font: 700 38px Arial, sans-serif; fill: #102a43; }
+      .subtitle { font: 400 18px Arial, sans-serif; fill: #486581; }
+      .head { font: 700 23px Arial, sans-serif; fill: #102a43; }
+      .label { font: 700 17px Arial, sans-serif; fill: #243b53; }
+      .body { font: 400 15px Arial, sans-serif; fill: #486581; }
+      .mono { font: 600 14px monospace; fill: #243b53; }
+      .small { font: 400 13px Arial, sans-serif; fill: #627d98; }
+      .panel { fill: #ffffff; stroke: #bcccdc; stroke-width: 2; }
+      .blue { fill: #e8f1f8; stroke: #829ab1; stroke-width: 2; }
+      .green { fill: #e3f5ee; stroke: #2f9e77; stroke-width: 2; }
+      .orange { fill: #fff0dc; stroke: #e67e22; stroke-width: 2; }
+      .red { fill: #fff0f0; stroke: #d64545; stroke-width: 2; }
+      .line { stroke: #334e68; stroke-width: 4; fill: none; }
+      .dash { stroke: #829ab1; stroke-width: 2; stroke-dasharray: 8 6; fill: none; }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#334e68"/>
+    </marker>
+    <marker id="green-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#16866b"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="1100" fill="#f5f8fb"/>
+  <rect x="0" y="0" width="1600" height="112" fill="#ffffff"/>
+  <rect x="0" y="109" width="1600" height="4" fill="#16866b"/>
+  <text x="68" y="58" class="title">F394 UCSan Explicit-Object OOB / UAF Closure</text>
+  <text x="68" y="88" class="subtitle">allocation metadata · shared pointer provenance · strict access checks · frame tombstones · transactional realloc</text>
+
+  <rect x="55" y="150" width="390" height="605" rx="8" class="panel"/>
+  <rect x="55" y="150" width="390" height="63" rx="8" fill="#dce9f3"/>
+  <text x="82" y="191" class="head">1. Compiler instrumentation</text>
+
+  <rect x="85" y="245" width="330" height="118" rx="7" class="blue"/>
+  <text x="108" y="278" class="label">Dynamic stack activation</text>
+  <text x="108" y="309" class="mono">frame = push_frame()</text>
+  <text x="108" y="337" class="body">unique token for recursion and unwind</text>
+
+  <rect x="85" y="390" width="330" height="150" rx="7" class="green"/>
+  <text x="108" y="423" class="label">Explicit allocation sites</text>
+  <text x="108" y="454" class="mono">alloca → STACK + frame</text>
+  <text x="108" y="482" class="mono">malloc/calloc/new → HEAP</text>
+  <text x="108" y="512" class="body">checked count × element-size metadata</text>
+
+  <rect x="85" y="567" width="330" height="158" rx="7" class="orange"/>
+  <text x="108" y="600" class="label">Lifecycle instrumentation</text>
+  <text x="108" y="631" class="mono">free/delete → validate + release</text>
+  <text x="108" y="659" class="mono">return/resume/throw → pop_frame</text>
+  <text x="108" y="690" class="small">musttail / Windows funclet: fail closed</text>
+
+  <rect x="505" y="150" width="545" height="605" rx="8" class="panel"/>
+  <rect x="505" y="150" width="545" height="63" rx="8" fill="#d7f0e7"/>
+  <text x="532" y="191" class="head">2. Shared object and shadow state</text>
+
+  <rect x="540" y="245" width="475" height="183" rx="7" class="green"/>
+  <text x="568" y="279" class="label">Explicit object record</text>
+  <text x="568" y="312" class="mono">base · size · STACK|HEAP · frame</text>
+  <text x="568" y="342" class="mono">live ───────────────→ freed tombstone</text>
+  <text x="568" y="374" class="body">runtime never owns or frees native allocation</text>
+  <text x="568" y="402" class="body">old identity survives address reuse</text>
+
+  <rect x="540" y="462" width="475" height="127" rx="7" class="blue"/>
+  <text x="568" y="496" class="label">Pointer provenance</text>
+  <text x="568" y="528" class="mono">SSA shadow + memory slot shadow + TLS ABI</text>
+  <text x="568" y="558" class="body">all aliases reference one Object record</text>
+
+  <rect x="540" y="622" width="475" height="103" rx="7" class="red"/>
+  <text x="568" y="655" class="label">Identity and resource closure</text>
+  <text x="568" y="686" class="body">known-shadow membership · object/shadow budgets</text>
+
+  <path d="M445 452 L505 452" class="line" marker-end="url(#arrow)"/>
+
+  <rect x="1110" y="150" width="435" height="605" rx="8" class="panel"/>
+  <rect x="1110" y="150" width="435" height="63" rx="8" fill="#ffe5c7"/>
+  <text x="1137" y="191" class="head">3. Pre-access decision</text>
+
+  <rect x="1145" y="245" width="365" height="105" rx="7" class="blue"/>
+  <text x="1172" y="279" class="label">Known pointer shadow?</text>
+  <text x="1172" y="314" class="body">unknown non-zero identity → reject</text>
+
+  <path d="M1328 350 L1328 392" class="line" marker-end="url(#arrow)"/>
+
+  <rect x="1145" y="395" width="365" height="125" rx="7" class="green"/>
+  <text x="1172" y="429" class="label">JITI object</text>
+  <text x="1172" y="462" class="mono">translate + bounded provision</text>
+  <text x="1172" y="491" class="body">growth remains valid under F393</text>
+
+  <rect x="1145" y="552" width="365" height="173" rx="7" class="red"/>
+  <text x="1172" y="586" class="label">Explicit object</text>
+  <text x="1172" y="619" class="mono">freed? → UAF</text>
+  <text x="1172" y="649" class="mono">ptr &lt; base? → lower OOB</text>
+  <text x="1172" y="679" class="mono">access &gt; size-offset? → OOB</text>
+  <text x="1172" y="708" class="body">otherwise use the original real pointer</text>
+
+  <path d="M1050 452 L1110 452" class="line" marker-end="url(#arrow)"/>
+
+  <rect x="55" y="805" width="1490" height="230" rx="8" class="panel"/>
+  <text x="83" y="845" class="head">Transactional realloc and correctness boundary</text>
+
+  <rect x="85" y="875" width="250" height="110" rx="7" class="orange"/>
+  <text x="107" y="907" class="label">Prepare</text>
+  <text x="107" y="939" class="body">validate heap · base · live</text>
+  <text x="107" y="966" class="small">do not invalidate old object</text>
+
+  <path d="M335 930 L390 930" class="line" marker-end="url(#arrow)"/>
+
+  <rect x="395" y="875" width="250" height="110" rx="7" class="blue"/>
+  <text x="417" y="907" class="label">Native realloc</text>
+  <text x="417" y="939" class="body">actual allocator decides outcome</text>
+  <text x="417" y="966" class="small">failure · in-place · moved</text>
+
+  <path d="M645 930 L700 930" class="line" marker-end="url(#arrow)"/>
+
+  <rect x="705" y="875" width="315" height="110" rx="7" class="green"/>
+  <text x="727" y="907" class="label">Commit from real return value</text>
+  <text x="727" y="939" class="body">failure keeps old live; moved copies slots</text>
+  <text x="727" y="966" class="small">old aliases become tombstones only on success</text>
+
+  <path d="M1020 930 L1075 930" class="line" marker-end="url(#arrow)"/>
+
+  <rect x="1080" y="862" width="430" height="135" rx="7" class="red"/>
+  <text x="1103" y="895" class="label">Claim boundary</text>
+  <text x="1103" y="926" class="body">Closed: allocation-level OOB + alias UAF</text>
+  <text x="1103" y="953" class="body">Open: byte-level UBI · custom effects · kernel ABI</text>
+  <text x="1103" y="980" class="small">No coverage, bug-yield, or cross-system speedup claim</text>
+
+  <path d="M777 428 L777 462" class="dash"/>
+</svg>

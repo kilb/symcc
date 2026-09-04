@@ -1,0 +1,152 @@
+{
+  "all_ranks_available": true,
+  "claim_boundary": "live no-failure MPI semantic probe on a duplicated communicator; exercises ERRORS_RETURN/Get_failed/Agree/Revoke/Shrink but does not by itself prove recovery after physical process loss",
+  "distinct_capability_receipts": 1,
+  "identical_library": true,
+  "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+  "rank_capabilities": [
+    {
+      "available": true,
+      "capability_sha256": "95ed8d0a1ee10058fb659f1872e197b0ef64e79539b092e08226114d0a2734e4",
+      "error": "",
+      "error_constants": {
+        "ERR_PROC_FAILED": 75,
+        "ERR_PROC_FAILED_PENDING": 76,
+        "ERR_REVOKED": 77
+      },
+      "mpi_library": "Open MPI v5.0.10, package: Open MPI ubuntu@cuda-ke Distribution, ident: 5.0.10, repo rev: v5.0.10, Feb 23, 2026",
+      "mpi_standard": [
+        3,
+        1
+      ],
+      "policy_sha256": "15208c4137273b3f8cc3b61aa1ca6907cd08cd3173a8fb6da5abf61929813403",
+      "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+      "required_methods": [
+        "Set_errhandler",
+        "Get_failed",
+        "Ack_failed",
+        "Agree",
+        "Revoke",
+        "Is_revoked",
+        "Shrink"
+      ],
+      "schema": "symcc-ulfm-runtime-capability-v1",
+      "semantic_checks": {
+        "agree": true,
+        "errors_return": true,
+        "get_failed": true,
+        "post_shrink_agree": true,
+        "revoke": true,
+        "shrink": true
+      }
+    },
+    {
+      "available": true,
+      "capability_sha256": "95ed8d0a1ee10058fb659f1872e197b0ef64e79539b092e08226114d0a2734e4",
+      "error": "",
+      "error_constants": {
+        "ERR_PROC_FAILED": 75,
+        "ERR_PROC_FAILED_PENDING": 76,
+        "ERR_REVOKED": 77
+      },
+      "mpi_library": "Open MPI v5.0.10, package: Open MPI ubuntu@cuda-ke Distribution, ident: 5.0.10, repo rev: v5.0.10, Feb 23, 2026",
+      "mpi_standard": [
+        3,
+        1
+      ],
+      "policy_sha256": "15208c4137273b3f8cc3b61aa1ca6907cd08cd3173a8fb6da5abf61929813403",
+      "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+      "required_methods": [
+        "Set_errhandler",
+        "Get_failed",
+        "Ack_failed",
+        "Agree",
+        "Revoke",
+        "Is_revoked",
+        "Shrink"
+      ],
+      "schema": "symcc-ulfm-runtime-capability-v1",
+      "semantic_checks": {
+        "agree": true,
+        "errors_return": true,
+        "get_failed": true,
+        "post_shrink_agree": true,
+        "revoke": true,
+        "shrink": true
+      }
+    },
+    {
+      "available": true,
+      "capability_sha256": "95ed8d0a1ee10058fb659f1872e197b0ef64e79539b092e08226114d0a2734e4",
+      "error": "",
+      "error_constants": {
+        "ERR_PROC_FAILED": 75,
+        "ERR_PROC_FAILED_PENDING": 76,
+        "ERR_REVOKED": 77
+      },
+      "mpi_library": "Open MPI v5.0.10, package: Open MPI ubuntu@cuda-ke Distribution, ident: 5.0.10, repo rev: v5.0.10, Feb 23, 2026",
+      "mpi_standard": [
+        3,
+        1
+      ],
+      "policy_sha256": "15208c4137273b3f8cc3b61aa1ca6907cd08cd3173a8fb6da5abf61929813403",
+      "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+      "required_methods": [
+        "Set_errhandler",
+        "Get_failed",
+        "Ack_failed",
+        "Agree",
+        "Revoke",
+        "Is_revoked",
+        "Shrink"
+      ],
+      "schema": "symcc-ulfm-runtime-capability-v1",
+      "semantic_checks": {
+        "agree": true,
+        "errors_return": true,
+        "get_failed": true,
+        "post_shrink_agree": true,
+        "revoke": true,
+        "shrink": true
+      }
+    },
+    {
+      "available": true,
+      "capability_sha256": "95ed8d0a1ee10058fb659f1872e197b0ef64e79539b092e08226114d0a2734e4",
+      "error": "",
+      "error_constants": {
+        "ERR_PROC_FAILED": 75,
+        "ERR_PROC_FAILED_PENDING": 76,
+        "ERR_REVOKED": 77
+      },
+      "mpi_library": "Open MPI v5.0.10, package: Open MPI ubuntu@cuda-ke Distribution, ident: 5.0.10, repo rev: v5.0.10, Feb 23, 2026",
+      "mpi_standard": [
+        3,
+        1
+      ],
+      "policy_sha256": "15208c4137273b3f8cc3b61aa1ca6907cd08cd3173a8fb6da5abf61929813403",
+      "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+      "required_methods": [
+        "Set_errhandler",
+        "Get_failed",
+        "Ack_failed",
+        "Agree",
+        "Revoke",
+        "Is_revoked",
+        "Shrink"
+      ],
+      "schema": "symcc-ulfm-runtime-capability-v1",
+      "semantic_checks": {
+        "agree": true,
+        "errors_return": true,
+        "get_failed": true,
+        "post_shrink_agree": true,
+        "revoke": true,
+        "shrink": true
+      }
+    }
+  ],
+  "result_sha256": "2ec01d6e452b1e833652d377ee1ee0d136e57f4fed0ee48f94fe067d97d3b27a",
+  "schema": "symcc-f441-mpi-capability-oracle-v1",
+  "world_size": 4
+}

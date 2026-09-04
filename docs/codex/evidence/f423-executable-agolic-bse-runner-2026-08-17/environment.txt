@@ -1,0 +1,11 @@
+date_utc=2026-08-17
+repository=/home/ubuntu/code/symcc
+git_head=146e01b2d6f8e02fd2526764d46ea0d80a4bb6f6
+kernel=Linux 7.0.0-28-generic x86_64
+llvm17=17.0.6
+llvm18=18.1.3
+python=3.12.3
+pytest=9.1.1
+pytest_plugin_autoload=disabled
+test_manifest_count=1126
+test_manifest_sha256=e3f67dadd0a500b9a269929941a02fd03f7579b07bbda6cec82a1b30b32ea758

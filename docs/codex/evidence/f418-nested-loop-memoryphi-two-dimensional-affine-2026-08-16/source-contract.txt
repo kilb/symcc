@@ -1,0 +1,49 @@
+F418 sealed source contract
+
+Schema:
+  symcc-loop-memoryphi-byte-lane-induction-v8
+
+Capability:
+  bounded-nested-loop-memoryphi-two-dimensional-affine-summary
+
+Dependencies:
+  bounded-symbolic-alias
+  bounded-loop-memoryphi-byte-lane-induction
+  bounded-strided-loop-memoryphi-byte-lane-induction when required
+  bounded-nested-loop-memoryphi-summary-composition
+  bounded-nested-loop-memoryphi-last-write-value-summary
+
+Address form:
+  base + pointer_scale *
+    (constant + outer_scale * outer_iv + inner_scale * inner_iv)
+
+Sealed limits:
+  exact two-level, single-latch, single-inner-body topology
+  seed-zero unsigned exclusive-bound recurrences
+  positive step <= 64
+  input bound source width < 64
+  <= 64 instances per dimension and <= 256 Cartesian pairs
+  affine tree depth <= 4
+  constant/add/multiply-by-direct-positive-constant grammar
+  non-negative constant, positive outer/inner coefficients, signed-64 maxima
+  1..4 ordered writers, 1..8 bytes, full-byte ConstantInt values
+  writer width <= effective inner address stride
+  every maximum-domain index/address present in the real alias map
+  one stack or ordinary heap object and no additional memory effects
+
+Last-write order:
+  descending outer induction
+  descending inner induction
+  descending writer ordinal
+
+Activation:
+  outer_bound >= outer_induction_value + 1 AND
+  inner_bound >= inner_induction_value + 1
+
+Fallback:
+  uninitialized, never implicit zero
+  unsupported producer shapes do not receive a partial v8 certificate
+
+Runtime boundary:
+  no loop skipping or summary-based memory prefill
+  real stores and the path-local initializedness bitmap remain authoritative

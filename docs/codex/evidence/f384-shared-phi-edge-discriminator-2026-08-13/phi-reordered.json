@@ -1,0 +1,1010 @@
+{
+  "endianness": "little",
+  "entry": "freeze_memory_phi_correlated_reordered_cycle_carry",
+  "functions": {
+    "freeze_memory_phi_correlated_reordered_cycle_carry": {
+      "blocks": {
+        "bb0": [
+          {
+            "dst": "input_raw_0",
+            "offset": 0,
+            "op": "input"
+          },
+          {
+            "bits": 8,
+            "dst": "input_ext_1",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "input_raw_0"
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "arg0",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "input_ext_1"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "v0",
+            "left": {
+              "var": "arg0"
+            },
+            "op": "binary",
+            "operator": "eq",
+            "right": {
+              "bits": 8,
+              "const": 0
+            }
+          },
+          {
+            "condition": {
+              "var": "v0"
+            },
+            "false": "bb2",
+            "op": "branch",
+            "site": "4346804715627986384",
+            "true": "bb1"
+          }
+        ],
+        "bb1": [
+          {
+            "op": "jump",
+            "target": "edge_bb1_bb3"
+          }
+        ],
+        "bb10": [
+          {
+            "op": "return",
+            "value": {
+              "bits": 8,
+              "const": 1
+            }
+          }
+        ],
+        "bb11": [
+          {
+            "op": "return",
+            "value": {
+              "bits": 8,
+              "const": 2
+            }
+          }
+        ],
+        "bb2": [
+          {
+            "op": "jump",
+            "target": "edge_bb2_bb3"
+          }
+        ],
+        "bb3": [
+          {
+            "address": {
+              "var": "v1"
+            },
+            "alias_cases": [
+              {
+                "addresses": [
+                  64
+                ],
+                "guards": [
+                  {
+                    "bits": 32,
+                    "equals": 1,
+                    "value": {
+                      "var": "bb3_pointer_edge_tag"
+                    }
+                  }
+                ]
+              },
+              {
+                "addresses": [
+                  65
+                ],
+                "guards": [
+                  {
+                    "bits": 32,
+                    "equals": 2,
+                    "value": {
+                      "var": "bb3_pointer_edge_tag"
+                    }
+                  }
+                ]
+              }
+            ],
+            "bits": 8,
+            "bytes": 1,
+            "op": "store",
+            "value": {
+              "bits": 8,
+              "const": 7
+            }
+          },
+          {
+            "address": {
+              "var": "v2"
+            },
+            "alias_cases": [
+              {
+                "addresses": [
+                  66
+                ],
+                "guards": [
+                  {
+                    "bits": 32,
+                    "equals": 2,
+                    "value": {
+                      "var": "bb3_pointer_edge_tag"
+                    }
+                  }
+                ]
+              },
+              {
+                "addresses": [
+                  65
+                ],
+                "guards": [
+                  {
+                    "bits": 32,
+                    "equals": 1,
+                    "value": {
+                      "var": "bb3_pointer_edge_tag"
+                    }
+                  }
+                ]
+              }
+            ],
+            "bits": 8,
+            "bytes": 1,
+            "op": "store",
+            "value": {
+              "bits": 8,
+              "const": 7
+            }
+          },
+          {
+            "op": "jump",
+            "target": "edge_bb3_bb4"
+          }
+        ],
+        "bb4": [
+          {
+            "address": {
+              "var": "v1"
+            },
+            "alias_cases": [
+              {
+                "addresses": [
+                  64
+                ],
+                "guards": [
+                  {
+                    "bits": 32,
+                    "equals": 1,
+                    "value": {
+                      "var": "bb3_pointer_edge_tag"
+                    }
+                  }
+                ]
+              },
+              {
+                "addresses": [
+                  65
+                ],
+                "guards": [
+                  {
+                    "bits": 32,
+                    "equals": 2,
+                    "value": {
+                      "var": "bb3_pointer_edge_tag"
+                    }
+                  }
+                ]
+              }
+            ],
+            "bits": 8,
+            "bytes": 1,
+            "dst": "v4",
+            "op": "load"
+          },
+          {
+            "bits": 8,
+            "dst": "deferred_poison_choice_2",
+            "op": "nondet",
+            "site": "11787497339071149494"
+          },
+          {
+            "bits": 8,
+            "condition": {
+              "var": "v4__defined"
+            },
+            "dst": "v5",
+            "false": {
+              "var": "deferred_poison_choice_2"
+            },
+            "op": "select",
+            "true": {
+              "var": "v4"
+            }
+          },
+          {
+            "address": {
+              "var": "v2"
+            },
+            "alias_cases": [
+              {
+                "addresses": [
+                  66
+                ],
+                "guards": [
+                  {
+                    "bits": 32,
+                    "equals": 2,
+                    "value": {
+                      "var": "bb3_pointer_edge_tag"
+                    }
+                  }
+                ]
+              },
+              {
+                "addresses": [
+                  65
+                ],
+                "guards": [
+                  {
+                    "bits": 32,
+                    "equals": 1,
+                    "value": {
+                      "var": "bb3_pointer_edge_tag"
+                    }
+                  }
+                ]
+              }
+            ],
+            "bits": 8,
+            "bytes": 1,
+            "dst": "v6",
+            "op": "load"
+          },
+          {
+            "bits": 8,
+            "dst": "deferred_poison_choice_3",
+            "op": "nondet",
+            "site": "885746942500817968"
+          },
+          {
+            "bits": 8,
+            "condition": {
+              "var": "v6__defined"
+            },
+            "dst": "v7",
+            "false": {
+              "var": "deferred_poison_choice_3"
+            },
+            "op": "select",
+            "true": {
+              "var": "v6"
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "v8",
+            "left": {
+              "bits": 8,
+              "const": 127
+            },
+            "op": "binary",
+            "operator": "add",
+            "right": {
+              "bits": 8,
+              "const": 1
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "llvm_signed_left_4",
+            "left": {
+              "bits": 8,
+              "const": 127
+            },
+            "op": "binary",
+            "operator": "lshr",
+            "right": {
+              "bits": 8,
+              "const": 7
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "llvm_signed_right_5",
+            "left": {
+              "bits": 8,
+              "const": 1
+            },
+            "op": "binary",
+            "operator": "lshr",
+            "right": {
+              "bits": 8,
+              "const": 7
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "llvm_signed_result_6",
+            "left": {
+              "var": "v8"
+            },
+            "op": "binary",
+            "operator": "lshr",
+            "right": {
+              "bits": 8,
+              "const": 7
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "llvm_signed_risky_7",
+            "left": {
+              "var": "llvm_signed_left_4"
+            },
+            "op": "binary",
+            "operator": "eq",
+            "right": {
+              "var": "llvm_signed_right_5"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "llvm_signed_result_same_8",
+            "left": {
+              "var": "llvm_signed_result_6"
+            },
+            "op": "binary",
+            "operator": "eq",
+            "right": {
+              "var": "llvm_signed_left_4"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "llvm_signed_not_risky_9",
+            "op": "unary",
+            "operator": "not",
+            "value": {
+              "var": "llvm_signed_risky_7"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "llvm_signed_defined_10",
+            "left": {
+              "var": "llvm_signed_not_risky_9"
+            },
+            "op": "binary",
+            "operator": "or",
+            "right": {
+              "var": "llvm_signed_result_same_8"
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "v9",
+            "left": {
+              "bits": 8,
+              "const": -128
+            },
+            "op": "binary",
+            "operator": "sub",
+            "right": {
+              "bits": 8,
+              "const": 1
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "llvm_signed_left_11",
+            "left": {
+              "bits": 8,
+              "const": -128
+            },
+            "op": "binary",
+            "operator": "lshr",
+            "right": {
+              "bits": 8,
+              "const": 7
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "llvm_signed_right_12",
+            "left": {
+              "bits": 8,
+              "const": 1
+            },
+            "op": "binary",
+            "operator": "lshr",
+            "right": {
+              "bits": 8,
+              "const": 7
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "llvm_signed_result_13",
+            "left": {
+              "var": "v9"
+            },
+            "op": "binary",
+            "operator": "lshr",
+            "right": {
+              "bits": 8,
+              "const": 7
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "llvm_signed_risky_14",
+            "left": {
+              "var": "llvm_signed_left_11"
+            },
+            "op": "binary",
+            "operator": "ne",
+            "right": {
+              "var": "llvm_signed_right_12"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "llvm_signed_result_same_15",
+            "left": {
+              "var": "llvm_signed_result_13"
+            },
+            "op": "binary",
+            "operator": "eq",
+            "right": {
+              "var": "llvm_signed_left_11"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "llvm_signed_not_risky_16",
+            "op": "unary",
+            "operator": "not",
+            "value": {
+              "var": "llvm_signed_risky_14"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "llvm_signed_defined_17",
+            "left": {
+              "var": "llvm_signed_not_risky_16"
+            },
+            "op": "binary",
+            "operator": "or",
+            "right": {
+              "var": "llvm_signed_result_same_15"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "v10",
+            "left": {
+              "var": "v3"
+            },
+            "op": "binary",
+            "operator": "eq",
+            "right": {
+              "bits": 8,
+              "const": 1
+            }
+          },
+          {
+            "condition": {
+              "var": "v10"
+            },
+            "false": "bb5",
+            "op": "branch",
+            "site": "11376194721797194141",
+            "true": "bb9"
+          }
+        ],
+        "bb5": [
+          {
+            "bits": 1,
+            "dst": "v11",
+            "left": {
+              "var": "arg0"
+            },
+            "op": "binary",
+            "operator": "eq",
+            "right": {
+              "bits": 8,
+              "const": 0
+            }
+          },
+          {
+            "condition": {
+              "var": "v11"
+            },
+            "false": "bb7",
+            "op": "branch",
+            "site": "5640225403913612661",
+            "true": "bb6"
+          }
+        ],
+        "bb6": [
+          {
+            "address": {
+              "var": "v1"
+            },
+            "alias_cases": [
+              {
+                "addresses": [
+                  64
+                ],
+                "guards": [
+                  {
+                    "bits": 32,
+                    "equals": 1,
+                    "value": {
+                      "var": "bb3_pointer_edge_tag"
+                    }
+                  }
+                ]
+              },
+              {
+                "addresses": [
+                  65
+                ],
+                "guards": [
+                  {
+                    "bits": 32,
+                    "equals": 2,
+                    "value": {
+                      "var": "bb3_pointer_edge_tag"
+                    }
+                  }
+                ]
+              }
+            ],
+            "bits": 8,
+            "bytes": 1,
+            "op": "store",
+            "value": {
+              "var": "v8"
+            }
+          },
+          {
+            "address": {
+              "var": "v2"
+            },
+            "alias_cases": [
+              {
+                "addresses": [
+                  66
+                ],
+                "guards": [
+                  {
+                    "bits": 32,
+                    "equals": 2,
+                    "value": {
+                      "var": "bb3_pointer_edge_tag"
+                    }
+                  }
+                ]
+              },
+              {
+                "addresses": [
+                  65
+                ],
+                "guards": [
+                  {
+                    "bits": 32,
+                    "equals": 1,
+                    "value": {
+                      "var": "bb3_pointer_edge_tag"
+                    }
+                  }
+                ]
+              }
+            ],
+            "bits": 8,
+            "bytes": 1,
+            "op": "store",
+            "value": {
+              "var": "v9"
+            }
+          },
+          {
+            "op": "jump",
+            "target": "bb8"
+          }
+        ],
+        "bb7": [
+          {
+            "op": "jump",
+            "target": "bb8"
+          }
+        ],
+        "bb8": [
+          {
+            "bits": 8,
+            "dst": "v12",
+            "left": {
+              "var": "v3"
+            },
+            "op": "binary",
+            "operator": "add",
+            "right": {
+              "bits": 8,
+              "const": 1
+            }
+          },
+          {
+            "op": "jump",
+            "target": "edge_bb8_bb4"
+          }
+        ],
+        "bb9": [
+          {
+            "bits": 8,
+            "dst": "v13",
+            "left": {
+              "var": "v5"
+            },
+            "op": "binary",
+            "operator": "xor",
+            "right": {
+              "var": "v7"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "v14",
+            "left": {
+              "var": "v13"
+            },
+            "op": "binary",
+            "operator": "eq",
+            "right": {
+              "bits": 8,
+              "const": 0
+            }
+          },
+          {
+            "condition": {
+              "var": "v14"
+            },
+            "false": "bb11",
+            "op": "branch",
+            "site": "8634978121873700538",
+            "true": "bb10"
+          }
+        ],
+        "edge_bb1_bb3": [
+          {
+            "bits": 32,
+            "dst": "bb3_pointer_edge_tag",
+            "op": "const",
+            "value": 1
+          },
+          {
+            "bits": 64,
+            "dst": "phi_in_18",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "bits": 64,
+              "const": 64
+            }
+          },
+          {
+            "bits": 64,
+            "dst": "phi_in_19",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "bits": 64,
+              "const": 65
+            }
+          },
+          {
+            "bits": 64,
+            "dst": "v1",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "phi_in_18"
+            }
+          },
+          {
+            "bits": 64,
+            "dst": "v2",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "phi_in_19"
+            }
+          },
+          {
+            "op": "jump",
+            "target": "bb3"
+          }
+        ],
+        "edge_bb2_bb3": [
+          {
+            "bits": 32,
+            "dst": "bb3_pointer_edge_tag",
+            "op": "const",
+            "value": 2
+          },
+          {
+            "bits": 64,
+            "dst": "phi_in_20",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "bits": 64,
+              "const": 65
+            }
+          },
+          {
+            "bits": 64,
+            "dst": "phi_in_21",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "bits": 64,
+              "const": 66
+            }
+          },
+          {
+            "bits": 64,
+            "dst": "v1",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "phi_in_20"
+            }
+          },
+          {
+            "bits": 64,
+            "dst": "v2",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "phi_in_21"
+            }
+          },
+          {
+            "op": "jump",
+            "target": "bb3"
+          }
+        ],
+        "edge_bb3_bb4": [
+          {
+            "bits": 8,
+            "dst": "phi_in_22",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "bits": 8,
+              "const": 0
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "v3",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "phi_in_22"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "v4__defined",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "bits": 1,
+              "const": 1
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "v6__defined",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "bits": 1,
+              "const": 1
+            }
+          },
+          {
+            "op": "jump",
+            "target": "bb4"
+          }
+        ],
+        "edge_bb8_bb4": [
+          {
+            "bits": 8,
+            "dst": "phi_in_23",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "v12"
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "v3",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "phi_in_23"
+            }
+          },
+          {
+            "bits": 1,
+            "condition": {
+              "var": "v11"
+            },
+            "dst": "v4__defined",
+            "false": {
+              "var": "v4__defined"
+            },
+            "op": "select",
+            "true": {
+              "var": "llvm_signed_defined_10"
+            }
+          },
+          {
+            "bits": 1,
+            "condition": {
+              "var": "v11"
+            },
+            "dst": "v6__defined",
+            "false": {
+              "var": "v6__defined"
+            },
+            "op": "select",
+            "true": {
+              "var": "llvm_signed_defined_17"
+            }
+          },
+          {
+            "op": "jump",
+            "target": "bb4"
+          }
+        ]
+      },
+      "entry": "bb0",
+      "memory_defined_phis": [
+        {
+          "alias_graph_neighbors": [
+            "v6"
+          ],
+          "block": "bb4",
+          "carry": true,
+          "conditional_carry": true,
+          "cyclic": true,
+          "defined": "v4__defined",
+          "incoming": [
+            {
+              "block": "edge_bb8_bb4",
+              "carry": true,
+              "conditional_carry": true
+            },
+            {
+              "block": "edge_bb3_bb4"
+            }
+          ],
+          "load": "v4",
+          "multicell": true,
+          "multilevel": true,
+          "phi_correlated_pointer_domains": true
+        },
+        {
+          "alias_graph_neighbors": [
+            "v4"
+          ],
+          "block": "bb4",
+          "carry": true,
+          "conditional_carry": true,
+          "cyclic": true,
+          "defined": "v6__defined",
+          "incoming": [
+            {
+              "block": "edge_bb8_bb4",
+              "carry": true,
+              "conditional_carry": true
+            },
+            {
+              "block": "edge_bb3_bb4"
+            }
+          ],
+          "load": "v6",
+          "multicell": true,
+          "multilevel": true,
+          "phi_correlated_pointer_domains": true
+        }
+      ],
+      "param_bits": [],
+      "params": [],
+      "phi_edge_discriminators": [
+        {
+          "bits": 32,
+          "block": "bb3",
+          "incoming": [
+            {
+              "edge": "edge_bb2_bb3",
+              "predecessor": "bb2",
+              "value": 2
+            },
+            {
+              "edge": "edge_bb1_bb3",
+              "predecessor": "bb1",
+              "value": 1
+            }
+          ],
+          "tag": "bb3_pointer_edge_tag"
+        }
+      ],
+      "return_bits": 8
+    }
+  },
+  "input_size": 1,
+  "lowering": {
+    "capabilities": [
+      "integer-ssa",
+      "scalar-mem2reg",
+      "phi-edge-copies",
+      "switch-chain",
+      "direct-internal-calls",
+      "bounded-bitvectors",
+      "static-global-memory",
+      "constant-gep",
+      "multi-byte-memory",
+      "bounded-pointer-union",
+      "bounded-shared-phi-edge-discriminator",
+      "stable-nondeterministic-freeze",
+      "bounded-deferred-poison-freeze",
+      "bounded-transitive-deferred-poison",
+      "bounded-memory-deferred-poison",
+      "bounded-cross-block-memory-deferred-poison",
+      "bounded-branch-memory-deferred-poison",
+      "bounded-memory-definedness-phi",
+      "bounded-multicell-memory-definedness-phi",
+      "bounded-phi-correlated-pointer-domain-multicell-memory-definedness-phi",
+      "bounded-multicell-alias-graph",
+      "bounded-multilevel-memory-definedness-phi",
+      "bounded-cyclic-memory-definedness-phi",
+      "bounded-cyclic-memory-definedness-carry",
+      "bounded-conditional-memory-definedness-carry"
+    ],
+    "entry": "freeze_memory_phi_correlated_reordered_cycle_carry",
+    "input_abi": "integer-arguments-little-endian",
+    "llvm_version": "18.1.3",
+    "schema": "symcc-llvm-continuation-lowering-v1",
+    "source_module": "/home/ubuntu/code/symcc/test/live_continuation_lowering.ll",
+    "status": "lowered"
+  },
+  "memory_hex": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  "memory_objects": [
+    {
+      "address": 64,
+      "kind": "static",
+      "name": "poison_memory_array",
+      "read_only": false,
+      "size": 4
+    }
+  ],
+  "memory_size": 68,
+  "schema": "symcc-live-program-v1"
+}

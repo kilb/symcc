@@ -1,0 +1,7 @@
+Command:
+
+PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q -W error test/test_*.py
+
+Result:
+
+770 passed, 121 subtests passed in 95.48s (0:01:35)

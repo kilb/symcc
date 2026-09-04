@@ -1,0 +1,170 @@
+digraph F307InputAbiTerminalStrata {
+  graph [
+    rankdir=LR,
+    bgcolor="white",
+    pad="0.35",
+    nodesep="0.55",
+    ranksep="0.75",
+    splines=ortho,
+    fontname="Noto Sans CJK SC"
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    penwidth=1.4,
+    color="#334155",
+    fillcolor="#f8fafc",
+    fontname="Noto Sans CJK SC",
+    fontsize=16,
+    margin="0.14,0.10"
+  ];
+  edge [
+    color="#475569",
+    arrowsize=0.75,
+    penwidth=1.25,
+    fontname="Noto Sans CJK SC",
+    fontsize=12
+  ];
+
+  start [
+    label="Candidate / seed bytes\nabsolute path + content hash",
+    fillcolor="#ecfeff",
+    color="#0f766e"
+  ];
+  mode [
+    label="Input ABI gate\n--input-mode auto|stdin|file",
+    shape=diamond,
+    width=2.2,
+    height=1.2,
+    fillcolor="#eef2ff",
+    color="#4f46e5"
+  ];
+
+  subgraph cluster_stdin {
+    label="stdin / persistent AFL++ route";
+    color="#bae6fd";
+    penwidth=1.6;
+    style="rounded";
+    fontname="Noto Sans CJK SC";
+    fontsize=16;
+    stdin_detect [
+      label="auto detects AFL SHM / persistent marker\nor caller requests stdin",
+      fillcolor="#e0f2fe",
+      color="#0284c7"
+    ];
+    streaming [
+      label="bounded afl-showmap -S\nstdin target command only",
+      fillcolor="#f0f9ff",
+      color="#0284c7"
+    ];
+    isolated_stdin [
+      label="one-shot stdin mirror\nsame target command, same bytes",
+      fillcolor="#f0f9ff",
+      color="#0284c7"
+    ];
+    compare [
+      label="compatibility probe\nstatus + full edge set must match",
+      shape=diamond,
+      width=2.55,
+      height=1.2,
+      fillcolor="#fff7ed",
+      color="#ea580c"
+    ];
+    stream_reuse [
+      label="reuse streaming oracle\nstatus-preserving sparse edges",
+      fillcolor="#dcfce7",
+      color="#16a34a"
+    ];
+    fallback [
+      label="campaign-wide one-shot fallback\nmismatch is not treated as 0 edges",
+      fillcolor="#fee2e2",
+      color="#dc2626"
+    ];
+  }
+
+  subgraph cluster_file {
+    label="file / generic one-shot route";
+    color="#c7d2fe";
+    penwidth=1.6;
+    style="rounded";
+    fontname="Noto Sans CJK SC";
+    fontsize=16;
+    file_mode [
+      label="explicit file mode\nor auto without project AFL markers",
+      fillcolor="#eef2ff",
+      color="#4f46e5"
+    ];
+    file_run [
+      label="afl-showmap -- target input_path\nabsolute path, stdin closed",
+      fillcolor="#eef2ff",
+      color="#4f46e5"
+    ];
+    no_batch [
+      label="-S and -I do not rewrite @@\nplaceholder paths use staged one-shot only",
+      fillcolor="#fff7ed",
+      color="#ea580c"
+    ];
+  }
+
+  parse [
+    label="strict sparse-map parser\nedge id < AFL max map size\ncount in 1..255, no duplicates",
+    fillcolor="#f8fafc",
+    color="#475569"
+  ];
+  status [
+    label="terminal status gate\nok / crash / timeout / error",
+    shape=diamond,
+    width=2.3,
+    height=1.2,
+    fillcolor="#faf5ff",
+    color="#9333ea"
+  ];
+  normal_only [
+    label="normal-only policy\nabnormal status aborts measurement",
+    fillcolor="#fee2e2",
+    color="#dc2626"
+  ];
+  stratified [
+    label="stratified policy\nterminal outputs counted separately\nno coverage credit",
+    fillcolor="#fef9c3",
+    color="#ca8a04"
+  ];
+  stable [
+    label="replica selector\nstrict / intersection / union",
+    fillcolor="#f8fafc",
+    color="#475569"
+  ];
+  metrics [
+    label="derived evidence\nbaseline, instability,\nlanding and novel-edge union",
+    fillcolor="#dcfce7",
+    color="#16a34a"
+  ];
+  evidence [
+    label="F307 sealed directory\nraw JSON + summary + SHA-256",
+    fillcolor="#ecfeff",
+    color="#0f766e"
+  ];
+
+  start -> mode;
+  mode -> stdin_detect [label="stdin"];
+  mode -> file_mode [label="file"];
+  stdin_detect -> streaming;
+  stdin_detect -> isolated_stdin;
+  streaming -> compare;
+  isolated_stdin -> compare;
+  compare -> stream_reuse [label="match"];
+  compare -> fallback [label="mismatch"];
+  file_mode -> file_run;
+  file_run -> no_batch;
+  stream_reuse -> parse;
+  fallback -> parse;
+  no_batch -> parse;
+  parse -> status;
+  status -> stable [label="ok"];
+  status -> normal_only [label="terminal"];
+  status -> stratified [label="terminal"];
+  normal_only -> evidence [style=dashed, label="fail closed"];
+  stratified -> metrics [label="excluded"];
+  stable -> metrics;
+  metrics -> evidence;
+}

@@ -1,0 +1,2 @@
+$ PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q -W error test
+776 passed, 125 subtests passed in 97.41s (0:01:37)

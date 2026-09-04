@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    "bad_exception_object_destructor:entry: __cxa_throw currently requires a trivial null destructor [call]"
+  ],
+  "entry": "bad_exception_object_destructor",
+  "llvm_version": "18.1.3",
+  "schema": "symcc-llvm-continuation-lowering-v1",
+  "source_module": "/home/ubuntu/code/symcc/test/live_continuation_lowering.ll",
+  "status": "rejected"
+}

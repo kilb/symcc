@@ -1,0 +1,15 @@
+Real-time Proof Checking for Distributed Incremental SAT Solving, TACAS 2026:
+https://doi.org/10.1007/978-3-032-22752-2_18
+https://satres.kikit.kit.edu/papers/2026-tacas-distrincproof.pdf
+
+Bitwuzla 0.9.1 incremental push/pop and termination API:
+https://bitwuzla.github.io/docs/c/types/bitwuzla.html
+
+On Incremental Pre-processing for SMT, CADE 2023:
+https://doi.org/10.1007/978-3-031-38499-8_3
+
+F426 adopts incremental formula identity, untrusted-transport verification, and
+push/pop prefix execution as research directions. It does not inherit the SAT
+paper's trusted checker, LIDRUP proof support, learned-clause protocol, theorem,
+overhead, or evaluation claims. Its shared artifact is a QF_BV formula plan.
+

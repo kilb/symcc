@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SymCC-Parallel 项目汇报（2026-08-10）</title>
+<style>
+:root{--bg:#fff;--fg:#17212b;--mut:#64748b;--line:#cbd5e1;--panel:#f8fafc;--acc:#2563eb;--ok:#15803d;--warn:#b45309}
+@media(prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e4e6eb;--mut:#a0a7b2;--line:#3b4149;--panel:#1e2329;--acc:#74b5ff;--ok:#5bd486;--warn:#f5b94c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif}
+.wrap{max-width:980px;margin:auto;padding:2.5rem 1.2rem 5rem}
+h1{font-size:2rem;line-height:1.25;margin:0 0 .25rem}
+h2{font-size:1.2rem;margin:2rem 0 .7rem;padding-bottom:.35rem;border-bottom:1px solid var(--line)}
+.sub,.foot{color:var(--mut)}
+.status{display:inline-block;margin:.8rem 0 1.3rem;padding:.32rem .65rem;border:1px solid var(--ok);color:var(--ok);border-radius:5px;font-weight:650}
+.table{overflow-x:auto;border:1px solid var(--line);border-radius:6px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:.65rem .8rem;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:var(--panel);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+a{color:var(--acc)}
+code{background:var(--panel);padding:.1rem .35rem;border-radius:3px}
+.result{border-left:4px solid var(--ok);padding:.2rem 0 .2rem 1rem}
+.limit{border-left:4px solid var(--warn);padding:.2rem 0 .2rem 1rem}
+</style>
+</head>
+<body><main class="wrap">
+<h1>SymCC-Parallel 项目汇报</h1>
+<p class="sub">并行符号执行驱动的混合模糊测试框架：架构、关键技术、SOTA 落地边界与实验进展</p>
+<div class="status">2026-08-13：F374-F397 运行级规划、异常 continuation、proof-carrying alias/writer graph、持久 live-state frontier、interpreter-level ConDPOR、可恢复 UCSan、原生参数发现及程序绑定 ParaSuit value space 已实现、复核并归档</div>
+
+<h2>下载</h2>
+<div class="table"><table>
+<tr><th>文件</th><th>说明</th></tr>
+<tr><td><a href="Project_Progress_Presentation_2026-07-30.pptx">PowerPoint 演示稿</a></td><td>28 页 16:9，27 页含讲者备注；适合直接汇报</td></tr>
+<tr><td><a href="Project_Report_2026-07.html">7 月项目汇报正文（HTML）</a></td><td>F296 阶段的架构、执行流、技术原理、学术映射和实验结论</td></tr>
+<tr><td><a href="Project_Report_2026-07.md">7 月项目汇报正文（Markdown）</a></td><td>F296 阶段正文源文件，可追踪图和证据链接</td></tr>
+<tr><td><a href="SymCC_Project_Report_2026-07-30-reviewed.zip">7 月审核汇报 ZIP</a></td><td>历史封存包，不包含 F297-F301 的后续实现</td></tr>
+<tr><td><a href="SymCC_Project_Report_2026-07-30.zip">迁移前封存 ZIP</a></td><td>只用于追溯，不包含本次审核修订</td></tr>
+<tr><td><a href="Document_Review_2026-07-30.md">迁移后审阅记录</a></td><td>审阅范围、发现、修订项、图形质量与验证结果</td></tr>
+<tr><td><a href="Current_Implementation_Evaluation_2026-07-30.md">当前实现评估</a></td><td>20 轮独立样本配置比较、LAVA-M 消融与方法边界</td></tr>
+<tr><td><a href="research-progress/README.md">研究进展归档</a></td><td>按日期管理阶段进展、验证口径和结论边界</td></tr>
+<tr><td><a href="research-progress/Latest_Two_Week_Research_Progress_2026-09-03.md">最近两周研究进展</a></td><td>并行规模、弹性恢复、可认证求解、智能调度、覆盖收敛与验证边界</td></tr>
+<tr><td><a href="research-progress/Fourth_Deep_Review_Semantic_Transport_Scaling_F464_2026-09-03.md">F464 第四轮深度审查</a></td><td>GEP 语义、RESULT 传输、覆盖并发、生命周期与规模模型的修复和完整门禁</td></tr>
+<tr><td><a href="research-progress/Research_Progress_Since_Last_Sync_2026-08-07.md">自上次同步以来研究进展</a></td><td>F297-F319 的新增研究、创新点、挑战、工作量和验证状态</td></tr>
+<tr><td><a href="research-progress/In_Flight_Target_Leasing_F309_2026-08-07.md">F309 在途目标租约报告</a></td><td>跨lane target group、状态完整性修复、学术依据、测试和实验边界</td></tr>
+<tr><td><a href="research-progress/Transactional_Target_Admission_F310_2026-08-07.md">F310 事务式目标准入报告</a></td><td>无副作用proposal、原子准入、接纳后提交、冲突回填与实验边界</td></tr>
+<tr><td><a href="research-progress/Cross_Coordinator_Target_Fencing_F311_2026-08-07.md">F311 跨协调器 target fencing 报告</a></td><td>target-only重叠group、current-token保护、派发契约、MPI生命周期与实验边界</td></tr>
+<tr><td><a href="research-progress/Failure_Atomic_Lease_Heartbeat_F312_2026-08-07.md">F312 失败原子 heartbeat 报告</a></td><td>group续期回滚、逐租约I/O故障隔离、持久化清理与实验边界</td></tr>
+<tr><td><a href="research-progress/Transactional_MPI_Dispatch_Handoff_F313_2026-08-07.md">F313 事务化 MPI 派发报告</a></td><td>异构reservation补偿、派发状态机、stale-result丢弃与提交边界</td></tr>
+<tr><td><a href="research-progress/Reboot_Safe_Local_Lease_Fencing_F314_2026-08-07.md">F314 重启安全本地 lease 报告</a></td><td>单owner准入、owner-fenced完成、clock迁移与master权威state identity</td></tr>
+<tr><td><a href="research-progress/Dispatch_Generation_Result_Fencing_F315_2026-08-07.md">F315 MPI 派发代次结果报告</a></td><td>per-dispatch token、全出口回显、提交前校验和reasoned quarantine</td></tr>
+<tr><td><a href="research-progress/Generation_Aware_READY_Recovery_F316_2026-08-07.md">F316 generation-aware READY 恢复报告</a></td><td>跨tag代际join、精确补偿、有界重排队与持久deferred recovery</td></tr>
+<tr><td><a href="research-progress/Generation_Fenced_Dispatch_Watchdog_F317_2026-08-07.md">F317 generation-fenced watchdog 报告</a></td><td>静默超时、exact-token任务迁移、parked rank与exact READY恢复</td></tr>
+<tr><td><a href="research-progress/Acknowledged_Bounded_MPI_Shutdown_F318_2026-08-07.md">F318 acknowledged bounded shutdown 报告</a></td><td>READY门控STOP、cleanup ACK、有界Ibarrier、pending显式Abort与真实三进程证据</td></tr>
+<tr><td><a href="research-progress/Shared_MPI_Lifecycle_and_Ordered_Quiescence_F319_2026-08-07.md">F319 shared MPI lifecycle 报告</a></td><td>READY/RESULT有序静止、晚到结果守恒、exact-token master stats与精确idle deadline</td></tr>
+<tr><td><a href="research-progress/Lease_Fenced_Global_Work_Ownership_F320_2026-08-07.md">F320 全局任务所有权报告</a></td><td>rendezvous放置、shared fencing lease、内容回验、过期接管、两阶段静止提交与真实双master数据</td></tr>
+<tr><td><a href="research-progress/Failure_Atomic_Frontier_Prepare_F321_2026-08-07.md">F321 失败原子 frontier 报告</a></td><td>corpus回验、child隐藏暂存/fenced提升、不可偷取commit、record-aware恢复、same-token失败重排与对称PREPARE</td></tr>
+<tr><td><a href="research-progress/Durable_Result_Manifest_Replay_F322_2026-08-07.md">F322 持久结果提交与重放报告</a></td><td>canonical manifest、部分corpus发布幂等redo、complete-once唯一记账、显式epoch接管与损坏日志fail-closed</td></tr>
+<tr><td><a href="research-progress/Directory_Entry_Durability_Barriers_F323_2026-08-07.md">F323 目录项持久化屏障报告</a></td><td>file/目录双层屏障、跨目录public-first同步、故障注入、syscall trace与同步成本</td></tr>
+<tr><td><a href="research-progress/Shard_Level_Heartbeat_Group_Commit_F324_2026-08-07.md">F324 分片级心跳 group commit 报告</a></td><td>逐record内容持久化、每shard目录屏障、失败前缀闭合、微基准与真实MPI</td></tr>
+<tr><td><a href="research-progress/Prevalidated_Target_Group_Mutation_Batching_F325_2026-08-07.md">F325 Target-Group mutation batching 报告</a></td><td>部分释放修复、全组预验证、分片目录屏障、故障补偿、微基准与双进程竞争</td></tr>
+<tr><td><a href="research-progress/Crash_Released_Kernel_Locks_and_Coverage_Integrity_F326_2026-08-07.md">F326 崩溃自动释放的内核锁报告</a></td><td>stable-inode flock、SIGKILL释放、monotonic deadline、coverage失败关闭与多进程证据</td></tr>
+<tr><td><a href="research-progress/Shared_Filesystem_Capability_Contract_F327_2026-08-07.md">F327 共享文件系统能力契约报告</a></td><td>真实共享根、state→corpus边界、隔离child锁litmus、hybrid前置gate与same-host证明边界</td></tr>
+<tr><td><a href="research-progress/Path_Specific_Filesystem_Requirement_Profiles_F328_2026-08-07.md">F328 按路径区分的文件系统契约报告</a></td><td>9/6/5项profile、v1/v2三态快照、同路径操作并集、cache包含关系与40×3成本实验</td></tr>
+<tr><td><a href="research-progress/MPI_Cross_Host_Shared_Lock_Qualification_F329_2026-08-07.md">F329 MPI 跨主机共享锁资格报告</a></td><td>master-only控制面、五阶段host轮转、H/H*(M-1)/H证据升级、同机反误报与合成before/after</td></tr>
+<tr><td><a href="research-progress/Runtime_Cross_Host_Lock_Qualification_Renewal_F330_2026-08-07.md">F330 运行期跨主机共享锁资格续期报告</a></td><td>rank-0授权、generation防重放、周期语义租约、work-lease保护、静止窗口协调与失败关闭</td></tr>
+<tr><td><a href="research-progress/Deterministic_Bounded_Renewal_Jitter_F331_2026-08-07.md">F331 确定性有界续期抖动报告</a></td><td>epoch/generation域分离、delay-only jitter、root-only缓存计划、v2指标、群体反事实与资格门</td></tr>
+<tr><td><a href="research-progress/Epoch_Bound_Renewal_Configuration_Consensus_F332_2026-08-07.md">F332 epoch 绑定的运行期资格配置共识报告</a></td><td>规范binary64配置身份、generation-0有界共识、request-v2 fencing、逐rank漂移失败关闭与ACK后rendezvous</td></tr>
+<tr><td><a href="research-progress/Durable_Renewal_Configuration_Manifest_F333_2026-08-07.md">F333 跨重启续期配置持久承诺报告</a></td><td>live/durable两级承诺、hard-link create-once、exact-read快路径、并发单赢家与真实MPI崩溃恢复</td></tr>
+<tr><td><a href="research-progress/Durable_Completed_Epoch_Cleanup_F334_2026-08-07.md">F334 完成 epoch 持久清理报告</a></td><td>durable rmtree、pre/post-cleanup门控、71/72/73失败分类与真实MPI故障恢复</td></tr>
+<tr><td><a href="research-progress/Atomic_Completed_Epoch_Retirement_F335_2026-08-07.md">F335 完成 epoch 原子退役报告</a></td><td>active→retired持久rename、locked startup GC、真实MPI故障收敛与三尺度成本</td></tr>
+<tr><td><a href="research-progress/Kernel_Enforced_No_Clobber_Epoch_Retirement_F336_2026-08-07.md">F336 内核 no-clobber 退役报告</a></td><td>RENAME_NOREPLACE、真实挂载点资格、EEXIST双名称保持、真实MPI冲突恢复与机制成本</td></tr>
+<tr><td><a href="research-progress/Resumable_Budgeted_Retired_Tree_GC_F337_2026-08-07.md">F337 三预算可恢复 retired-tree GC 报告</a></td><td>descriptor-relative no-follow DFS、部分删除续跑、真实MPI三次收敛、syscall与机制成本</td></tr>
+<tr><td><a href="research-progress/Streaming_Bounded_Memory_Retired_Discovery_F338_2026-08-07.md">F338 流式有界内存 retired-root 发现报告</a></td><td>完整预验证、Top-K不变量、扫描遥测、真实MPI、traced-memory/time对照与边界</td></tr>
+<tr><td><a href="research-progress/Streaming_Expected_First_NoFollow_Staging_F339_2026-08-07.md">F339 staged corpus 完整性报告</a></td><td>expected-first准入、descriptor/no-follow摘要、live/replay失败关闭、真实MPI与机制成本</td></tr>
+<tr><td><a href="research-progress/Bounded_Streaming_Result_Admission_F340_2026-08-10.md">F340 有界流式 result 准入报告</a></td><td>每parent对象/逻辑字节预算、worker固定块暂存、master独立复算、超限与replay语义</td></tr>
+<tr><td><a href="research-progress/Stable_Streaming_Input_Admission_F341_2026-08-10.md">F341 稳定流式 input 准入报告</a></td><td>稳定inode snapshot、两阶段owner发布、worker单遍copy/hash、late external provenance统计修正</td></tr>
+<tr><td><a href="research-progress/Public_Provenance_Intersection_F342_2026-08-10.md">F342 公共 corpus 来源交集报告</a></td><td>observed/public同域投影、phantom external反例、不可变守恒统计与真实双master验证</td></tr>
+<tr><td><a href="research-progress/Bounded_Streaming_Simulation_Mutations_F343_2026-08-10.md">F343 有界流式模拟变异报告</a></td><td>预算前移、同RNG固定窗口扇出、稳定源、失败原子发布、真实MPI与内存/时间证据</td></tr>
+<tr><td><a href="research-progress/Bounded_Hybrid_Worker_Result_Admission_F344_2026-08-10.md">F344 有界 hybrid worker 结果准入报告</a></td><td>完整预算预检、稳定两遍收集、whole-parent拒绝、本地生产wrapper与资源证据</td></tr>
+<tr><td><a href="research-progress/Stable_Hybrid_Input_Admission_F345_2026-08-10.md">F345 稳定 hybrid 输入准入报告</a></td><td>稳定queue快照、前副作用摘要栅栏、自校验CAS、RESULT后驻留确认与continuation身份</td></tr>
+<tr><td><a href="research-progress/Descriptor_Bound_CAS_Publication_Closure_F346_2026-08-10.md">F346 descriptor-bound CAS 发布闭环报告</a></td><td>写fd跨rename身份闭合、ctime语义、乐观竞争仲裁、零fast-path重哈希与故障注入</td></tr>
+<tr><td><a href="research-progress/Unified_Live_State_CAS_F347_2026-08-10.md">F347 统一 live-state CAS 报告</a></td><td>兼容`.json`对象图、统一发布闭环、稳定no-follow读取、cache状态机与故障注入</td></tr>
+<tr><td><a href="research-progress/Budgeted_Transitive_Live_State_Restore_F348_2026-08-10.md">F348 有预算的传递式 live-state 恢复报告</a></td><td>parent Merkle DAG闭包、digest memo、唯一对象/canonical-byte双预算、深层引用验证与精确边界</td></tr>
+<tr><td><a href="research-progress/Descriptor_Anchored_CAS_Namespace_F349_2026-08-10.md">F349 descriptor-anchored CAS 命名空间报告</a></td><td>root/shard directory capability、descriptor-relative leaf I/O、提交前命名空间闭合与故障注入</td></tr>
+<tr><td><a href="research-progress/Component_Wise_Anchored_CAS_Root_F350_2026-08-10.md">F350 逐组件锚定 CAS 根目录报告</a></td><td>从/开始的no-follow能力链、仅ENOENT相对创建、ancestry closure、跨chdir绝对路径与故障注入</td></tr>
+<tr><td><a href="research-progress/Identity_Closed_Cluster_Lock_Qualification_F351_2026-08-10.md">F351 身份闭合的跨节点锁资格报告</a></td><td>state/publication重绑定、root/leaf descriptor锚点、全master身份闭合、v2 typestate与故障注入</td></tr>
+<tr><td><a href="research-progress/Generation_Bound_Lock_Proof_Transcript_F352_2026-08-10.md">F352 代次绑定的跨节点锁证明转录报告</a></td><td>generation challenge、规范化transcript、全master提交、拓扑/capability绑定与重放/拼接拒绝</td></tr>
+<tr><td><a href="research-progress/Failure_Atomic_Renewal_Result_Admission_F353_2026-08-10.md">F353 失败原子的运行期锁续期结果准入报告</a></td><td>结果准入总化、validate/derive/commit单提交点、精确代次与elapsed门、attempt守恒和异常零状态变更</td></tr>
+<tr><td><a href="research-progress/Rank_Contained_Renewal_Completion_F354_2026-08-10.md">F354 rank-contained运行期锁续期完成报告</a></td><td>普通异常值化、proof失败判别返回、bounded diagnostic、fatal-control接入与BaseException透传</td></tr>
+<tr><td><a href="research-progress/Total_Cluster_Lock_Qualification_Boundary_F355_2026-08-10.md">F355跨节点锁资格公共总化边界报告</a></td><td>producer-side普通异常值化、失败结果规范化、startup/runtime消费闭环与BaseException透传</td></tr>
+<tr><td><a href="research-progress/Collective_Safe_Qualification_Observation_F356_2026-08-10.md">F356 collective-safe资格输入观测报告</a></td><td>filesystem/processor普通异常负证据、条件式membership schema、双rank收敛与BaseException透传</td></tr>
+<tr><td><a href="research-progress/Renewal_Heartbeat_and_Clock_Containment_F357_2026-08-10.md">F357 heartbeat与完成时钟异常闭包报告</a></td><td>一次性heartbeat观测、完整batch准入、时钟边界、双rank负证据与副作用语义</td></tr>
+<tr><td><a href="research-progress/Renewal_Control_Transport_Containment_F358_2026-08-10.md">F358 renewal control transport异常闭包报告</a></td><td>post-begin generation/部分send保留、peer异常分类、三值一次性delivery观测与边界</td></tr>
+<tr><td><a href="research-progress/Hermetic_Pytest_Discovery_Boundary_F359_2026-08-10.md">F359 hermetic pytest发现边界报告</a></td><td>默认根发现隔离、显式QSYM入口保留、6-error反事实、12-check证据与完整无路径回归</td></tr>
+<tr><td><a href="research-progress/Capability_Closed_Python_CI_Gate_F360_2026-08-10.md">F360 capability-closed Python CI报告</a></td><td>16项能力前检、零退化pytest门、原子JSON、空venv重建与完整回归</td></tr>
+<tr><td><a href="research-progress/Canonical_Pytest_Identity_Inventory_F361_2026-08-10.md">F361 canonical pytest identity inventory报告</a></td><td>787项规范nodeid、gate v2集合准入、插件隔离、等量替换反事实与完整回归</td></tr>
+<tr><td><a href="research-progress/Single_Snapshot_Pytest_Manifest_Admission_F362_2026-08-11.md">F362 single-snapshot pytest manifest报告</a></td><td>单描述符有界快照、重复JSON member拒绝、强制插件隔离与三类反事实</td></tr>
+<tr><td><a href="research-progress/Bounded_Single_Snapshot_Query_IR_Admission_F363_2026-08-11.md">F363 bounded Query IR admission报告</a></td><td>异步Query IR有界单描述符读取、严格JSON、入库前失败关闭与五类生产反例</td></tr>
+<tr><td><a href="research-progress/Stable_Query_IR_and_Crash_Released_Spool_Admission_F364_2026-08-11.md">F364 stable Query spool admission报告</a></td><td>稳定regular-file读取、身份闭包、协作式单消费者flock、真实SIGKILL接管与边界</td></tr>
+<tr><td><a href="research-progress/Outcome_Separated_Query_Spool_Commit_F365_2026-08-11.md">F365 outcome-separated Query spool报告</a></td><td>显式准入类型、validate/persist/publish结果隔离、三类基础设施故障传播与幂等恢复</td></tr>
+<tr><td><a href="research-progress/Verified_Query_Artifact_CAS_F366_2026-08-11.md">F366 verified Query artifact CAS报告</a></td><td>descriptor-anchored SMT2内容证明、repair-before-index、规范路径门、pre-lease准入与并发收敛</td></tr>
+<tr><td><a href="research-progress/Sealed_Query_Artifact_FD_Handoff_F367_2026-08-11.md">F367 sealed Query artifact fd handoff报告</a></td><td>四seal memfd、一次性pass_fds、query-id-bound SCM_RIGHTS、C++ descriptor准入与真实helper验证</td></tr>
+<tr><td><a href="research-progress/Failure_Atomic_Persistent_Solver_Generation_Reset_F368_2026-08-11.md">F368 persistent solver generation reset报告</a></td><td>双通道半提交反例、整代回收、selector有界framing及ID/超长/部分响应冷恢复</td></tr>
+<tr><td><a href="research-progress/Protocol_Complete_Persistent_Solver_Request_Preflight_F369_2026-08-11.md">F369 protocol-complete request preflight报告</a></td><td>newline future-ID注入、延迟同ID stale model、最终六字段commit image与descriptor envelope预检</td></tr>
+<tr><td><a href="research-progress/Deadline_Bounded_Dual_Channel_Request_Commit_F370_2026-08-11.md">F370 deadline-bounded双通道提交报告</a></td><td>真实pipe/SCM_RIGHTS背压、strict UTF-8有界frame、共享absolute deadline与整代恢复</td></tr>
+<tr><td><a href="research-progress/Generation_Unique_Logical_Request_Admission_F371_2026-08-11.md">F371 generation-unique逻辑请求准入报告</a></td><td>同ID迟到重复响应反例、generation内at-most-once、有界digest历史与协议兼容冷换代</td></tr>
+<tr><td><a href="research-progress/Bounded_Content_Equivalent_CAS_Publication_Revalidation_F372_2026-08-11.md">F372 bounded CAS publication revalidation报告</a></td><td>同摘要writer一次复核假失败、exact/wrong/unstable三值观察、32次封顶与真实并发收敛</td></tr>
+<tr><td><a href="research-progress/Report_Only_Query_Artifact_Reachability_Audit_F373_2026-08-11.md">F373 report-only Query artifact reachability报告</a></td><td>SQL-only盲区、typed orphan join、有界命名空间扫描、partial/null语义、publisher fence与无删除边界</td></tr>
+<tr><td><a href="research-progress/Agolic_Run_Level_Planning_F374_2026-08-12.md">F374 Agolic run-level planning报告</a></td><td>跨BSE规划、确定性准入、并行执行/串行原生replay与四类证据</td></tr>
+<tr><td><a href="research-progress/Cleanup_Only_Exception_Unwind_F375_2026-08-12.md">F375 cleanup-only exception unwind报告</a></td><td>LLVM异常lowering、逐帧展开、handler-depth清理与CAS checkpoint恢复</td></tr>
+<tr><td><a href="research-progress/Exact_Typed_Exception_Matching_F376_2026-08-12.md">F376 exact typed exception matching报告</a></td><td>碰撞检测selector、landingpad前置匹配、错配续展开与checkpoint组合验证</td></tr>
+<tr><td><a href="research-progress/Declarative_Pure_External_Models_F377_2026-08-12.md">F377 declarative pure external model报告</a></td><td>版本化纯函数DSL、LLVM effect contract、双重准入、QF_BV/CAS执行与失败关闭</td></tr>
+<tr><td><a href="research-progress/Scalar_Exception_Token_and_Catch_Lifecycle_F378_2026-08-12.md">F378 exception catch lifecycle报告</a></td><td>landingpad token、begin/end/rethrow 三相状态机、checkpoint恢复与完整ABI边界</td></tr>
+<tr><td><a href="research-progress/Trivial_Scalar_Catch_Object_F379_2026-08-12.md">F379 trivial scalar catch object报告</a></td><td>begin-result直接整数load、exact-width值投影、CAS恢复与通用对象边界</td></tr>
+<tr><td><a href="research-progress/Bounded_Exception_Object_Arena_F380_2026-08-12.md">F380 bounded exception object arena报告</a></td><td>fixed allocation/store/throw、generation/owner/lifetime证书、跨frame对象转移、catch memory读取与normal销毁</td></tr>
+<tr><td><a href="research-progress/Pre_IO_Persistent_Portfolio_Cancellation_F381_2026-08-12.md">F381 pre-I/O persistent cancellation报告</a></td><td>future预登记、query-scoped取消、queued/active分离、exact process中断与cold recovery</td></tr>
+<tr><td><a href="research-progress/Constant_GEP_Exception_Object_Fields_F382_2026-08-12.md">F382 constant-GEP exception object fields报告</a></td><td>DataLayout字段、throw/catch provenance、真实C++两阶段canonicalization与LLVM17/18对拍</td></tr>
+<tr><td><a href="research-progress/Proof_Carrying_Multicell_Alias_Graph_F383_2026-08-12.md">F383 proof-carrying multi-cell alias graph报告</a></td><td>对称别名图、有限cell/guard/index复核、符号索引误报修复与PHI保守边界</td></tr>
+<tr><td><a href="research-progress/Shared_PHI_Edge_Discriminator_F384_2026-08-13.md">F384 shared PHI edge discriminator报告</a></td><td>共享predecessor identity、exact edge合同、reordered-PHI与function-pointer回归</td></tr>
+<tr><td><a href="research-progress/Proof_Carrying_Byte_Lane_Writer_Graph_F385_2026-08-13.md">F385 proof-carrying byte-lane writer graph报告</a></td><td>地址闭合last-writer重放、覆盖写与initial lane、poison transfer及跨函数namespace复核</td></tr>
+<tr><td><a href="research-progress/Proof_Carrying_Byte_Lane_PHI_Writer_Graph_F386_2026-08-13.md">F386 proof-carrying byte-lane PHI writer graph报告</a></td><td>逐endpoint地址/顺序重放、initial lane、poison transfer及跨合同作用域复核</td></tr>
+<tr><td><a href="research-progress/Proof_Carrying_Cyclic_Byte_Lane_Writer_Graph_F387_2026-08-13.md">F387 proof-carrying cyclic byte-lane writer graph报告</a></td><td>seed/backedge地址与顺序重放、merge-load carry边界、poison闭包及条件循环隔离</td></tr>
+<tr><td><a href="research-progress/Proof_Carrying_Conditional_Cyclic_Byte_Lane_Writer_Graph_F388_2026-08-13.md">F388 proof-carrying conditional cyclic byte-lane writer graph报告</a></td><td>direct/forwarded leaf分区、三段last-writer重放、poison身份闭包与反例验证</td></tr>
+<tr><td><a href="research-progress/Proof_Carrying_MultiArm_Cyclic_Byte_Lane_Writer_Graph_F389_2026-08-13.md">F389 proof-carrying multi-arm cyclic byte-lane writer graph报告</a></td><td>direct/forwarded三叶逐arm边界、last-writer重放、poison身份闭包与反例验证</td></tr>
+<tr><td><a href="research-progress/Proof_Carrying_Recursive_Cyclic_Byte_Lane_Writer_Graph_F390_2026-08-13.md">F390 proof-carrying recursive cyclic byte-lane writer graph报告</a></td><td>direct/forwarded四叶树、验证器重建父分支、逐叶last-writer与specialized隔离</td></tr>
+<tr><td><a href="research-progress/Lease_Fenced_Persistent_Live_State_Frontier_F391_2026-08-13.md">F391 lease-fenced persistent live-state frontier报告</a></td><td>可恢复搜索快照、generation CAS、heartbeat/TTL、迟到结果栅栏与observation rebase</td></tr>
+<tr><td><a href="research-progress/Bounded_Interpreter_Level_ConDPOR_F392_2026-08-13.md">F392 bounded interpreter-level ConDPOR报告</a></td><td>closed SC-QF_BV IR、execution-graph重放、backward revisit、双独立oracle与严格声明边界</td></tr>
+<tr><td><a href="research-progress/Recoverable_UCSan_Object_Context_F393_2026-08-13.md">F393 recoverable UCSan object context报告</a></td><td>严格seed事务、JITI预算、规范耐久快照与fresh-process重放</td></tr>
+<tr><td><a href="research-progress/UCSan_Explicit_Object_Checkers_F394_2026-08-13.md">F394 UCSan explicit-object checker报告</a></td><td>显式对象OOB/UAF、动态frame、realloc事务与C++ unwind</td></tr>
+<tr><td><a href="research-progress/UCSan_Byte_Initialization_and_UBI_F395_2026-08-13.md">F395 UCSan byte initialization/UBI报告</a></td><td>逐字节初始化、SSA/调用传播、sink-only UBI与realloc/atomic迁移</td></tr>
+<tr><td><a href="research-progress/Native_Parameter_Provider_and_Lifecycle_Routing_F396_2026-08-13.md">F396 native parameter provider报告</a></td><td>可执行参数协议、bounded discovery、原子registry、生命周期路由与schema-bound state</td></tr>
+<tr><td><a href="research-progress/Program_Bound_ParaSuit_Value_Space_F397_2026-08-13.md">F397 program-bound ParaSuit value-space报告</a></td><td>程序身份、成本校正MeanShift/silhouette gate、持久状态完整性与机制实验</td></tr>
+<tr><td><a href="research-progress/Lease_Fenced_QFBV_Artifact_Lifecycle_F429_2026-08-17.md">F429 QF_BV制品生命周期报告</a></td><td>generation-fenced roots、四类制品依赖闭包、完整性先验、有预算dependent-first GC与严格实验边界</td></tr>
+<tr><td><a href="research-progress/Native_QFBV_Solver_State_Fork_Reuse_F430_2026-08-17.md">F430 QF_BV原生状态复用报告</a></td><td>Z3前缀预热、Linux COW目标隔离、严格状态协议、timeout恢复与同版本机制对拍</td></tr>
+<tr><td><a href="Current_Technology_Compendium.md">当前技术全景</a></td><td>F00-F430 共 431 项功能的实现、测试和成熟度导航</td></tr>
+<tr><td><a href="SOTA_Implementation_Continuation_2026-07-30.md">SOTA 实施续档</a></td><td>F297-F298 的后续代码、测试、真实程序证据与边界</td></tr>
+<tr><td><a href="Profile_Guided_Solver_Consumption_2026-08-04.md">F301 技术报告</a></td><td>路径 site 对齐、严格经验域 sidecar、SAT-only 求解消费、验证与完整回退</td></tr>
+<tr><td><a href="Online_Empirical_Domain_Feedback_2026-08-04.md">F302 技术报告</a></td><td>滚动聚合、版本化 MPI 交付、worker 本地安装、域撤销和真实并行证据</td></tr>
+<tr><td><a href="Adaptive_Empirical_Domain_Admission_2026-08-04.md">F303 技术报告</a></td><td>精确域反馈、v2 证明工件、低收益抑制、滚动重新探索和真实状态转换证据</td></tr>
+<tr><td><a href="Cost_Aware_Empirical_Domain_Admission_2026-08-04.md">F304 技术报告</a></td><td>Z3 检查成本归因、三条件准入、v3 证明工件、兼容迁移和同源反事实证据</td></tr>
+<tr><td><a href="Replay_Verified_Online_Profile_Recovery_2026-08-04.md">F305 技术报告</a></td><td>恢复期记录重放、runtime 语义复核、checkpoint 故障计数与持久化重试</td></tr>
+<tr><td><a href="Interleaved_Fail_Closed_Coverage_Oracle_2026-08-05.md">F306 技术报告</a></td><td>受界流式协议、兼容探针、交错复测、同源指标和可复算逐轮边集</td></tr>
+<tr><td><a href="Input_ABI_Terminal_Stratified_Coverage_Oracle_2026-08-06.md">F307 技术报告</a></td><td>输入 ABI 显式化、terminal status 分层、MPI fast path 准入和 schema v2 证据</td></tr>
+<tr><td><a href="diagrams/edge-utility-replay-2026-08-06.svg">F308 机制示意图</a></td><td>branch_trace、edge row、target queue、utility ranking 与 targeted worker replay 数据流</td></tr>
+<tr><td><a href="diagrams/inflight-target-leasing-2026-08-07.svg">F309 机制示意图</a></td><td>统一候选lane、原子group租约、结果释放、失联过期恢复与完整性修复</td></tr>
+<tr><td><a href="diagrams/transactional-target-admission-2026-08-07.svg">F310 机制示意图</a></td><td>proposal、原子lease、接纳后commit与冲突后配额回填</td></tr>
+<tr><td><a href="diagrams/cross-coordinator-target-fencing-2026-08-07.svg">F311 机制示意图</a></td><td>跨主group claim、current-token保护、派发契约、heartbeat与结果释放</td></tr>
+<tr><td><a href="diagrams/lease-fenced-global-work-ownership-2026-08-07.svg">F320 机制示意图</a></td><td>SHA-256身份、HRW放置、lease状态机、双master分片和PREPARE/COMMIT时序</td></tr>
+<tr><td><a href="diagrams/failure-atomic-frontier-prepare-2026-08-07.svg">F321 机制示意图</a></td><td>可验证corpus准入、隐藏stage、不可逆commit、fenced retry与root/peer对称PREPARE</td></tr>
+<tr><td><a href="diagrams/durable-result-manifest-replay-2026-08-07.svg">F322 机制示意图</a></td><td>commit前持久manifest、stage/public联合验证、幂等redo、complete-once唯一记账与future lease接管</td></tr>
+<tr><td><a href="diagrams/directory-durability-barriers-2026-08-07.svg">F323 机制示意图</a></td><td>file/目录双层屏障、跨目录public-first同步、故障状态收敛与保证升级边界</td></tr>
+<tr><td><a href="diagrams/shard-heartbeat-group-commit-2026-08-07.svg">F324 机制示意图</a></td><td>自然续租批次、逐record file fsync/rename、每shard目录屏障与失败关闭结果</td></tr>
+<tr><td><a href="diagrams/prevalidated-target-mutation-batching-2026-08-07.svg">F325 机制示意图</a></td><td>部分释放反例、全组预验证、逐record mutation、分片提交屏障、故障补偿与crash边界</td></tr>
+<tr><td><a href="diagrams/crash-released-kernel-locks-2026-08-07.svg">F326 机制示意图</a></td><td>目录锁崩溃/时间抢锁反例、stable inode有界flock、coverage authority失败关闭与部署边界</td></tr>
+<tr><td><a href="diagrams/shared-filesystem-capability-contract-2026-08-07.svg">F327 机制示意图</a></td><td>旧启动晚失败、四阶段真实路径探针、PASS/FAIL gate与same-host/cross-host证明边界</td></tr>
+<tr><td><a href="diagrams/path-specific-filesystem-contracts-2026-08-07.svg">F328 机制示意图</a></td><td>协议操作矩阵、同路径并集、三态快照、实测成本与required-operation失败关闭</td></tr>
+<tr><td><a href="diagrams/mpi-cross-host-lock-qualification-2026-08-07.svg">F329 机制示意图</a></td><td>独立MPI控制面、OPEN/HELD/EXCLUDED/RELEASED/REACQUIRED轮转、证据基数与严格边界</td></tr>
+<tr><td><a href="diagrams/runtime-lock-qualification-renewal-2026-08-07.svg">F330 机制示意图</a></td><td>启动资格到运行期语义租约、代次状态机、续期安全窗口、成功更新与漂移失败关闭</td></tr>
+<tr><td><a href="diagrams/deterministic-renewal-jitter-2026-08-07.svg">F331 机制示意图</a></td><td>固定节拍惊群、确定性有界公式、root-only缓存状态流、群体计划结果与严格证明边界</td></tr>
+<tr><td><a href="diagrams/renewal-configuration-consensus-2026-08-07.svg">F332 机制示意图</a></td><td>配置身份规范化、generation-0有界共识、每代请求绑定、漂移关闭时序与真实MPI/机制成本边界</td></tr>
+<tr><td><a href="diagrams/durable-renewal-configuration-manifest-2026-08-07.svg">F333 机制示意图</a></td><td>live共识到durable create-once、exact-read/ENOENT/drift状态机及-9/70/0三阶段恢复证据</td></tr>
+<tr><td><a href="diagrams/durable-completed-epoch-cleanup-2026-08-07.svg">F334 机制示意图</a></td><td>静默删除反例、双屏障退出协议、成功不变量、失败分类与72→0恢复证据</td></tr>
+<tr><td><a href="diagrams/atomic-completed-epoch-retirement-2026-08-07.svg">F335 机制示意图</a></td><td>完成关键路径变换、active/retired状态机、locked GC、真实MPI与三尺度结果</td></tr>
+<tr><td><a href="diagrams/kernel-enforced-noreplace-retirement-2026-08-07.svg">F336 机制示意图</a></td><td>check-then-replace竞态、启动/完成双门、syscall与真实MPI恢复、固定机制成本</td></tr>
+<tr><td><a href="diagrams/resumable-budgeted-retired-gc-2026-08-07.svg">F337 机制示意图</a></td><td>旧无界启动删除、三预算状态机、可恢复目录状态、跨启动收敛、成本与严格边界</td></tr>
+<tr><td><a href="diagrams/streaming-retired-discovery-2026-08-07.svg">F338 机制示意图</a></td><td>单遍完整预验证、容量L的反序heap、复杂度对照、内存/时间数据与证据边界</td></tr>
+<tr><td><a href="diagrams/streaming-nofollow-staging-2026-08-07.svg">F339 机制示意图</a></td><td>manifest先于内容I/O、opened-inode摘要、live/replay语义、异常0-hash与分层证据</td></tr>
+<tr><td><a href="diagrams/bounded-streaming-result-admission-2026-08-10.svg">F340 机制示意图</a></td><td>配置共识、worker双阶段预算、master重复展开复算、失败关闭与commit replay例外</td></tr>
+<tr><td><a href="diagrams/stable-streaming-input-admission-2026-08-10.svg">F341 机制示意图</a></td><td>旧路径反例、master两阶段identity closure、worker单遍复制、统计等式与证据边界</td></tr>
+<tr><td><a href="diagrams/public-provenance-intersection-2026-08-10.svg">F342 机制示意图</a></td><td>observed/public/intersection三域、旧公式反例、4096对象对照与真实MPI确定性时间线</td></tr>
+<tr><td><a href="diagrams/bounded-streaming-simulation-2026-08-10.svg">F343 机制示意图</a></td><td>旧三份整文件内存、预算预检、同RNG固定窗口扇出、原子发布、资源数据与证据边界</td></tr>
+<tr><td><a href="diagrams/bounded-hybrid-worker-results-2026-08-10.svg">F344 机制示意图</a></td><td>旧式无界聚合、完整准入、稳定摘要/内容两遍、whole-parent拒绝、资源数据与适用边界</td></tr>
+<tr><td><a href="diagrams/stable-hybrid-input-admission-2026-08-10.svg">F345 机制示意图</a></td><td>AFL评分、master准入、CAS物化、worker执行、ACK驻留、continuation身份与资源数据</td></tr>
+<tr><td><a href="diagrams/descriptor-bound-cas-publication-2026-08-10.svg">F346 机制示意图</a></td><td>无竞争提交证明链、rename ctime处理、摘要仲裁、正确writer收敛与错误竞争失败关闭</td></tr>
+<tr><td><a href="diagrams/unified-live-state-cas-2026-08-10.svg">F347 机制示意图</a></td><td>continuation对象图、统一写/读证明闸门、身份cache状态与8-check证据边界</td></tr>
+<tr><td><a href="diagrams/budgeted-transitive-live-state-2026-08-10.svg">F348 机制示意图</a></td><td>child/parent共享Merkle DAG、first-seen预算准入、restore-local memo、失败分支与9-check证据</td></tr>
+<tr><td><a href="diagrams/descriptor-anchored-cas-namespace-2026-08-10.svg">F349 机制示意图</a></td><td>公开root/shard、已打开目录capability、descriptor-relative对象事务、replacement拒绝与11-check证据</td></tr>
+<tr><td><a href="diagrams/component-wise-anchored-cas-root-2026-08-10.svg">F350 机制示意图</a></td><td>祖先symlink旧副作用、逐组件能力链、祖先替换时间线、detached I/O与提交前ancestry closure</td></tr>
+<tr><td><a href="diagrams/identity-closed-cluster-lock-qualification-2026-08-10.svg">F351 机制示意图</a></td><td>同内容inode替换反例、双层绑定、master时序、精确证据基数与部署边界</td></tr>
+<tr><td><a href="diagrams/generation-bound-lock-proof-transcript-2026-08-10.svg">F352 机制示意图</a></td><td>旧代重放反例、规范化摘要、三master时序、双层完成门、验证数据与Byzantine边界</td></tr>
+<tr><td><a href="diagrams/failure-atomic-renewal-result-admission-2026-08-10.svg">F353 机制示意图</a></td><td>旧半提交反例、Validate/Derive/Commit单提交点、失败分类、attempt守恒与机制证据</td></tr>
+<tr><td><a href="diagrams/rank-contained-renewal-completion-2026-08-10.svg">F354 机制示意图</a></td><td>旧异常逃逸反例、统一completion boundary、四类结果语义、组合不变量与证据边界</td></tr>
+<tr><td><a href="diagrams/total-cluster-lock-qualification-boundary-2026-08-10.svg">F355 机制示意图</a></td><td>producer异常逃逸反例、公共totalization边界、规范化失败结果、双消费路径与证据边界</td></tr>
+<tr><td><a href="diagrams/collective-safe-qualification-observation-2026-08-10.svg">F356 机制示意图</a></td><td>资格前异常逃逸、顺序观测边界、条件式membership、双rank收敛、生产路径与证据边界</td></tr>
+<tr><td><a href="diagrams/renewal-heartbeat-clock-containment-2026-08-10.svg">F357 机制示意图</a></td><td>heartbeat/clock三处旧异常出口、at-most-once生产路径、本地/外部状态边界与14-check证据</td></tr>
+<tr><td><a href="diagrams/renewal-control-transport-containment-2026-08-10.svg">F358 机制示意图</a></td><td>post-begin异常反例、root/peer传输状态机、completed/incomplete/uncertain代数与15-check边界</td></tr>
+<tr><td><a href="diagrams/hermetic-pytest-discovery-2026-08-10.svg">F359 机制示意图</a></td><td>根pytest入口、默认项目发现、显式QSYM生命周期与不隐藏后端测试的隔离契约</td></tr>
+<tr><td><a href="diagrams/capability-closed-python-ci-gate-2026-08-10.svg">F360 机制示意图</a></td><td>CI环境构造、能力前检、pytest hook观测、零退化准入与原子artifact流程</td></tr>
+<tr><td><a href="diagrams/canonical-pytest-identity-inventory-2026-08-10.svg">F361 机制示意图</a></td><td>计数门盲区、规范身份清单、完整集合准入、等量替换反事实与证据边界</td></tr>
+<tr><td><a href="diagrams/single-snapshot-pytest-manifest-admission-2026-08-11.svg">F362 机制示意图</a></td><td>stat/read对象分裂、单描述符MAX+1读取、严格JSON、强制环境与三类反事实</td></tr>
+<tr><td><a href="diagrams/bounded-single-snapshot-query-ir-admission-2026-08-11.svg">F363 机制示意图</a></td><td>Query IR路径观测分裂、有界字节快照、重复member/非有限数拒绝与持久入库边界</td></tr>
+<tr><td><a href="diagrams/stable-query-spool-admission-2026-08-11.svg">F364 机制示意图</a></td><td>旧双消费者竞争、stable reader、crash-released flock、SIGKILL接管与完整门禁</td></tr>
+<tr><td><a href="diagrams/outcome-separated-query-spool-commit-2026-08-11.svg">F365 机制示意图</a></td><td>旧accepted误分类、validate/persist/publish三阶段、四类结果与幂等恢复状态</td></tr>
+<tr><td><a href="diagrams/verified-query-artifact-cas-2026-08-11.svg">F366 机制示意图</a></td><td>存在即信任反例、descriptor-anchored发布与身份链、规范索引以及提交前lease准入状态机</td></tr>
+<tr><td><a href="diagrams/sealed-query-artifact-fd-handoff-2026-08-11.svg">F367 机制示意图</a></td><td>claim后路径替换反例、三artifact sealed快照、一次性继承与持久化descriptor传输双数据面</td></tr>
+<tr><td><a href="diagrams/persistent-solver-generation-reset-2026-08-11.svg">F368 机制示意图</a></td><td>A-fd/B-text错配、单generation事务、失败整代回收、冷启动与selector有界响应控制面</td></tr>
+<tr><td><a href="diagrams/protocol-complete-request-preflight-2026-08-11.svg">F369 机制示意图</a></td><td>future-ID延迟frame反例、pathname/sealed双模式、六字段commit image与零副作用预检</td></tr>
+<tr><td><a href="diagrams/deadline-bounded-request-commit-2026-08-11.svg">F370 机制示意图</a></td><td>legacy双阻塞反例、preflight commit frame、双通道共享deadline、整代fence与实验结果</td></tr>
+<tr><td><a href="diagrams/generation-unique-request-admission-2026-08-11.svg">F371 机制示意图</a></td><td>同ID迟到响应反例、generation准入判定、重复/容量换代、有界元数据与fresh response</td></tr>
+<tr><td><a href="diagrams/bounded-cas-publication-revalidation-2026-08-11.svg">F372 机制示意图</a></td><td>同摘要writer交错反例、三值stable snapshot、重试回环、错误/耗尽拒绝与实测证据</td></tr>
+<tr><td><a href="diagrams/report-only-query-artifact-reachability-2026-08-11.svg">F373 机制示意图</a></td><td>协作publisher fence、SQLite root snapshot、三CAS inventory、typed join、partial三值语义与F374边界</td></tr>
+<tr><td><a href="diagrams/cleanup-exception-unwind-f375.svg">F375 机制示意图</a></td><td>LLVM invoke、cleanup-only landingpad、capability闭包、异常栈展开、CAS checkpoint恢复与三类运行结果</td></tr>
+<tr><td><a href="diagrams/typed-exception-matching-f376.svg">F376 机制示意图</a></td><td>稳定typeinfo selector、typed throw、landingpad前置匹配、checkpoint组合验证与错配续展开</td></tr>
+<tr><td><a href="diagrams/declarative-pure-external-f377.svg">F377 机制示意图</a></td><td>LLVM纯度契约、compiler/runtime双准入、可审计artifact、QF_BV/CAS恢复与失败关闭通道</td></tr>
+<tr><td><a href="diagrams/exception-catch-lifecycle-f378.svg">F378 机制示意图</a></td><td>LLVM token provenance、unwinding/caught/rethrowing状态机、CAS不变量与失败关闭边界</td></tr>
+<tr><td><a href="diagrams/trivial-scalar-catch-object-f379.svg">F379 机制示意图</a></td><td>LLVM全use-set准入、caught-phase位宽证明、CAS值投影与对象操作拒绝边界</td></tr>
+<tr><td><a href="diagrams/exception-object-arena-f380.svg">F380 机制示意图</a></td><td>ABI入口、bounded arena槽位、generation/owner转移、跨frame unwind、catch读取/销毁与未支持边界</td></tr>
+<tr><td><a href="diagrams/pre-io-persistent-cancellation-f381.svg">F381 机制示意图</a></td><td>旧取消丢失时序、pre-I/O线性化点、queued/active分离、cold reset与注销责任</td></tr>
+<tr><td><a href="diagrams/exception-object-fields-f382.svg">F382 机制示意图</a></td><td>真实C++源码、branch-preserving canonicalization、guarded arena字段、active-object投影与失败关闭边界</td></tr>
+<tr><td><a href="diagrams/multicell-alias-graph-f383.svg">F383 机制示意图</a></td><td>LLVM producer proof、对称portable artifact、runtime admission oracle、相关重叠与失败关闭反例</td></tr>
+<tr><td><a href="diagrams/shared-phi-edge-discriminator-f384.svg">F384 机制示意图</a></td><td>独立tag缺口、共享PHI edge tag、reordered incoming关系与exact admission closure</td></tr>
+<tr><td><a href="diagrams/byte-lane-writer-graph-f385.svg">F385 机制示意图</a></td><td>声明式lane来源缺口、CFG反向last-writer重放、poison-source绑定与失败关闭准入</td></tr>
+<tr><td><a href="diagrams/byte-lane-phi-writer-graph-f386.svg">F386 机制示意图</a></td><td>PHI可信缺口、逐endpoint逆向last-writer证明、poison-source绑定与机械拒绝边界</td></tr>
+<tr><td><a href="diagrams/cyclic-byte-lane-writer-graph-f387.svg">F387 机制示意图</a></td><td>循环声明缺口、seed/backedge逆向last-writer证明、merge-load carry边界与能力隔离</td></tr>
+<tr><td><a href="diagrams/conditional-cyclic-byte-lane-writer-graph-f388.svg">F388 机制示意图</a></td><td>条件循环leaf分区、seed/join/branch三段证明与四类fail-closed准入</td></tr>
+<tr><td><a href="diagrams/multiarm-cyclic-byte-lane-writer-graph-f389.svg">F389 机制示意图</a></td><td>三叶multi-arm分区、root/inner逐arm边界、组合证明与保守研究边界</td></tr>
+<tr><td><a href="diagrams/recursive-cyclic-byte-lane-writer-graph-f390.svg">F390 机制示意图</a></td><td>四叶递归树、验证器重建父分支、三类组合证明与保守签发域</td></tr>
+<tr><td><a href="diagrams/lease-fenced-persistent-live-state-frontier-f391.svg">F391 机制示意图</a></td><td>CAS checkpoint、ready/leased/done状态机、搜索快照、并发worker、TTL恢复与stale拒绝</td></tr>
+<tr><td><a href="diagrams/interpreter-condpor-f392.svg">F392 机制示意图</a></td><td>closed IR、replay oracle、R/C/W扩展、SC/Z3联合准入、backward revisit与terminal evidence</td></tr>
+<tr><td><a href="diagrams/ucsan-durable-object-context-f393.svg">F393 机制示意图</a></td><td>严格seed准入、JITI对象图、规范快照、耐久发布与fresh-process重放</td></tr>
+<tr><td><a href="diagrams/ucsan-explicit-object-checkers-f394.svg">F394 机制示意图</a></td><td>显式分配、严格边界、alias tombstone、realloc事务与frame生命周期</td></tr>
+<tr><td><a href="diagrams/ucsan-byte-initialization-ubi-f395.svg">F395 机制示意图</a></td><td>逐字节shadow、SSA/调用传播、三类UBI sink与事务边界</td></tr>
+<tr><td><a href="diagrams/native-parameter-provider-f396.svg">F396 机制示意图</a></td><td>多provider准入、严格原子合并、task/service/campaign生命周期路由与拒绝边界</td></tr>
+<tr><td><a href="diagrams/program-bound-parasuit-value-space-f397.svg">F397 机制示意图</a></td><td>程序身份、精确归因、有界ValueS、MeanShift/silhouette gate、探索/利用反馈闭环</td></tr>
+<tr><td><a href="evidence/current-eval-2026-07-30/">主实验统计证据</a></td><td>原始 CSV、独立样本比较、统计 JSON、图和哈希说明</td></tr>
+<tr><td><a href="evidence/f303-adaptive-evp-2026-08-04/">F303 机制证据</a></td><td>真实 QSYM 准入、2 次低收益查询、抑制期无查询、重新准入及重查询</td></tr>
+<tr><td><a href="evidence/f304-cost-aware-evp-2026-08-04/">F304 机制证据</a></td><td>同一 2 query/2 UNSAT/142 us 反馈在 0 us 门抑制、143 us 门保留</td></tr>
+<tr><td><a href="evidence/f305-replay-verified-evp-recovery-2026-08-04/">F305 机制证据</a></td><td>标签保持的 [1]→[2] 记录漂移检测，以及 checkpoint 写失败后的主动重试</td></tr>
+<tr><td><a href="evidence/f306-interleaved-coverage-oracle-2026-08-05/">F306 机制证据</a></td><td>20 输入×3 轮逐次边集、流式/隔离不兼容探针、稳定性摘要与哈希清单</td></tr>
+<tr><td><a href="evidence/f307-input-abi-terminal-stratification-2026-08-06/">F307 机制证据</a></td><td>stdin ABI 对齐、19 个真实 candidate、terminal policy、逐轮边集与哈希清单</td></tr>
+<tr><td><a href="evidence/f321-failure-atomic-frontier-2026-08-07/">F321 机制证据</a></td><td>健康双master、双/单master暂存子输出提交与去重、corpus摘要错配Abort(70)及SHA-256原始日志</td></tr>
+<tr><td><a href="evidence/f322-durable-result-replay-2026-08-07/">F322 机制证据</a></td><td>健康单/双master、future-clock lease即时接管、部分publish幂等redo、缺manifest Abort(70)及SHA-256原始日志</td></tr>
+<tr><td><a href="evidence/f323-directory-durability-2026-08-07/">F323 机制证据</a></td><td>目录fsync故障注入、真实Linux syscall次序、单/双master健康路径、同步成本及SHA-256原始日志</td></tr>
+<tr><td><a href="evidence/f324-shard-heartbeat-group-commit-2026-08-07/">F324 机制证据</a></td><td>9项故障/计数测试、64-record微基准、强制续租双master、完整回归及SHA-256清单</td></tr>
+<tr><td><a href="evidence/f325-failure-atomic-target-mutations-2026-08-07/">F325 机制证据</a></td><td>13项target-table测试、64-target claim/release微基准、50轮双进程重叠竞争与完整回归</td></tr>
+<tr><td><a href="evidence/f326-crash-released-kernel-locks-2026-08-07/">F326 机制证据</a></td><td>40次SIGKILL重新取得、10轮8进程coverage OR、syscall trace、短锁微基准与完整回归</td></tr>
+<tr><td><a href="evidence/f327-shared-filesystem-capability-contract-2026-08-07/">F327 机制证据</a></td><td>60次串行/并发能力探针、13项定向故障测试、真实单/双master MPI、完整回归与SHA-256清单</td></tr>
+<tr><td><a href="evidence/f328-path-specific-filesystem-contracts-2026-08-07/">F328 机制证据</a></td><td>三种profile快照/调用计数、40×3交错成本、17项定向测试、673项完整回归与SHA-256清单</td></tr>
+<tr><td><a href="evidence/f329-mpi-cross-host-lock-qualification-2026-08-07/">F329 机制证据</a></td><td>8项故障测试、真实同机2-master反误报、合成2/3/4-master协议before/after、681项完整回归与SHA-256清单</td></tr>
+<tr><td><a href="evidence/f330-runtime-lock-qualification-renewal-2026-08-07/">F330 机制证据</a></td><td>13项定向测试、真实MPI合成拓扑3代续期、语义漂移exit 70、控制面微基准、688项完整回归与SHA-256清单</td></tr>
+<tr><td><a href="evidence/f331-deterministic-renewal-jitter-2026-08-07/">F331 机制证据</a></td><td>1024-job计划反事实、真实MPI合成拓扑5代、同机反误报、17项定向测试、692项完整回归与SHA-256清单</td></tr>
+<tr><td><a href="evidence/f332-renewal-configuration-consensus-2026-08-07/">F332 机制证据</a></td><td>默认共识typestate、固定epoch真实MPI双复跑、逐rank漂移、提交前二次校验、2/4/8-master成本、24项定向测试与699项完整回归</td></tr>
+<tr><td><a href="evidence/f333-durable-renewal-configuration-manifest-2026-08-07/">F333 机制证据</a></td><td>manifest后崩溃、统一错误配置恢复拒绝、正确恢复、20轮并发单赢家、复用成本、53项定向测试与702项完整回归</td></tr>
+<tr><td><a href="evidence/f334-durable-epoch-cleanup-2026-08-07/">F334 机制证据</a></td><td>父目录fsync、真实MPI清理故障exit 72、同epoch恢复、100+100逐次成本、191项定向测试与704项完整回归</td></tr>
+<tr><td><a href="evidence/f335-atomic-epoch-retirement-2026-08-07/">F335 机制证据</a></td><td>post-rename故障exit 72、GC1后exit 0、3/129/1025文件成本、195项定向测试与708项完整回归</td></tr>
+<tr><td><a href="evidence/f336-kernel-noreplace-retirement-2026-08-07/">F336 机制证据</a></td><td>syscall EEXIST、双进程单赢家、真实MPI碰撞exit72/恢复exit0、199项定向测试与712项完整回归</td></tr>
+<tr><td><a href="evidence/f337-resumable-budgeted-retired-gc-2026-08-07/">F337 机制证据</a></td><td>三次真实MPI跨启动收敛、2-entry syscall、129/1025/4097文件成本、204项定向测试与717项完整回归</td></tr>
+<tr><td><a href="evidence/f338-streaming-retired-discovery-2026-08-07/">F338 机制证据</a></td><td>真实MPI 19/17/4扫描、180个time与60个tracemalloc样本、205项定向测试与718项完整回归</td></tr>
+<tr><td><a href="evidence/f339-streaming-nofollow-staging-2026-08-07/">F339 机制证据</a></td><td>真实MPI child发布、240个time与60个tracemalloc样本、209项定向测试与722项完整回归</td></tr>
+<tr><td><a href="evidence/f340-bounded-streaming-results-2026-08-10/">F340 机制证据</a></td><td>真实MPI成功/对象/字节三场景、40个raw微基准样本、45项定向测试与727项完整回归</td></tr>
+<tr><td><a href="evidence/f341-stable-streaming-inputs-2026-08-10/">F341 机制证据</a></td><td>真实MPI同名replacement/超限两场景、40个raw微基准样本、49项定向测试与731项完整回归</td></tr>
+<tr><td><a href="evidence/f342-public-provenance-intersection-2026-08-10/">F342 机制证据</a></td><td>真实7-rank双master phantom反例、4096对象正确性对照、60个raw timing样本与完整回归</td></tr>
+<tr><td><a href="evidence/f343-bounded-streaming-simulation-2026-08-10/">F343 机制证据</a></td><td>固定seed逐字节等价、40个fresh-process样本、真实2-rank生产simulate路径与完整回归</td></tr>
+<tr><td><a href="evidence/f344-bounded-hybrid-worker-results-2026-08-10/">F344 机制证据</a></td><td>40个fresh-process样本、本地真实child生产wrapper、整批预算拒绝与739项完整回归</td></tr>
+<tr><td><a href="evidence/f345-stable-hybrid-input-2026-08-10/">F345 机制证据</a></td><td>40个fresh-process样本、11项本地生产原语集成、摘要/CAS/ACK/continuation与742项完整回归</td></tr>
+<tr><td><a href="evidence/f346-descriptor-bound-cas-publication-2026-08-10/">F346 机制证据</a></td><td>8项本地生产原语故障注入、fast-path零重哈希、竞争仲裁与743项完整回归</td></tr>
+<tr><td><a href="evidence/f347-unified-live-state-cas-2026-08-10/">F347 机制证据</a></td><td>六对象图、symlink/损坏/竞争/path-replacement故障注入、8/8检查与745项完整回归</td></tr>
+<tr><td><a href="evidence/f348-budgeted-transitive-live-state-2026-08-10/">F348 机制证据</a></td><td>两层共享DAG、8对象/2062字节精确边界、深层parent fault、digest memo、9/9检查与749项完整回归</td></tr>
+<tr><td><a href="evidence/f349-descriptor-anchored-cas-namespace-2026-08-10/">F349 机制证据</a></td><td>root/shard symlink与替换、live read exact-alias、同摘要leaf竞争、11/11检查与753项完整回归</td></tr>
+<tr><td><a href="evidence/f350-component-wise-anchored-cas-root-2026-08-10/">F350 机制证据</a></td><td>逐组件dirfd创建、祖先symlink零副作用、发布/live-read祖先替换、11/11检查与759项完整回归</td></tr>
+<tr><td><a href="evidence/f351-identity-closed-cluster-lock-qualification-2026-08-10/">F351 机制证据</a></td><td>同内容inode替换、state/publication过期绑定、legacy-v1续期门、8/8检查与762项完整回归</td></tr>
+<tr><td><a href="evidence/f352-generation-bound-lock-proof-transcript-2026-08-10/">F352 机制证据</a></td><td>三方generation-7摘要、单方分歧、旧代重放、零轮次/异根capability拼接、10/10检查与766项完整回归</td></tr>
+<tr><td><a href="evidence/f353-failure-atomic-renewal-admission-2026-08-10/">F353 机制证据</a></td><td>1个有效提交、5类畸形结果、2个内部异常、布尔代次、守恒不变量、10/10检查与768项完整回归</td></tr>
+<tr><td><a href="evidence/f354-rank-contained-renewal-completion-2026-08-10/">F354 机制证据</a></td><td>有效/拒绝判别、真实累计溢出、注入异常、512字符诊断、BaseException透传、9/9检查与769项完整回归</td></tr>
+<tr><td><a href="evidence/f355-total-cluster-lock-qualification-boundary-2026-08-10/">F355 机制证据</a></td><td>clean协议语义、communicator/clock异常、输入归一化、512字符诊断、BaseException透传、10/10检查与770项完整回归</td></tr>
+<tr><td><a href="evidence/f356-collective-safe-qualification-observation-2026-08-10/">F356 机制证据</a></td><td>双provider异常、继续观测、非法返回、条件式失败record、双rank同错误、12/12检查与完整回归</td></tr>
+<tr><td><a href="evidence/f357-renewal-heartbeat-clock-containment-2026-08-10/">F357 机制证据</a></td><td>heartbeat/clock异常、完整partition准入、pre-state、双rank同错误、单次failure与14/14检查</td></tr>
+<tr><td><a href="evidence/f358-renewal-control-transport-containment-2026-08-10/">F358 机制证据</a></td><td>partial send generation/handle保留、peer错误分类、三值一次性观测、4-rank bus与15/15检查</td></tr>
+<tr><td><a href="evidence/f359-hermetic-pytest-discovery-2026-08-10/">F359 机制证据</a></td><td>默认/反事实收集、显式QSYM/项目路径、前置条件透明与12/12检查</td></tr>
+<tr><td><a href="evidence/f360-capability-closed-python-ci-2026-08-10/">F360 机制证据</a></td><td>完整/空venv JSON、784+125回归、6项正反契约、actionlint与SHA-256清单</td></tr>
+<tr><td><a href="evidence/f361-canonical-pytest-inventory-2026-08-10/">F361 机制证据</a></td><td>精确/反事实/空venv JSON、787+125回归、9项契约、actionlint与SHA-256清单</td></tr>
+<tr><td><a href="evidence/f362-single-snapshot-pytest-manifest-2026-08-11/">F362 机制证据</a></td><td>三类adversarial JSON、字节一致重建、787+125回归、静态检查与SHA-256清单</td></tr>
+<tr><td><a href="evidence/f363-bounded-query-ir-admission-2026-08-11/">F363 机制证据</a></td><td>精确/超限边界、duplicate/NaN隔离、SQLite状态、20/124项回归与787+125完整门禁</td></tr>
+<tr><td><a href="evidence/f364-stable-query-spool-admission-2026-08-11/">F364 机制证据</a></td><td>双消费者反事实、真实SIGKILL接管、symlink/FIFO/身份/锁对象拒绝与787+127完整门禁</td></tr>
+<tr><td><a href="evidence/f365-outcome-separated-query-spool-2026-08-11/">F365 机制证据</a></td><td>accepted误分类反事实、invalid/read/persist/publish/retry五结果与787+127完整门禁</td></tr>
+<tr><td><a href="evidence/f366-verified-query-artifact-cas-2026-08-11/">F366 机制证据</a></td><td>错误SMT2静默接纳反例、损坏/类型/路径故障、pre-lease回滚、8 writer收敛与787+127完整门禁</td></tr>
+<tr><td><a href="evidence/f367-sealed-query-artifact-fd-handoff-2026-08-11/">F367 机制证据</a></td><td>路径替换、四seal与写拒绝、部分分配回滚、Python/真实C++ helper、cache-hit lit与787+127完整门禁</td></tr>
+<tr><td><a href="evidence/f368-persistent-solver-generation-reset-2026-08-11/">F368 机制证据</a></td><td>A-fd/B-text错配、generation替换、字段预检、ID/超长/部分响应故障冷恢复与787+127完整门禁</td></tr>
+<tr><td><a href="evidence/f369-protocol-complete-request-preflight-2026-08-11/">F369 机制证据</a></td><td>future-ID stale-model反例、4类delimiter/2类descriptor ID拒绝、合法path/fd请求与787+133完整门禁</td></tr>
+<tr><td><a href="evidence/f370-deadline-bounded-request-commit-2026-08-11/">F370 机制证据</a></td><td>真实pipe/socket背压、两条共享deadline、两次冷恢复、四类纯预检与787+137完整门禁</td></tr>
+<tr><td><a href="evidence/f371-generation-unique-request-admission-2026-08-11/">F371 机制证据</a></td><td>真实同ID迟到重复响应、反事实11→22、生产两代11→11、有界历史与787+137完整门禁</td></tr>
+<tr><td><a href="evidence/f372-bounded-cas-publication-revalidation-2026-08-11/">F372 机制证据</a></td><td>一次复核反事实、4次精确接纳、wrong/32次耗尽拒绝、8-writer及F366 stress 20/20</td></tr>
+<tr><td><a href="evidence/f373-report-only-query-artifact-reachability-2026-08-11/">F373 机制证据</a></td><td>indexed/unindexed orphan、noncanonical entry、完整/部分扫描、CLI exit 0/2、publication fence及787+141完整门禁</td></tr>
+<tr><td><a href="evidence/f389-multiarm-cyclic-byte-lane-writer-graph-2026-08-13/">F389 机制证据</a></td><td>LLVM17/18 direct与LLVM18 forwarded实物、三叶逐arm证明、五类反例、913+229 Python门禁及246+1 lit</td></tr>
+<tr><td><a href="evidence/f390-recursive-cyclic-byte-lane-writer-graph-2026-08-13/">F390 机制证据</a></td><td>LLVM17/18 direct与LLVM18 forwarded实物、四叶父边界证明、七类反例、919+229 Python门禁及247+1 lit</td></tr>
+<tr><td><a href="evidence/f391-persistent-live-state-frontier-2026-08-13/">F391 机制证据</a></td><td>跨进程/双执行器、搜索恢复、80步随机重启、故障注入、机制微基准及完整Python/lit门禁</td></tr>
+<tr><td><a href="evidence/f392-interpreter-condpor-2026-08-13/">F392 机制证据</a></td><td>可重算控制流重生成certificate、12项定向测试、两个独立SC oracle、1--5 writer机制基准与声明边界</td></tr>
+<tr><td><a href="evidence/f393-ucsan-recoverable-object-context-2026-08-13/">F393 机制证据</a></td><td>双LLVM、规范快照重放、31样本机制成本与完整门禁</td></tr>
+<tr><td><a href="evidence/f394-ucsan-explicit-object-checkers-2026-08-13/">F394 机制证据</a></td><td>14模式154样本、C/C++对象生命周期、双LLVM与完整门禁</td></tr>
+<tr><td><a href="evidence/f395-ucsan-byte-initialization-ubi-2026-08-13/">F395 机制证据</a></td><td>28模式308样本、byte/SSA/call/atomic传播、双LLVM与完整门禁</td></tr>
+<tr><td><a href="evidence/f396-native-parameter-provider-2026-08-13/">F396 机制证据</a></td><td>23项原生声明、53项registry、生命周期隔离、100轮稳定性、双LLVM与完整门禁</td></tr>
+<tr><td><a href="evidence/f397-parasuit-value-space-2026-08-13/">F397 机制证据</a></td><td>双簇oracle、1000轮确定性与随机性质、状态绑定/竞态反例、LLVM17/18与完整门禁</td></tr>
+<tr><td><a href="SHA256SUMS.txt">SHA-256 校验</a></td><td>当前主交付文件的校验和</td></tr>
+</table></div>
+
+<h2>经审核的主要结果</h2>
+<div class="result">
+<p>同机、同一 SymCC/重放二进制和同一初始语料，每组 20 个独立样本。当前
+<code>4 AFL + 3 SymCC + basic profiles</code> 相对同为名义 8 核的旧
+<code>1 AFL + 6 SymCC + profiles off</code>，15 秒离线候选并集边覆盖率均值差为：</p>
+<ul>
+<li>libarchive：<strong>+0.953 pp</strong>，95% CI [+0.582, +1.321]，Holm p=0.00168；</li>
+<li>SQLite：<strong>+1.949 pp</strong>，95% CI [+1.466, +2.441]，Holm p=0.00032。</li>
+</ul>
+<p>比较使用 independent bootstrap、双侧 label-permutation test 和 Holm 多重比较校正。</p>
+</div>
+
+<p>LAVA-M base64 的 13-seed 机制描述显示：<code>runtime-full</code> 相对
+<code>strict-first-z3</code> 的完整路径 Z3 调用减少 56.6%，候选增加 33.7%；但
+solver queries 增加 190.5%、solver time 增加 82.6%、墙钟为 53.3 倍、候选吞吐下降
+97.5%，listed bug 并集仍为 41/44。poly cache、cross-prefix 与 prefix context
+命中均为 0。因此该结果不能表述为上下文复用收益、求解提速或漏洞数提升。</p>
+
+<h2>必须保留的边界</h2>
+<div class="limit"><ul>
+<li>主实验改变了 AFL 实例数、SymCC worker 数和 AFL profiles，只能归因于完整组合配置。</li>
+<li>主指标包含 <code>--save-all</code>，是离线候选并集，不是 AFL 在线 accepted corpus。</li>
+<li>当前 AFL-only sanity 只有 1 核，不能证明等 CPU 下 Hybrid 优于纯 AFL。</li>
+<li>当前证据不是 sealed 随机区组确认实验，不能宣称达到或超过 SOTA。</li>
+</ul></div>
+
+<h2>验证状态</h2>
+<p>F306 顺序全量复跑：Python <strong>532/532</strong>，LLVM 18
+<strong>221 passed + 1 unsupported</strong>，LLVM 17 <strong>220 passed + 2 unsupported</strong>；
+F306 定向 QA3 为 <strong>16/16</strong>、
+MPI 编排为 <strong>26/26</strong>。F307 顺序全量复跑：Python <strong>540/540</strong>，
+LLVM 18 <strong>221 passed + 1 unsupported</strong>，LLVM 17
+<strong>220 passed + 2 unsupported</strong>；F307 定向 QA3 为 <strong>19/19</strong>、
+MPI/AFL profile 编排为 <strong>31/31</strong>。F319 定向验证：Ruff 通过，
+lifecycle/AFL编排为 <strong>63 passed + 13 subtests</strong>，七个相关模块为
+<strong>268 passed + 17 subtests</strong>；完整 Python 为
+<strong>605 passed + 37 subtests</strong>。真实 Open MPI 单master完成2/2 ACK、双master
+完成各3/3 ACK且exit 0，1秒idle均准确报1.000秒；静默stats peer在0.150484秒
+进入pending并由框架Abort(70)。F320定向为<strong>100 passed + 9 subtests</strong>，完整
+Python为<strong>611 passed + 37 subtests</strong>；真实双master单seed从2次分析降为1次，
+24 seeds严格24次且12/12分布，12 seeds共享一个child时严格13次总分析。F321定向为
+<strong>107 passed + 10 subtests</strong>，完整Python为<strong>618 passed + 38 subtests</strong>；
+健康双master 12 seeds严格12次且6/6分布，双master暂存场景公开1个去重child并形成13次分析，单master暂存场景形成3次分析且2/2 ACK，摘要错配在worker前拒绝并Abort(70)。F322定向为
+<strong>111 passed + 10 subtests</strong>，完整Python为<strong>622 passed + 38 subtests</strong>；
+		future-clock lease得到<code>recovered=1</code>，部分publish恢复得到<code>replayed_commits=1</code>，缺manifest保留状态并exit 70。F323新增故障路径为<strong>7/7</strong>，定向为<strong>116 passed + 10 subtests</strong>，完整Python为<strong>627 passed + 38 subtests</strong>；strace确认file fsync、rename、public/staging目录fsync顺序，真实单/双master均exit 0；overlayfs 500样本的耐久replace中位新增成本为2880.331 us，不作为吞吐收益。F324定向为<strong>9/9</strong>，完整Python为<strong>636 passed + 38 subtests</strong>；64-record在1/8 shards时目录sync分别64→1/8，持久化热路径中位1.943×/1.951×；真实双master完成17批67次续租、41次sync、避免26次、failure=0及6/6 ACK。F325 target-table定向为<strong>13/13</strong>，完整Python为<strong>643 passed + 38 subtests</strong>；64-target claim+release目录sync由128降至2/16，中位2.815×/2.825×；双进程重叠竞争50/50单赢家且无部分发布、残留或hang。F326定向为<strong>12 passed + 3 subtests</strong>，完整warnings-as-errors Python为<strong>654 passed + 41 subtests</strong>；40个持锁进程SIGKILL后40/40重新取得，10轮8进程coverage OR均2048/2048 bits且无lost update；短锁中位9.932→5.349 us（1.857×），不外推DSE吞吐。F327定向为<strong>13/13</strong>，完整warnings-as-errors Python为<strong>668 passed + 41 subtests</strong>；60/60串行/并发探针无失败或残留，真实单/双master均exit 0且完整ACK；串行中位54.315 ms是启动成本，不是DSE加速。F328定向为<strong>17/17</strong>，完整warnings-as-errors Python为<strong>673 passed + 41 subtests</strong>；full/lease/coverage各40次交错中位为51.763/42.038/36.918 ms，操作计数匹配且0残留，仅作为启动资格成本。F329定向为<strong>8/8</strong>，完整warnings-as-errors Python为<strong>681 passed + 41 subtests</strong>；真实同机2-master保持<code>cluster_lock_verified=false</code>并完成5/5 ACK，合成2/3/4-master状态机20次零失败，自适应轮询中位较基线下降约89.3%，不作为真实跨机部署证据。F330定向为<strong>13 passed</strong>，相关回归为<strong>292 passed + 21 subtests</strong>，完整warnings-as-errors Python为<strong>688 passed + 41 subtests</strong>；真实Open MPI 7-rank合成拓扑中，2个master各完成3代续期并exit 0，第2代排他语义漂移使两个master均记录1次成功、1次失败并exit 70。2/3/4-master合成控制面续期中位为13.218/18.811/24.317 ms，相对直接资格状态机的最大中位增量为0.254%，属于协议成本观测，不作为真实跨机存储证据。F331定向为<strong>17 passed + 5 subtests</strong>，相关回归为<strong>296 passed + 26 subtests</strong>，完整warnings-as-errors Python为<strong>692 passed + 46 subtests</strong>；1024-job×12代合成计划在12288事件守恒下把100 ms峰值1024降至26，真实MPI合成拓扑双方完成5代一致计划并5/5 ACK，真实同机高频50% jitter保持cluster false且不启用monitor。97.4609375%只表示合成计划到达峰值下降，不作为真实存储、DSE或coverage提升。F332定向为<strong>24 passed + 8 subtests</strong>，相关回归为<strong>303 passed + 29 subtests</strong>，完整warnings-as-errors Python为<strong>699 passed + 49 subtests</strong>；默认共识typestate阻止绕过generation-0协议，固定epoch双复跑均使双方完成3代、exit 0且指纹2/2一致；逐rank jitter 0.1→0.25漂移两次均保持generation/attempts为0，在3/3加2/2 worker ACK后0.912403/0.875331秒exit 70。2/4/8-master规范记录验证相对裸exchange的中位增量为0.050506/0.104471/0.339265 ms，仅表示同机Python机制成本。F333定向为<strong>53 passed + 14 subtests</strong>，相关回归为<strong>306 passed + 29 subtests</strong>，完整warnings-as-errors Python为<strong>702 passed + 49 subtests</strong>；真实Open MPI在manifest后SIGKILL，统一错误jitter恢复使双方generation/attempts保持0/0、原SHA不变并exit 70，恢复原配置后双方各3次成功续期并exit 0。20轮不同配置竞争均单赢家；exact-read复用10.481 us与旧式I/O反事实2698.4085 us中位仅表示本机一次性控制成本。F334定向为<strong>191 passed + 24 subtests</strong>，相关回归为<strong>308 passed + 32 subtests</strong>，完整warnings-as-errors Python为<strong>704 passed + 52 subtests</strong>；真实Open MPI清理故障在3/3+2/2 ACK后exit 72并保留状态，同epoch恢复exit 0并删除状态；父目录fsync中位增加2686.8465 us仅表示完成边界可靠性成本。F335定向为<strong>195 passed + 30 subtests</strong>，相关回归为<strong>312 passed + 38 subtests</strong>，完整warnings-as-errors Python为<strong>708 passed + 58 subtests</strong>；真实MPI post-rename故障在3/3+2/2 ACK后exit 72，相同epoch GC1后exit 0；3/129/1025文件树完成边界比率0.990x/1.243x/3.133x，不外推DSE吞吐。F336定向为<strong>199 passed + 30 subtests</strong>，相关回归为<strong>316 passed + 38 subtests</strong>，完整warnings-as-errors Python为<strong>712 passed + 58 subtests</strong>；syscall记录成功NOREPLACE、parent fsync和EEXIST，真实MPI冲突在3/3+2/2 ACK后exit72并保留active/retired，相同epoch GC1后exit0；no-replace中位增量5.068 us（1.002x），启动资格中位11.944 ms，不外推DSE吞吐。F337定向为<strong>204 passed + 43 subtests</strong>，相关回归为<strong>321 passed + 51 subtests</strong>，完整warnings-as-errors Python为<strong>717 passed + 71 subtests</strong>；真实MPI三次启动按2-entry预算使旧根5→3→1 files→absent且每轮3/3+2/2 ACK、exit0；129/1025/4097文件固定64-entry单步中位3.089/3.579/3.648 ms，完整删除为3.372/7.365/28.521 ms，只表示单次启动工作封顶。F338定向为<strong>205 passed + 43 subtests</strong>，相关回归为<strong>322 passed + 51 subtests</strong>，完整warnings-as-errors Python为<strong>718 passed + 71 subtests</strong>；真实MPI扫描19/候选17/选择4且根守恒17-4+1=14、exit0；4096候选traced peak由1,995,370降至3,652 B（546.38×），但选择时间慢1.20%，不宣称speedup。F339定向为<strong>209 passed + 43 subtests</strong>，相关回归为<strong>326 passed + 51 subtests</strong>，完整warnings-as-errors Python为<strong>722 passed + 71 subtests</strong>；真实MPI发布1个child、2/2 public摘要正确、3/3 ACK且exit0；4096合法对象traced peak从1,532,256降至562,297 B但时间慢3.17%，16 MiB非manifest对象30次从30 hashes/480 MiB requested降至0/0。F340定向为<strong>45 passed + 35 subtests</strong>，相关回归为<strong>334 passed + 62 subtests</strong>，完整warnings-as-errors Python为<strong>727 passed + 82 subtests</strong>；真实MPI success/object/bytes分别exit0/70/70且失败仅公开seed、无stage residue；32 MiB traced peak从35,653,086降至2,099,636 B、RSS从70,600降至37,252 KiB，但时间慢10.16%，不外推campaign。F341定向为<strong>49 passed + 40 subtests</strong>，相关回归为<strong>338 passed + 67 subtests</strong>，完整warnings-as-errors Python为<strong>731 passed + 87 subtests</strong>；真实MPI同名replacement的2个内容各执行一次、external=2/new=0并exit0，17 B对16 B在target前exit70；32 MiB traced peak降低16.98×、RSS降低1.92×，时间慢11.04%，不外推campaign。F342定向为<strong>49 passed + 40 subtests</strong>，相关回归为<strong>338 passed + 67 subtests</strong>，完整warnings-as-errors Python为<strong>731 passed + 87 subtests</strong>；真实7-rank/2-master/5-worker MPI反例中phantom external未发布、唯一generated对象执行一次，external=0/new=1、5/5 ACK、exit0；4096对象旧公式错误报告0，新公式精确报告2048，终态扫描中位成本增加约1.77%，不外推campaign。当前398个功能 ID 连续、440 个
+<code>SYMCC_*</code> 名称、287 个 <code>test/</code> 一级文件、63 组成对汇报配图及
+		F299-F373 历史专题及 F374-F397 新增材料均纳入机械校验。F343定向为<strong>53 passed + 43 subtests</strong>，
+		相关回归为<strong>342 passed + 70 subtests</strong>，完整warnings-as-errors Python为
+		<strong>735 passed + 90 subtests</strong>；真实2-rank MPI公开1 external加5 generated对象且6/6各执行一次、
+		1/1 ACK、stage residue0、exit0。8/32 MiB模拟机制的traced peak降低7.985×/31.930×，本机耗时
+		加速2.146×/4.821×；synthetic target不调用solver，不外推coverage、campaign、bug或LAVA-M。
+		</p>
+		<p class="result">F344把hybrid worker从完整目录物化与全结果read-all改为完整预算预检、稳定摘要遍和内容遍。
+		定向为<strong>57 passed + 47 subtests</strong>，相关回归为<strong>346 passed + 74 subtests</strong>，完整
+		warnings-as-errors Python为<strong>739 passed + 94 subtests</strong>。32/128 MiB coverage-redundant机制实验中，
+		traced Python peak降低30.787×/115.313×，RSS峰值降低1.594×/3.476×；稳定两遍读取使本地耗时增加
+		1.583×/1.649×。本地真实child经生产wrapper验证正常接收和对象/字节/hint整批拒绝；尚无真实MPI、
+			afl-showmap、solver或campaign证据，不外推coverage、吞吐、bug或LAVA-M提升。
+		</p>
+		<p class="result">F345把hybrid输入从可变路径读取改为稳定no-follow快照、master前副作用摘要栅栏、
+			自校验CAS物化与current RESULT精确ACK驻留；self-contained continuation使用checkpoint identity，
+			不再依赖原AFL queue路径。定向为<strong>205 passed + 58 subtests</strong>，相关回归为
+			<strong>349 passed + 74 subtests</strong>，完整warnings-as-errors Python为
+			<strong>742 passed + 94 subtests</strong>。32/128 MiB本地fresh-process机制实验中，稳定流式快照的
+			traced Python peak分别降低15.994x/63.968x，RSS峰值降低2.161x/5.694x，本机机制时间约加速
+			1.445x/1.440x；11/11本地生产原语集成检查通过。实验不执行真实MPI、solver、coverage、
+			campaign、漏洞或LAVA-M评测，不对这些指标外推。
+		</p>
+		<p class="result">F346修复CAS在durable replace与positive identity cache之间的发布竞态：写fd跨越
+			rename，rename前后只比较内容相关字段，再要求rename后fd与no-follow公开路径完整身份一致；合法
+			rename的ctime变化不会触发假竞争。定向为<strong>206 passed + 58 subtests</strong>，相关回归为
+			<strong>350 passed + 74 subtests</strong>，完整warnings-as-errors Python为
+			<strong>743 passed + 94 subtests</strong>。本地生产原语故障注入8/8通过：无竞争0次fallback hash，
+			错误同inode/错误竞争inode拒绝，同摘要竞争writer经一次稳定摘要后收敛，symlink不跟随且失败不入
+			cache。该证据不运行真实MPI、target、solver或campaign，不外推吞吐、coverage、bug或LAVA-M提升。
+		</p>
+		<p class="result">F347删除live-state CAS中follow-symlink的<code>isfile</code>存在捷径和独立弱writer，
+			以受控<code>.json</code> leaf suffix复用F346发布闭环，并让每次读取通过同一有界no-follow snapshot完成
+			fd/path身份闭合、SHA-256和JSON字节消费。定向为<strong>9 passed + 3 subtests</strong>，六模块相关为
+			<strong>352 passed + 77 subtests</strong>，完整warnings-as-errors Python为
+			<strong>745 passed + 97 subtests</strong>。六对象continuation图及精确symlink、损坏修复、同摘要竞争、
+			读取中path replacement共8/8机制检查通过；该本地证据不运行真实MPI、target、solver或campaign，
+			不外推吞吐、coverage、bug或LAVA-M提升。
+		</p>
+		<p class="result">F348把单对象可信边界扩展为current checkpoint和完整parent ancestry的可达
+			Merkle DAG恢复事务。restore-local digest memo让共享节点只稳定读取、解析和计费一次；唯一对象与
+			canonical-byte双预算在next first-seen对象JSON parse前失败关闭，并深度验证memory page、symbolic
+			expression和重复逻辑键。定向为<strong>4 passed + 4 subtests</strong>，六模块相关为
+			<strong>356 passed + 81 subtests</strong>，完整warnings-as-errors Python为
+			<strong>749 passed + 101 subtests</strong>。两层共享DAG为8对象、2062 bytes和8次snapshot；精确预算通过，
+				少1对象/1字节拒绝，parent深层错误及语义cache失败关闭，共9/9机制检查。该本地证据不运行真实MPI、
+				target、solver或campaign，不外推吞吐、coverage、bug或LAVA-M提升。
+			</p>
+		<p class="result">F349把F346-F348的最终leaf证明扩展为CAS root、digest shard与leaf的命名空间事务。
+				root/shard逐层打开为directory capability，temporary、rename、stat、snapshot和cleanup都相对shard fd；
+				内部I/O结束后再次闭合公开root/shard identity，只有成功才登记positive cache。定向为
+				<strong>5 passed</strong>，六模块相关为<strong>360 passed + 81 subtests</strong>，完整warnings-as-errors
+				Python为<strong>753 passed + 101 subtests</strong>。本地生产原语集成11/11：4个external目录均0 entry、
+				4个失败store均0 cache、detached bytes精确且无temporary残留。该overlayfs证据不是完整
+				<code>openat2(RESOLVE_BENEATH)</code>、真实MPI、solver或campaign证据，不外推性能与覆盖收益。
+			</p>
+		<p class="result">F350关闭F349仍保留的配置root祖先信任边界：从<code>/</code>目录fd开始逐组件
+				open-first no-follow，只有ENOENT才相对父fd创建并同步child/parent；对象I/O后重走完整ancestry，
+				要求公开root仍解析到本次I/O使用的inode，随后才提交positive cache。定向为<strong>8 passed</strong>，
+				六模块相关为<strong>366 passed + 81 subtests</strong>，完整warnings-as-errors Python为
+				<strong>759 passed + 101 subtests</strong>。本地生产原语集成11/11：4/4新建目录调用为leaf-only dirfd、
+				symlink祖先外部副作用0、发布/live read失败cache 0、detached bytes精确且temporary为0；F346-F349
+				历史drivers继续通过。该结果不是原子openat2、mount/NFS/Lustre、真实MPI或campaign收益证据。
+			</p>
+		<p class="result">F351把跨processor锁行为测试与公开命名空间身份合成一次资格提交。每个master先
+				复核state/publication的dev-fsid，保持root/lock descriptor跨越全部轮次，结束时重开公开root/leaf并
+				核对本地dev-ino与exact token；v3能力要求<code>identity checks = M</code>且scope为
+				<code>cross-host-mpi-lock-v2</code>。定向为<strong>4 passed</strong>（186 deselected），六模块相关为
+				<strong>369 passed + 81 subtests</strong>，完整warnings-as-errors Python为
+				<strong>762 passed + 101 subtests</strong>。本地生产协议机制集成8/8：同内容不同inode替换在完成行为
+				轮次后仍全体拒绝，过期state/publication绑定在round 0拒绝，same-processor不误报，legacy-v1续期记
+				failure。线程控制面与合成processor name不构成真实多机MPI/NFS/Lustre部署证据。
+			</p>
+		<p class="result">F352关闭renewal completion的旧代重放与字段拼接缺口。规范化SHA-256覆盖epoch、
+				generation、有序成员、processor代表和round/contention/release/identity计数；独立
+				<code>qualification-transcript-commit</code>要求全master摘要一致，controller再重跑结构gate并绑定
+				live ordered ranks与client-local startup capability。定向为<strong>4 passed + 13 subtests</strong>
+				（27 deselected），六模块相关为<strong>373 passed + 94 subtests</strong>，完整warnings-as-errors Python为
+				<strong>766 passed + 114 subtests</strong>。本地生产机制集成10/10：generation-7三方摘要一致可重算，
+				单方变异全体失败，旧代重放、零轮次和foreign-root capability拼接均拒绝。unkeyed摘要不是签名、
+				MAC、真实多机MPI或Byzantine认证证据。
+			</p>
+			<p class="result">F353关闭renewal completion的半提交状态缺口。结果结构、F351/F352 proof gate、
+				有限elapsed、next-jitter与累计算术全部在唯一commit point前完成；畸形proof形成完整failure，内部
+				validator/scheduler异常保留原in-flight快照。定向为<strong>2 passed + 7 subtests</strong>（31
+				deselected），六模块相关为<strong>375 passed + 101 subtests</strong>，完整warnings-as-errors Python为
+				<strong>768 passed + 121 subtests</strong>。本地生产controller/capability机制集成10/10，覆盖1成功、
+				5畸形、2异常、布尔代次与<code>attempts = successes + failures</code>守恒。该证据不是数据库事务、
+					真实MPI atomic commit、性能或coverage提升。
+				</p>
+			<p class="result">F354关闭controller rollback与MPI caller之间的异常契约缺口。统一
+					<code>complete_cluster_lock_renewal</code>边界把普通<code>Exception</code>值化为最长512字符的
+					accounting error；有效proof、proof rejection和内部异常分别对应success提交、failure提交和完整
+					pre-state保留，<code>BaseException</code>进程控制语义不被吞掉。定向为<strong>1 passed</strong>
+					（33 deselected），六模块相关为<strong>376 passed + 101 subtests</strong>，完整warnings-as-errors Python为
+					<strong>769 passed + 121 subtests</strong>。本地生产controller/capability/transcript机制集成9/9，覆盖真实
+					binary64累计溢出、注入异常、diagnostic上限、错误controller和KeyboardInterrupt分类。该证据不是
+					ULFM恢复、真实多机MPI、性能或coverage提升。
+				</p>
+			<p class="result">F355继续向前关闭qualification result生产端的异常契约缺口。公共
+					<code>qualify_mpi_cluster_advisory_lock</code>把普通<code>Exception</code>总化为proof字段归零、
+					诊断总长不超过512字符的失败结果；startup因此进入既有Abort(65)，runtime经F353/F354进入
+					fatal-control，<code>BaseException</code>仍传播。定向为<strong>1 passed</strong>（34 deselected），
+					六模块相关为<strong>377 passed + 101 subtests</strong>，完整warnings-as-errors Python为
+					<strong>770 passed + 121 subtests</strong>。本地真实filesystem probe和生产公共API机制集成10/10，
+					覆盖communicator/clock LookupError、输入归一化、diagnostic清洗及KeyboardInterrupt分类。该证据
+					不是ULFM恢复、真实多机MPI、性能或coverage提升。
+				</p>
+			<p class="result">F356继续闭合qualification之前的filesystem/processor输入观测。统一
+					<code>observe_cluster_lock_qualification_inputs</code>把普通provider异常和非法返回转换为有界负证据，
+					失败rank仍进入membership；只有<code>local_probe_ok=false</code>的record可使用空processor，成功证明域
+					保持严格。定向为<strong>1 passed</strong>（35 deselected），六模块相关为
+					<strong>378 passed + 101 subtests</strong>，完整warnings-as-errors Python为
+					<strong>771 passed + 121 subtests</strong>（96.48秒）。本地真实filesystem probe和双rank合成生产API机制集成12/12，
+					两个rank零滞留、同错误、零proof收敛；<code>BaseException</code>继续传播。该证据不是实际MPI、ULFM恢复、
+					真实多机存储、性能或coverage提升。
+				</p>
+			<p class="result">F357继续闭合运行期qualification相邻的heartbeat与clock边界。一次性
+					<code>observe_work_lease_heartbeat</code>把普通异常和畸形batch转为有界负证据，coordinator在完整
+					partition准入后才提交本地metrics/token；续期复用event-loop时刻，completion API内部拥有完成时钟。
+					定向为<strong>3 passed + 4 subtests</strong>（94 deselected），六模块相关为
+					<strong>380 passed + 105 subtests</strong>，完整warnings-as-errors Python为
+					<strong>773 passed + 125 subtests</strong>（97.16秒）。真实本地filesystem probe和双rank
+					合成生产API机制集成14/14：两个rank同错误、零proof并各提交一次failure；clock错误保持controller
+					pre-state，<code>BaseException</code>传播。该证据不是外部I/O rollback、实际MPI、ULFM、性能或coverage提升。
+				</p>
+			<p class="result">F358继续闭合renewal begin、peer poll与nonblocking send completion传输边界。
+					post-begin普通异常保留非零generation和已创建send句柄；peer区分malformed quarantine与local
+					admission fatal-control；delivery逐唯一句柄一次性区分completed、incomplete和uncertain。定向为
+					<strong>5 passed</strong>（36 deselected），六模块相关为<strong>383 passed + 105 subtests</strong>，
+					完整warnings-as-errors <code>test/</code>为<strong>776 passed + 125 subtests</strong>（97.41秒）。
+					确定性4-rank点到点生产API机制集成15/15，partial send保留generation 1与2个句柄，三值计数
+					1/1/1且每个句柄只调用一次。该证据不是send rollback、实际MPI、ULFM、性能或coverage提升。
+				</p>
+			<p class="result">F359把仓库根pytest的默认发现域限定为父项目<code>test/</code>，但不使用
+					<code>norecursedirs</code>或<code>--ignore</code>隐藏vendored QSYM。默认根collect-only为
+					<strong>778 collected</strong>且exit 0；清空testpaths的反事实保留同778个项目测试并重现
+					6个QSYM收集错误；显式QSYM路径仍进入原生套件并透明报告当前前置条件缺失。四路机制集成
+					12/12，完整无路径warnings-as-errors根回归为<strong>778 passed + 125 subtests</strong>
+					（97.27秒）。该证据不表示QSYM/PIN原生测试、LLVM lit、solver或benchmark已经执行，也不支持性能提升。
+				</p>
+			<p class="result">F360把F359的本地根测试入口接入独立capability-closed Python CI job。
+				生产gate前检10个命令、5个Python模块和1个动态库，要求collection不少于778且普通/subtest skip、
+				xfail、xpass、deselection和collection error全为0，并原子保存JSON artifact。深度审查修复重复
+				subtest标签把125折叠为121以及subtest skip漏门问题；6项契约、空Python 3.12 venv重建、Ruff、
+				py_compile和actionlint均通过，最终本地等价门禁为<strong>784 passed + 125 subtests</strong>
+				（98.30秒），16项能力零缺失且JSON/终端计数一致。当前没有实际触发GitHub托管runner，也不支持
+				后端、性能、coverage或SOTA提升结论。
+				</p>
+			<p class="result">F361继续修复collection floor无法识别等量测试替换的完整性缺口。
+				版本化清单规范记录<strong>787个pytest nodeid</strong>，gate v2要求missing、unexpected和duplicate
+				均为0，并关闭隐式第三方插件自动加载。真实反事实保持expected/observed同为787，但删除一个历史身份、
+				加入一个replacement后以<strong>1 missing + 1 unexpected</strong>和exit 1被拒绝；原清单与空Python 3.12
+				venv均精确匹配。9项契约与完整本地等价门禁通过，最终为<strong>787 passed + 125 subtests</strong>
+				（96.38秒）。nodeid证明身份集合，不证明测试体或oracle语义；当前也没有实际触发GitHub托管runner。
+				</p>
+			<p class="result">F362深审F361 manifest输入边界，修复先stat再read导致的对象分裂、重复JSON member
+				静默覆盖和空插件隔离变量绕过。reader现在从一个描述符最多读取MAX+1字节，随后UTF-8、严格pairs hook、
+				schema和摘要消费同一快照；两个入口无条件规范变量为<code>1</code>。226 B对32 B上限且伪造stat为1 B时
+				以0次stat调用拒绝，重复<code>count</code>在pytest前exit 2/collected 0，空变量下1/1 fixture通过。
+				清单仍为787项且字节一致，完整门禁为<strong>787 passed + 125 subtests</strong>（97.69秒），16项能力与
+				结果/身份退化均为零。该机制不是hostile-filesystem证明、签名或性能提升。
+				</p>
+			<p class="result">F363把同类审查推进到异步求解核心输入。Query IR入口不再先stat后重开路径，
+				而是从一个描述符读取至多MAX+1字节，在UTF-8/JSON构造前判定上限；pairs hook拒绝重复member，
+				parse-constant拒绝NaN/Infinity。845 B envelope在845 B精确边界接受，在64 B上限且伪造stat为1 B时
+				以0次stat调用拒绝；good/duplicate/NaN同批spool为imported 1/failed 2，SQLite仅有1 query和1 witness。
+				定向20项、关联124项和完整<strong>787 passed + 125 subtests</strong>（98.41秒）通过，16项能力与
+				结果/身份退化均为零。该结果证明本地准入机制，不提供求解、coverage或性能提升结论。
+				</p>
+			<p class="result">F364继续闭合异步Query spool的并发和文件身份边界。旧双消费者算法确定复现
+				<strong>2次ingest、1次正常返回、1个未处理FileNotFoundError</strong>及误导错误文件；生产路径以
+				no-follow/nonblocking regular-file reader和固定regular lock inode建立稳定消费对象与协作式唯一提交者。
+				竞争持锁时返回<code>(0,0)</code>且store calls为0；真实持锁子进程被<code>SIGKILL(-9)</code>后，
+				下一服务恢复为<code>(1,0)</code>且query/witness严格1/1。symlink、FIFO、读后path替换和锁对象投毒
+				均失败关闭；完整门禁为<strong>787 passed + 127 subtests</strong>（98.85秒），16项能力及结果/身份
+				退化均为零。这是本机、协作式、flock语义一致文件系统上的可靠性证据，不是跨主机资格、全局
+				exactly-once或求解/覆盖/性能提升。
+				</p>
+			<p class="result">F365修复Query spool的结果误分类。旧控制流在有效查询已经入库后遇到accepted
+				publication故障，会错误返回<code>(0,1)</code>、写<code>.error</code>并移入rejected。当前实现只捕获
+				显式<code>QueryAdmissionError</code>；reader、CAS/SQLite和publication异常保留incoming并传播原始类型。
+				production故障注入中，read/persist失败前query为0，publish失败前query/witness已为1/1；三者重试均为
+				<code>(1,0)</code>并收敛到1/1，invalid JSON仍保持数据库0/0的dead letter。完整门禁为
+				<strong>787 passed + 127 subtests</strong>（99.55秒），16项能力与结果/身份退化均为零。该结果不等于
+					自动重试、dead-letter持久原子性、CAS orphan GC、跨主机资格或性能/覆盖提升。
+					</p>
+				<p class="result">F366闭合QueryStore的SMT2内容身份与lease提交边界。旧存在即信任规则把
+					期望摘要<code>614fe277…</code>映射到实际摘要<code>69b0c4d9…</code>仍静默接纳；当前三个artifact
+					namespace复用descriptor-anchored CAS，在索引前验证或修复regular/symlink/FIFO leaf，并拒绝
+					post-commit损坏和数据库路径重定向。artifact验证失败发生在lease更新前，查询保持
+					<code>pending, attempts=0</code>；8 writer收敛为1摘要、1数据库行、0临时残留。定向为
+					<strong>183 passed + 20 subtests</strong>，相关为<strong>253 passed + 67 subtests</strong>，完整门禁为
+					<strong>787 passed + 127 subtests</strong>（115.18秒），16项能力和测试身份零退化。该结果不等于
+					solver fd handoff、CAS orphan GC、跨主机文件系统资格或性能/覆盖提升。
+					</p>
+				<p class="result">F367关闭F366遗留的lease-to-solve pathname窗口。claim把三个摘要验证对象复制到
+					四seal memfd后才提交token；一次性helper继承full fd，持久化helper通过query-id-bound
+					<code>SCM_RIGHTS</code>接收prefix/target，C++端再执行数量、regular/size、seal和稳定读取门。
+					三条CAS path替换后快照摘要保持不变、写入返回EPERM，第二次memfd分配失败关闭首fd且查询保持
+					<code>pending, attempts=0</code>；真实one-shot/persistent helper与prefix-cache miss/hit均通过。
+					定向为<strong>20 passed + 2 subtests</strong>，相关为<strong>227 passed + 20 subtests</strong>，
+					query/string lit为<strong>10 passed</strong>，完整门禁为<strong>787 passed + 127 subtests</strong>
+					（114.93秒）。该结果依赖Linux机制，不等于CAS orphan GC、跨主机资格、公开benchmark、LAVA-M
+					或性能/覆盖提升。
+					</p>
+				<p class="result">F368关闭F367持久化helper的双通道半提交窗口。反事实中A的sealed fd发送后、
+					文本提交前故障，旧generation被复用，使B文本稳定消费A的descriptor ID与摘要；当前实现把process、
+					stdio和socketpair统一fence，任一send/write/read/framing/UTF-8/JSON/ID异常都终止整代，下一请求
+					只能冷启动。字段在transport前验证，stdout使用selector、monotonic deadline、64 KiB块、16 MiB
+					单响应上限。定向为<strong>20 passed + 2 subtests</strong>，相关为
+					<strong>227 passed + 20 subtests</strong>，query/string lit为<strong>10 passed</strong>，完整门禁为
+					<strong>787 passed + 127 subtests</strong>（115.80秒）。该结果证明本地Linux机制正确性，不等于
+					高故障率性能、跨主机、公开benchmark、LAVA-M或coverage提升。
+					</p>
+				<p class="result">F369补齐F368字段预检集合与实际commit image不一致的问题。旧路径中，
+					newline pathname生成带future ID的第二请求；延迟响应避开同read多frame门后，真实victim在
+					同一helper接受<code>injected</code>字段和assignment 66，即使response-ID完全匹配。当前实现先固定
+					pathname/sealed mode，构造最终六字段tuple，对全部字段拒绝empty/NUL/TAB/CR/LF，并将sealed
+					request ID约束为ASCII且不超过256 B；artifact实际字段必须等于preview，pipe直接提交同一tuple。
+					纯拒绝保持健康generation，合法victim得到own request/assignment 99，后续sealed请求仍接收2 fd。
+					定向为<strong>20 passed + 8 subtests</strong>，相关为<strong>227 passed + 26 subtests</strong>，
+					query/string lit为<strong>10 passed</strong>，完整门禁为<strong>787 passed + 133 subtests</strong>
+					（115.29秒）。该结果证明本地协议正确性，不等于性能、公开benchmark、LAVA-M或coverage提升。
+					</p>
+				<p class="result">F370把持久solver的时间边界从response读取扩展到完整双通道事务。真实未读
+					pipe和写满<code>SOCK_SEQPACKET</code>证明旧<code>write/flush</code>与blocking
+					<code>sendmsg(SCM_RIGHTS)</code>可在Z3看到timeout前停住。当前实现先生成strict UTF-8、
+					268500992 B有界frame，再让descriptor发送、stdin offset写入和response reader共享一个absolute
+					monotonic deadline；任一部分提交超时都回收整代并冷启动，纯预检仍保持健康prefix cache。反事实/
+					production driver连续双跑字节一致；定向为<strong>20 passed + 12 subtests</strong>，相关为
+					<strong>227 passed + 30 subtests</strong>，query/string lit为<strong>10/10 passed</strong>，完整门禁为
+					<strong>787 passed + 137 subtests</strong>（115.36秒），16项能力与测试身份零退化。该结果证明本地
+					Linux机制有界性，不等于吞吐、coverage、公开benchmark或LAVA-M提升。
+					</p>
+				<p class="result">F371闭合同一逻辑query ID重试的响应关联。旧helper第一次返回11后迟到
+					输出同ID assignment 22，既有JSON与ID检查会让第二次调用在同generation接收22。当前实现
+					在transport前保存固定SHA-256指纹；同ID重复或65,536项容量边界先回收整代并冷启动，字段0、
+					descriptor绑定和native稳定求解种子保持不变。生产driver从两代得到11→11，纯预检不登记、
+					不同ID仍复用原代，容量换代可执行。定向为<strong>20 passed + 12 subtests</strong>（4.96秒），
+					相关为<strong>227 passed + 30 subtests</strong>（31.69秒），query/string lit为
+					<strong>10/10 passed</strong>，完整门禁为<strong>787 passed + 137 subtests</strong>（115.91秒），
+					16项能力与测试身份零退化。该结果证明本地generation内at-most-once机制，不等于全局
+					exactly-once、吞吐、coverage、公开benchmark或LAVA-M提升。
+					</p>
+				<p class="result">F372由全局证据重放发现并修复同摘要CAS writer的一次复核假失败。旧路径在
+					own descriptor与public inode分裂后只做一次stable snapshot；另一个精确replace落入窗口就误报
+					ESTALE。当前publication verifier区分exact、stable wrong和unstable：exact接纳，wrong一次即拒绝，
+					unstable最多32次后拒绝。反事实1次错误失败，production第4次接纳；真实8-writer收敛且temporary 0，
+					F366完整driver 20/20与历史JSON一致。定向为<strong>1 passed</strong>（0.21秒），关联为
+					<strong>183 passed + 30 subtests</strong>（24.92秒），完整门禁为
+					<strong>787 passed + 137 subtests</strong>（121.54秒），16项能力与测试身份零退化。该结果证明
+					本地有界并发收敛，不等于跨主机文件系统资格、吞吐、coverage、公开benchmark或LAVA-M提升。
+					</p>
+				<p class="result">F373把Query artifact审计从数据库row视图扩展为SQLite roots、artifact rows和
+					full/prefix/target三个物理CAS namespace的typed join。旧视图只发现1个indexed orphan；production完整
+					扫描还发现1个unindexed physical orphan和1个noncanonical entry，且保留全部对象。条目预算为1时报告
+					<code>complete=false</code>并把missing类结果置为<code>null</code>；完整/部分CLI分别exit 0/2。
+					并发证据证明协作publisher在audit期间阻塞、释放后完成。定向为<strong>1 passed + 4 subtests</strong>
+					（0.86秒），QueryStore为<strong>20 passed + 16 subtests</strong>（5.35秒），关联为
+					<strong>183 passed + 34 subtests</strong>（20.14秒），完整门禁为
+					<strong>787 passed + 141 subtests</strong>（116.43秒），16项能力与测试身份零退化。当前固定为
+					<code>report-only</code>且<code>sweep_authorized=false</code>；结果不等于已实现GC、跨主机资格、
+					吞吐、coverage、公开benchmark或LAVA-M提升。
+					</p>
+		<p class="result">PPTX 压缩包完整，含 28 张 slide XML 和 27 张 notes XML。</p>
+
+<p class="foot">历史的 <code>symcc-report.tar.gz</code> 和
+<code>Project_Report_Slides.html</code> 保留用于追溯，不再作为当前统计结论入口。</p>
+</main></body></html>

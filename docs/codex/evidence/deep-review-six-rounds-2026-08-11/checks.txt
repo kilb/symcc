@@ -1,0 +1,40 @@
+SymCC six-round deep review verification
+Date (UTC): 2026-08-11
+
+Python capability-closed gate: PASS
+  collected/passed: 806/806
+  subtests passed: 178
+  skipped/xfailed/xpassed/deselected: 0/0/0/0
+  missing/unexpected/duplicate node IDs: 0/0/0
+  wall time: 136.64 s
+  manifest digest: bf5cb4b3defda959fc81f920ac93383dcaf87141d94a4bc2b29f161f2ee62ec1
+
+LLVM 18.1.3 lit gate: PASS
+  discovered/passed/unsupported: 226/225/1
+  failed/unresolved: 0/0
+  wall time: 211.73 s
+  unsupported: simple_out_of_order_input.c
+
+LLVM 17.0.6 lit gate: PASS
+  discovered/passed/unsupported: 226/224/2
+  failed/unresolved: 0/0
+  wall time: 206.44 s
+  unsupported: simple_out_of_order_input.c, cross_llvm_transform_replay.ll
+
+Targeted pytest/lit discovery contract: PASS
+  pytest: 2 passed
+  LLVM 18 filtered lit: 1 passed, 225 excluded
+
+Static and delivery checks: PASS
+  Ruff: production, direct tests, and delivery verifier
+  compileall: four reviewed production modules
+  JSON: pytest manifest, Python gate, scheduler kernel evidence
+  XML/render: R5 scheduler SVG parsed and visually inspected
+  source hashes: all four kernel evidence bindings match
+  git diff --check: PASS
+  docs/codex/verify_delivery.py: All Codex delivery checks passed
+
+Performance evidence scope:
+  The 9364.11 ratio is limited to the in-process Python path_bonus kernel.
+  It is not an end-to-end campaign, solver-throughput, coverage, or bug-finding claim.
+  No new LAVA-M, Magma, or multi-node campaign was run in this review.

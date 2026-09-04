@@ -1,0 +1,33 @@
+
+digraph G {
+  graph [
+    bgcolor="white", pad="0.28", nodesep="0.38", ranksep="0.58",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=24,
+    labelloc="t", labeljust="l"
+  ];
+  node [
+    shape=box, style="rounded,filled", margin="0.18,0.12",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=12,
+    color="#CBD5E1", penwidth=1.3, fillcolor="#F8FAFC"
+  ];
+  edge [
+    fontname="WenQuanYi Zen Hei", fontcolor="#64748B", fontsize=10,
+    color="#64748B", penwidth=1.5, arrowsize=0.75
+  ];
+
+  label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3"><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="26"><B>图 R-6　七层研究栈：从 LLVM IR 到可复现证据</B></FONT><BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT"><FONT POINT-SIZE="14" COLOR="#64748B">第 ⑦ 层是实现的一部分，而不是实验做完之后补的日志</FONT><BR ALIGN="LEFT"/></TD></TR></TABLE>>;
+  rankdir=TB; nodesep=0.22; ranksep=0.34;
+  node [width=3.5, height=0.52];
+
+  L7 [label="⑦ 科研证据层　manifest / seal / 独立 replay / 随机配对协议 / claim gate", fillcolor="#EDE9FE", color="#6D28D9"];
+  L6 [label="⑥ 反馈闭环层　AFL edge novelty 仲裁 · data/结构新颖度 · 执行成本回灌调度", fillcolor="#DBEAFE", color="#2563EB"];
+  L5 [label="⑤ 并行探索层　seed 级 MPI worker · solver portfolio race · DPOR schedule · continuation frontier", fillcolor="#CCFBF1", color="#0F766E"];
+  L4 [label="④ 求解与候选层　精确 Z3 · QF_BV/String portfolio · 上下文复用 · 部分解 · 乐观/Backsolver · 结构化候选", fillcolor="#DCFCE7", color="#15803D"];
+  L3 [label="③ 统一表示层　PrefixDAG · ECT · Query IR · grammar/SPPF · schedule artifact · content-addressed state", fillcolor="#FFEDD5", color="#C2410C"];
+  L2 [label="② 运行时观测层　路径 / 求解 / 数据进展 / 字符串操作 / 线程事件 / 候选来源 遥测", fillcolor="#FEF3C7", color="#D97706"];
+  L1 [label="① 编译与语义层　稳定站点 · 控制/数据依赖 · 内存状态 · 可恢复 continuation · 证明门控 CFG 变换", fillcolor="#FEE2E2", color="#B91C1C"];
+
+  L1 -> L2 -> L3 -> L4 -> L5 -> L6 -> L7 [color="#CBD5E1", arrowsize=0.6];
+  L7 -> L1 [label="  实验结论回灌设计", color="#6D28D9", style=dashed, constraint=false, fontsize=11];
+
+}

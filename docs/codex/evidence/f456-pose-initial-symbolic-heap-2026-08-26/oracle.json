@@ -1,0 +1,49 @@
+{
+  "cases": {
+    "bounded_list_max10": {
+      "cfg_paths": 12,
+      "heap_generated_paths": 0,
+      "maximum": 10,
+      "paper_lazy_traces": 78,
+      "pose_expected_paths": 12
+    },
+    "sum": {
+      "cfg_paths": 1,
+      "heap_generated_paths": 0,
+      "paper_lazy_traces": 23,
+      "pose_expected_paths": 1
+    },
+    "swap": {
+      "cfg_paths": 2,
+      "heap_generated_paths": 0,
+      "paper_lazy_traces": 21,
+      "pose_expected_paths": 2
+    }
+  },
+  "checkpoint": {
+    "content_addressed": true,
+    "parent_preserved": true,
+    "restored": true,
+    "state_digest": "a84f82ad8ab680e845b6fad34be08805216a15b71f926de6105413b30b625426"
+  },
+  "checks": {
+    "alias_read_enumeration": true,
+    "alias_store_enumeration": true,
+    "checkpoint_identity": true,
+    "heap_operations_do_not_fork": true,
+    "list_path_optimal": true,
+    "model_gate": true,
+    "snapshot_identity": true,
+    "sum_path_optimal": true,
+    "swap_path_optimal": true
+  },
+  "exhaustive_alias": {
+    "assignments": 27,
+    "read_matches": 27,
+    "state_digest": "a18aeb6e5bf315147e74ffde7843624b9d24bd31a09152499b6272a4e10f08da",
+    "store_matches": 27,
+    "stored_digest": "72911ccc5b1cd2b4f9ed26eb589fdc9f2d95fb0a092627d1a47ef0492b586a1b"
+  },
+  "result_sha256": "e913dcfc6499a632a2f0895638caef16b39c2c7e3b5335f4c8ab4221869d1212",
+  "schema": "symcc-pose-symbolic-heap-oracle-v1"
+}

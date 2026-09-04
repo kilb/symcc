@@ -1,0 +1,1 @@
+<?odinxml versipn="ENTITY f "bar"1.0" encoding="UPF-8"?><!DOCTYPE t [<!ENTITY f "bar">]><root a=UPF-8"?><!DOCTYPE t [<!ENTITY"v"><c>&f;</c></root>

@@ -1,0 +1,13 @@
+F297 scalar LLVM integer min/max symbolization real-target replay
+date_utc=2026-07-30
+cwd=/home/ubuntu/code/symcc
+command=timeout 180s build/symcc -DHAVE_CONFIG_H -DLIBARCHIVE_STATIC -Ibenchmark/public/gfts_build/libarchive-src/libarchive -I.symcc-research-evidence/current-eval-2026-07-30/build/libarchive -I/usr/include/libxml2 -Wall -Wformat -Wformat-security -O3 -DNDEBUG -o /tmp/symcc-f297-archive-write-set-format-7zip.o -c benchmark/public/gfts_build/libarchive-src/libarchive/archive_write_set_format_7zip.c
+compile_exit=0
+concretize_warning_count=0
+source_warning_count=1
+object_sha256=46e25209ccdb312aedb2d002921dac0f6e191cf0f0c61548b1c6b134d0d0a06b
+
+benchmark/public/gfts_build/libarchive-src/libarchive/archive_write_set_format_7zip.c:1534:13: warning: implicit truncation from 'int' to a one-bit wide bit-field changes value from 1 to -1 [-Wsingle-bit-bitfield-constant-conversion]
+ 1534 |                 file->dir = 1;
+      |                           ^ ~
+1 warning generated.

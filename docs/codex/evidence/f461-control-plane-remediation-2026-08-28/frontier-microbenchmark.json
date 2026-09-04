@@ -1,0 +1,48 @@
+{
+  "clock": "time.perf_counter_ns",
+  "durability": "file-fsync+directory-fsync",
+  "rows": [
+    {
+      "abandon_ms": 8.627,
+      "base_bytes": 1198,
+      "bytes": 73364,
+      "claim_ms": 16.334,
+      "journal_bytes": 72166,
+      "snapshot_median_ms": 0.032,
+      "snapshot_p95_ms": 0.041,
+      "states": 1001
+    },
+    {
+      "abandon_ms": 9.256,
+      "base_bytes": 1198,
+      "bytes": 341364,
+      "claim_ms": 17.145,
+      "journal_bytes": 340166,
+      "snapshot_median_ms": 0.016,
+      "snapshot_p95_ms": 0.023,
+      "states": 5001
+    },
+    {
+      "abandon_ms": 9.453,
+      "base_bytes": 1198,
+      "bytes": 676364,
+      "claim_ms": 17.362,
+      "journal_bytes": 675166,
+      "snapshot_median_ms": 0.031,
+      "snapshot_p95_ms": 0.034,
+      "states": 10001
+    },
+    {
+      "abandon_ms": 11.969,
+      "base_bytes": 1198,
+      "bytes": 1681364,
+      "claim_ms": 20.264,
+      "journal_bytes": 1680166,
+      "snapshot_median_ms": 0.032,
+      "snapshot_p95_ms": 0.076,
+      "states": 25001
+    }
+  ],
+  "samples": 31,
+  "schema": "symcc-f461-frontier-microbenchmark-v2"
+}

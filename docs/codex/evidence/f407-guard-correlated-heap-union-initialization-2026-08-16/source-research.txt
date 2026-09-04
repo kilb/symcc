@@ -1,0 +1,23 @@
+Research verification date: 2026-08-16 UTC
+
+LLVM MemorySSA official documentation
+https://llvm.org/docs/MemorySSA.html
+Verified facts: MemoryUse/MemoryDef/MemoryPhi roles; MemoryPhi merges may-reach
+definitions; walkers answer clobber queries using an alias-analysis stack.
+
+POSE: Path-optimal symbolic execution of heap-manipulating programs
+https://arxiv.org/abs/2407.16827
+Verified facts: path optimality goal for heap-manipulating programs and initial
+prototype scope. F407 borrows the no-alias-pseudo-fork direction only.
+
+SymCC: Symbolic Execution with SymCC: Don't Interpret, Compile!
+https://www.usenix.org/conference/usenixsecurity20/presentation/poeplau
+Verified fact: compiler-based concolic instrumentation is the project baseline.
+
+KLEE: Unassisted and Automatic Generation of High-Coverage Tests
+https://www.usenix.org/conference/osdi-08/presentation/klee-unassisted-and-automatic-generation-high-coverage-tests-complex
+Verified fact: classic multi-state symbolic execution and test generation
+baseline; paper performance numbers are not reused as F407 evidence.
+
+Boundary: F407 does not claim general MemorySSA/AA clobber replay, full POSE,
+or any performance result from the cited systems.

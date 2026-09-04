@@ -1,0 +1,9 @@
+schema=symcc-loop-memoryphi-byte-lane-induction-v7
+endianness=little
+writers=4
+writer_value_records=4
+stored_value_bytes=15
+byte_lane_witnesses=456
+last_write_cases=855
+maximum_cases_per_lane=4
+fixed_point_rounds=9

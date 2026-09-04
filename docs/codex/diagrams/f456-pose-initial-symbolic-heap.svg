@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">F456 POSE-C initial symbolic heap architecture</title>
+  <desc id="desc">Unknown input references are lazily refined into proxy objects. Alias alternatives stay in ITE expressions, heap operations do not fork, and only control-flow decisions create child continuation states.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 12 6 L 0 12 z" fill="#31445b"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#233143" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .title { font: 700 36px "WenQuanYi Zen Hei", system-ui, sans-serif; fill: #172536; }
+      .subtitle { font: 400 19px "WenQuanYi Zen Hei", system-ui, sans-serif; fill: #526274; }
+      .band-title { font: 700 22px "WenQuanYi Zen Hei", system-ui, sans-serif; fill: #1e3044; }
+      .box-title { font: 700 20px "WenQuanYi Zen Hei", system-ui, sans-serif; fill: #172536; }
+      .body { font: 400 16px "WenQuanYi Zen Hei", system-ui, sans-serif; fill: #435366; }
+      .small { font: 600 14px "WenQuanYi Zen Hei", system-ui, sans-serif; fill: #526274; }
+      .metric { font: 700 18px ui-monospace, monospace; fill: #0d6658; }
+      .arrow { stroke: #31445b; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .dash { stroke: #6c7b8b; stroke-width: 2.5; stroke-dasharray: 9 7; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1000" fill="#f6f8fb"/>
+  <rect x="0" y="0" width="1600" height="126" fill="#ffffff"/>
+  <rect x="0" y="123" width="1600" height="3" fill="#20a486"/>
+  <text x="70" y="57" class="title">F456  POSE-C 初始符号堆</text>
+  <text x="70" y="91" class="subtitle">把 null / alias / fresh 选择保留在公式中，堆访问不制造额外路径</text>
+  <rect x="1265" y="34" width="260" height="54" rx="5" fill="#e6f5f1" stroke="#36a68d"/>
+  <text x="1395" y="67" text-anchor="middle" class="metric">heap fork = 0</text>
+
+  <text x="70" y="172" class="band-title">1  入口：未知对象图</text>
+  <rect x="70" y="198" width="300" height="180" rx="6" fill="#ffffff" stroke="#9aa8b7" filter="url(#shadow)"/>
+  <text x="95" y="235" class="box-title">符号引用根</text>
+  <text x="95" y="270" class="body">this : Node*</text>
+  <text x="95" y="300" class="body">left : Node*</text>
+  <text x="95" y="330" class="body">right : Node*</text>
+  <text x="95" y="360" class="small">尚未决定 null、别名或新对象</text>
+
+  <path d="M 370 288 L 450 288" class="arrow"/>
+  <rect x="450" y="198" width="360" height="180" rx="6" fill="#fff8e8" stroke="#d5a641" filter="url(#shadow)"/>
+  <text x="475" y="235" class="box-title">按需 refinement</text>
+  <text x="475" y="270" class="body">首次解引用才创建稳定 proxy object</text>
+  <text x="475" y="300" class="body">字段按访问粒度生成 fresh symbolic byte</text>
+  <text x="475" y="330" class="body">边界、live、initialized 同步进入约束</text>
+  <text x="475" y="360" class="small">对象 / 引用 / term 均为 SHA-256 身份</text>
+
+  <path d="M 810 288 L 890 288" class="arrow"/>
+  <rect x="890" y="198" width="640" height="180" rx="6" fill="#eaf4fb" stroke="#4e91bc" filter="url(#shadow)"/>
+  <text x="915" y="235" class="box-title">单状态 ITE alias 公式</text>
+  <text x="915" y="273" class="body">read(right.f) = ite(right = this, this.f,</text>
+  <text x="1088" y="303" class="body">ite(right = left, left.f, fresh_right_f))</text>
+  <text x="915" y="340" class="small">一个表达式同时覆盖 null / alias / fresh 的可行关系</text>
+
+  <text x="70" y="438" class="band-title">2  执行：数据流合并，控制流分叉</text>
+  <rect x="70" y="465" width="440" height="230" rx="6" fill="#eaf7f1" stroke="#3a9d7c" filter="url(#shadow)"/>
+  <text x="95" y="505" class="box-title">普通 heap 操作</text>
+  <text x="95" y="544" class="body">load：ITE 读取同类型已绑定对象</text>
+  <text x="95" y="579" class="body">store：条件更新所有可能 alias proxy</text>
+  <text x="95" y="614" class="body">free：条件清除 live，保留 lifetime 一致性</text>
+  <rect x="95" y="643" width="385" height="32" rx="4" fill="#ffffff"/>
+  <text x="287" y="665" text-anchor="middle" class="metric">不创建 continuation child</text>
+
+  <path d="M 510 578 L 590 578" class="arrow"/>
+  <rect x="590" y="465" width="420" height="230" rx="6" fill="#ffffff" stroke="#8b98a8" filter="url(#shadow)"/>
+  <text x="615" y="505" class="box-title">Alias quotient + QF_BV</text>
+  <text x="615" y="544" class="body">已知相等关系合并为 canonical class</text>
+  <text x="615" y="579" class="body">不等式、非空、live 形成 path guard</text>
+  <text x="615" y="614" class="body">确定性 SMT-LIB2 交给 Z3 / query solver</text>
+  <text x="615" y="659" class="small">模型必须通过引用域、标量域和全部 guard 校验</text>
+
+  <path d="M 1010 578 L 1090 578" class="arrow"/>
+  <rect x="1090" y="465" width="440" height="230" rx="6" fill="#fceeed" stroke="#c76b62" filter="url(#shadow)"/>
+  <text x="1115" y="505" class="box-title">真实 CFG decision</text>
+  <text x="1115" y="544" class="body">if (p == q) / if (p == NULL)</text>
+  <text x="1115" y="579" class="body">只在这里建立 feasible true / false child</text>
+  <text x="1115" y="614" class="body">child 各自持有 equality / disequality quotient</text>
+  <rect x="1115" y="643" width="385" height="32" rx="4" fill="#ffffff"/>
+  <text x="1307" y="665" text-anchor="middle" class="metric">execution paths = CFG paths</text>
+
+  <text x="70" y="754" class="band-title">3  持久化与可信输出</text>
+  <rect x="70" y="782" width="390" height="150" rx="6" fill="#ffffff" stroke="#8b98a8"/>
+  <text x="95" y="820" class="box-title">Content-addressed snapshot</text>
+  <text x="95" y="856" class="body">严格 schema + DAG/预算/关系一致性验证</text>
+  <text x="95" y="891" class="body">嵌入 LiveStateStore symbolic store</text>
+
+  <path d="M 460 855 L 565 855" class="arrow"/>
+  <rect x="565" y="782" width="470" height="150" rx="6" fill="#edf1f7" stroke="#75869b"/>
+  <text x="590" y="820" class="box-title">Continuation / MPI worker</text>
+  <text x="590" y="856" class="body">parent lineage、checkpoint identity、恢复预算不变</text>
+  <text x="590" y="891" class="body">任意 worker 可恢复同一 alias / field / live 状态</text>
+
+  <path d="M 1035 855 L 1140 855" class="arrow"/>
+  <rect x="1140" y="782" width="390" height="150" rx="6" fill="#e6f5f1" stroke="#36a68d"/>
+  <text x="1165" y="820" class="box-title">验证后 concrete object graph</text>
+  <text x="1165" y="856" class="body">solver model → roots / objects / bytes / live</text>
+  <text x="1165" y="891" class="body">alias proxy 合并后才进入真实 replay</text>
+
+  <path d="M 1310 782 C 1310 735 800 735 800 695" class="dash"/>
+  <text x="1035" y="718" class="small">模型失败关闭，不改变 SAT / coverage 正确性根</text>
+</svg>

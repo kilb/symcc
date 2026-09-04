@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1200" viewBox="0 0 1900 1200">
+  <defs>
+    <style>
+      .title{font:700 42px Arial,sans-serif;fill:#122235}.subtitle{font:24px Arial,sans-serif;fill:#4b6074}
+      .section{font:700 27px Arial,sans-serif;fill:#122235}.boxTitle{font:700 22px Arial,sans-serif;fill:#122235}
+      .body{font:18px Arial,sans-serif;fill:#3e5367}.small{font:16px Arial,sans-serif;fill:#52677b}
+      .mono{font:700 17px monospace;fill:#23384a}.lane{font:700 22px Arial,sans-serif;fill:#fff}
+      .laneSmall{font:16px Arial,sans-serif;fill:#fff}
+      .outline{stroke:#c4d1dc;stroke-width:2;fill:#fff}.blue{stroke:#13839b;stroke-width:2;fill:#edf8fb}
+      .green{stroke:#168a70;stroke-width:2;fill:#eff9f5}.orange{stroke:#e88611;stroke-width:2;fill:#fff8ed}
+      .purple{stroke:#7257bc;stroke-width:2;fill:#f5f1fc}.red{stroke:#c84d43;stroke-width:2;fill:#fff2f1}
+      .arrow{stroke:#40586a;stroke-width:4;fill:none;marker-end:url(#arrow)}
+      .dash{stroke:#168a70;stroke-width:4;stroke-dasharray:10 8;fill:none;marker-end:url(#greenArrow)}
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10Z" fill="#40586a"/>
+    </marker>
+    <marker id="greenArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10Z" fill="#168a70"/>
+    </marker>
+  </defs>
+
+  <rect width="1900" height="1200" fill="#f4f7f9"/>
+  <rect width="1900" height="14" fill="#177f8e"/>
+  <text x="88" y="76" class="title">F346 - Descriptor-Bound CAS Publication Closure</text>
+  <text x="88" y="112" class="subtitle">Bind written bytes, the open inode, and the published name before caching trust</text>
+
+  <text x="88" y="170" class="section">Fast path: one proof chain, no payload rehash</text>
+  <rect x="88" y="195" width="1724" height="330" rx="8" class="outline"/>
+  <rect x="88" y="195" width="170" height="330" fill="#304a62"/>
+  <text x="173" y="255" text-anchor="middle" class="lane">WRITER</text>
+  <text x="173" y="289" text-anchor="middle" class="lane">FD</text>
+  <text x="173" y="485" text-anchor="middle" class="laneSmall">descriptor stays open</text>
+
+  <rect x="300" y="242" width="270" height="180" rx="7" class="blue"/>
+  <text x="435" y="282" text-anchor="middle" class="boxTitle">Write and fsync</text>
+  <text x="435" y="322" text-anchor="middle" class="body">partial-write safe</text>
+  <text x="435" y="354" text-anchor="middle" class="body">SHA-256 already known</text>
+  <text x="435" y="390" text-anchor="middle" class="mono">W = fd identity</text>
+
+  <path d="M570 332H650" class="arrow"/>
+  <rect x="650" y="242" width="270" height="180" rx="7" class="orange"/>
+  <text x="785" y="282" text-anchor="middle" class="boxTitle">Durable replace</text>
+  <text x="785" y="322" text-anchor="middle" class="body">atomic name publication</text>
+  <text x="785" y="354" text-anchor="middle" class="body">directory fsync ordering</text>
+  <text x="785" y="390" text-anchor="middle" class="mono">fd remains open</text>
+
+  <path d="M920 332H1000" class="arrow"/>
+  <rect x="1000" y="242" width="300" height="180" rx="7" class="purple"/>
+  <text x="1150" y="282" text-anchor="middle" class="boxTitle">Close identity</text>
+  <text x="1150" y="322" text-anchor="middle" class="mono">content(W) = content(D)</text>
+  <text x="1150" y="354" text-anchor="middle" class="mono">full(D) = full(P)</text>
+  <text x="1150" y="390" text-anchor="middle" class="small">rename ctime handled explicitly</text>
+
+  <path d="M1300 332H1380" class="arrow"/>
+  <rect x="1380" y="242" width="360" height="180" rx="7" class="green"/>
+  <text x="1560" y="282" text-anchor="middle" class="boxTitle">Commit verified identity</text>
+  <text x="1560" y="322" text-anchor="middle" class="body">cache only the published inode</text>
+  <text x="1560" y="354" text-anchor="middle" class="mono">fallback hashes = 0</text>
+  <text x="1560" y="390" text-anchor="middle" class="small">common path adds constant metadata work</text>
+
+  <text x="88" y="585" class="section">Detected competition: verify content before accepting a different publication</text>
+  <rect x="88" y="610" width="1724" height="330" rx="8" class="outline"/>
+  <rect x="88" y="610" width="170" height="330" fill="#6c55a5"/>
+  <text x="173" y="670" text-anchor="middle" class="lane">RACE</text>
+  <text x="173" y="704" text-anchor="middle" class="lane">ARBITER</text>
+  <text x="173" y="900" text-anchor="middle" class="laneSmall">fail closed</text>
+
+  <rect x="300" y="655" width="300" height="190" rx="7" class="red"/>
+  <text x="450" y="698" text-anchor="middle" class="boxTitle">Mismatch observed</text>
+  <text x="450" y="738" text-anchor="middle" class="mono">content(W) != content(D)</text>
+  <text x="450" y="772" text-anchor="middle" class="mono">or full(D) != full(P)</text>
+  <text x="450" y="810" text-anchor="middle" class="small">drop any prior positive cache fact</text>
+
+  <path d="M600 750H690" class="arrow"/>
+  <rect x="690" y="655" width="330" height="190" rx="7" class="blue"/>
+  <text x="855" y="698" text-anchor="middle" class="boxTitle">Stable no-follow arbitration</text>
+  <text x="855" y="738" text-anchor="middle" class="body">regular file + identity closure</text>
+  <text x="855" y="772" text-anchor="middle" class="mono">SHA256(P) ?= object_id</text>
+  <text x="855" y="810" text-anchor="middle" class="small">one fallback hash only on mismatch</text>
+
+  <path d="M1020 750H1100" class="arrow"/>
+  <rect x="1100" y="645" width="300" height="210" rx="7" class="green"/>
+  <text x="1250" y="688" text-anchor="middle" class="boxTitle">Exact competitor</text>
+  <text x="1250" y="728" text-anchor="middle" class="body">different inode, same digest</text>
+  <text x="1250" y="764" text-anchor="middle" class="mono">ACCEPT + CACHE</text>
+  <text x="1250" y="806" text-anchor="middle" class="small">correct writers converge</text>
+
+  <rect x="1460" y="645" width="280" height="210" rx="7" class="red"/>
+  <text x="1600" y="688" text-anchor="middle" class="boxTitle">Wrong or symlink</text>
+  <text x="1600" y="728" text-anchor="middle" class="body">digest/type/identity fails</text>
+  <text x="1600" y="764" text-anchor="middle" class="mono">REJECT, NO CACHE</text>
+  <text x="1600" y="806" text-anchor="middle" class="small">future exact-content</text>
+  <text x="1600" y="830" text-anchor="middle" class="small">repair remains possible</text>
+
+  <path d="M1020 750C1070 750 1060 750 1100 750" class="dash"/>
+  <path d="M1020 780C1250 920 1370 880 1460 780" class="arrow"/>
+
+  <text x="88" y="1000" class="section">Observed mechanism evidence</text>
+  <rect x="88" y="1025" width="520" height="115" rx="7" class="green"/>
+  <text x="118" y="1068" class="boxTitle">8 / 8 integration checks</text>
+  <text x="118" y="1105" class="body">baseline, mutation, wrong/exact inode, symlink, cache, cleanup</text>
+  <rect x="640" y="1025" width="520" height="115" rx="7" class="purple"/>
+  <text x="670" y="1068" class="boxTitle">0 fast-path fallback hashes</text>
+  <text x="670" y="1105" class="body">one stable hash only when a regular-file race is observed</text>
+  <rect x="1192" y="1025" width="620" height="115" rx="7" class="orange"/>
+  <text x="1222" y="1068" class="boxTitle">Bounded claim</text>
+  <text x="1222" y="1105" class="body">local fault injection; no MPI, solver, campaign, coverage, bug, or LAVA-M uplift</text>
+  <text x="88" y="1175" class="small">W: fd before rename  |  D: same fd after rename  |  P: published no-follow path identity</text>
+</svg>

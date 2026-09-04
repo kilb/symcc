@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1240" viewBox="0 0 1900 1240" role="img" aria-labelledby="title desc">
+  <title id="title">F327 shared filesystem capability contract</title>
+  <desc id="desc">A fail-fast startup gate validates durability, publication, hard-link and same-host advisory-lock semantics before distributed symbolic execution state is published.</desc>
+  <defs>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#15253a" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M 0 0 L 12 6 L 0 12 z" fill="#34465a"/>
+    </marker>
+    <style>
+      text { font-family: Inter, "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; letter-spacing: 0; fill: #15253a; }
+      .title { font-size: 46px; font-weight: 750; }
+      .subtitle { font-size: 22px; fill: #516174; }
+      .section { font-size: 24px; font-weight: 720; }
+      .body { font-size: 19px; }
+      .small { font-size: 16px; fill: #58687a; }
+      .mono { font-family: "DejaVu Sans Mono", monospace; font-size: 16px; }
+      .number { font-size: 27px; font-weight: 800; fill: white; text-anchor: middle; dominant-baseline: middle; }
+      .pill { font-size: 16px; font-weight: 700; text-anchor: middle; dominant-baseline: middle; }
+      .light { fill: #fff; }
+    </style>
+  </defs>
+
+  <rect width="1900" height="1240" fill="#f5f7fa"/>
+  <rect x="0" y="0" width="1900" height="13" fill="#167d7f"/>
+  <text x="76" y="75" class="title">F327 Shared-Filesystem Capability Contract</text>
+  <text x="76" y="111" class="subtitle">Executable fail-fast qualification before publishing epoch, lease, or authoritative coverage state</text>
+
+  <g filter="url(#shadow)">
+    <rect x="76" y="160" width="470" height="260" rx="6" fill="#fff" stroke="#c9d1db" stroke-width="2"/>
+    <rect x="76" y="160" width="470" height="54" rx="6" fill="#9f3545"/>
+    <rect x="76" y="208" width="470" height="6" fill="#9f3545"/>
+    <text x="101" y="196" class="section light">OLD STARTUP: LATE FAILURE</text>
+    <circle cx="113" cy="255" r="8" fill="#d45b68"/>
+    <text x="137" y="262" class="body">Create queues, state, and services</text>
+    <line x1="113" y1="272" x2="113" y2="300" stroke="#d45b68" stroke-width="3"/>
+    <circle cx="113" cy="317" r="8" fill="#d45b68"/>
+    <text x="137" y="324" class="body">Begin real lease / corpus updates</text>
+    <line x1="113" y1="334" x2="113" y2="362" stroke="#d45b68" stroke-width="3"/>
+    <circle cx="113" cy="379" r="8" fill="#d45b68"/>
+    <text x="137" y="386" class="body">Late EXDEV / fsync / ENOLCK</text>
+    <text x="137" y="408" class="small">Risk: partial init and waiting workers</text>
+  </g>
+
+  <path d="M 570 290 C 610 290, 615 290, 650 290" fill="none" stroke="#34465a" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="610" y="268" class="small" text-anchor="middle">move earlier</text>
+
+  <g filter="url(#shadow)">
+    <rect x="656" y="150" width="1168" height="88" rx="6" fill="#fff" stroke="#8ea2b5" stroke-width="2"/>
+    <rect x="676" y="171" width="178" height="46" rx="6" fill="#263f5a"/>
+    <text x="765" y="194" class="pill light">ROOT DISCOVERY</text>
+    <text x="880" y="187" class="section">Enumerate actual shared roots; deduplicate by realpath</text>
+    <text x="880" y="214" class="small">standalone: work-state + corpus; hybrid: work lease + target lease + coverage owner</text>
+  </g>
+
+  <line x1="1240" y1="238" x2="1240" y2="268" stroke="#34465a" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="656" y="278" width="1168" height="146" rx="6" fill="#fff" stroke="#75a99a" stroke-width="2"/>
+    <circle cx="719" cy="351" r="34" fill="#16877c"/>
+    <text x="719" y="353" class="number">1</text>
+    <text x="775" y="322" class="section">Durability and atomic replacement</text>
+    <text x="775" y="354" class="body">file fsync → dir fsync → same-dir replace</text>
+    <text x="775" y="385" class="body">cross-dir replace → exact payload readback</text>
+    <rect x="1432" y="313" width="340" height="76" rx="6" fill="#e6f4f1"/>
+    <text x="1602" y="342" class="pill" fill="#167267">NO SILENT FALLBACK</text>
+    <text x="1602" y="372" class="small" text-anchor="middle">Any OSError closes the gate</text>
+  </g>
+
+  <line x1="1240" y1="424" x2="1240" y2="450" stroke="#34465a" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="656" y="460" width="1168" height="146" rx="6" fill="#fff" stroke="#7a9ec5" stroke-width="2"/>
+    <circle cx="719" cy="533" r="34" fill="#376ea6"/>
+    <text x="719" y="535" class="number">2</text>
+    <text x="775" y="504" class="section">Actual publication boundary</text>
+    <text x="775" y="536" class="body">hidden work-state → configured corpus root</text>
+    <text x="775" y="567" class="body">Catch nested mounts and EXDEV before epoch metadata</text>
+    <rect x="1432" y="495" width="340" height="76" rx="6" fill="#e8f0f9"/>
+    <text x="1602" y="524" class="pill" fill="#315f90">REAL DEPLOYMENT PATH</text>
+    <text x="1602" y="554" class="small" text-anchor="middle">Not a substitute /tmp path</text>
+  </g>
+
+  <line x1="1240" y1="606" x2="1240" y2="632" stroke="#34465a" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="656" y="642" width="1168" height="146" rx="6" fill="#fff" stroke="#c39a55" stroke-width="2"/>
+    <circle cx="719" cy="715" r="34" fill="#a46f18"/>
+    <text x="719" y="717" class="number">3</text>
+    <text x="775" y="686" class="section">Link, unlink, and directory-entry barriers</text>
+    <text x="775" y="718" class="body">hard-link inode check → durable unlink → dir fsync</text>
+    <text x="775" y="749" class="body">Qualify standalone epoch create-if-absent publication</text>
+    <rect x="1432" y="677" width="340" height="76" rx="6" fill="#faf1df"/>
+    <text x="1602" y="706" class="pill" fill="#875b15">DURABLE NAMESPACE</text>
+    <text x="1602" y="736" class="small" text-anchor="middle">All probe artifacts removed</text>
+  </g>
+
+  <line x1="1240" y1="788" x2="1240" y2="814" stroke="#34465a" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="656" y="824" width="1168" height="146" rx="6" fill="#fff" stroke="#967cae" stroke-width="2"/>
+    <circle cx="719" cy="897" r="34" fill="#70528b"/>
+    <text x="719" y="899" class="number">4</text>
+    <text x="775" y="868" class="section">Isolated-subprocess advisory-lock litmus</text>
+    <text x="775" y="900" class="body">parent: LOCK_EX | LOCK_NB → child A must observe contention</text>
+    <text x="775" y="931" class="body">parent close(fd) → child B must acquire; every wait has a deadline</text>
+    <rect x="1432" y="859" width="340" height="76" rx="6" fill="#f1ebf6"/>
+    <text x="1602" y="888" class="pill" fill="#65467d">FRESH HOST PROCESS</text>
+    <text x="1602" y="918" class="small" text-anchor="middle">Not an in-process self-test</text>
+  </g>
+
+  <path d="M 1240 970 L 1240 1002 L 506 1002 L 506 1027" fill="none" stroke="#16877c" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M 1240 970 L 1240 1002 L 1392 1002 L 1392 1027" fill="none" stroke="#9f3545" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="76" y="1037" width="860" height="112" rx="6" fill="#e4f4ef" stroke="#16877c" stroke-width="2"/>
+    <text x="108" y="1073" class="section" fill="#126b63">PASS: snapshot capabilities, then create shared state</text>
+    <text x="108" y="1105" class="body">schema + mount/device/fsid + nine operation flags</text>
+    <text x="108" y="1133" class="small">standalone enters epoch; hybrid starts services and owners</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="966" y="1037" width="858" height="112" rx="6" fill="#fae9eb" stroke="#9f3545" stroke-width="2"/>
+    <text x="998" y="1073" class="section" fill="#8f2e3d">FAIL: no downgrade and no partially initialized state</text>
+    <text x="998" y="1105" class="body">hybrid performs bounded STOP / exact ACK; MPI exits nonzero</text>
+    <text x="998" y="1133" class="small">Error names exact stage: fsync / replace / link / lock / cleanup</text>
+  </g>
+
+  <rect x="76" y="1173" width="1748" height="45" rx="6" fill="#263f5a"/>
+  <text x="100" y="1202" class="small light">PROVED: same-host-subprocess-v1　 |　 NOT PROVED: cross-host lock domain, server failover, network partition, power-cut recovery　 |　 cluster_lock_verified=false</text>
+</svg>

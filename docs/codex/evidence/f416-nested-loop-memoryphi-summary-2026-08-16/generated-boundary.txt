@@ -1,0 +1,8 @@
+schema=symcc-loop-memoryphi-byte-lane-induction-v6
+loop_levels=2
+memory_phi_nodes=2
+writers=4
+inner_domain_values=8
+byte_lane_witnesses=456
+witness_alternatives=855
+fixed_point_rounds=9

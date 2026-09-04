@@ -1,0 +1,72 @@
+{
+  "activity_protocol": "symcc-qfbv-native-clause-activity-v1",
+  "activity_receipts_replayed": 128,
+  "artifact_sha256": "bdb8f119db434d44dc3e187fe202cff894d818fb74de12905587eee336909015",
+  "case_digest": "0eafc909951782a154021955c850c2638caf90aa576f0de8e1191f1b658c3e1c",
+  "cases": 128,
+  "checked_imports_delivered": 128,
+  "claim_boundary": "real-CaDiCaL checked-clause activity mechanism oracle; unit/conflict means semantic activation on the observed native trail, not unique causal attribution or fuzzing coverage/solver-speedup evidence",
+  "elapsed_us": 4310149,
+  "library": "/tmp/f436/libsymcc_qfbv_cadical_realtime.so",
+  "library_sha256": "dc55826dcda173d607df89db8fae5997c14b9048a15282cf9f22f10c8125633f",
+  "lifecycle_fence": {
+    "active_mutations_rejected": [
+      "enable-activity",
+      "reset-queues",
+      "observe"
+    ],
+    "post_termination_recovery": true,
+    "termination_result": 0
+  },
+  "maximum_decision_level": 2,
+  "minimum_decision_level": 2,
+  "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+  "proof_events": 128,
+  "proof_records": 128,
+  "schema": "symcc-f436-clause-activity-oracle-v1",
+  "seed": 127645,
+  "state_matrix": [
+    {
+      "decision_level": 1,
+      "kind": "unit",
+      "name": "assumption-unit",
+      "solve_result": 10,
+      "unit_literal": 2,
+      "witness": [
+        -1
+      ]
+    },
+    {
+      "decision_level": 0,
+      "kind": "unit",
+      "name": "root-unit",
+      "solve_result": 10,
+      "unit_literal": 2,
+      "witness": [
+        -1
+      ]
+    },
+    {
+      "decision_level": 0,
+      "kind": "conflict",
+      "name": "root-conflict",
+      "solve_result": 20,
+      "unit_literal": 0,
+      "witness": [
+        -1,
+        -2
+      ]
+    },
+    {
+      "decision_level": -1,
+      "kind": "unactivated",
+      "name": "satisfied-unactivated",
+      "solve_result": 10,
+      "unit_literal": 0,
+      "witness": []
+    }
+  ],
+  "status": "pass",
+  "tampered_receipts_rejected": 128,
+  "unit_activity_receipts": 128
+}

@@ -1,0 +1,4 @@
+$ PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q -W error test/test_pytest_discovery_contract.py
+..                                                                       [100%]
+2 passed in 0.04s
+exit_code=0

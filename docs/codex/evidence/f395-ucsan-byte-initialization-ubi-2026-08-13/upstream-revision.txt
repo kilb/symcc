@@ -1,0 +1,6 @@
+paper=https://www.usenix.org/system/files/osdi26-yin.pdf
+paper_section=3.4 Memory Safety Checkers
+repository=https://github.com/R-Fuzz/UCSan
+revision=fb524c7bdf1663f2d78a94399ff6583a05bdbe6b
+audited_test=testsuite/tests/checker_ubi.c
+audit_date=2026-08-13

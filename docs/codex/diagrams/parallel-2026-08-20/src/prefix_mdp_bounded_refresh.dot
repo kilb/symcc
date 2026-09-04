@@ -1,0 +1,79 @@
+digraph PrefixMdpBoundedRefresh {
+  graph [
+    rankdir=LR,
+    bgcolor="white",
+    margin="0.16",
+    pad="0.20",
+    nodesep="0.55",
+    ranksep="0.72"
+  ];
+  node [
+    shape=rect,
+    style="rounded,filled",
+    fontname="Inter,Arial,sans-serif",
+    fontsize=12,
+    color="#334155",
+    penwidth=1.4,
+    fillcolor="#F8FAFC",
+    fontcolor="#0F172A",
+    margin="0.10,0.07"
+  ];
+  edge [
+    fontname="Inter,Arial,sans-serif",
+    fontsize=11,
+    color="#475569",
+    penwidth=1.4,
+    arrowsize=0.75
+  ];
+
+  result [label="Worker RESULT\ntelemetry + target + S2F actions", fillcolor="#ECFDF5", color="#047857"];
+  observe [label="AdaptiveHybridScheduler.observe()\ntriage callback", fillcolor="#EFF6FF", color="#2563EB"];
+  ingest [label="PrefixDAG.ingest()\nconstraint + action + seed state", fillcolor="#EFF6FF", color="#2563EB"];
+
+  local [
+    label="Every observation\nupdate local prefix state\ncost / reward / feasibility / seeds",
+    fillcolor="#F0FDFA",
+    color="#0F766E"
+  ];
+  gate [
+    shape=diamond,
+    label="Refresh gate\nsmall DAG?\ntarget reached?\ndirected hit?\nepoch % interval == 0?",
+    fillcolor="#FFF7ED",
+    color="#EA580C",
+    margin="0.08,0.05"
+  ];
+  skip [
+    label="Skip full refresh\nreuse last MDP values\nfresh local signals still used",
+    fillcolor="#FEFCE8",
+    color="#A16207"
+  ];
+  full [
+    label="Full MDP value iteration\nbounded frequency\nO(nodes * iterations)",
+    fillcolor="#FDF2F8",
+    color="#BE185D"
+  ];
+  select [
+    label="Prefix frontier selection\nMDP + local feasibility + novelty",
+    fillcolor="#F5F3FF",
+    color="#7C3AED"
+  ];
+
+  before [
+    label="Before\nfull refresh after every ingest\nO(observations * nodes * iterations)",
+    fillcolor="#FEF2F2",
+    color="#DC2626"
+  ];
+  after [
+    label="After\nlarge DAG refresh every N observations\nforce refresh for directed/target events",
+    fillcolor="#ECFDF5",
+    color="#047857"
+  ];
+
+  result -> observe -> ingest -> local -> gate;
+  gate -> full [label="yes"];
+  gate -> skip [label="no"];
+  full -> select;
+  skip -> select;
+  before -> full [style=dashed, label="old hot path"];
+  after -> gate [style=dashed, label="new policy"];
+}

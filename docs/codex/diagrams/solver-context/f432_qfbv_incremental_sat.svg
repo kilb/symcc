@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1040" viewBox="0 0 1600 1040" role="img" aria-labelledby="title desc">
+  <title id="title">F432 verified incremental QF_BV SAT and proof exchange</title>
+  <desc id="desc">Query IR is deterministically bit-blasted into activation-guarded formula increments. Workers reuse native CaDiCaL contexts and exchange only LRUP-verified clauses through a persistent proof DAG. QueryStore independently reconstructs and verifies every artifact before authorizing a result.</desc>
+  <defs>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="145%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#17202a" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .bg{fill:#f6f8fb}.panel{fill:#fff;stroke:#c8d2de;stroke-width:2}
+      .query{fill:#fff8e8;stroke:#d6a13d;stroke-width:2}
+      .cnf{fill:#eef5fb;stroke:#547ca4;stroke-width:2}
+      .worker{fill:#f4f7fb;stroke:#6a7e9a;stroke-width:2}
+      .proof{fill:#edf8f3;stroke:#3d9275;stroke-width:2}
+      .authority{fill:#fff2f2;stroke:#bf5b5b;stroke-width:2.5}
+      .title{font:700 37px Inter,Arial,sans-serif;fill:#172331}.subtitle{font:18px Inter,Arial,sans-serif;fill:#536273}
+      .section{font:700 23px Inter,Arial,sans-serif;fill:#202e3c}.label{font:650 18px Inter,Arial,sans-serif;fill:#26384a}
+      .body{font:16px Inter,Arial,sans-serif;fill:#4b5c6e}.small{font:14px Inter,Arial,sans-serif;fill:#607083}
+      .mono{font:15px 'DejaVu Sans Mono',monospace;fill:#26384a}.badge{font:700 13px Inter,Arial,sans-serif;fill:#fff}
+      .step{fill:#fff;stroke:#afbdcb;stroke-width:1.5}.safe{fill:#eaf7f1;stroke:#4b9c7d;stroke-width:1.5}
+      .edge{fill:none;stroke:#34465a;stroke-width:3}
+      .green{fill:none;stroke:#1e7f68;stroke-width:3}
+      .dash{fill:none;stroke:#7b8794;stroke-width:2;stroke-dasharray:8 7}
+    </style>
+  </defs>
+  <rect class="bg" width="1600" height="1040"/>
+  <text class="title" x="64" y="62">F432: Verified Incremental QF_BV SAT and Proof Exchange</text>
+  <text class="subtitle" x="64" y="94">Fast solving remains outside the trust boundary; deterministic CNF reconstruction and ordered LRUP replay authorize reusable knowledge.</text>
+
+  <rect x="64" y="132" width="350" height="278" rx="8" class="query"/>
+  <rect x="86" y="154" width="92" height="27" rx="4" fill="#b87917"/><text class="badge" x="102" y="172">QUERY IR</text>
+  <text class="section" x="86" y="221">Path constraints</text>
+  <text class="mono" x="86" y="253">prefix roots + target root</text>
+  <rect x="86" y="278" width="306" height="50" rx="6" class="step"/>
+  <text class="label" x="104" y="302">Stable expression DAG</text><text class="small" x="104" y="320">38 supported QF_BV operators</text>
+  <rect x="86" y="340" width="306" height="48" rx="6" class="step"/>
+  <text class="label" x="104" y="363">Input-byte map</text><text class="small" x="104" y="381">LSB-first, content addressed</text>
+
+  <rect x="486" y="132" width="448" height="278" rx="8" class="cnf"/>
+  <rect x="508" y="154" width="116" height="27" rx="4" fill="#49769d"/><text class="badge" x="524" y="172">BIT-BLASTER</text>
+  <text class="section" x="508" y="221">Deterministic CNF increments</text>
+  <rect x="508" y="248" width="404" height="62" rx="6" class="step"/>
+  <text class="mono" x="526" y="273">(-a_i OR root_i)</text><text class="small" x="526" y="295">one activation literal per root</text>
+  <rect x="508" y="322" width="196" height="66" rx="6" class="safe"/>
+  <text class="label" x="526" y="349">Formula chain</text><text class="small" x="526" y="371">parent + clause digest</text>
+  <rect x="716" y="322" width="196" height="66" rx="6" class="safe"/>
+  <text class="label" x="734" y="349">Certificate</text><text class="small" x="734" y="371">CNF + assumptions + map</text>
+  <path d="M414 270 L486 270" class="edge"/>
+  <polygon points="486,270 474,263 474,277" fill="#34465a"/>
+
+  <rect x="1006" y="132" width="530" height="278" rx="8" class="worker"/>
+  <rect x="1028" y="154" width="116" height="27" rx="4" fill="#657993"/><text class="badge" x="1044" y="172">SAT WORKER</text>
+  <text class="section" x="1028" y="221">CaDiCaL 3.0 context</text>
+  <rect x="1028" y="248" width="232" height="62" rx="6" class="step"/>
+  <text class="label" x="1046" y="274">Permanent clauses once</text><text class="small" x="1046" y="296">exact formula context cache</text>
+  <rect x="1274" y="248" width="240" height="62" rx="6" class="step"/>
+  <text class="label" x="1292" y="274">Assumptions per solve</text><text class="small" x="1292" y="296">activation literals only</text>
+  <rect x="1028" y="322" width="486" height="66" rx="6" class="safe"/>
+  <text class="label" x="1046" y="349">Checked clause injection</text>
+  <text class="small" x="1046" y="371">import only after local recursive LRUP verification</text>
+  <path d="M934 270 L1006 270" class="edge"/>
+  <polygon points="1006,270 994,263 994,277" fill="#34465a"/>
+
+  <rect x="64" y="474" width="910" height="344" rx="8" class="proof"/>
+  <rect x="86" y="496" width="150" height="27" rx="4" fill="#268168"/><text class="badge" x="103" y="514">PROOF ARTIFACTS</text>
+  <text class="section" x="86" y="558">Assumption lifting and persistent proof DAG</text>
+  <rect x="88" y="592" width="244" height="96" rx="7" class="step"/>
+  <text class="label" x="108" y="620">1. LRAT producer</text>
+  <text class="small" x="108" y="647">formula + assumption units</text><text class="small" x="108" y="669">untrusted until replayed</text>
+  <rect x="365" y="592" width="256" height="96" rx="7" class="safe"/>
+  <text class="label" x="385" y="620">2. Lift assumptions</text>
+  <text class="mono" x="385" y="648">C  becomes  C OR not A</text><text class="small" x="385" y="670">remove temporary unit hints</text>
+  <rect x="654" y="592" width="286" height="96" rx="7" class="safe"/>
+  <text class="label" x="674" y="620">3. Ordered LRUP replay</text>
+  <text class="small" x="674" y="647">unit/conflict chain, exact scope</text><text class="small" x="674" y="669">descendant imports rejected</text>
+  <path d="M332 640 L365 640" class="green"/><path d="M621 640 L654 640" class="green"/>
+  <polygon points="365,640 353,633 353,647" fill="#1e7f68"/><polygon points="654,640 642,633 642,647" fill="#1e7f68"/>
+  <rect x="88" y="724" width="852" height="66" rx="7" class="step"/>
+  <circle cx="127" cy="757" r="18" fill="#2e8c70"/><circle cx="205" cy="757" r="18" fill="#2e8c70"/><circle cx="283" cy="757" r="18" fill="#2e8c70"/>
+  <path d="M145 757 L187 757" class="green"/><path d="M223 757 L265 757" class="green"/>
+  <text class="label" x="328" y="753">Immutable JSON CAS + SQLite index + lifecycle edges</text>
+  <text class="small" x="328" y="775">content digests form a recursively verifiable proof-fragment DAG</text>
+  <path d="M1268 410 C1268 446, 930 448, 930 474" class="green"/>
+  <path d="M846 474 C846 445, 1160 444, 1160 410" class="dash"/>
+  <polygon points="930,474 923,462 937,462" fill="#1e7f68"/><polygon points="1160,410 1153,422 1167,422" fill="#7b8794"/>
+
+  <rect x="1040" y="474" width="496" height="344" rx="8" class="authority"/>
+  <rect x="1062" y="496" width="128" height="27" rx="4" fill="#b64f4f"/><text class="badge" x="1079" y="514">QUERYSTORE</text>
+  <text class="section" x="1062" y="558">Independent authority</text>
+  <rect x="1062" y="592" width="452" height="54" rx="6" class="step"/><text class="label" x="1082" y="625">Rebuild CNF from stored Query IR</text>
+  <rect x="1062" y="658" width="452" height="54" rx="6" class="step"/><text class="label" x="1082" y="691">Reload every imported proof fragment</text>
+  <rect x="1062" y="724" width="452" height="66" rx="6" class="safe"/>
+  <text class="label" x="1082" y="752">Authorize SAT by model replay</text><text class="label" x="1082" y="776">Authorize UNSAT by clause + receipt replay</text>
+  <path d="M974 650 L1040 650" class="green"/>
+  <polygon points="1040,650 1028,643 1028,657" fill="#1e7f68"/>
+
+  <rect x="64" y="864" width="1472" height="132" rx="8" fill="#273444"/>
+  <text class="badge" x="88" y="895">FAIL-CLOSED CONDITIONS</text>
+  <text x="88" y="927" font-family="Inter,Arial,sans-serif" font-size="16" fill="#edf2f7">scope drift | malformed hints | descendant import | CAS mutation | timeout | cancellation | output/proof budget | solver disagreement</text>
+  <text x="88" y="951" font-family="Inter,Arial,sans-serif" font-size="15" fill="#f1c75b">UNSAT without an independently checked proof is downgraded to UNKNOWN.</text>
+  <text x="1124" y="922" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="700" fill="#ffffff">Implemented boundary</text>
+  <text x="1124" y="947" font-family="Inter,Arial,sans-serif" font-size="14" fill="#cdd8e4">synchronous exchange at solve boundaries</text>
+  <text x="88" y="980" font-family="Inter,Arial,sans-serif" font-size="13" fill="#cdd8e4">Not claimed: mid-solve ImpCheck streaming, dynamic distributed rescheduling, multi-node scalability, coverage uplift, or defect-yield uplift.</text>
+</svg>

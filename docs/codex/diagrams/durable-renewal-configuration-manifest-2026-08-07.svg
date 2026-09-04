@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1450" viewBox="0 0 1900 1450" role="img" aria-labelledby="title desc">
+  <title id="title">F333 durable renewal configuration manifest</title>
+  <desc id="desc">Live MPI configuration consensus is extended across restart by a canonical create-once manifest, with exact-match recovery, mismatch rejection, and measured crash restart evidence.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#344054"/>
+    </marker>
+    <marker id="arrowRed" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#C43D4B"/>
+    </marker>
+    <style>
+      .title { font: 700 48px Arial, sans-serif; fill: #17202A; }
+      .subtitle { font: 400 22px Arial, sans-serif; fill: #52606D; }
+      .section { font: 700 25px Arial, sans-serif; fill: #17202A; }
+      .boxTitle { font: 700 23px Arial, sans-serif; fill: #17202A; }
+      .body { font: 400 19px Arial, sans-serif; fill: #344054; }
+      .small { font: 400 17px Arial, sans-serif; fill: #52606D; }
+      .mono { font: 600 18px Consolas, monospace; fill: #17202A; }
+      .metric { font: 700 21px Arial, sans-serif; fill: #17202A; }
+      .light { fill: #FFFFFF; stroke: #AAB4BE; stroke-width: 2; }
+      .teal { fill: #DDF4F0; stroke: #17806D; stroke-width: 3; }
+      .gold { fill: #FFF2C7; stroke: #B7791F; stroke-width: 3; }
+      .coral { fill: #FDE6E3; stroke: #C43D4B; stroke-width: 3; }
+      .blue { fill: #E5EEFA; stroke: #356AA0; stroke-width: 3; }
+      .dark { fill: #26323D; stroke: #26323D; stroke-width: 2; }
+      .arrow { fill: none; stroke: #344054; stroke-width: 3; marker-end: url(#arrow); }
+      .arrowRed { fill: none; stroke: #C43D4B; stroke-width: 3; marker-end: url(#arrowRed); }
+      .dash { fill: none; stroke: #7B8794; stroke-width: 2; stroke-dasharray: 8 7; }
+    </style>
+  </defs>
+
+  <rect width="1900" height="1450" fill="#F7F9FB"/>
+  <rect x="54" y="46" width="1792" height="1358" rx="8" fill="#FFFFFF" stroke="#D4DAE1" stroke-width="2"/>
+
+  <text id="titleText" x="100" y="118" class="title">F333 · Cross-Restart Configuration Commitment</text>
+  <text x="100" y="158" class="subtitle">Live master agreement becomes a durable work-epoch invariant before renewal generation 1</text>
+
+  <text x="100" y="220" class="section">1 · Live agreement in the current MPI job</text>
+  <rect x="100" y="248" width="350" height="150" rx="8" class="blue"/>
+  <text x="130" y="292" class="boxTitle">Canonical local record</text>
+  <text x="130" y="328" class="body">epoch + big-endian binary64</text>
+  <text x="130" y="360" class="mono">interval · timeout · jitter</text>
+
+  <path d="M450 323 H535" class="arrow"/>
+
+  <rect x="535" y="248" width="390" height="150" rx="8" class="gold"/>
+  <text x="565" y="292" class="boxTitle">F332 bounded MPI consensus</text>
+  <text x="565" y="328" class="body">all complete rank records equal</text>
+  <text x="565" y="360" class="small">missing / malformed / drift → stop</text>
+
+  <path d="M925 323 H1010" class="arrow"/>
+
+  <rect x="1010" y="248" width="360" height="150" rx="8" class="teal"/>
+  <text x="1040" y="292" class="boxTitle">Controller typestate sealed</text>
+  <text x="1040" y="328" class="mono">fingerprint Cₑ</text>
+  <text x="1040" y="360" class="small">configuration_consensus = true</text>
+
+  <path d="M1370 323 H1455" class="arrow"/>
+
+  <rect x="1455" y="248" width="345" height="150" rx="8" class="dark"/>
+  <text x="1485" y="292" class="boxTitle" fill="#FFFFFF" style="fill:#FFFFFF">F333 admission gate</text>
+  <text x="1485" y="328" class="body" fill="#FFFFFF" style="fill:#FFFFFF">No durable match</text>
+  <text x="1485" y="360" class="mono" fill="#FFFFFF" style="fill:#FFFFFF">→ no generation 1</text>
+
+  <text x="100" y="470" class="section">2 · Durable create-once state machine</text>
+  <rect x="100" y="500" width="1700" height="430" rx="8" fill="#FAFBFC" stroke="#CAD2DA" stroke-width="2"/>
+
+  <rect x="150" y="560" width="340" height="140" rx="8" class="light"/>
+  <text x="180" y="602" class="boxTitle">Bounded no-follow read</text>
+  <text x="180" y="638" class="mono">renewal-configuration.json</text>
+  <text x="180" y="670" class="small">regular file · ≤ 4096 bytes</text>
+
+  <path d="M490 630 H600" class="arrow"/>
+  <polygon points="720,540 850,630 720,720 590,630" fill="#FFFFFF" stroke="#52606D" stroke-width="3"/>
+  <text x="660" y="622" class="boxTitle">State?</text>
+  <text x="653" y="653" class="small">exact / absent / drift</text>
+
+  <path d="M850 600 C930 545 965 540 1040 540" class="arrow"/>
+  <text x="900" y="540" class="small">exact bytes</text>
+  <rect x="1040" y="500" width="300" height="125" rx="8" class="teal"/>
+  <text x="1070" y="544" class="boxTitle">Read-only fast path</text>
+  <text x="1070" y="580" class="metric">10.481 µs median</text>
+  <text x="1070" y="606" class="small">no temp file or fsync</text>
+
+  <path d="M720 720 V765" class="arrow"/>
+  <text x="738" y="753" class="small">ENOENT</text>
+  <rect x="540" y="765" width="360" height="120" rx="8" class="gold"/>
+  <text x="570" y="807" class="boxTitle">Durable first publication</text>
+  <text x="570" y="842" class="body">write + file fsync</text>
+  <text x="570" y="870" class="small">random exclusive temporary name</text>
+
+  <path d="M900 825 H990" class="arrow"/>
+  <rect x="990" y="765" width="360" height="120" rx="8" class="gold"/>
+  <text x="1020" y="807" class="boxTitle">Hard-link linearization</text>
+  <text x="1020" y="842" class="mono">link(temp, manifest)</text>
+  <text x="1020" y="870" class="small">one winner · directory fsync</text>
+
+  <path d="M1350 825 H1440" class="arrow"/>
+  <rect x="1440" y="765" width="300" height="120" rx="8" class="blue"/>
+  <text x="1470" y="807" class="boxTitle">Reread the winner</text>
+  <text x="1470" y="842" class="body">exact → continue</text>
+  <text x="1470" y="870" class="small">different loser → reject</text>
+
+  <path d="M850 660 C940 710 995 710 1085 685" class="arrowRed"/>
+  <text x="905" y="710" class="small" style="fill:#C43D4B">different / corrupt</text>
+  <rect x="1085" y="650" width="430" height="90" rx="8" class="coral"/>
+  <text x="1115" y="688" class="boxTitle">Fail closed without overwrite</text>
+  <text x="1115" y="720" class="small">generation = attempts = 0 · committed SHA unchanged</text>
+
+  <text x="100" y="1000" class="section">3 · Real Open MPI crash/restart evidence · 7 ranks · 2 masters · 5 workers</text>
+  <line x1="180" y1="1100" x2="1710" y2="1100" stroke="#7B8794" stroke-width="5"/>
+  <circle cx="340" cy="1100" r="18" fill="#356AA0"/>
+  <circle cx="950" cy="1100" r="18" fill="#C43D4B"/>
+  <circle cx="1560" cy="1100" r="18" fill="#17806D"/>
+
+  <rect x="130" y="1140" width="420" height="175" rx="8" class="blue"/>
+  <text x="160" y="1182" class="boxTitle">A · Publish, then crash</text>
+  <text x="160" y="1218" class="body">jitter 0.1 · manifest observed</text>
+  <text x="160" y="1252" class="metric">SIGKILL · exit −9</text>
+  <text x="160" y="1286" class="small">durable state survives process group</text>
+
+  <rect x="740" y="1140" width="420" height="175" rx="8" class="coral"/>
+  <text x="770" y="1182" class="boxTitle">B · Unanimous wrong restart</text>
+  <text x="770" y="1218" class="body">all masters jitter 0.25</text>
+  <text x="770" y="1252" class="metric">0 attempts · exit 70</text>
+  <text x="770" y="1286" class="small">3/3 + 2/2 ACK · manifest SHA unchanged</text>
+
+  <rect x="1350" y="1140" width="420" height="175" rx="8" class="teal"/>
+  <text x="1380" y="1182" class="boxTitle">C · Matching recovery</text>
+  <text x="1380" y="1218" class="body">restore jitter 0.1</text>
+  <text x="1380" y="1252" class="metric">3/3 generations · exit 0</text>
+  <text x="1380" y="1286" class="small">all successes · clean epoch removal</text>
+
+  <rect x="100" y="1350" width="1700" height="1" fill="#D4DAE1"/>
+  <text x="100" y="1385" class="small">Proof boundary: actual MPI transport; synthetic processor identity and crash injection; not multi-host storage, ULFM, DSE throughput, coverage, solver, or LAVA-M evidence.</text>
+</svg>

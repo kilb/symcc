@@ -1,0 +1,12 @@
+captured_utc=2026-08-17T05:19:59Z
+kernel=Linux 7.0.0-28-generic x86_64 GNU/Linux
+python=3.12.3
+pytest=9.1.1
+lit=18.1.8
+cmake=3.28.3
+cxx=Ubuntu g++ 13.3.0
+llvm18_clang=18.1.3
+llvm17_clang=17.0.6
+z3=4.8.12
+repository=/home/ubuntu/code/symcc
+timezone=UTC

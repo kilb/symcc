@@ -1,0 +1,101 @@
+{
+  "invalid_input_rejection": {
+    "classification": {
+      "accepted": false,
+      "error_file": true,
+      "incoming": false,
+      "rejected": true
+    },
+    "error_is_value_error": true,
+    "result": [
+      0,
+      1
+    ],
+    "stored_queries": 0,
+    "stored_witnesses": 0
+  },
+  "legacy_publication_misclassification": {
+    "classification": {
+      "accepted": false,
+      "error_file": true,
+      "incoming": false,
+      "rejected": true
+    },
+    "error": "OSError: simulated accepted publication failure",
+    "result": [
+      0,
+      1
+    ],
+    "store_calls": 1
+  },
+  "production_persistence_failure": {
+    "after_failure": {
+      "accepted": false,
+      "error_file": false,
+      "incoming": true,
+      "rejected": false,
+      "stored_queries": 0,
+      "stored_witnesses": 0
+    },
+    "after_retry": {
+      "accepted": true,
+      "error_file": false,
+      "incoming": false,
+      "rejected": false,
+      "stored_queries": 1,
+      "stored_witnesses": 1
+    },
+    "error_type": "OperationalError",
+    "retry_result": [
+      1,
+      0
+    ]
+  },
+  "production_publication_failure": {
+    "after_failure": {
+      "accepted": false,
+      "error_file": false,
+      "incoming": true,
+      "rejected": false,
+      "stored_queries": 1,
+      "stored_witnesses": 1
+    },
+    "after_retry": {
+      "accepted": true,
+      "error_file": false,
+      "incoming": false,
+      "rejected": false,
+      "stored_queries": 1,
+      "stored_witnesses": 1
+    },
+    "error_type": "OSError",
+    "retry_result": [
+      1,
+      0
+    ]
+  },
+  "production_read_failure": {
+    "after_failure": {
+      "accepted": false,
+      "error_file": false,
+      "incoming": true,
+      "rejected": false,
+      "stored_queries": 0,
+      "stored_witnesses": 0
+    },
+    "after_retry": {
+      "accepted": true,
+      "error_file": false,
+      "incoming": false,
+      "rejected": false,
+      "stored_queries": 1,
+      "stored_witnesses": 1
+    },
+    "error_type": "OSError",
+    "retry_result": [
+      1,
+      0
+    ]
+  },
+  "schema": "symcc-f365-outcome-separated-spool-check-v1"
+}

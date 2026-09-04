@@ -1,0 +1,123 @@
+{
+  "actual_local_filesystem_probe": true,
+  "actual_mpi_transport": false,
+  "actual_multihost_filesystem": false,
+  "both_observations_failed": {
+    "capability_present": false,
+    "capability_retained": false,
+    "error": "filesystem capability probe raised: injected filesystem adapter failure; processor identity probe raised: injected processor adapter failure",
+    "processor_name": ""
+  },
+  "bounded_diagnostic": {
+    "capability_present": true,
+    "capability_retained": true,
+    "error": "processor identity probe raised: x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ?x ",
+    "processor_name": ""
+  },
+  "capability_base_exception": "KeyboardInterrupt: capability process control",
+  "checks": {
+    "capability_base_exception_propagates": true,
+    "clean_observation_is_preserved": true,
+    "collective_failure_converges": true,
+    "diagnostic_is_bounded": true,
+    "failed_processor_record_is_schema_valid": true,
+    "filesystem_exception_is_contained": true,
+    "invalid_results_are_normalized": true,
+    "processor_base_exception_propagates": true,
+    "processor_exception_is_contained": true,
+    "processor_observation_still_runs": true,
+    "rendering_failure_uses_type_name": true,
+    "upstream_error_is_sanitized": true
+  },
+  "checks_passed": 12,
+  "checks_total": 12,
+  "claim_boundary": "Local observation and synthetic collective evidence only; no real MPI, multi-host filesystem, ULFM recovery, solver, coverage, campaign, bug, or LAVA-M uplift claim.",
+  "clean_observation": {
+    "capability_present": true,
+    "capability_retained": true,
+    "error": "",
+    "processor_name": "node-a"
+  },
+  "collective_results": [
+    {
+      "clean": false,
+      "contention_checks": 0,
+      "elapsed": 0.0,
+      "error": "master 1 local probe failed: processor identity probe raised: injected processor adapter failure",
+      "identity_checks": 0,
+      "members": [
+        [
+          0,
+          "node-a"
+        ],
+        [
+          1,
+          ""
+        ]
+      ],
+      "proof_transcript": "",
+      "release_checks": 0,
+      "representatives": [],
+      "rounds": 0,
+      "verified": false
+    },
+    {
+      "clean": false,
+      "contention_checks": 0,
+      "elapsed": 0.0,
+      "error": "master 1 local probe failed: processor identity probe raised: injected processor adapter failure",
+      "identity_checks": 0,
+      "members": [
+        [
+          0,
+          "node-a"
+        ],
+        [
+          1,
+          ""
+        ]
+      ],
+      "proof_transcript": "",
+      "release_checks": 0,
+      "representatives": [],
+      "rounds": 0,
+      "verified": false
+    }
+  ],
+  "collective_thread_errors": [],
+  "collective_threads_alive": 0,
+  "epoch": "8cc6176a15f109859c14a647aa0e368e2f9b44f9f04a04a81cd73af31b019a1f",
+  "event_order": [
+    "capability",
+    "processor"
+  ],
+  "feature": "F356",
+  "invalid_observations": {
+    "capability_present": false,
+    "capability_retained": false,
+    "error": "filesystem capability input is invalid; processor identity probe returned an invalid result",
+    "processor_name": ""
+  },
+  "processor_base_exception": "KeyboardInterrupt: processor process control",
+  "processor_observation_failed": {
+    "capability_present": true,
+    "capability_retained": true,
+    "error": "processor identity probe raised: injected processor adapter failure",
+    "processor_name": ""
+  },
+  "rendering_failure": {
+    "capability_present": true,
+    "capability_retained": true,
+    "error": "processor identity probe raised: BrokenTextError",
+    "processor_name": ""
+  },
+  "schema": "symcc-f356-collective-safe-observation-evidence-v1",
+  "solver_or_campaign_executed": false,
+  "synthetic_collective_transport": true,
+  "upstream_error": {
+    "capability_present": true,
+    "capability_retained": true,
+    "error": "pre-renewal heartbeat failed ?",
+    "processor_name": "node-a"
+  }
+}

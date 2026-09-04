@@ -1,0 +1,94 @@
+{
+  "capabilities": {
+    "commands": {
+      "afl-clang-fast": "/usr/local/bin/afl-clang-fast",
+      "afl-showmap": "/usr/local/bin/afl-showmap",
+      "bitwuzla": "/usr/local/bin/bitwuzla",
+      "cc": "/usr/bin/cc",
+      "cvc5": "/usr/bin/cvc5",
+      "llvm-diff": "/usr/bin/llvm-diff",
+      "mpiexec": "/usr/bin/mpiexec",
+      "openssl": "/usr/bin/openssl",
+      "opt": "/usr/bin/opt",
+      "z3": "/usr/bin/z3"
+    },
+    "libraries": {
+      "z3": "libz3.so.4"
+    },
+    "python_modules": {
+      "lark": "/home/ubuntu/venv/symcc/lib/python3.12/site-packages/lark/__init__.py",
+      "mpi4py": "/home/ubuntu/venv/symcc/lib/python3.12/site-packages/mpi4py/__init__.py",
+      "parglare": "/home/ubuntu/venv/symcc/lib/python3.12/site-packages/parglare/__init__.py",
+      "tree_sitter": "/home/ubuntu/venv/symcc/lib/python3.12/site-packages/tree_sitter/__init__.py",
+      "tree_sitter_json": "/home/ubuntu/venv/symcc/lib/python3.12/site-packages/tree_sitter_json/__init__.py"
+    }
+  },
+  "details": {
+    "collection_errors": [],
+    "skipped": [],
+    "subtests_skipped": [],
+    "xfailed": []
+  },
+  "gate": {
+    "failures": [],
+    "limits": {
+      "max_deselected": 0,
+      "max_missing_nodeids": 0,
+      "max_skips": 0,
+      "max_unexpected_nodeids": 0,
+      "max_xfails": 0,
+      "max_xpasses": 0,
+      "min_collected": 778
+    },
+    "passed": true
+  },
+  "inventory": {
+    "details_truncated": false,
+    "duplicate_observed": [],
+    "duplicate_observed_count": 0,
+    "expected": 1290,
+    "manifest_error": null,
+    "manifest_path": "test/pytest-nodeids.json",
+    "manifest_schema": "symcc-pytest-nodeid-manifest-v1",
+    "manifest_sha256": "6a9f273eae9ca720fa9eb321775495523d5cef9803f97f7d8220c095b68117ba",
+    "matched": true,
+    "missing": [],
+    "missing_count": 0,
+    "observed": 1290,
+    "observed_sha256": "6a9f273eae9ca720fa9eb321775495523d5cef9803f97f7d8220c095b68117ba",
+    "required": true,
+    "unexpected": [],
+    "unexpected_count": 0
+  },
+  "missing_capabilities": [],
+  "outcomes": {
+    "collected": 1290,
+    "collection_errors": 0,
+    "deselected": 0,
+    "failed": 0,
+    "passed": 1290,
+    "skipped": 0,
+    "subtests_failed": 0,
+    "subtests_passed": 291,
+    "subtests_skipped": 0,
+    "xfailed": 0,
+    "xpassed": 0
+  },
+  "pytest": {
+    "arguments": [
+      "-q",
+      "-W",
+      "error",
+      "-p",
+      "no:cacheprovider"
+    ],
+    "exit_code": 0,
+    "plugin_autoload_disabled": true,
+    "version": "9.1.1"
+  },
+  "python": {
+    "executable": "/home/ubuntu/venv/symcc/bin/python3",
+    "version": "3.12.3"
+  },
+  "schema": "symcc-python-test-gate-v2"
+}

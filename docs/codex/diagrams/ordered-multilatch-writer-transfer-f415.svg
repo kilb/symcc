@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">F415 ordered multi-writer transfer certificate</title>
+  <desc id="desc">A schematic showing mutually exclusive loop backedges, an ordered MemoryDef chain within one writer transfer, v5 artifact replay, and separation between static lane closure and runtime path-local initialization.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#34445c"/></marker>
+    <marker id="tealArrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#087f8c"/></marker>
+    <marker id="greenArrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2b7a4b"/></marker>
+    <style>
+      .title{font:700 34px Inter,Arial,sans-serif;fill:#172033}.subtitle{font:400 16px Inter,Arial,sans-serif;fill:#526077}
+      .kicker{font:700 12px Inter,Arial,sans-serif;fill:#087f8c}.panelTitle{font:700 20px Inter,Arial,sans-serif;fill:#172033}
+      .node{font:700 14px Inter,Arial,sans-serif;fill:#172033}.copy{font:400 12px Inter,Arial,sans-serif;fill:#526077}
+      .mono{font:600 13px 'DejaVu Sans Mono',monospace;fill:#172033}.small{font:500 11px Inter,Arial,sans-serif;fill:#526077}
+      .edge{fill:none;stroke:#34445c;stroke-width:2;marker-end:url(#arrow)}.teal{fill:none;stroke:#087f8c;stroke-width:2.4;marker-end:url(#tealArrow)}
+      .green{fill:none;stroke:#2b7a4b;stroke-width:2.4;marker-end:url(#greenArrow)}.dash{fill:none;stroke:#64748b;stroke-width:1.7;stroke-dasharray:6 5;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1440" height="900" fill="#f7f9fc"/>
+  <rect x="48" y="42" width="8" height="76" fill="#087f8c"/>
+  <text class="title" x="76" y="76">F415  Ordered Multi-Writer Backedge Transfer</text>
+  <text class="subtitle" x="76" y="107">One backedge is one alternative; stores inside that backedge form a verified sequence</text>
+  <rect x="1123" y="54" width="267" height="44" rx="6" fill="#172033"/>
+  <text x="1256" y="82" text-anchor="middle" style="font:700 14px Inter,Arial,sans-serif;fill:#fff">PROOF-CARRYING v5</text>
+
+  <rect x="48" y="146" width="658" height="472" rx="8" fill="#fff" stroke="#d6deea" stroke-width="1.5"/>
+  <text class="kicker" x="76" y="178">01 / LLVM CFG + MEMORYSSA</text>
+  <text class="panelTitle" x="76" y="207">Alternative backedges, ordered definitions</text>
+
+  <rect x="76" y="237" width="176" height="58" rx="6" fill="#e9f5f5" stroke="#087f8c" stroke-width="2"/>
+  <text class="node" x="164" y="261" text-anchor="middle">Header H</text>
+  <text class="copy" x="164" y="281" text-anchor="middle">MemoryPhi + iv guard</text>
+  <rect x="300" y="237" width="176" height="58" rx="6" fill="#fff6dc" stroke="#c99313" stroke-width="2"/>
+  <text class="node" x="388" y="261" text-anchor="middle">Decision tree</text>
+  <text class="copy" x="388" y="281" text-anchor="middle">exactly one leaf</text>
+  <path class="edge" d="M252 266 H300"/>
+
+  <rect x="76" y="344" width="590" height="140" rx="7" fill="#f6fbf8" stroke="#9bc7ae" stroke-width="1.5"/>
+  <text class="node" x="96" y="370">T0 / writer latch</text>
+  <text class="small" x="641" y="370" text-anchor="end">program order</text>
+  <rect x="96" y="392" width="116" height="54" rx="6" fill="#e7f4ea" stroke="#2b7a4b" stroke-width="1.8"/>
+  <text class="mono" x="154" y="416" text-anchor="middle">W0</text><text class="small" x="154" y="434" text-anchor="middle">MemoryDef</text>
+  <rect x="239" y="392" width="116" height="54" rx="6" fill="#e7f4ea" stroke="#2b7a4b" stroke-width="1.8"/>
+  <text class="mono" x="297" y="416" text-anchor="middle">W1</text><text class="small" x="297" y="434" text-anchor="middle">MemoryDef</text>
+  <rect x="382" y="392" width="116" height="54" rx="6" fill="#e7f4ea" stroke="#2b7a4b" stroke-width="1.8"/>
+  <text class="mono" x="440" y="416" text-anchor="middle">W2</text><text class="small" x="440" y="434" text-anchor="middle">MemoryDef</text>
+  <rect x="525" y="392" width="116" height="54" rx="6" fill="#e7f4ea" stroke="#2b7a4b" stroke-width="1.8"/>
+  <text class="mono" x="583" y="416" text-anchor="middle">W3</text><text class="small" x="583" y="434" text-anchor="middle">MemoryDef</text>
+  <path class="green" d="M212 419 H239"/><path class="green" d="M355 419 H382"/><path class="green" d="M498 419 H525"/>
+  <text class="mono" x="369" y="470" text-anchor="middle">H -&gt; W0 -&gt; W1 -&gt; W2 -&gt; W3 -&gt; H</text>
+
+  <rect x="76" y="514" width="282" height="66" rx="6" fill="#f1f4f8" stroke="#64748b" stroke-width="1.7"/>
+  <text class="node" x="217" y="540" text-anchor="middle">T1 / carry latch</text>
+  <text class="mono" x="217" y="562" text-anchor="middle">H -&gt; H</text>
+  <rect x="384" y="514" width="282" height="66" rx="6" fill="#fff8e8" stroke="#d6a419" stroke-width="1.7"/>
+  <text class="node" x="525" y="540" text-anchor="middle">T2 / singleton writer</text>
+  <text class="mono" x="525" y="562" text-anchor="middle">H -&gt; W0 -&gt; H</text>
+  <path class="dash" d="M388 295 C388 319 217 319 217 344"/>
+  <path class="dash" d="M388 295 C388 326 525 326 525 344"/>
+  <text class="small" x="76" y="602">Per transfer: 1-4 stores. Whole loop: at most 16 stores. Any unrecorded memory effect rejects.</text>
+
+  <rect x="734" y="146" width="658" height="472" rx="8" fill="#fff" stroke="#d6deea" stroke-width="1.5"/>
+  <text class="kicker" x="762" y="178">02 / INDEPENDENT ARTIFACT REPLAY</text>
+  <text class="panelTitle" x="762" y="207">v5 binds sequence, identity, and lane evidence</text>
+  <rect x="762" y="237" width="602" height="55" rx="6" fill="#edf3fb" stroke="#7891b5" stroke-width="1.6"/>
+  <text class="mono" x="782" y="260">schema  symcc-loop-memoryphi-byte-lane-induction-v5</text>
+  <text class="small" x="782" y="280">Capability and use point must appear together</text>
+
+  <text class="node" x="762" y="330">Reconstructed proof obligations</text>
+  <rect x="762" y="349" width="286" height="62" rx="6" fill="#f7f9fc" stroke="#d6deea"/>
+  <circle cx="786" cy="380" r="10" fill="#087f8c"/><text x="786" y="384" text-anchor="middle" style="font:700 10px Arial;fill:#fff">1</text>
+  <text class="node" x="806" y="375">CFG + PHI edges</text><text class="copy" x="806" y="395">latch and transfer ordinals</text>
+  <rect x="1078" y="349" width="286" height="62" rx="6" fill="#f7f9fc" stroke="#d6deea"/>
+  <circle cx="1102" cy="380" r="10" fill="#2b7a4b"/><text x="1102" y="384" text-anchor="middle" style="font:700 10px Arial;fill:#fff">2</text>
+  <text class="node" x="1122" y="375">MemoryDef chain</text><text class="copy" x="1122" y="395">actual store order + width</text>
+  <rect x="762" y="427" width="286" height="62" rx="6" fill="#f7f9fc" stroke="#d6deea"/>
+  <circle cx="786" cy="458" r="10" fill="#c99313"/><text x="786" y="462" text-anchor="middle" style="font:700 10px Arial;fill:#fff">3</text>
+  <text class="node" x="806" y="453">Affine object domain</text><text class="copy" x="806" y="473">owner, aliases, recurrence</text>
+  <rect x="1078" y="427" width="286" height="62" rx="6" fill="#f7f9fc" stroke="#d6deea"/>
+  <circle cx="1102" cy="458" r="10" fill="#9a4f69"/><text x="1102" y="462" text-anchor="middle" style="font:700 10px Arial;fill:#fff">4</text>
+  <text class="node" x="1122" y="453">Witness alternatives</text><text class="copy" x="1122" y="473">transfer + writer ordinal</text>
+
+  <rect x="762" y="518" width="602" height="67" rx="6" fill="#fff1f2" stroke="#c96c78" stroke-width="1.5"/>
+  <text class="node" x="784" y="543">Fail-closed mutations</text>
+  <text class="copy" x="784" y="565">missing capability, reordered/dropped writer, forged ordinal, wrong incoming kind, partial witnesses</text>
+  <path class="teal" d="M706 414 H734"/>
+
+  <rect x="48" y="648" width="1344" height="204" rx="8" fill="#172033"/>
+  <text x="76" y="681" style="font:700 12px Inter,Arial,sans-serif;fill:#63d1d6">03 / TWO AUTHORITIES, NO MAY/MUST CONFUSION</text>
+  <text x="76" y="714" style="font:700 20px Inter,Arial,sans-serif;fill:#fff">Static closure proves possible writers; runtime bitmap proves this path actually wrote</text>
+  <rect x="76" y="742" width="566" height="78" rx="6" fill="#233047" stroke="#4b6688"/>
+  <text x="98" y="768" style="font:700 14px Inter,Arial,sans-serif;fill:#fff">Certificate view</text>
+  <text x="98" y="791" style="font:500 12px Inter,Arial,sans-serif;fill:#b9c6d8">union all reachable W0..Wn lanes; retain writer ordinal as provenance</text>
+  <text x="98" y="809" style="font:600 12px 'DejaVu Sans Mono',monospace;fill:#63d1d6">potential lanes + ordered alternatives</text>
+  <rect x="798" y="742" width="566" height="78" rx="6" fill="#233047" stroke="#4b6688"/>
+  <text x="820" y="768" style="font:700 14px Inter,Arial,sans-serif;fill:#fff">Execution view</text>
+  <text x="820" y="791" style="font:500 12px Inter,Arial,sans-serif;fill:#b9c6d8">execute one transfer; apply its stores in order; update path-local byte bits</text>
+  <text x="820" y="809" style="font:600 12px 'DejaVu Sans Mono',monospace;fill:#7fd29d">actual initialized bytes + last writer</text>
+  <path d="M642 781 H798" fill="none" stroke="#63d1d6" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#tealArrow)"/>
+  <text x="720" y="771" text-anchor="middle" style="font:600 11px Inter,Arial,sans-serif;fill:#b9c6d8">independent replay</text>
+  <text x="48" y="883" style="font:500 11px Inter,Arial,sans-serif;fill:#64748b">F415 | initializedness contract only; value summaries, nested-loop composition, pointer unions, and end-to-end performance remain separate claims</text>
+</svg>

@@ -1,0 +1,50 @@
+F379 trivial scalar catch object - final verification
+Date: 2026-08-12 UTC
+
+LLVM 18 build:
+  cmake --build build -j2
+  PASS; libsymcc.so rebuilt and linked
+
+LLVM 17 compatibility build:
+  cmake --build build-llvm17 -j2
+  PASS; libsymcc.so rebuilt and linked
+
+Complete LLVM lit:
+  cmake --build build --target check -j2
+  PASS; 237 passed, 1 unsupported, 0 failed, 238 discovered, 212.56 s
+
+Targeted Python regression:
+  scalar catch + lifecycle + cleanup + typed exception suites
+  PASS; 30 passed, 27 subtests passed, 0 failed, 3.00 s
+
+Capability-closed Python gate:
+  PASS; 868 passed, 229 subtests passed, 137.12 s
+  collected=868; skipped=0; xfailed=0; xpassed=0; deselected=0
+  missing-nodeids=0; unexpected-nodeids=0
+  canonical nodeid SHA-256:
+    352426efcf9c42a6f06ce2affd9e0ac2d66779db14c48d02100af1714b96fcd7
+
+Generated artifact replay checks:
+  scalar-catch-object.json: values 7,42; scalar capability and value op present
+  gep-reject.json: rejected unsupported exception-object use
+  store-reject.json: rejected unsupported exception-object use
+  atomic-reject.json: rejected atomic scalar object load
+  pointer-materialization-reject.json: rejected ptrtoint object materialization
+
+Static and visual gates:
+  ruff: PASS, 0 diagnostics
+  py_compile: PASS
+  SVG XML + rendered PNG: PASS, PNG 1800x1100 RGB
+
+Review findings retained in the record:
+  Review round 1 repaired the test capability fixture and exposed a production
+  scalar-to-typed capability dependency. Review round 2 closed all-use-set
+  admission and added GEP/store/atomic fail-closed cases. Review round 3 checked
+  phase, frame, exact payload width, fresh-executor restore, and evidence claim
+  boundaries. All complete gates were rerun after the fixes.
+
+Claim boundary:
+  These results establish a direct read-only scalar projection from the active
+  caught payload. They do not establish an exception arena, object addresses,
+  layouts, destructors, RTTI inheritance, complete C++ ABI behavior, benchmark
+  throughput, coverage, or vulnerability-discovery improvement.

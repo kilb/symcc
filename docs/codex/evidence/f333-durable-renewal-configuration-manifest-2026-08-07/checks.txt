@@ -1,0 +1,63 @@
+F333 durable renewal configuration manifest checks
+Date: 2026-08-07 UTC
+Host: cuda-ke
+Kernel: Linux 7.0.0-28-generic x86_64
+Python: 3.12.3
+MPI: Open MPI 4.1.6 / mpi4py 4.1.1 / MPI 3.1
+
+Static and syntax checks
+- ruff touched production/test/evidence Python: pass
+- Python bytecode compilation for touched Python: pass
+- git diff --check including untracked delivery files: pass
+- evidence-directory __pycache__ residue: none
+
+Tests
+- lifecycle/filesystem qualification directed tests: 53 passed, 14 subtests in 1.57 s
+- related MPI/distributed/hybrid tests: 306 passed, 29 subtests in 18.14 s
+- full warnings-as-errors Python regression: 702 passed, 49 subtests in 99.71 s
+- different-configuration create-once race repetition: 20/20 pass
+
+Real MPI crash/restart sequence
+- ranks and masters/workers: 7 and 2/5
+- sealed work epoch: f333 repeated 16 times
+- actual MPI transport: true
+- synthetic processor topology and process-group crash injection: true
+- initial manifest publication observed before injected SIGKILL: true
+- interrupted return code: -9
+- manifest fingerprint: 1c94067d4355899cf3af9ecefc65785ecca2fa3db1c50586dfa59d1931c96f30
+- manifest file SHA-256: 8d27f0a74d20883b35cbc3a2f6a732fd8a10d8d9af2f98462504b9bbcc244c9e
+- unanimous restart jitter drift: 0.1 -> 0.25
+- changed restart generation/attempts per master: 0/0 and 0/0
+- changed restart manifest SHA-256 preserved: true
+- changed restart worker ACKs and return code: 3/3 + 2/2 and 70
+- changed restart elapsed: 0.864409 s
+- matching restart generations per master: 3/3
+- matching restart attempts/successes/failures: 3/3/0 and 3/3/0
+- matching restart worker ACKs and return code: 3/3 + 2/2 and 0
+- matching restart elapsed and epoch cleanup: 3.980271 s and true
+- all JSON checks: pass
+
+Mechanism cost
+- warm-ups/repetitions: 10/100 interleaved and alternating
+- first-publication samples: 30
+- exact-read reuse median/p95: 10.481/22.774 us
+- removed temp-fsync counterfactual median/p95: 2698.4085/2749.05 us
+- median saved and counterfactual/fast ratio: 2687.9275 us and 257.45716057628084x
+- first publication median/p95: 7372.645/7469.837 us
+- all samples complete and temporary residue: true and 0
+
+Strict evidence boundaries
+- actual_multi_host=false
+- deployment_evidence=false
+- real_shared_storage_backend_tested=false
+- mpi_rank_repair_tested=false
+- network_partition_tested=false
+- ulfm_repair_tested=false
+- dse_throughput_benchmarked=false
+- solver_or_coverage_uplift_measured=false
+- lava_m_campaign_run=false
+
+Repository inventory after F333
+- documented feature IDs: F00-F333 (334 total)
+- documented SYMCC configuration names: 410
+- top-level test files: 246

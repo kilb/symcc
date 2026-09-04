@@ -1,0 +1,18 @@
+generated_utc=2026-08-07T01:44:41Z
+uname=Linux 7.0.0-28-generic x86_64 GNU/Linux
+python=Python 3.12.3
+mpi4py_mpi=(3, 1) ('Open MPI', (4, 1, 6))
+processor=cuda-ke
+All checks passed!
+ruff=pass
+py_compile=pass
+git_diff_check=pass
+pytest_warnings_as_errors=pass
+actual_multi_host_tested=false
+synthetic_topology_is_deployment_evidence=false
+server_failover_tested=false
+network_partition_tested=false
+physical_power_cut_tested=false
+dse_throughput_benchmarked=false
+evidence_json_assertions=pass
+svg_structure=pass

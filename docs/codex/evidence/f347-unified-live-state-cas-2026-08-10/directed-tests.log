@@ -1,0 +1,5 @@
+Command:
+PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q -W error test/test_distributed_state.py -k 'ContentAddressedInputStoreTests or LiveStateStoreTests'
+
+Result:
+9 passed, 141 deselected, 3 subtests passed in 0.33s

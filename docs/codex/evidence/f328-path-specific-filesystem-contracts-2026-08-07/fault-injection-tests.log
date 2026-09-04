@@ -1,0 +1,3 @@
+$ pytest -q -W error test/test_distributed_state.py test/test_mpi_lifecycle.py -k F328-profile-filters
+.................                                                        [100%]
+17 passed, 143 deselected in 0.97s

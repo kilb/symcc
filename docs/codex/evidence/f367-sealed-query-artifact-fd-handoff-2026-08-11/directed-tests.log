@@ -1,0 +1,3 @@
+$ PYTHONDONTWRITEBYTECODE=1 pytest -q test/test_query_store.py
+....................                                                   [100%]
+20 passed, 2 subtests passed in 3.34s

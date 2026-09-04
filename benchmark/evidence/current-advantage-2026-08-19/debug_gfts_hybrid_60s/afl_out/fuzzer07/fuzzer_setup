@@ -1,0 +1,15 @@
+# environment variables:
+AFL_AUTORESUME=1
+AFL_CUSTOM_INFO_PROGRAM=/home/ubuntu/code/symcc/benchmark/public/bin/google-fts-afl/xml_read_fuzzer
+AFL_CUSTOM_INFO_PROGRAM_ARGV=
+AFL_CUSTOM_INFO_OUT=/home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/debug_gfts_hybrid_60s/afl_out/fuzzer07
+AFL_FINAL_SYNC=1
+AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1
+AFL_KEEP_TIMEOUTS=1
+AFL_NO_UI=1
+AFL_PRELOAD=/home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/debug_gfts_hybrid_60s/libafl_data_coverage_rt.so
+AFL_PYTHON_MODULE=util.afl_symcc_hint_mutator
+AFL_SKIP_CPUFREQ=1
+AFL_SYNC_TIME=1
+# command line:
+'afl-fuzz' '-S' 'fuzzer07' '-p' 'seek' '-i' '/home/ubuntu/code/symcc/benchmark/public/seeds/google-fts/xml_read_fuzzer' '-o' '/home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/debug_gfts_hybrid_60s/afl_out' '-m' 'none' '--' '/home/ubuntu/code/symcc/benchmark/public/bin/google-fts-afl/xml_read_fuzzer'

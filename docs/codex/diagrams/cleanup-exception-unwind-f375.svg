@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="820" viewBox="0 0 1440 820" role="img" aria-labelledby="title desc">
+  <title id="title">F375 resumable cleanup-only exception continuation flow</title>
+  <desc id="desc">LLVM invoke and cleanup landingpad are lowered into capability-bound continuation operations, persisted in content-addressed checkpoints, and resumed through normal, handled exception, or unhandled exception paths.</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#152238" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#52657a"/>
+    </marker>
+    <style>
+      .title { font: 700 30px Inter, Arial, sans-serif; fill: #17283d; }
+      .subtitle { font: 400 16px Inter, Arial, sans-serif; fill: #52657a; }
+      .panel-title { font: 700 18px Inter, Arial, sans-serif; fill: #17283d; }
+      .label { font: 600 15px Inter, Arial, sans-serif; fill: #20344b; }
+      .small { font: 400 13px Inter, Arial, sans-serif; fill: #465b70; }
+      .code { font: 600 13px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #20344b; }
+      .arrow { fill: none; stroke: #52657a; stroke-width: 2.5; marker-end: url(#arrow); }
+      .dashed { stroke-dasharray: 7 7; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="820" fill="#f7f9fc"/>
+  <text x="56" y="58" class="title">F375 Resumable Cleanup-Only Exception Continuations</text>
+  <text x="56" y="88" class="subtitle">single active exception · 1–64 bit payload · capability-closed · checkpoint-resumable</text>
+
+  <g filter="url(#shadow)">
+    <rect x="55" y="126" width="292" height="248" rx="8" fill="#ffffff" stroke="#9fb6cf"/>
+    <rect x="55" y="126" width="292" height="46" rx="8" fill="#dcecff"/>
+    <path d="M55 164 H347" stroke="#9fb6cf"/>
+    <text x="77" y="155" class="panel-title">1  LLVM Input</text>
+    <text x="77" y="204" class="code">invoke @throw_if(i1, i64)</text>
+    <text x="77" y="230" class="small">normal → normal successor</text>
+    <text x="77" y="254" class="small">unwind → cleanup landingpad</text>
+    <rect x="77" y="277" width="245" height="70" rx="6" fill="#f4f8fd" stroke="#c8d6e5"/>
+    <text x="92" y="303" class="code">landingpad cleanup</text>
+    <text x="92" y="329" class="code">resume {ptr, i32}</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="386" y="126" width="310" height="248" rx="8" fill="#ffffff" stroke="#87b89a"/>
+    <rect x="386" y="126" width="310" height="46" rx="8" fill="#dff3e5"/>
+    <path d="M386 164 H696" stroke="#87b89a"/>
+    <text x="408" y="155" class="panel-title">2  LLVM Lowering</text>
+    <text x="408" y="202" class="label">Exact summary type check</text>
+    <text x="408" y="228" class="code">throw_if / throw</text>
+    <text x="408" y="254" class="code">normal_target / unwind_target</text>
+    <rect x="408" y="278" width="266" height="69" rx="6" fill="#f0faf3" stroke="#b7d8c2"/>
+    <text x="423" y="305" class="small">capability</text>
+    <text x="423" y="329" class="code">bounded-cleanup-exception-unwind</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="735" y="126" width="310" height="248" rx="8" fill="#ffffff" stroke="#d7ad62"/>
+    <rect x="735" y="126" width="310" height="46" rx="8" fill="#fff0cf"/>
+    <path d="M735 164 H1045" stroke="#d7ad62"/>
+    <text x="757" y="155" class="panel-title">3  CAS Checkpoint</text>
+    <text x="757" y="202" class="code">frames[] + solver_root</text>
+    <text x="757" y="228" class="code">program_root + memory_root</text>
+    <rect x="757" y="253" width="266" height="94" rx="6" fill="#fff9ec" stroke="#ead19e"/>
+    <text x="772" y="279" class="code">@exception:active</text>
+    <text x="772" y="304" class="code">@exception:value</text>
+    <text x="772" y="329" class="code">@exception:handler-depth</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1084" y="126" width="301" height="248" rx="8" fill="#ffffff" stroke="#d48f8a"/>
+    <rect x="1084" y="126" width="301" height="46" rx="8" fill="#ffe5e1"/>
+    <path d="M1084 164 H1385" stroke="#d48f8a"/>
+    <text x="1106" y="155" class="panel-title">4  Live Executor</text>
+    <text x="1106" y="202" class="label">throw_if</text>
+    <text x="1106" y="228" class="small">Check feasibility; constrain choice</text>
+    <text x="1106" y="254" class="small">Symbolic condition forks checkpoints</text>
+    <text x="1106" y="290" class="label">throw</text>
+    <text x="1106" y="316" class="small">Pop frames; find nearest unwind edge</text>
+    <text x="1106" y="342" class="small">Terminate explicitly if unhandled</text>
+  </g>
+
+  <path d="M347 250 H378" class="arrow"/>
+  <path d="M696 250 H727" class="arrow"/>
+  <path d="M1045 250 H1076" class="arrow"/>
+
+  <text x="56" y="430" class="panel-title">Three Runtime Outcomes</text>
+
+  <g filter="url(#shadow)">
+    <rect x="55" y="465" width="390" height="206" rx="8" fill="#ffffff" stroke="#79ad91"/>
+    <rect x="55" y="465" width="10" height="206" rx="5" fill="#3f9b68"/>
+    <text x="87" y="503" class="panel-title">A  Normal Path</text>
+    <text x="87" y="542" class="code">assert ¬condition</text>
+    <text x="87" y="571" class="small">Enter throw_if.normal</text>
+    <text x="87" y="600" class="small">callee return → caller.normal_target</text>
+    <rect x="87" y="621" width="327" height="28" rx="5" fill="#e7f6ec"/>
+    <text x="105" y="641" class="label">No exception metadata</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="486" y="465" width="468" height="206" rx="8" fill="#ffffff" stroke="#d5a24d"/>
+    <rect x="486" y="465" width="10" height="206" rx="5" fill="#e3a325"/>
+    <text x="518" y="503" class="panel-title">B  Handled Exception</text>
+    <text x="518" y="540" class="code">assert condition → local cleanup → throw</text>
+    <text x="518" y="569" class="small">Drop popped-frame locals; retain payload</text>
+    <text x="518" y="598" class="small">Nearest caller unwind edge receives control</text>
+    <rect x="518" y="621" width="404" height="28" rx="5" fill="#fff4d9"/>
+    <text x="536" y="641" class="small">Clear metadata exactly when handler-depth returns</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="995" y="465" width="390" height="206" rx="8" fill="#ffffff" stroke="#d27c76"/>
+    <rect x="995" y="465" width="10" height="206" rx="5" fill="#cc5f57"/>
+    <text x="1027" y="503" class="panel-title">C  Unhandled Exception</text>
+    <text x="1027" y="542" class="small">Root reached with no unwind edge</text>
+    <text x="1027" y="571" class="code">status = unhandled-exception</text>
+    <text x="1027" y="600" class="small">Retain payload expression and checkpoint</text>
+    <rect x="1027" y="621" width="327" height="28" rx="5" fill="#ffebe8"/>
+    <text x="1045" y="641" class="small">Explicit fail-closed termination</text>
+  </g>
+
+  <path d="M1235 374 C1235 420 250 414 250 457" class="arrow dashed"/>
+  <path d="M1235 374 C1235 420 720 414 720 457" class="arrow dashed"/>
+  <path d="M1235 374 V457" class="arrow dashed"/>
+
+  <rect x="55" y="718" width="1330" height="63" rx="8" fill="#edf2f7" stroke="#c4cfda"/>
+  <text x="78" y="745" class="label">Scope boundary</text>
+  <text x="230" y="745" class="small">No catch/type matching, ABI exception objects, external unwinding, nested active exceptions, or complete C++ destructor semantics.</text>
+  <text x="78" y="769" class="small">Out-of-scope LLVM constructs and continuation artifacts without the declared capability fail closed before execution.</text>
+</svg>

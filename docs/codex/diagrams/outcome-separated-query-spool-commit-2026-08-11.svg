@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080">
+  <defs>
+    <style>
+      .title{font:700 42px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#16384b}
+      .subtitle{font:400 21px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#567184}
+      .section{font:700 25px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#16384b}
+      .head{font:700 20px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#fff}
+      .body{font:400 16px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#3b5d70}
+      .strong{font:700 18px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#173b4f}
+      .mono{font:600 15px 'DejaVu Sans Mono',monospace;fill:#173b4f}
+      .small{font:400 14px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#5c7788}
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#2d8393"/>
+    </marker>
+    <marker id="redarrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#c45d49"/>
+    </marker>
+  </defs>
+  <rect width="1600" height="1080" fill="#f5f8fa"/>
+  <rect width="1600" height="14" fill="#2b8091"/>
+
+  <text x="80" y="74" class="title">F365 · Outcome-Separated Query Spool Commit</text>
+  <text x="82" y="112" class="subtitle">只有无效输入进入 rejected；读取、持久化与发布故障保留 incoming 并安全重试</text>
+
+  <text x="80" y="162" class="section">修复前：一个宽泛异常区混淆语义拒绝与提交故障</text>
+  <g transform="translate(80 184)">
+    <rect width="1440" height="176" rx="7" fill="#fff1ed" stroke="#d36b50" stroke-width="2"/>
+    <g transform="translate(28 27)">
+      <rect width="238" height="120" rx="6" fill="#fff" stroke="#cf806d"/>
+      <text x="18" y="32" class="strong">有效 query.json</text>
+      <text x="18" y="68" class="mono">store.ingest ✓</text>
+      <text x="18" y="98" class="body">query / witness = 1 / 1</text>
+    </g>
+    <path d="M276 87 H355" stroke="#c65d48" stroke-width="4" marker-end="url(#redarrow)"/>
+    <g transform="translate(365 27)">
+      <rect width="286" height="120" rx="6" fill="#ffe4dc" stroke="#c65d48" stroke-width="2"/>
+      <text x="18" y="32" class="strong">accepted publication 失败</text>
+      <text x="18" y="68" class="mono">os.replace → OSError</text>
+      <text x="18" y="98" class="body">与ingest共享同一except</text>
+    </g>
+    <path d="M661 87 H740" stroke="#c65d48" stroke-width="4" marker-end="url(#redarrow)"/>
+    <g transform="translate(750 27)">
+      <rect width="280" height="120" rx="6" fill="#fff" stroke="#cf806d"/>
+      <text x="18" y="32" class="strong">错误分类为 invalid</text>
+      <text x="18" y="68" class="mono">result = (0,1)</text>
+      <text x="18" y="98" class="body">写入误导性 .error</text>
+    </g>
+    <path d="M1040 87 H1119" stroke="#c65d48" stroke-width="4" marker-end="url(#redarrow)"/>
+    <g transform="translate(1129 27)">
+      <rect width="283" height="120" rx="6" fill="#fff" stroke="#cf806d"/>
+      <text x="18" y="32" class="strong">数据库与spool矛盾</text>
+      <text x="18" y="68" class="body">DB：已接纳有效query</text>
+      <text x="18" y="98" class="body">spool：rejected/query.json</text>
+    </g>
+  </g>
+
+  <text x="80" y="410" class="section">F365：Validate → Persist → Publish 三阶段结果代数</text>
+  <g transform="translate(80 434)">
+    <rect width="1440" height="334" rx="7" fill="#173b4f"/>
+    <g transform="translate(28 34)">
+      <rect width="302" height="228" rx="6" fill="#f8fbfc"/>
+      <rect width="302" height="46" rx="6" fill="#705896"/>
+      <rect y="40" width="302" height="6" fill="#705896"/>
+      <text x="18" y="30" class="head">1 · Validate</text>
+      <text x="18" y="82" class="body">stable file + strict JSON</text>
+      <text x="18" y="112" class="body">Query IR DAG / schema</text>
+      <text x="18" y="150" class="mono">QueryAdmissionError</text>
+      <text x="18" y="182" class="body">→ rejected + .error</text>
+      <text x="18" y="210" class="body">→ return (0,1)</text>
+    </g>
+    <path d="M340 148 H390" stroke="#70bdc8" stroke-width="5" marker-end="url(#arrow)"/>
+    <g transform="translate(400 34)">
+      <rect width="302" height="228" rx="6" fill="#f8fbfc"/>
+      <rect width="302" height="46" rx="6" fill="#b77a28"/>
+      <rect y="40" width="302" height="6" fill="#b77a28"/>
+      <text x="18" y="30" class="head">2 · Persist</text>
+      <text x="18" y="82" class="body">CAS artifacts + SQLite</text>
+      <text x="18" y="112" class="body">query / witness identity</text>
+      <text x="18" y="150" class="mono">OSError / sqlite3.Error</text>
+      <text x="18" y="182" class="body">→ incoming 保留</text>
+      <text x="18" y="210" class="body">→ 原始异常传播</text>
+    </g>
+    <path d="M712 148 H762" stroke="#70bdc8" stroke-width="5" marker-end="url(#arrow)"/>
+    <g transform="translate(772 34)">
+      <rect width="302" height="228" rx="6" fill="#f8fbfc"/>
+      <rect width="302" height="46" rx="6" fill="#2e7e91"/>
+      <rect y="40" width="302" height="6" fill="#2e7e91"/>
+      <text x="18" y="30" class="head">3 · Publish</text>
+      <text x="18" y="82" class="body">move to accepted</text>
+      <text x="18" y="112" class="body">位于reject except之外</text>
+      <text x="18" y="150" class="mono">OSError</text>
+      <text x="18" y="182" class="body">→ incoming 保留</text>
+      <text x="18" y="210" class="body">→ 原始异常传播</text>
+    </g>
+    <path d="M1084 148 H1134" stroke="#70bdc8" stroke-width="5" marker-end="url(#arrow)"/>
+    <g transform="translate(1144 34)">
+      <rect width="268" height="228" rx="6" fill="#e8f5f1"/>
+      <rect width="268" height="46" rx="6" fill="#347d68"/>
+      <rect y="40" width="268" height="6" fill="#347d68"/>
+      <text x="18" y="30" class="head">4 · Committed</text>
+      <text x="18" y="82" class="body">accepted/query.json</text>
+      <text x="18" y="112" class="body">query identity已持久化</text>
+      <text x="18" y="150" class="mono">result = (1,0)</text>
+      <text x="18" y="182" class="body">重放不复制逻辑query</text>
+      <text x="18" y="210" class="body">lock在finally释放</text>
+    </g>
+    <text x="28" y="304" class="small">不变量：只有验证失败可进入dead letter；基础设施故障必须保留可重试输入与原始错误类型</text>
+  </g>
+
+  <text x="80" y="818" class="section">故障注入与恢复状态</text>
+  <g transform="translate(80 842)">
+    <rect width="330" height="156" rx="7" fill="#fff2ed" stroke="#cf6b50" stroke-width="2"/>
+    <text x="20" y="34" class="strong">Invalid input</text>
+    <text x="20" y="66" class="body">rejected=true · error=true</text>
+    <text x="20" y="96" class="body">query / witness = 0 / 0</text>
+    <text x="20" y="128" class="mono">(0,1) · dead letter</text>
+  </g>
+  <g transform="translate(450 842)">
+    <rect width="330" height="156" rx="7" fill="#fff8e8" stroke="#bc8a32" stroke-width="2"/>
+    <text x="20" y="34" class="strong">Read / Persist failure</text>
+    <text x="20" y="66" class="body">incoming=true · no error file</text>
+    <text x="20" y="96" class="body">before retry query = 0</text>
+    <text x="20" y="128" class="mono">retry → (1,0) · 1/1</text>
+  </g>
+  <g transform="translate(820 842)">
+    <rect width="330" height="156" rx="7" fill="#edf7f5" stroke="#3f9a84" stroke-width="2"/>
+    <text x="20" y="34" class="strong">Publish failure</text>
+    <text x="20" y="66" class="body">incoming=true · DB already 1/1</text>
+    <text x="20" y="96" class="body">no rejected / no error</text>
+    <text x="20" y="128" class="mono">retry → (1,0) · still 1/1</text>
+  </g>
+  <g transform="translate(1190 842)">
+    <rect width="330" height="156" rx="7" fill="#eef4fa" stroke="#5284a6" stroke-width="2"/>
+    <text x="20" y="34" class="strong">完整质量门</text>
+    <text x="20" y="66" class="body">20 / 124 directed + related</text>
+    <text x="20" y="96" class="body">787 tests + 127 subtests</text>
+    <text x="20" y="128" class="mono">zero result / identity drift</text>
+  </g>
+
+  <text x="82" y="1044" class="small">边界：本地机制证据；未实现dead-letter持久原子性、CAS orphan GC、跨主机flock资格、hostile namespace证明或性能/覆盖提升。</text>
+</svg>

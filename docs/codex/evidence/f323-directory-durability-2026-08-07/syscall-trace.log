@@ -1,0 +1,7 @@
+openat(AT_FDCWD, "<TMP>/staging/object", O_WRONLY|O_CREAT|O_EXCL|O_CLOEXEC, 0666) = 3
+fsync(3)                                = 0
+rename("<TMP>/staging/object", "<TMP>/public/object") = 0
+openat(AT_FDCWD, "<TMP>/public", O_RDONLY|O_CLOEXEC|O_DIRECTORY) = 3
+fsync(3)                                = 0
+openat(AT_FDCWD, "<TMP>/staging", O_RDONLY|O_CLOEXEC|O_DIRECTORY) = 3
+fsync(3)                                = 0

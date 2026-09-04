@@ -1,0 +1,32 @@
+{
+  "all_passed": true,
+  "focused_python": {
+    "passed": 33,
+    "subtests_passed": 7
+  },
+  "llvm17": {
+    "discovered": 324,
+    "failures": 0,
+    "unresolved": 0
+  },
+  "llvm18": {
+    "discovered": 324,
+    "failures": 0,
+    "unresolved": 0
+  },
+  "oracles": {
+    "delivered": 24,
+    "expected": 24,
+    "root_replayed": 24,
+    "trials": 3
+  },
+  "python": {
+    "nodeid_sha256": "e27f0583b74db4414e7e823e873978edaa76d133f708a247269b9d048cde48a4",
+    "nodeids_expected": 1255,
+    "nodeids_observed": 1255,
+    "passed": 1255,
+    "subtests_passed": 291
+  },
+  "schema": "symcc-f434-full-suite-summary-v1",
+  "shim_sha256": "fb1d08ed0c3039ddf4e5ed4ddb3d89c8ea09423b4fceb100c10fd5bc39325ba9"
+}

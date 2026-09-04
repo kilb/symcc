@@ -1,0 +1,35 @@
+{
+  "all_checks_passed": true,
+  "legacy": {
+    "cross_request_id_mismatch": true,
+    "helper_generation_reused": true,
+    "helper_startups": 1,
+    "injected_failure_observed": true,
+    "stale_artifacts_consumed": true
+  },
+  "production": {
+    "expected_artifacts_consumed": true,
+    "failed_generation_terminated": true,
+    "generation_replaced": true,
+    "helper_startups": 2,
+    "initial_generation_ready": true,
+    "injected_failure_observed": true,
+    "request_id_bound": true
+  },
+  "protocol": {
+    "helper_startups": 4,
+    "oversized_generation_terminated": true,
+    "oversized_response_rejected": true,
+    "partial_response_timeout_rejected": true,
+    "prevalidation_generation_preserved": true,
+    "prevalidation_rejected_before_transport": true,
+    "response_mismatch_generation_terminated": true,
+    "response_mismatch_rejected": true,
+    "timeout_generation_terminated": true,
+    "valid_after_oversized_response": true,
+    "valid_after_partial_timeout": true,
+    "valid_after_prevalidation": true,
+    "valid_after_response_mismatch": true
+  },
+  "schema": "symcc-f368-persistent-generation-reset-v1"
+}

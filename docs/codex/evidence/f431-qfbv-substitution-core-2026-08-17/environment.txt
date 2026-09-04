@@ -1,0 +1,17 @@
+F431 evidence environment
+date: 2026-08-17
+host kernel: Linux cuda-ke 7.0.0-28-generic x86_64
+python: 3.12.3
+pytest: 9.1.1
+ruff: 0.15.20
+lit: 18.1.8
+LLVM 17: 17.0.6
+LLVM 18: 18.1.3
+cvc5: cvc5 1.3.4 [git f3b21c4 on branch HEAD]
+cvc5 sha256: 7562a8b0b835e3eaad5f1a7b4616cd762350cf567b6be03d7e8ee24fa5ced5ee
+Ethos artifact: pinned with the cvc5 1.3.4 bundle; no version CLI
+Ethos sha256: 7f73a7e8a584cabb9b50c3a57d6f222661f184cc323fb661a3ec78092c201c5d
+CPC signature files: 51
+Cache-a-lot PDF sha256: 4e571b08a6ccbdc1bac82c88ae9e0eba41b995bd424ff4d9186420b9603e6cb2
+pytest plugin autoload: disabled
+warnings: errors

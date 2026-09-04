@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="796"
+     viewBox="0 0 1600 796" role="img" aria-labelledby="title desc">
+  <title id="title">图 R-15　20 轮独立样本配置比较：当前与旧 Hybrid，以及批次 sanity</title>
+  <desc id="desc">Hybrid 均为名义 8 核；每组 n=20、配置预算 15 s；主指标为 afl-showmap 对含 save-all 候选并集的离线边覆盖率</desc>
+  <rect width="1600" height="796" fill="white"/>
+  <text x="48" y="54" font-family="WenQuanYi Zen Hei" font-size="28" font-weight="700" fill="#17212B" text-anchor="start">图 R-15　20 轮独立样本配置比较：当前与旧 Hybrid，以及批次 sanity</text>
+  <text x="48" y="86" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="400" fill="#64748B" text-anchor="start">Hybrid 均为名义 8 核；每组 n=20、配置预算 15 s；主指标为 afl-showmap 对含 save-all 候选并集的离线边覆盖率</text>
+  <rect x="48" y="120" width="1504" height="580" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+  <line x1="638.4848484848485" y1="150" x2="638.4848484848485" y2="602" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="4 5"/>
+  <text x="638.4848484848485" y="144" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="middle">-0.5</text>
+  <line x1="730.9090909090909" y1="150" x2="730.9090909090909" y2="602" stroke="#17212B" stroke-width="2"/>
+  <text x="730.9090909090909" y="144" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#17212B" text-anchor="middle">0</text>
+  <line x1="823.3333333333333" y1="150" x2="823.3333333333333" y2="602" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="4 5"/>
+  <text x="823.3333333333333" y="144" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="middle">+0.5</text>
+  <line x1="915.7575757575758" y1="150" x2="915.7575757575758" y2="602" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="4 5"/>
+  <text x="915.7575757575758" y="144" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="middle">+1.0</text>
+  <line x1="1008.1818181818182" y1="150" x2="1008.1818181818182" y2="602" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="4 5"/>
+  <text x="1008.1818181818182" y="144" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="middle">+1.5</text>
+  <line x1="1100.6060606060605" y1="150" x2="1100.6060606060605" y2="602" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="4 5"/>
+  <text x="1100.6060606060605" y="144" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="middle">+2.0</text>
+  <line x1="1193.030303030303" y1="150" x2="1193.030303030303" y2="602" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="4 5"/>
+  <text x="1193.030303030303" y="144" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="middle">+2.5</text>
+  <text x="925.0" y="636" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#64748B" text-anchor="middle">独立样本均值差（百分点，边覆盖率）</text>
+  <text x="1300" y="144" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="middle">A12</text>
+  <text x="1420" y="144" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="middle">Holm p</text>
+  <text x="72" y="158" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#17212B" text-anchor="start">当前 Hybrid  vs  旧组合 Hybrid</text>
+  <text x="96" y="192" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#64748B" text-anchor="start">· libarchive</text>
+  <rect x="838.4909090909091" y="175" width="136.6030303030302" height="22" rx="5" fill="#DCFCE7" stroke="#15803D" stroke-width="1.4"/>
+  <line x1="838.4909090909091" y1="171" x2="838.4909090909091" y2="201" stroke="#15803D" stroke-width="2.2"/>
+  <line x1="975.0939393939393" y1="171" x2="975.0939393939393" y2="201" stroke="#15803D" stroke-width="2.2"/>
+  <circle cx="907.0696969696969" cy="186" r="7.5" fill="#15803D"/>
+  <text x="989.0939393939393" y="192" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#15803D" text-anchor="start">+0.953</text>
+  <text x="1300" y="192" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="middle">0.871</text>
+  <text x="1420" y="192" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="700" fill="#15803D" text-anchor="middle">0.00168</text>
+  <text x="1500" y="192" font-family="WenQuanYi Zen Hei" font-size="17" font-weight="700" fill="#15803D" text-anchor="middle">✓</text>
+  <text x="96" y="302" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#64748B" text-anchor="start">· SQLite</text>
+  <rect x="1001.8969696969697" y="285" width="180.22727272727263" height="22" rx="5" fill="#DCFCE7" stroke="#15803D" stroke-width="1.4"/>
+  <line x1="1001.8969696969697" y1="281" x2="1001.8969696969697" y2="311" stroke="#15803D" stroke-width="2.2"/>
+  <line x1="1182.1242424242423" y1="281" x2="1182.1242424242423" y2="311" stroke="#15803D" stroke-width="2.2"/>
+  <circle cx="1091.1787878787877" cy="296" r="7.5" fill="#15803D"/>
+  <text x="1196.1242424242423" y="302" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#15803D" text-anchor="start">+1.949</text>
+  <text x="1300" y="302" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="middle">0.961</text>
+  <text x="1420" y="302" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="700" fill="#15803D" text-anchor="middle">0.00032</text>
+  <text x="1500" y="302" font-family="WenQuanYi Zen Hei" font-size="17" font-weight="700" fill="#15803D" text-anchor="middle">✓</text>
+  <text x="72" y="378" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#17212B" text-anchor="start">批次 sanity　当前 AFL-only  vs  旧 AFL-only</text>
+  <text x="96" y="412" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#64748B" text-anchor="start">· libarchive</text>
+  <rect x="669.3545454545455" y="395" width="133.46060606060598" height="22" rx="5" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.4"/>
+  <line x1="669.3545454545455" y1="391" x2="669.3545454545455" y2="421" stroke="#94A3B8" stroke-width="2.2"/>
+  <line x1="802.8151515151515" y1="391" x2="802.8151515151515" y2="421" stroke="#94A3B8" stroke-width="2.2"/>
+  <circle cx="737.1939393939394" cy="406" r="7.5" fill="#94A3B8"/>
+  <text x="816.8151515151515" y="412" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#94A3B8" text-anchor="start">+0.034</text>
+  <text x="1300" y="412" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#64748B" text-anchor="middle">0.537</text>
+  <text x="1420" y="412" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#94A3B8" text-anchor="middle">1.000</text>
+  <text x="1500" y="412" font-family="WenQuanYi Zen Hei" font-size="17" font-weight="700" fill="#94A3B8" text-anchor="middle">—</text>
+  <text x="96" y="522" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#64748B" text-anchor="start">· SQLite</text>
+  <rect x="683.4030303030303" y="505" width="217.19696969696963" height="22" rx="5" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.4"/>
+  <line x1="683.4030303030303" y1="501" x2="683.4030303030303" y2="531" stroke="#94A3B8" stroke-width="2.2"/>
+  <line x1="900.5999999999999" y1="501" x2="900.5999999999999" y2="531" stroke="#94A3B8" stroke-width="2.2"/>
+  <circle cx="794.4969696969697" cy="516" r="7.5" fill="#94A3B8"/>
+  <text x="914.5999999999999" y="522" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#94A3B8" text-anchor="start">+0.344</text>
+  <text x="1300" y="522" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#64748B" text-anchor="middle">0.574</text>
+  <text x="1420" y="522" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#94A3B8" text-anchor="middle">1.000</text>
+  <text x="1500" y="522" font-family="WenQuanYi Zen Hei" font-size="17" font-weight="700" fill="#94A3B8" text-anchor="middle">—</text>
+  <rect x="72" y="656" width="1456" height="62" rx="8" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="96" y="682" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">读法：点=两组独立样本均值差，方框=10,000 次 independent bootstrap 的 95% 区间；Holm 校正后 p&lt;0.05 记为显著（绿色）。</text>
+  <text x="96" y="704" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#64748B" text-anchor="start">后两行是批次 sanity：两批单实例 AFL-only 无显著差异；它不是等 CPU 基线，也不证明 Hybrid 的单项因果收益。</text>
+</svg>

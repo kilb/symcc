@@ -1,0 +1,25 @@
+{
+  "all_passed": true,
+  "llvm17": {
+    "discovered": 311,
+    "failed": 0,
+    "passed": 309,
+    "unresolved": 0,
+    "unsupported": 2
+  },
+  "llvm18": {
+    "discovered": 311,
+    "failed": 0,
+    "passed": 310,
+    "unresolved": 0,
+    "unsupported": 1
+  },
+  "python": {
+    "collected": 1167,
+    "failed": 0,
+    "passed": 1167,
+    "skipped": 0,
+    "subtests_passed": 260
+  },
+  "schema": "symcc-f427-full-suite-summary-v1"
+}

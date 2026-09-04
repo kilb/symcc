@@ -1,0 +1,177 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="960" viewBox="0 0 1600 960">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#263746"/>
+    </marker>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#14212b" flood-opacity="0.14"/>
+    </filter>
+    <style>
+      .title { font: 700 34px 'WenQuanYi Zen Hei','DejaVu Sans',sans-serif; fill: #13232f; }
+      .subtitle { font: 400 17px 'WenQuanYi Zen Hei','DejaVu Sans',sans-serif; fill: #4d5f6c; }
+      .lane { font: 700 17px 'WenQuanYi Zen Hei','DejaVu Sans',sans-serif; fill: #ffffff; }
+      .head { font: 700 18px 'WenQuanYi Zen Hei','DejaVu Sans',sans-serif; fill: #172a38; }
+      .body { font: 400 15px 'WenQuanYi Zen Hei','DejaVu Sans',sans-serif; fill: #314654; }
+      .small { font: 400 13px 'WenQuanYi Zen Hei','DejaVu Sans',sans-serif; fill: #4d5f6c; }
+      .laneSmall { font: 400 13px 'WenQuanYi Zen Hei','DejaVu Sans',sans-serif; fill: #eaf3f7; }
+      .mono { font: 600 13px 'WenQuanYi Zen Hei Mono','DejaVu Sans Mono',monospace; fill: #263746; }
+      .arrow { stroke: #263746; stroke-width: 2.2; fill: none; marker-end: url(#arrow); }
+      .dash { stroke: #71838f; stroke-width: 1.8; stroke-dasharray: 7 6; fill: none; marker-end: url(#arrow); }
+      .box { fill: #ffffff; stroke: #b8c5cd; stroke-width: 1.5; rx: 7; filter: url(#shadow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="960" fill="#f7f9fa"/>
+  <rect x="0" y="0" width="1600" height="92" fill="#ffffff"/>
+  <rect x="0" y="89" width="1600" height="3" fill="#159d87"/>
+  <text x="54" y="48" class="title">F425 Native ConDPOR 与 C11 原子提交闭环</text>
+  <text x="54" y="76" class="subtitle">从 LLVM 原子探针、两阶段 commit，到 SC/TSO/RA 图证书和 fresh-process 前缀再执行</text>
+
+  <rect x="24" y="118" width="146" height="176" rx="7" fill="#2e6f9e"/>
+  <text x="97" y="153" text-anchor="middle" class="lane">编译平面</text>
+  <text x="97" y="184" text-anchor="middle" class="lane">LLVM 17 / 18</text>
+  <text x="97" y="236" text-anchor="middle" class="laneSmall">探针与符号 shadow</text>
+  <text x="97" y="257" text-anchor="middle" class="laneSmall">显式隔离</text>
+
+  <rect x="198" y="118" width="238" height="176" class="box"/>
+  <text x="218" y="151" class="head">C11 / C++ 原子 IR</text>
+  <text x="218" y="181" class="mono">load atomic / store atomic</text>
+  <text x="218" y="207" class="body">atomicrmw · cmpxchg · fence</text>
+  <text x="218" y="249" class="small">稳定 site/group；仅无损采集</text>
+  <text x="218" y="270" class="small">≤64-bit 整数或指针具体值</text>
+
+  <rect x="474" y="118" width="278" height="176" class="box"/>
+  <text x="494" y="151" class="head">Atomic-only Pass</text>
+  <text x="494" y="181" class="mono">SYMCC_DPOR_ATOMIC_ONLY=1</text>
+  <text x="494" y="210" class="body">pre-hook → 原子指令 → value/result</text>
+  <text x="494" y="234" class="body">→ commit-hook</text>
+  <rect x="494" y="252" width="236" height="25" rx="4" fill="#e8f5f1"/>
+  <text x="612" y="270" text-anchor="middle" class="small" fill="#13725f">group 绑定地址、顺序和值证据</text>
+
+  <rect x="790" y="118" width="300" height="176" class="box"/>
+  <text x="810" y="151" class="head">Schedule-only 构建</text>
+  <text x="810" y="181" class="mono">SYMCC_DPOR_SCHEDULE_ONLY=1</text>
+  <text x="810" y="210" class="body">跳过 symbolic shadow 与 libc 重定向</text>
+  <text x="810" y="235" class="body">跳过 LowerAtomicPass</text>
+  <rect x="810" y="252" width="258" height="25" rx="4" fill="#fff1d6"/>
+  <text x="939" y="270" text-anchor="middle" class="small" fill="#8a5a00">保持目标原子指令的 C11 语义</text>
+
+  <rect x="1128" y="118" width="420" height="176" class="box"/>
+  <text x="1148" y="151" class="head">双产物边界</text>
+  <rect x="1148" y="171" width="174" height="91" rx="5" fill="#edf4fa" stroke="#7ba6c5"/>
+  <text x="1235" y="197" text-anchor="middle" class="body">具体调度探针</text>
+  <text x="1235" y="222" text-anchor="middle" class="small">native replay</text>
+  <text x="1235" y="244" text-anchor="middle" class="small">无全局 shadow 竞态</text>
+  <rect x="1345" y="171" width="181" height="91" rx="5" fill="#f1eef8" stroke="#9d8ac0"/>
+  <text x="1435" y="197" text-anchor="middle" class="body">符号求解二进制</text>
+  <text x="1435" y="222" text-anchor="middle" class="small">input/path solving</text>
+  <text x="1435" y="244" text-anchor="middle" class="small">进程级 worker 隔离</text>
+
+  <path d="M436 206 H474" class="arrow"/>
+  <path d="M752 206 H790" class="arrow"/>
+  <path d="M1090 206 H1128" class="arrow"/>
+
+  <rect x="24" y="330" width="146" height="262" rx="7" fill="#159d87"/>
+  <text x="97" y="367" text-anchor="middle" class="lane">运行时提交</text>
+  <text x="97" y="398" text-anchor="middle" class="lane">Preload Gate</text>
+  <text x="97" y="451" text-anchor="middle" class="laneSmall">前缀只在真实原子</text>
+  <text x="97" y="472" text-anchor="middle" class="laneSmall">指令完成后推进</text>
+  <text x="97" y="526" text-anchor="middle" class="laneSmall">超时、冲突、错配</text>
+  <text x="97" y="547" text-anchor="middle" class="laneSmall">均形成负证据</text>
+
+  <rect x="198" y="330" width="610" height="262" class="box"/>
+  <text x="218" y="363" class="head">Thread T1 / T2：两阶段原子提交</text>
+  <line x1="258" y1="405" x2="745" y2="405" stroke="#9aabb6" stroke-width="2"/>
+  <circle cx="285" cy="405" r="16" fill="#2e6f9e"/>
+  <circle cx="432" cy="405" r="16" fill="#e4a62b"/>
+  <circle cx="578" cy="405" r="16" fill="#159d87"/>
+  <circle cx="725" cy="405" r="16" fill="#d05a4f"/>
+  <text x="285" y="443" text-anchor="middle" class="body">pre-hook</text>
+  <text x="432" y="443" text-anchor="middle" class="body">atomic op</text>
+  <text x="578" y="443" text-anchor="middle" class="body">value/result</text>
+  <text x="725" y="443" text-anchor="middle" class="body">commit</text>
+  <text x="285" y="470" text-anchor="middle" class="small">等待 prefix[i]=tid</text>
+  <text x="432" y="470" text-anchor="middle" class="small">真实硬件访问</text>
+  <text x="578" y="470" text-anchor="middle" class="small">read/write/expected</text>
+  <text x="725" y="470" text-anchor="middle" class="small">seq_cst fence</text>
+  <rect x="231" y="506" width="544" height="57" rx="5" fill="#e8f5f1"/>
+  <text x="503" y="529" text-anchor="middle" class="mono">pending(group, prefix-index) → atomic commit → prefix[i+1]</text>
+  <text x="503" y="551" text-anchor="middle" class="small">commit mismatch / nested pending conflict 不得生成可用 campaign run</text>
+
+  <rect x="846" y="330" width="702" height="262" class="box"/>
+  <text x="866" y="363" class="head">规范 trace：一个原子 group 的闭合证据</text>
+  <rect x="866" y="386" width="648" height="150" rx="5" fill="#f4f7f8" stroke="#ccd6dc"/>
+  <text x="886" y="414" class="mono">write x atomic=1 kind=store group=7 mo=seq_cst</text>
+  <text x="886" y="442" class="mono">atomic_value x group=7 role=write bits=32 value=0x1</text>
+  <text x="886" y="470" class="mono">atomic_commit x group=7 mode=1 advanced=1 mismatch=0</text>
+  <line x1="886" y1="488" x2="1490" y2="488" stroke="#d5dde2"/>
+  <text x="886" y="515" class="small">parser 仅在 group + tid + object 唯一一致时绑定 value/commit；重复记录视为歧义</text>
+  <rect x="866" y="548" width="648" height="27" rx="4" fill="#fdeceb"/>
+  <text x="1190" y="567" text-anchor="middle" class="small" fill="#9c332b">fallback / mismatch / pending conflict → valid_trace=false</text>
+
+  <path d="M808 461 H846" class="arrow"/>
+
+  <rect x="24" y="628" width="146" height="280" rx="7" fill="#6d5aa5"/>
+  <text x="97" y="666" text-anchor="middle" class="lane">图与求解</text>
+  <text x="97" y="697" text-anchor="middle" class="lane">有界闭环</text>
+  <text x="97" y="750" text-anchor="middle" class="laneSmall">关系等价类</text>
+  <text x="97" y="771" text-anchor="middle" class="laneSmall">而非任意 Z3 位置</text>
+  <text x="97" y="832" text-anchor="middle" class="laneSmall">每个 prefix</text>
+  <text x="97" y="853" text-anchor="middle" class="laneSmall">fresh process</text>
+
+  <rect x="198" y="628" width="250" height="280" class="box"/>
+  <text x="218" y="661" class="head">Trace Normalizer</text>
+  <text x="218" y="696" class="body">• 稳定 seq / logical tid</text>
+  <text x="218" y="723" class="body">• concrete value witness</text>
+  <text x="218" y="750" class="body">• commit protocol proof</text>
+  <text x="218" y="777" class="body">• path/action regeneration</text>
+  <rect x="218" y="810" width="210" height="68" rx="5" fill="#edf4fa"/>
+  <text x="323" y="835" text-anchor="middle" class="small">SC 硬件 RF 声明：</text>
+  <text x="323" y="857" text-anchor="middle" class="small">全原子 + 全 commit + 无错配</text>
+
+  <rect x="486" y="628" width="282" height="280" class="box"/>
+  <text x="506" y="661" class="head">Execution Graph</text>
+  <text x="506" y="696" class="body">po：线程程序序</text>
+  <text x="506" y="723" class="body">rf：读来源候选</text>
+  <text x="506" y="750" class="body">mo/co：逐对象写序</text>
+  <text x="506" y="777" class="body">sc：RA 下 seq_cst 总序</text>
+  <text x="506" y="814" class="small">值证据：confirmed / contradicted</text>
+  <text x="506" y="837" class="small">证书：确定性 relation digest</text>
+  <text x="506" y="860" class="small">界限：64 memory events / 65,536 candidates</text>
+
+  <rect x="806" y="628" width="268" height="280" class="box"/>
+  <text x="826" y="661" class="head">Z3 Admission</text>
+  <rect x="826" y="688" width="68" height="38" rx="5" fill="#e9f1f7" stroke="#78a3c2"/>
+  <rect x="904" y="688" width="68" height="38" rx="5" fill="#fff1d6" stroke="#d2a244"/>
+  <rect x="982" y="688" width="68" height="38" rx="5" fill="#e8f5f1" stroke="#53aa96"/>
+  <text x="860" y="713" text-anchor="middle" class="body">SC</text>
+  <text x="938" y="713" text-anchor="middle" class="body">TSO</text>
+  <text x="1016" y="713" text-anchor="middle" class="body">RA</text>
+  <text x="826" y="763" class="body">• authoritative SMT context</text>
+  <text x="826" y="790" class="body">• SAT/UNSAT/UNKNOWN</text>
+  <text x="826" y="817" class="body">• model-checked successor</text>
+  <text x="826" y="856" class="small">UNKNOWN 或截断不形成</text>
+  <text x="826" y="878" class="small">bounded fixed-point 声明</text>
+
+  <rect x="1112" y="628" width="436" height="280" class="box"/>
+  <text x="1132" y="661" class="head">Native Re-execution Campaign</text>
+  <rect x="1132" y="684" width="176" height="57" rx="5" fill="#f1eef8"/>
+  <text x="1220" y="708" text-anchor="middle" class="body">pending prefix</text>
+  <text x="1220" y="729" text-anchor="middle" class="small">parent + query identity</text>
+  <rect x="1344" y="684" width="176" height="57" rx="5" fill="#e8f5f1"/>
+  <text x="1432" y="708" text-anchor="middle" class="body">fresh process</text>
+  <text x="1432" y="729" text-anchor="middle" class="small">new native trace</text>
+  <path d="M1308 713 H1344" class="arrow"/>
+  <path d="M1432 741 C1432 780 1220 780 1220 741" class="dash"/>
+  <text x="1132" y="812" class="body">完成条件：</text>
+  <text x="1132" y="839" class="small">frontier 为空；无 invalid run；无 solver unknown；</text>
+  <text x="1132" y="861" class="small">source/candidate/event 均未截断。</text>
+  <text x="1132" y="887" class="small" fill="#9c332b">不外推为完整 ISO C11 或 unbounded ConDPOR 证明</text>
+
+  <path d="M448 768 H486" class="arrow"/>
+  <path d="M768 768 H806" class="arrow"/>
+  <path d="M1074 768 H1112" class="arrow"/>
+  <path d="M1330 628 C1330 606 1190 606 1190 592" class="dash"/>
+
+  <text x="1548" y="940" text-anchor="end" class="small">SymCC-Parallel · F425 · 2026-08-17</text>
+</svg>

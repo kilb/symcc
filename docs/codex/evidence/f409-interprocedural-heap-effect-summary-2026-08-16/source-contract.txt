@@ -1,0 +1,34 @@
+Producer
+  compiler/ContinuationLowering.cpp
+  InterproceduralHeapEffectCertificate
+  interproceduralHeapEffectInitialization
+  interproceduralHeapEffectRecord
+  bounded-interprocedural-heap-effect-summary
+  initialization_interprocedural
+  symcc-interprocedural-heap-effect-summary-v1
+
+Consumer and runtime trust boundary
+  util/live_continuation.py
+  _interprocedural_heap_effect_initialization
+  exact caller call and callee allocation/store/return operation identity
+  singleton object or finite returned-pool per-object certificate collection
+  exact load/allocator/store alias-domain equality
+  formal-parameter/actual-argument and heap-owner binding
+  store/load half-open interval and skipped-definition replay
+  LLVM producer remains authoritative for NoAlias/NoModRef facts
+  runtime live/size/byte-init markers remain authoritative
+
+Production-chain tests
+  test/live_interprocedural_heap_effect_summary.ll
+  util/check_live_continuation_lowering.py
+  benchmark/generate_interprocedural_heap_effect_fixture.py
+
+Independent evidence
+  benchmark/check_interprocedural_heap_effect_oracles.py
+  benchmark/benchmark_interprocedural_heap_effect_summary.py
+  test/test_interprocedural_heap_effect_summary.py
+
+Documentation
+  docs/codex/research-progress/Interprocedural_Heap_Effect_Summary_F409_2026-08-16.md
+  docs/codex/diagrams/interprocedural-heap-effect-summary-f409.svg
+  docs/codex/diagrams/interprocedural-heap-effect-summary-f409.png

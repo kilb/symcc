@@ -1,0 +1,18 @@
+{
+  "configured_shards": 8,
+  "elapsed_ms": 5090.37,
+  "group_size": 32,
+  "hangs": 0,
+  "overlap_size": 16,
+  "partial_publications": 0,
+  "process_model": "fork",
+  "processes_per_round": 2,
+  "residual_records_after_release": 0,
+  "rounds": 50,
+  "schema": "symcc-f325-multiprocess-target-fencing-v1",
+  "single_winner_rounds": 50,
+  "wins": {
+    "coordinator-a": 37,
+    "coordinator-b": 13
+  }
+}

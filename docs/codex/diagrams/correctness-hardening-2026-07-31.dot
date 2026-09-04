@@ -1,0 +1,77 @@
+digraph CorrectnessHardening {
+  graph [
+    rankdir=LR,
+    bgcolor="#FFFFFF",
+    pad="0.28",
+    nodesep="0.36",
+    ranksep="0.72",
+    fontname="DejaVu Sans",
+    fontsize=18,
+    label="Correctness hardening: durable feedback, semantic fidelity, and comparable evidence",
+    labelloc=t
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    fontname="DejaVu Sans",
+    fontsize=11,
+    color="#334155",
+    fontcolor="#172033",
+    margin="0.14,0.10"
+  ];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#64748B", arrowsize=0.72];
+
+  subgraph cluster_feedback {
+    label="A. AFL feedback transaction";
+    color="#CBD5E1";
+    style="rounded";
+    candidate [label="Candidate + sparse bitmap", fillcolor="#E0F2FE"];
+    delta [label="Non-mutating\nlocal delta check", fillcolor="#E0F2FE"];
+    stage [label="Hidden staging file\nwrite + fsync", fillcolor="#FEF3C7"];
+    publish [label="Atomic rename to\nid:NNNNNN + dir fsync", fillcolor="#DCFCE7"];
+    claim [label="Distributed\ncoverage claim", fillcolor="#EDE9FE"];
+    retain [label="Claim won\ncount + feed back", fillcolor="#DCFCE7"];
+    gapfree [label="Claim lost\nretain complete ID slot", fillcolor="#FCE7F3"];
+    candidate -> delta -> stage -> publish -> claim;
+    claim -> retain [label="new bits"];
+    claim -> gapfree [label="race lost"];
+  }
+
+  subgraph cluster_oracle {
+    label="B. Coverage oracle recovery";
+    color="#CBD5E1";
+    stream [label="Streaming showmap", fillcolor="#E0F2FE"];
+    retry [label="Restart process\nretry same input once", fillcolor="#FEF3C7"];
+    isolated [label="One-shot isolated\nshowmap fallback", fillcolor="#DCFCE7"];
+    revisit [label="Remove content digest\nif every oracle fails", fillcolor="#FCE7F3"];
+    stream -> retry [label="EOF / pipe failure"];
+    retry -> isolated [label="second failure"];
+    isolated -> revisit [label="no result"];
+  }
+
+  subgraph cluster_semantics {
+    label="C. Compiler and solver semantics";
+    color="#CBD5E1";
+    prefix [label="Complete strict prefix\n+ target constraint", fillcolor="#E0F2FE"];
+    solve [label="Z3 solves full query", fillcolor="#DCFCE7"];
+    bounded [label="Cache only if core\n<= 1024 clauses", fillcolor="#FEF3C7"];
+    freeze [label="freeze forwards existing\nsymbolic expression", fillcolor="#EDE9FE"];
+    wide [label="128-bit interval arithmetic\nthen checked narrowing", fillcolor="#FCE7F3"];
+    prefix -> solve -> bounded;
+    freeze -> solve [style=dashed, label="faithful expression"];
+    wide -> solve [style=dashed, label="sound metadata"];
+  }
+
+  subgraph cluster_evidence {
+    label="D. Experimental evidence contract";
+    color="#CBD5E1";
+    equal [label="Equal-core AFL baseline\nN master/secondary instances", fillcolor="#E0F2FE"];
+    counters [label="AFL executions | SymCC candidates\nretained files | hash-union unique", fillcolor="#FEF3C7"];
+    units [label="generated_kind + throughput_kind", fillcolor="#EDE9FE"];
+    compare [label="Speedup only for\nidentical units", fillcolor="#DCFCE7"];
+    equal -> counters -> units -> compare;
+  }
+
+  publish -> stream [style=dashed, color="#94A3B8", constraint=false];
+  solve -> counters [style=dashed, color="#94A3B8", constraint=false];
+}

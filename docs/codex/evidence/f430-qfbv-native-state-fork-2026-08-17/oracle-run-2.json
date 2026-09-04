@@ -1,0 +1,50 @@
+{
+  "claim_boundary": "Same-host solver mechanism cost only; this is not an end-to-end fuzzing coverage or vulnerability-discovery claim.",
+  "configuration": {
+    "cases": 128,
+    "helper": "/home/ubuntu/code/symcc/build/symcc-qfbv-z3-forkserver",
+    "helper_sha256": "59dae3a1f02e22cfcb165b5f111afac3158fecf91a371da75f5a52ba8e7808ca",
+    "prefix": "0x20 <= symcc_input_0 <= 0xe0",
+    "seed": 430,
+    "timeout_ms": 2000,
+    "z3_command": [
+      "/opt/z3-5.0.0/bin/z3",
+      "-in",
+      "-smt2"
+    ],
+    "z3_version": "Z3 version 5.0.0 - 64 bit"
+  },
+  "copy_on_write_observations": {
+    "child_major_faults_total": 0,
+    "child_max_rss_kib_median": 29084,
+    "child_minor_faults_median": 413
+  },
+  "correctness": {
+    "invalid_models": 0,
+    "status_mismatches": 0,
+    "timeout_isolation": {
+      "passed": true,
+      "recovered_generation": 1,
+      "recovered_model": {
+        "0": 67
+      },
+      "recovered_query_count": 2,
+      "timed_out_generation": 1
+    },
+    "unique_child_pids": 128
+  },
+  "mechanism_cost_us": {
+    "cold_over_native_ratio": 2.249210196044489,
+    "cold_total": 727615,
+    "cold_wall_median": 5706,
+    "cold_wall_p95": 6522,
+    "fork_roundtrip_median": 1990,
+    "native_child_solve_median": 797,
+    "native_initialization": 8541,
+    "native_total_including_initialization": 323498,
+    "native_wall_median": 2535,
+    "native_wall_p95": 3016
+  },
+  "passed": true,
+  "schema": "symcc-qfbv-native-state-fork-oracle-v1"
+}

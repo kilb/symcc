@@ -1,0 +1,5 @@
+Command:
+PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q -W error test/test_distributed_state.py test/test_mpi_lifecycle.py -k 'restore_is_transitively_validated_and_graph_budgeted or restore_rejects_deep_schema_and_semantic_cache_failures or graph_budget_configuration_requires_positive_integers or live_state_graph_limits_are_shared_and_bounded'
+
+Result:
+4 passed, 208 deselected, 4 subtests passed in 0.63s

@@ -1,0 +1,8 @@
+{
+  "matching_dags_checked": 1099,
+  "matching_oracle": "exhaustive edge-subset bipartite matching",
+  "scc_graphs_checked": 4626,
+  "scc_oracle": "mutual directed reachability",
+  "schema": "symcc-live-path-cover-finite-oracles-v1",
+  "status": "pass"
+}

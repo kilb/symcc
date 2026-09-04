@@ -1,0 +1,8 @@
+-- Testing: 5 of 281 tests, 5 workers --
+Testing:  0.. 10.. 20.. 30.. 40.. 50.. 60.. 70.. 80.. 90.. 
+
+Testing Time: 5.84s
+
+Total Discovered Tests: 281
+  Excluded: 276 (98.22%)
+  Passed  :   5 (1.78%)

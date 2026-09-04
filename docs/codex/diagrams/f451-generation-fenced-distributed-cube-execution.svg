@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1040" viewBox="0 0 1600 1040" role="img" aria-labelledby="title desc">
+  <title id="title">F451 generation-fenced distributed certified cube execution</title>
+  <desc id="desc">A three-plane architecture showing certified cubes, durable dual fences, remote workers, result verification, global cancellation, proof aggregation and generation recovery.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 z" fill="#334155"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 z" fill="#15803d"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 z" fill="#be123c"/>
+    </marker>
+    <style>
+      text { font-family: Inter, "Noto Sans SC", "Microsoft YaHei", "WenQuanYi Zen Hei", sans-serif; letter-spacing: 0; fill: #0f172a; }
+      .title { font-size: 36px; font-weight: 750; }
+      .subtitle { font-size: 17px; fill: #475569; }
+      .band { font-size: 17px; font-weight: 700; fill: #ffffff; }
+      .heading { font-size: 20px; font-weight: 720; }
+      .body { font-size: 15px; fill: #334155; }
+      .small { font-size: 13px; fill: #475569; }
+      .mono { font-family: "JetBrains Mono", "Noto Sans Mono CJK SC", monospace; font-size: 13px; }
+      .step { font-size: 15px; font-weight: 750; fill: #ffffff; }
+      .box { stroke-width: 2.2; rx: 6; }
+      .flow { fill: none; stroke: #334155; stroke-width: 2.5; marker-end: url(#arrow); }
+      .success { fill: none; stroke: #15803d; stroke-width: 2.8; marker-end: url(#arrow-green); }
+      .failure { fill: none; stroke: #be123c; stroke-width: 2.8; marker-end: url(#arrow-red); }
+      .dash { stroke-dasharray: 9 7; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1040" fill="#f8fafc"/>
+  <text x="62" y="64" class="title">F451 代次栅栏下的跨节点认证 Cube 执行</text>
+  <text x="62" y="96" class="subtitle">F448/F449 叶任务正确性 + F441/F447 stable endpoint / generation recovery，任一栅栏失效都不能提交结果</text>
+
+  <rect x="62" y="126" width="440" height="42" rx="6" fill="#2563eb"/>
+  <rect x="540" y="126" width="500" height="42" rx="6" fill="#6d4fc2"/>
+  <rect x="1078" y="126" width="460" height="42" rx="6" fill="#16875b"/>
+  <text x="282" y="153" text-anchor="middle" class="band">协调与证明平面</text>
+  <text x="790" y="153" text-anchor="middle" class="band">共享持久状态平面</text>
+  <text x="1308" y="153" text-anchor="middle" class="band">跨节点 Worker 平面</text>
+
+  <rect x="62" y="198" width="440" height="144" class="box" fill="#eaf2ff" stroke="#2563eb"/>
+  <circle cx="94" cy="231" r="16" fill="#2563eb"/>
+  <text x="94" y="237" text-anchor="middle" class="step">1</text>
+  <text x="124" y="237" class="heading">认证分区与执行身份</text>
+  <text x="88" y="273" class="body">Query IR → BitBlastPlan → F448 完备、互斥 cubes</text>
+  <text x="88" y="300" class="body">execution = H(plan, partition, policy)</text>
+  <text x="88" y="326" class="small">启发式只影响切分次序，不进入覆盖正确性根</text>
+
+  <rect x="62" y="386" width="440" height="160" class="box" fill="#fff7e8" stroke="#c97700"/>
+  <circle cx="94" cy="419" r="16" fill="#c97700"/>
+  <text x="94" y="425" text-anchor="middle" class="step">2</text>
+  <text x="124" y="425" class="heading">双层 Claim</text>
+  <text x="88" y="461" class="body">内层：execution / cube / owner / integer token</text>
+  <text x="88" y="488" class="body">外层：stable endpoint / generation / shard / lease</text>
+  <text x="88" y="515" class="small">work_id 精确编码 execution + cube ordinal</text>
+
+  <rect x="540" y="198" width="500" height="144" class="box" fill="#f3efff" stroke="#6d4fc2"/>
+  <text x="570" y="235" class="heading">F449 PartitionExecutionStore</text>
+  <text x="570" y="270" class="body">SQLite：pending → leased → sat / unsat / retry</text>
+  <text x="570" y="298" class="body">token、heartbeat、attempt、SAT winner、UNSAT leaf</text>
+  <text x="570" y="325" class="small">recover_lease 原子提升 token，基础设施恢复不重复计 solve attempt</text>
+
+  <rect x="540" y="386" width="500" height="160" class="box" fill="#f3efff" stroke="#6d4fc2"/>
+  <text x="570" y="423" class="heading">ULFM Snapshot + Binding Ledger</text>
+  <text x="570" y="458" class="body">QueryStore：members / generation / shard / recovery queue</text>
+  <text x="570" y="485" class="body">Binding DB：cube token ↔ exact ULFM work fence</text>
+  <text x="570" y="512" class="small">连续 state ordinal 拒绝 stale multi-master 形成状态分叉</text>
+
+  <rect x="1078" y="198" width="460" height="144" class="box" fill="#eaf8f1" stroke="#16875b"/>
+  <text x="1108" y="235" class="heading">Stable Endpoint Catalog</text>
+  <text x="1108" y="270" class="body">endpoint_id 在 communicator shrink 后保持不变</text>
+  <text x="1108" y="298" class="body">transport rank 只用于当前一代路由</text>
+  <text x="1108" y="325" class="small">每个 shard 同时只能拥有一个 current work lease</text>
+
+  <rect x="1078" y="386" width="460" height="160" class="box" fill="#eaf8f1" stroke="#16875b"/>
+  <text x="1108" y="423" class="heading">Remote Cube Worker</text>
+  <text x="1108" y="458" class="body">校验 canonical lease、摘要、run/work/cube 绑定</text>
+  <text x="1108" y="485" class="body">仅在 cube assumptions 下运行独立 solver context</text>
+  <text x="1108" y="512" class="small">返回原样 fence + SAT witness 或 checked UNSAT receipt</text>
+
+  <path d="M502 268 H540" class="flow"/>
+  <path d="M502 466 H540" class="flow"/>
+  <path d="M1040 466 H1078" class="flow"/>
+  <path d="M1078 294 H1040" class="flow dash"/>
+
+  <rect x="192" y="596" width="1216" height="116" class="box" fill="#ffffff" stroke="#64748b"/>
+  <circle cx="228" cy="630" r="16" fill="#334155"/>
+  <text x="228" y="636" text-anchor="middle" class="step">3</text>
+  <text x="258" y="636" class="heading">结果提交线性化点：两层 fence 必须同时 current</text>
+  <text x="222" y="672" class="body">先验证 ULFM generation/shard/work lease，再由 F449 重放 cube scope、SAT candidate 或 UNSAT proof；之后才持久 finish binding。</text>
+  <text x="222" y="698" class="small">SAT：原子 winner + 全局取消所有 current peer　｜　UNSAT：所有叶回执齐备后沿 split tree 反向 resolution，任何缺叶都不能聚合</text>
+  <path d="M1308 546 V580 H790 V596" class="success"/>
+
+  <rect x="62" y="760" width="1476" height="206" class="box" fill="#fff1f2" stroke="#be123c"/>
+  <text x="92" y="800" class="heading">故障恢复路径</text>
+  <circle cx="132" cy="850" r="27" fill="#be123c"/>
+  <text x="132" y="856" text-anchor="middle" class="step">失效</text>
+  <rect x="206" y="818" width="252" height="68" class="box" fill="#ffffff" stroke="#be123c"/>
+  <text x="332" y="845" text-anchor="middle" class="body">Revoke / Shrink</text>
+  <text x="332" y="870" text-anchor="middle" class="small">survivor attestation</text>
+  <rect x="520" y="818" width="252" height="68" class="box" fill="#ffffff" stroke="#6d4fc2"/>
+  <text x="646" y="845" text-anchor="middle" class="body">commit generation g+1</text>
+  <text x="646" y="870" text-anchor="middle" class="small">旧 generation/shard fence 失效</text>
+  <rect x="834" y="818" width="252" height="68" class="box" fill="#ffffff" stroke="#c97700"/>
+  <text x="960" y="845" text-anchor="middle" class="body">重排全部在途 work</text>
+  <text x="960" y="870" text-anchor="middle" class="small">含 survivor-owned ambiguous work</text>
+  <rect x="1148" y="818" width="328" height="68" class="box" fill="#ffffff" stroke="#16875b"/>
+  <text x="1312" y="845" text-anchor="middle" class="body">cube token +1，attempt 不增加</text>
+  <text x="1312" y="870" text-anchor="middle" class="small">新 endpoint 接续；旧心跳/结果统一 stale</text>
+  <path d="M159 850 H206" class="failure"/>
+  <path d="M458 850 H520" class="failure"/>
+  <path d="M772 850 H834" class="flow"/>
+  <path d="M1086 850 H1148" class="success"/>
+  <text x="92" y="935" class="small">崩溃重放：orphan binding 从 ULFM snapshot 重建；已提交 recovery queue 可单独 resume；不会为同一故障再次推进 generation。</text>
+
+  <rect x="62" y="992" width="1476" height="30" rx="5" fill="#e2e8f0"/>
+  <text x="82" y="1013" class="small">正确性根：F448 partition certificate + checked SAT/UNSAT evidence　　恢复根：stable endpoint + generation/shard/work fence　　性能与网络不是正确性前提</text>
+</svg>

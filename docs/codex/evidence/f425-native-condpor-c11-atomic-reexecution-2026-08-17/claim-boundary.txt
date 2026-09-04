@@ -1,0 +1,4 @@
+Established: bounded native atomic trace value and commit protocol; bounded SC/TSO/RA rf/mo/sc relation certificates; fresh-process successor re-execution; offline certificate recomputation; finite litmus and 80-run dual-LLVM native replay evidence.
+Not established: full ISO C11/C++11 semantics; non-atomic data-race/UB completeness; consume, all mixed-size/tear/compiler transformations, or arbitrary weak-memory rf enforcement; herd7/diy/GenMC corpus equivalence; unbounded ConDPOR soundness, completeness, or optimality; public-target coverage, speed, or defect-yield improvement.
+SC hardware-rf field: true only for SC when every modeled memory/fence event is atomic and has unique mode=1,mismatch=0 two-phase commit evidence.
+Raw reproducibility: ASLR addresses and runtime seq/group assignment can change raw native trace and campaign digests; finite relation oracles and semantic counters are the reproducibility authority.

@@ -31,6 +31,7 @@ public:
 
   virtual bool doInitialization(llvm::Module &M) override;
   virtual bool runOnFunction(llvm::Function &F) override;
+  virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const override;
 };
 
 #if LLVM_VERSION_MAJOR >= 13

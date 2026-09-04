@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">F437 utility-aware proof worker pairing</title>
+  <desc id="desc">Checked proof candidates are scored per publisher, consumer, and formula family. Low-sample exploration admits candidates, native outcomes update persistent feedback, and QueryStore independently verifies and checkpoints the controller.</desc>
+  <defs>
+    <style>
+      .title { font: 700 31px Inter, Arial, sans-serif; fill: #13283f; }
+      .subtitle { font: 400 15px Inter, Arial, sans-serif; fill: #52657a; }
+      .section { font: 700 16px Inter, Arial, sans-serif; fill: #19324d; }
+      .label { font: 600 15px Inter, Arial, sans-serif; fill: #17324c; }
+      .body { font: 400 13px Inter, Arial, sans-serif; fill: #41566c; }
+      .mono { font: 600 12px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #29445f; }
+      .metric { font: 700 24px Inter, Arial, sans-serif; fill: #17324c; }
+      .small { font: 500 11px Inter, Arial, sans-serif; fill: #627489; }
+      .line { fill: none; stroke: #46617f; stroke-width: 2.2; }
+      .feedback { fill: none; stroke: #16847b; stroke-width: 2.2; stroke-dasharray: 7 6; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="900" fill="#f5f8fb"/>
+  <rect x="34" y="28" width="1372" height="844" rx="8" fill="#ffffff" stroke="#d7e0e9"/>
+  <rect x="34" y="28" width="12" height="844" fill="#16847b"/>
+  <text x="74" y="78" class="title">F437 Utility-Aware Proof Worker Pairing</text>
+  <text x="74" y="105" class="subtitle">Proof-first admission, uncertainty-aware exploration, native outcome feedback, and replayable persistence</text>
+
+  <text x="74" y="154" class="section">ONLINE CONTROL PATH</text>
+
+  <g>
+    <rect x="74" y="178" width="230" height="142" rx="7" fill="#edf4fb" stroke="#7ea4c8"/>
+    <rect x="74" y="178" width="230" height="9" rx="4" fill="#3975a9"/>
+    <text x="94" y="216" class="label">1. Proof event</text>
+    <text x="94" y="244" class="body">Durable record + event sequence</text>
+    <text x="94" y="268" class="body">Publisher identity and clause</text>
+    <text x="94" y="296" class="mono">record_sha256</text>
+  </g>
+
+  <g>
+    <rect x="346" y="178" width="230" height="142" rx="7" fill="#eef8f5" stroke="#66aa9e"/>
+    <rect x="346" y="178" width="230" height="9" rx="4" fill="#16847b"/>
+    <text x="366" y="216" class="label">2. Independent checker</text>
+    <text x="366" y="244" class="body">Replay RUP / LRUP proof</text>
+    <text x="366" y="268" class="body">Reject before any scheduling</text>
+    <text x="366" y="296" class="mono">ClauseAuthorization</text>
+  </g>
+
+  <g>
+    <rect x="618" y="178" width="264" height="142" rx="7" fill="#fff7e8" stroke="#d6a548"/>
+    <rect x="618" y="178" width="264" height="9" rx="4" fill="#c68a24"/>
+    <text x="638" y="216" class="label">3. Pair state and score</text>
+    <text x="638" y="244" class="mono">publisher x consumer x family</text>
+    <text x="638" y="270" class="body">Reward + delivery/activation yield</text>
+    <text x="638" y="294" class="body">+ uncertainty - checker - staleness</text>
+  </g>
+
+  <g>
+    <rect x="924" y="178" width="210" height="142" rx="7" fill="#f1f0fa" stroke="#8e88bc"/>
+    <rect x="924" y="178" width="210" height="9" rx="4" fill="#6c63a7"/>
+    <text x="944" y="216" class="label">4. Sealed decision</text>
+    <text x="944" y="246" class="body">Explore: always admit</text>
+    <text x="944" y="270" class="body">Exploit: threshold gate</text>
+    <text x="944" y="296" class="mono">admit | suppress</text>
+  </g>
+
+  <g>
+    <rect x="1176" y="178" width="190" height="142" rx="7" fill="#edf4fb" stroke="#7ea4c8"/>
+    <rect x="1176" y="178" width="190" height="9" rx="4" fill="#3975a9"/>
+    <text x="1196" y="216" class="label">5. Native solver</text>
+    <text x="1196" y="246" class="body">Queue + ACK</text>
+    <text x="1196" y="270" class="body">First semantic activity</text>
+    <text x="1196" y="296" class="mono">unit | conflict</text>
+  </g>
+
+  <path class="line" d="M304 249 H338"/>
+  <polygon points="338,249 329,244 329,254" fill="#46617f"/>
+  <path class="line" d="M576 249 H610"/>
+  <polygon points="610,249 601,244 601,254" fill="#46617f"/>
+  <path class="line" d="M882 249 H916"/>
+  <polygon points="916,249 907,244 907,254" fill="#46617f"/>
+  <path class="line" d="M1134 249 H1168"/>
+  <polygon points="1168,249 1159,244 1159,254" fill="#46617f"/>
+
+  <g>
+    <rect x="618" y="366" width="516" height="176" rx="7" fill="#f8fafc" stroke="#becbd8"/>
+    <text x="642" y="400" class="label">Outcome model: every admission closes exactly once</text>
+    <rect x="642" y="420" width="84" height="42" rx="6" fill="#dff4ef" stroke="#5cae9f"/>
+    <text x="666" y="446" class="body">unit</text>
+    <rect x="738" y="420" width="90" height="42" rx="6" fill="#fbe8e8" stroke="#cb7474"/>
+    <text x="755" y="446" class="body">conflict</text>
+    <rect x="840" y="420" width="116" height="42" rx="6" fill="#f3f5f7" stroke="#aab7c4"/>
+    <text x="857" y="446" class="body">unactivated</text>
+    <rect x="968" y="420" width="138" height="42" rx="6" fill="#fff2dc" stroke="#d4a356"/>
+    <text x="986" y="446" class="body">backpressure</text>
+    <rect x="642" y="476" width="100" height="42" rx="6" fill="#f3f5f7" stroke="#aab7c4"/>
+    <text x="662" y="502" class="body">expired</text>
+    <text x="770" y="493" class="body">Unactivated is weak positive evidence, not a causal failure label.</text>
+    <text x="770" y="516" class="body">Low-sample and periodic refresh preserve exploration.</text>
+  </g>
+  <path class="feedback" d="M1270 320 V350 H1120"/>
+  <polygon points="1120,350 1129,345 1129,355" fill="#16847b"/>
+  <path class="feedback" d="M618 455 H575 V330 H750"/>
+  <polygon points="750,330 741,325 741,335" fill="#16847b"/>
+
+  <g>
+    <rect x="74" y="366" width="464" height="176" rx="7" fill="#eef8f5" stroke="#66aa9e"/>
+    <text x="98" y="400" class="label">QueryStore trust and persistence boundary</text>
+    <text x="98" y="430" class="body">Rebuild Query IR and bit-blast certificate</text>
+    <text x="98" y="454" class="body">Replay proof, event, ACK, activity, decision and outcome</text>
+    <text x="98" y="478" class="body">Atomically commit result + latest monotonic checkpoint</text>
+    <text x="98" y="509" class="mono">(consumer_worker, policy_sha256)</text>
+    <rect x="406" y="490" width="106" height="30" rx="5" fill="#16847b"/>
+    <text x="424" y="510" style="font:600 12px Inter,Arial,sans-serif;fill:#fff">FAIL CLOSED</text>
+  </g>
+  <path class="feedback" d="M618 500 H546"/>
+  <polygon points="546,500 555,495 555,505" fill="#16847b"/>
+
+  <text x="74" y="594" class="section">PAIRED LOCAL MPI MECHANISM EVIDENCE</text>
+  <g>
+    <rect x="74" y="618" width="1292" height="190" rx="7" fill="#f8fafc" stroke="#becbd8"/>
+    <line x1="332" y1="642" x2="332" y2="784" stroke="#d5dee7"/>
+    <line x1="590" y1="642" x2="590" y2="784" stroke="#d5dee7"/>
+    <line x1="848" y1="642" x2="848" y2="784" stroke="#d5dee7"/>
+    <line x1="1106" y1="642" x2="1106" y2="784" stroke="#d5dee7"/>
+
+    <text x="98" y="664" class="small">PUBLISHER-CONSUMER OPPORTUNITIES</text>
+    <text x="98" y="706" class="metric">24</text>
+    <text x="98" y="738" class="body">2 seeds x 3 rounds x 2 x 2</text>
+
+    <text x="356" y="664" class="small">SUPPRESSED LOW-UTILITY IMPORTS</text>
+    <text x="356" y="706" class="metric">4 / 24</text>
+    <text x="356" y="738" class="body">16.7% fewer native deliveries</text>
+
+    <text x="614" y="664" class="small">ACTIVATIONS RETAINED</text>
+    <text x="614" y="706" class="metric">12 / 12</text>
+    <text x="614" y="738" class="body">Same unit/conflict opportunities</text>
+
+    <text x="872" y="664" class="small">UNACTIVATED DELIVERIES</text>
+    <text x="872" y="706" class="metric">12 to 8</text>
+    <text x="872" y="738" class="body">33.3% mechanism reduction</text>
+
+    <text x="1130" y="664" class="small">ACTIVATION RATE</text>
+    <text x="1130" y="706" class="metric">50% to 60%</text>
+    <text x="1130" y="738" class="body">+10 percentage points</text>
+
+    <text x="98" y="778" class="small">BOUNDARY: two local-host MPI repetitions; no solve-time, coverage, defect-yield, causal-clause, or multi-node speedup claim.</text>
+  </g>
+
+  <text x="74" y="844" class="small">SymCC research implementation F437 | protocol symcc-qfbv-utility-aware-worker-pairing-v1</text>
+</svg>

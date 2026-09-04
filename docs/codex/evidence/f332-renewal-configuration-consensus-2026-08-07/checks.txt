@@ -1,0 +1,60 @@
+F332 epoch-bound renewal configuration consensus checks
+Date: 2026-08-07 UTC
+Host: cuda-ke
+Kernel: Linux 7.0.0-28-generic x86_64
+Python: 3.12.3
+MPI: Open MPI 4.1.6 / mpi4py 4.1.1 / MPI 3.1
+
+Static and syntax checks
+- ruff touched production/test/evidence Python: pass
+- AST parse touched Python files: pass
+- git diff --check including untracked delivery files: pass
+- evidence-directory __pycache__ residue: none
+
+Tests
+- directed consensus/fingerprint/drift tests: 24 passed, 8 subtests in 1.34 s
+- related MPI/distributed/hybrid tests: 303 passed, 29 subtests in 17.81 s
+- full warnings-as-errors Python regression: 699 passed, 49 subtests in 101.91 s
+
+Real MPI healthy and drift scenarios
+- MPI ranks and masters/workers: 7 and 2/5
+- sealed work epoch: f332 repeated 16 times
+- processor identity and peer jitter drift: test wrapper injection
+- healthy consensus fingerprint: 776bc9da6db7e0bc761c601280a75eee31c1bc3ee392aa759e2b9b4288ac9a94
+- fixed-epoch fingerprint repeats: 2/2 identical
+- healthy generations per master in both runs: 3/3
+- healthy attempts/successes/failures per master in both runs: 3/3/0
+- healthy return codes and worker ACKs: 0/0 and 3/3 + 2/2 in both runs
+- injected root/peer jitter: 0.1/0.25
+- drift consensus reached in both runs: false
+- drift generations/attempts per master in both runs: 0/0 and 0/0
+- drift local worker ACKs before abort in both runs: 3/3 + 2/2
+- drift elapsed and return codes: 0.912403/0.875331 s and 70/70
+- all JSON checks in both runs: pass
+
+Synthetic mechanism cost
+- topology sizes: 2/4/8 masters
+- warm-ups/repetitions: 2/20, interleaved and alternating
+- exchange medians: 1.211421/1.349709/1.535734 ms
+- consensus medians: 1.261927/1.454180/1.874998 ms
+- median deltas: 0.050506/0.104471/0.339265 ms
+- median ratios: 1.041691/1.077403/1.220914x
+- all 120 timed exchanges complete and agree: true
+
+Strict evidence boundaries
+- actual_mpi_transport=true
+- synthetic_topology=true
+- actual_multi_host=false
+- deployment_evidence=false
+- synthetic_control_plane=true
+- real_shared_storage_backend_tested=false
+- mpi_rank_crash_recovery_tested=false
+- network_partition_tested=false
+- ulfm_repair_tested=false
+- dse_throughput_benchmarked=false
+- solver_or_coverage_uplift_measured=false
+- lava_m_campaign_run=false
+
+Repository inventory after F332
+- documented SYMCC configuration names: 410
+- top-level test files: 246

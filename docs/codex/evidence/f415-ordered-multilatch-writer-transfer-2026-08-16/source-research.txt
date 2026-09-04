@@ -1,0 +1,29 @@
+F415 primary-source research basis
+
+LLVM MemorySSA
+https://llvm.org/docs/MemorySSA.html
+- MemoryDef represents a memory-modifying operation and participates in an
+  ordered def-use chain.
+- MemoryPhi merges versions that may reach a CFG join; it is not a must-write
+  or must-initialize proof.
+
+LLVM Loop Terminology
+https://llvm.org/docs/LoopTerminology.html
+- A natural LLVM loop can have multiple latch/backedge blocks.
+- Loop Simplify Form, rather than natural-loop semantics, adds the single
+  backedge property.
+
+LoopSCC, ICSE 2026 research-track page
+https://conf.researchr.org/details/icse-2026/icse-2026-research-track/127/LoopSCC-Summarizing-Complex-Multi-branch-Nested-Loops-via-Periodic-Oscillation-Inter
+
+LoopSCC preprint
+https://arxiv.org/abs/2411.02863
+- Nested summaries are applied sequentially from inner loops to outer loops.
+
+Local engineering inference
+- A sequence-valued backedge effect is a prerequisite for this project's
+  planned inner-to-outer MemoryPhi composition because an outer summary cannot
+  faithfully consume a multi-store inner effect represented as one unordered
+  writer. This v5 contract is a project-specific proof-carrying adaptation;
+  it is not a claim that F415 reproduces LoopSCC or general loop summarization.
+

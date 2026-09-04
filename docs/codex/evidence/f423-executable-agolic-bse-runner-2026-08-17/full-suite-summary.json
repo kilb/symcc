@@ -1,0 +1,26 @@
+{
+  "schema": "symcc-f423-full-suite-summary-v1",
+  "python": {
+    "collected": 1126,
+    "passed": 1126,
+    "subtests_passed": 250,
+    "skipped": 0,
+    "xfailed": 0,
+    "xpassed": 0,
+    "deselected": 0,
+    "missing_nodeids": 0,
+    "unexpected_nodeids": 0,
+    "elapsed_seconds": 156.30
+  },
+  "llvm": {
+    "rerun_for_f423": false,
+    "reason": "F423 changes only Python executor, runner, tests, and documentation",
+    "adjacent_f422_evidence": {
+      "llvm17_passed": 302,
+      "llvm17_unsupported": 2,
+      "llvm18_passed": 303,
+      "llvm18_unsupported": 1
+    }
+  },
+  "all_current_gates_passed": true
+}

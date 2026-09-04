@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#344054"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#157f68"/>
+    </marker>
+    <style>
+      text { font-family: "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; fill: #182230; }
+      .title { font-size: 34px; font-weight: 700; }
+      .subtitle { font-size: 17px; fill: #475467; }
+      .lane { font-size: 17px; font-weight: 700; fill: #344054; }
+      .head { font-size: 20px; font-weight: 700; }
+      .body { font-size: 15px; fill: #344054; }
+      .small { font-size: 13px; fill: #475467; }
+      .step { font-size: 14px; font-weight: 700; fill: #ffffff; }
+      .arrow { fill: none; stroke: #344054; stroke-width: 2.5; marker-end: url(#arrow); }
+      .checked { fill: none; stroke: #157f68; stroke-width: 3; marker-end: url(#arrowGreen); }
+      .dash { stroke-dasharray: 8 7; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <text x="70" y="62" class="title">F433 求解中实时证明流：检查、交付与二次裁决</text>
+  <text x="70" y="92" class="subtitle">ImpCheck/LIDRUP 式语义迁移 · CaDiCaL 3.0.1 IPASIR-UP · 持久 proof-event stream</text>
+
+  <rect x="42" y="122" width="1516" height="126" rx="6" fill="#eef2f6" stroke="#d0d5dd"/>
+  <rect x="42" y="266" width="1516" height="326" rx="6" fill="#ffffff" stroke="#d0d5dd"/>
+  <rect x="42" y="610" width="1516" height="205" rx="6" fill="#f0fdf9" stroke="#90d5c4"/>
+  <text x="62" y="149" class="lane">并行 worker / 不可信生产者</text>
+  <text x="62" y="293" class="lane">活动 solve / 本地可信检查边界</text>
+  <text x="62" y="637" class="lane">完成态 / QueryStore 独立裁决</text>
+
+  <rect x="95" y="163" width="250" height="62" rx="6" fill="#fff4e5" stroke="#f0a35e" stroke-width="2"/>
+  <text x="220" y="188" text-anchor="middle" class="head">Worker A</text>
+  <text x="220" y="211" text-anchor="middle" class="body">导出 learned clause + LRUP hints</text>
+
+  <rect x="446" y="151" width="330" height="86" rx="6" fill="#eef7ff" stroke="#62a8df" stroke-width="2"/>
+  <text x="611" y="180" text-anchor="middle" class="head">Proof CAS + SQLite WAL</text>
+  <text x="611" y="205" text-anchor="middle" class="body">规范 JSON · SHA-256 · 单调 event sequence</text>
+  <text x="611" y="225" text-anchor="middle" class="small">formula-scoped recent window；删除不复用序号</text>
+
+  <rect x="1190" y="163" width="270" height="62" rx="6" fill="#fff4e5" stroke="#f0a35e" stroke-width="2"/>
+  <text x="1325" y="188" text-anchor="middle" class="head">Worker B</text>
+  <text x="1325" y="211" text-anchor="middle" class="body">持有 exact-formula context</text>
+
+  <path d="M345 194 H446" class="arrow"/>
+  <circle cx="393" cy="194" r="13" fill="#475467"/><text x="393" y="199" text-anchor="middle" class="step">1</text>
+
+  <rect x="95" y="334" width="320" height="200" rx="6" fill="#ffffff" stroke="#98a2b3" stroke-width="2"/>
+  <text x="255" y="367" text-anchor="middle" class="head">Realtime session</text>
+  <line x1="120" y1="384" x2="390" y2="384" stroke="#d0d5dd"/>
+  <text x="125" y="413" class="body">• 从 recent high-water window 轮询</text>
+  <text x="125" y="442" class="body">• record / clause 内容去重</text>
+  <text x="125" y="471" class="body">• imports / events / literals 硬上限</text>
+  <text x="125" y="500" class="body">• cancel、deadline、backpressure 守恒</text>
+
+  <rect x="487" y="334" width="340" height="200" rx="6" fill="#eafbf6" stroke="#33a184" stroke-width="2.5"/>
+  <text x="657" y="367" text-anchor="middle" class="head">独立 LRUP/RUP checker</text>
+  <line x1="512" y1="384" x2="802" y2="384" stroke="#90d5c4"/>
+  <text x="517" y="413" class="body">1. 重建 Query IR → bit-blast CNF</text>
+  <text x="517" y="442" class="body">2. 校验 formula / variable domain</text>
+  <text x="517" y="471" class="body">3. 递归复核 proof DAG imports</text>
+  <text x="517" y="500" class="body">4. 仅授权 unit/conflict 可重放子句</text>
+
+  <rect x="900" y="334" width="260" height="200" rx="6" fill="#edf4ff" stroke="#528bd4" stroke-width="2.5"/>
+  <text x="1030" y="367" text-anchor="middle" class="head">C++ ABI bridge</text>
+  <line x1="925" y1="384" x2="1135" y2="384" stroke="#b2c8ea"/>
+  <text x="930" y="413" class="body">有界 import / ACK 队列</text>
+  <text x="930" y="442" class="body">observed-variable contract</text>
+  <text x="930" y="471" class="body">generation + delivery ordinal</text>
+  <text x="930" y="500" class="body">原子 termination fence</text>
+
+  <rect x="1230" y="310" width="280" height="248" rx="6" fill="#f4f0ff" stroke="#8166c2" stroke-width="2.5"/>
+  <text x="1370" y="344" text-anchor="middle" class="head">CaDiCaL 3.0.1 CDCL</text>
+  <line x1="1255" y1="362" x2="1485" y2="362" stroke="#c7b8e8"/>
+  <rect x="1260" y="383" width="220" height="42" rx="4" fill="#ffffff" stroke="#a891d5"/>
+  <text x="1370" y="409" text-anchor="middle" class="body">cb_has_external_clause</text>
+  <rect x="1260" y="438" width="220" height="42" rx="4" fill="#ffffff" stroke="#a891d5"/>
+  <text x="1370" y="464" text-anchor="middle" class="body">cb_add_external_clause_lit</text>
+  <rect x="1260" y="493" width="220" height="42" rx="4" fill="#ffffff" stroke="#a891d5"/>
+  <text x="1370" y="519" text-anchor="middle" class="body">Learner::learning / learn</text>
+
+  <path d="M611 237 V304 H255 V334" class="arrow"/>
+  <circle cx="383" cy="304" r="13" fill="#475467"/><text x="383" y="309" text-anchor="middle" class="step">2</text>
+  <path d="M415 434 H487" class="checked"/>
+  <circle cx="451" cy="434" r="13" fill="#157f68"/><text x="451" y="439" text-anchor="middle" class="step">3</text>
+  <path d="M827 434 H900" class="checked"/>
+  <circle cx="863" cy="434" r="13" fill="#157f68"/><text x="863" y="439" text-anchor="middle" class="step">4</text>
+  <path d="M1160 408 H1260" class="arrow"/>
+  <circle cx="1210" cy="408" r="13" fill="#475467"/><text x="1210" y="413" text-anchor="middle" class="step">5</text>
+  <path d="M1260 459 H1160" class="checked"/>
+  <circle cx="1210" cy="459" r="13" fill="#157f68"/><text x="1210" y="464" text-anchor="middle" class="step">6</text>
+  <text x="1185" y="490" class="small">ACK: token + generation + ordinal</text>
+  <path d="M1230 514 H1186 V570 H657 V534" class="arrow dash"/>
+  <circle cx="1040" cy="570" r="13" fill="#475467"/><text x="1040" y="575" text-anchor="middle" class="step">7</text>
+  <text x="795" y="587" class="small">learned clause 在基础 CNF 上重新导出 RUP hints，成功后发布 CAS</text>
+
+  <rect x="184" y="666" width="1232" height="108" rx="6" fill="#ffffff" stroke="#33a184" stroke-width="2.5"/>
+  <text x="800" y="697" text-anchor="middle" class="head">QueryStore complete()：第二个信任域</text>
+  <text x="235" y="730" class="body">重做 bit-blast</text>
+  <text x="457" y="730" class="body">重载 proof event</text>
+  <text x="694" y="730" class="body">复算 ACK SHA-256</text>
+  <text x="946" y="730" class="body">再次重放 LRUP/RUP</text>
+  <text x="1194" y="730" class="body">核对计数与 SAT 模型</text>
+  <path d="M322 745 H1260" class="checked"/>
+  <circle cx="143" cy="720" r="18" fill="#157f68"/><text x="143" y="725" text-anchor="middle" class="step">8</text>
+  <circle cx="1458" cy="720" r="18" fill="#157f68"/><text x="1458" y="725" text-anchor="middle" class="step">9</text>
+  <text x="1458" y="754" text-anchor="middle" class="small">通过后持久化结果</text>
+
+  <path d="M1030 534 V626 H800 V666" class="checked"/>
+  <path d="M611 237 V626 H510 V666" class="arrow dash"/>
+
+  <rect x="95" y="842" width="18" height="18" fill="#fff4e5" stroke="#f0a35e"/>
+  <text x="123" y="856" class="small">不可信 producer / telemetry</text>
+  <rect x="375" y="842" width="18" height="18" fill="#eafbf6" stroke="#33a184"/>
+  <text x="403" y="856" class="small">独立检查与授权</text>
+  <rect x="615" y="842" width="18" height="18" fill="#edf4ff" stroke="#528bd4"/>
+  <text x="643" y="856" class="small">native 传输边界</text>
+  <rect x="850" y="842" width="18" height="18" fill="#f4f0ff" stroke="#8166c2"/>
+  <text x="878" y="856" class="small">CDCL 回调执行</text>
+  <text x="1510" y="856" text-anchor="end" class="small">关键不变量：未检查不入队；未回调不算 delivered；未二次重放不入库</text>
+</svg>

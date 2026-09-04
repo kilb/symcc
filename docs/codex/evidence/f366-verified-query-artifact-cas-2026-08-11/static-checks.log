@@ -1,0 +1,19 @@
+$ python3 -m ruff check util/distributed_state.py util/query_store.py test/test_distributed_state.py test/test_query_store.py docs/codex/verify_delivery.py docs/codex/evidence/f366-verified-query-artifact-cas-2026-08-11/run_verified_query_artifact_checks.py
+All checks passed!
+ruff: PASS
+$ PYTHONPYCACHEPREFIX=/tmp/f366-pycache python3 -m py_compile <six F366 Python files>
+py_compile: PASS
+$ git diff --check
+git diff --check: PASS
+$ python3 -m cairosvg docs/codex/diagrams/verified-query-artifact-cas-2026-08-11.svg -o /tmp/f366-diagram.png
+diagram render: PASS (1600x1080, visually inspected, no missing glyphs or clipping)
+$ F350 production CAS driver; F365 outcome-separation driver plus exact JSON comparison
+historical F350/F365 replay: PASS
+$ cmp docs/codex/index.html docs/codex/report_delivery_index.html
+HTML twins: PASS
+$ (cd docs/codex/evidence/f366-verified-query-artifact-cas-2026-08-11 && sha256sum -c SHA256SUMS.txt)
+nested SHA-256: PASS
+$ (cd docs/codex && sha256sum -c SHA256SUMS.txt)
+top-level SHA-256: PASS
+$ PYTHONDONTWRITEBYTECODE=1 python3 docs/codex/verify_delivery.py
+delivery verifier: PASS

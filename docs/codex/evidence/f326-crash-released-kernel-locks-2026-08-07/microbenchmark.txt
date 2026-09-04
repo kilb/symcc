@@ -1,0 +1,36 @@
+{
+  "cycles_per_round": 10000,
+  "kernel_median_ns_per_cycle": 5348.6,
+  "kernel_namespace_mutations_per_warm_cycle": 0,
+  "kernel_p95_ns_per_cycle": 5391.6,
+  "kernel_samples_ns_per_cycle": [
+    5391.6,
+    5348.6,
+    5385.2,
+    5339.8,
+    5379.9,
+    5297.3,
+    5351.7,
+    5305.8,
+    5332.7
+  ],
+  "legacy_median_ns_per_cycle": 9932.2,
+  "legacy_namespace_mutations_per_cycle": 2,
+  "legacy_p95_ns_per_cycle": 11335.2,
+  "legacy_samples_ns_per_cycle": [
+    11335.2,
+    10461.5,
+    9932.2,
+    10063.8,
+    9758.5,
+    10022.4,
+    9762.7,
+    9581.9,
+    9570.7
+  ],
+  "median_speedup": 1.857,
+  "rounds": 9,
+  "schema": "symcc-f326-lock-protocol-benchmark-v1",
+  "scope": "uncontended short-lock primitive only; excludes lease I/O, DSE, coverage, and solver throughput",
+  "stable_lock_file_count": 1
+}

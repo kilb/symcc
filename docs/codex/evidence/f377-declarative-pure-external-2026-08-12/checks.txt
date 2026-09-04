@@ -1,0 +1,50 @@
+F377 declarative pure external models - final verification
+Date: 2026-08-12 UTC
+
+LLVM 18 build:
+  cmake --build build -j2
+  PASS; libsymcc.so rebuilt and linked
+
+LLVM 17 compatibility build and direct artifact check:
+  cmake --build build-llvm17 -j2
+  PASS; libsymcc.so rebuilt and linked
+  declarative_pure_add lowered with opt-17 and checker returned values 1,2
+
+LLVM 18 integration lit:
+  lit -sv --filter='live_continuation_lowering' build/test
+  PASS; 1 passed, 0 failed, 235 excluded, 179.06 s
+
+Targeted Python regression:
+  test_live_external_models.py + cleanup/typed exception suites
+  PASS; 22 passed, 35 subtests passed, 0 failed, 2.58 s
+  external model suite alone: 8 passed, 24 subtests passed
+
+Capability-closed Python gate:
+  PASS; 852 passed, 213 subtests passed, 120.45 s
+  collected=852; skipped=0; xfailed=0; xpassed=0; deselected=0
+  missing-nodeids=0; unexpected-nodeids=0
+  canonical nodeid SHA-256:
+    766d2a2e33f0464722f37ac08c5894c992ab01d680441cc59f49985f58c7be17
+
+Generated artifact replay checks:
+  pure-add.json: values 1,2; declarative capability present
+  pure-constant.json: value 42; declarative capability present
+  pure-invoke.json: value 5; declarative and nounwind-invoke capabilities present
+
+Static gates:
+  ruff: PASS, 0 diagnostics
+  py_compile: PASS
+  git diff --check: PASS
+  SVG XML + rendered PNG: PASS, PNG 2000x1250 RGB
+
+Review finding retained in the record:
+  The first complete Python gate failed because the new test file had no lit
+  RUN entry. The entry was added, the canonical inventory was regenerated,
+  and the complete zero-degradation gate then passed. Subsequent reviews also
+  closed fresh-process checkpoint evidence, ambiguous operand JSON, empty-token
+  parser divergence, and zero/duplicate stable-site admission.
+
+Claim boundary:
+  These results establish implementation, fail-closed validation, execution,
+  persistence, and compatibility behavior. They do not establish throughput,
+  coverage, or vulnerability-discovery improvement.

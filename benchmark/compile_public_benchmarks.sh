@@ -3,7 +3,7 @@
 # Build public benchmark programs for SymCC MPI benchmarking.
 #
 # Usage:
-#   ./build_public_benchmarks.sh [--compiler CC] [--all | --cgc | --lava | --google-fts]
+#   ./build_public_benchmarks.sh [--compiler CC] [--all | --cgc | --lava | --google-fts | --jhead]
 #
 # Defaults to gcc if SymCC is not available (for testing the MPI framework).
 # Set --compiler to specify the C compiler (e.g., symcc or path/to/symcc).
@@ -286,6 +286,86 @@ UNLOCKED_PATCH
     done
 
     info "LAVA-M: built $built / 4 targets"
+}
+
+############################################################
+# jhead JPEG metadata parser
+# Source: https://github.com/Matthias-Wandel/jhead
+# Used in ICSE'23 hybrid fuzzing evaluation.
+############################################################
+_ensure_jhead_source() {
+    local jhead_dir="$PUBLIC_DIR/jhead-src"
+    if [ -d "$jhead_dir" ] && [ -f "$jhead_dir/makefile" ]; then
+        return 0
+    fi
+
+    info "Downloading jhead source snapshot..."
+    mkdir -p "$jhead_dir"
+    local archive="$PUBLIC_DIR/jhead-5007491cdc8c727c16ea6a27734535cfd0ed4349.tar.gz"
+    if [ ! -f "$archive" ]; then
+        curl -sL "https://github.com/Matthias-Wandel/jhead/archive/5007491cdc8c727c16ea6a27734535cfd0ed4349.tar.gz" \
+            -o "$archive" || { warn "  Failed to download jhead"; return 1; }
+    fi
+    tar -xzf "$archive" --strip-components=1 -C "$jhead_dir"
+}
+
+_install_jhead_seeds() {
+    local jhead_dir="$PUBLIC_DIR/jhead-src"
+    local seed_dir="$SEEDS_DIR/jhead/jhead"
+    mkdir -p "$seed_dir"
+
+    local seeds=(
+        "tests/normal-digicams/canon-300d.jpg"
+        "tests/normal-digicams/gpsinfo.jpg"
+        "tests/normal-digicams/rotate.jpg"
+        "tests/normal-digicams/no-exif.jpg"
+        "tests/normal-digicams/sony.jpg"
+        "tests/normal-digicams/powershot_g2.jpg"
+        "tests/strange-jpegs/iptc1.jpg"
+        "tests/strange-jpegs/with_xmp.jpg"
+        "tests/strange-jpegs/truncated.jpg"
+        "tests/strange-jpegs/badyear.jpg"
+        "tests/strange-jpegs/gps-corrupted-dir.jpg"
+        "tests/strange-jpegs/thumbnail-place-error.jpg"
+    )
+
+    local seed
+    for seed in "${seeds[@]}"; do
+        if [ -f "$jhead_dir/$seed" ]; then
+            cp "$jhead_dir/$seed" "$seed_dir/$(basename "$seed")"
+        fi
+    done
+
+    if [ -f "$PUBLIC_DIR/fuzzer-test-suite/guetzli-2017-3-30/seeds/not_kitty.jpg" ]; then
+        cp "$PUBLIC_DIR/fuzzer-test-suite/guetzli-2017-3-30/seeds/not_kitty.jpg" \
+            "$seed_dir/fts-not_kitty.jpg"
+    fi
+    if [ -f "$PUBLIC_DIR/fuzzer-test-suite/libjpeg-turbo-07-2017/seeds/seed.jpg" ]; then
+        cp "$PUBLIC_DIR/fuzzer-test-suite/libjpeg-turbo-07-2017/seeds/seed.jpg" \
+            "$seed_dir/fts-libjpeg-seed.jpg"
+    fi
+}
+
+build_jhead() {
+    _ensure_jhead_source || return 1
+
+    local jhead_dir="$PUBLIC_DIR/jhead-src"
+    info "Building jhead with CC=$CC ..."
+    mkdir -p "$BUILD_DIR/jhead"
+    _install_jhead_seeds
+
+    cd "$jhead_dir"
+    make clean 2>/dev/null || true
+    mkdir -p /tmp/output
+    SYMCC_OUTPUT_DIR=/tmp/output make CC="$CC" CFLAGS="-O2 -g" -j$(nproc) \
+        2>&1 | tail -5
+    if [ -f jhead ]; then
+        cp jhead "$BUILD_DIR/jhead/jhead"
+        info "    -> jhead built successfully"
+    else
+        warn "    jhead build failed"
+    fi
+    cd "$SCRIPT_DIR"
 }
 
 ############################################################
@@ -866,8 +946,10 @@ build_google_fts_afl() {
         return 1
     fi
 
-    info "Building Google FTS AFL-instrumented binaries..."
-    mkdir -p "$BUILD_DIR/google-fts-afl"
+    local afl_kind="${AFL_OUTPUT_KIND:-afl}"
+    local out_dir="$BUILD_DIR/google-fts-$afl_kind"
+    info "Building Google FTS AFL-instrumented binaries ($afl_kind)..."
+    mkdir -p "$out_dir"
 
     local built=0
     local work_dir="$PUBLIC_DIR/gfts_build"
@@ -885,7 +967,7 @@ build_google_fts_afl() {
             afl-clang-fast -O2 "$BUILD_DIR/google-fts-cov/png_cov/png_read_fuzzer.c" \
                 -I "$work_dir/libpng-1.2.56" \
                 "$work_dir/libpng-1.2.56/.libs/libpng.a" \
-                -lz -lm -o "$BUILD_DIR/google-fts-afl/png_read_fuzzer" 2>/dev/null
+                -lz -lm -o "$out_dir/png_read_fuzzer" 2>/dev/null
             if [ $? -eq 0 ]; then
                 built=$((built + 1))
                 info "    -> png_read_fuzzer AFL built"
@@ -915,7 +997,7 @@ build_google_fts_afl() {
             afl-clang-fast -O2 "$BUILD_DIR/google-fts-cov/xml_cov/xml_read_fuzzer.c" \
                 -I "$work_dir/libxml2-2.9.2/include" \
                 "$work_dir/libxml2-2.9.2/.libs/libxml2.a" \
-                -lz -lm -lpthread -o "$BUILD_DIR/google-fts-afl/xml_read_fuzzer" 2>/dev/null
+                -lz -lm -lpthread -o "$out_dir/xml_read_fuzzer" 2>/dev/null
             if [ $? -eq 0 ]; then
                 built=$((built + 1))
                 info "    -> xml_read_fuzzer AFL built"
@@ -931,7 +1013,7 @@ build_google_fts_afl() {
         warn "  libxml2 source not found; run --google-fts first to download"
     fi
 
-    info "Google FTS AFL: built $built targets"
+    info "Google FTS $afl_kind: built $built targets"
 }
 
 ############################################################
@@ -959,8 +1041,10 @@ build_lava_afl() {
         return 1
     fi
 
-    info "Building LAVA-M AFL-instrumented binaries..."
-    mkdir -p "$BUILD_DIR/lava-m-afl"
+    local afl_kind="${AFL_OUTPUT_KIND:-afl}"
+    local out_dir="$BUILD_DIR/lava-m-$afl_kind"
+    info "Building LAVA-M AFL-instrumented binaries ($afl_kind)..."
+    mkdir -p "$out_dir"
 
     local built=0
     for prog in base64 md5sum uniq who; do
@@ -1008,11 +1092,11 @@ UNLOCKED_PATCH
         fi
 
         if [ -f "src/$prog" ]; then
-            cp "src/$prog" "$BUILD_DIR/lava-m-afl/${prog}"
+            cp "src/$prog" "$out_dir/${prog}"
             built=$((built + 1))
             info "    -> $prog AFL built"
             case "$prog" in
-                base64) echo "-d" > "$BUILD_DIR/lava-m-afl/${prog}.args" ;;
+                base64) echo "-d" > "$out_dir/${prog}.args" ;;
             esac
         else
             warn "    $prog AFL build failed"
@@ -1021,14 +1105,89 @@ UNLOCKED_PATCH
         cd "$SCRIPT_DIR"
     done
 
-    info "LAVA-M AFL: built $built / 4 targets"
+    info "LAVA-M $afl_kind: built $built / 4 targets"
+}
+
+build_jhead_afl() {
+    if ! command -v afl-clang-fast >/dev/null 2>&1; then
+        error "afl-clang-fast not found. Install AFL++"
+        return 1
+    fi
+
+    _ensure_jhead_source || return 1
+
+    local afl_kind="${AFL_OUTPUT_KIND:-afl}"
+    local out_dir="$BUILD_DIR/jhead-$afl_kind"
+    local jhead_dir="$PUBLIC_DIR/jhead-src"
+    info "Building jhead AFL-instrumented binary ($afl_kind)..."
+    mkdir -p "$out_dir"
+    _install_jhead_seeds
+
+    cd "$jhead_dir"
+    make clean 2>/dev/null || true
+    CC=afl-clang-fast CFLAGS="-O2 -g" make -j$(nproc) \
+        2>&1 | tail -5
+    if [ -f jhead ]; then
+        cp jhead "$out_dir/jhead"
+        info "    -> jhead $afl_kind built successfully"
+    else
+        warn "    jhead $afl_kind build failed"
+    fi
+    cd "$SCRIPT_DIR"
+}
+
+build_afl_profile_variants() {
+    if ! command -v afl-clang-fast >/dev/null 2>&1; then
+        error "afl-clang-fast not found. Install AFL++"
+        return 1
+    fi
+
+    local specs=(
+        "afl-laf AFL_LLVM_LAF_ALL=1"
+        "afl-ctx AFL_LLVM_CTX=1"
+        "afl-ngram4 AFL_LLVM_NGRAM_SIZE=4"
+        "afl-laf-ctx AFL_LLVM_LAF_ALL=1 AFL_LLVM_CTX=1"
+        "cmplog AFL_LLVM_CMPLOG=1"
+    )
+    local spec kind kv key value
+    local old_afl_output_kind="${AFL_OUTPUT_KIND-}"
+    local had_afl_output_kind=false
+    if [ "${AFL_OUTPUT_KIND+x}" = "x" ]; then
+        had_afl_output_kind=true
+    fi
+    for spec in "${specs[@]}"; do
+        read -r kind kv _ <<< "$spec"
+        info "Building AFL++ profile variant: $kind"
+        unset AFL_LLVM_LAF_ALL AFL_LLVM_CTX AFL_LLVM_NGRAM_SIZE AFL_LLVM_CMPLOG
+        for kv in ${spec#"$kind "}; do
+            key="${kv%%=*}"
+            value="${kv#*=}"
+            export "$key=$value"
+        done
+        AFL_OUTPUT_KIND="$kind"
+        if $BUILD_GOOGLE; then
+            build_google_fts_afl
+        fi
+        if $BUILD_LAVA; then
+            build_lava_afl
+        fi
+        if $BUILD_JHEAD; then
+            build_jhead_afl
+        fi
+    done
+    if $had_afl_output_kind; then
+        AFL_OUTPUT_KIND="$old_afl_output_kind"
+    else
+        unset AFL_OUTPUT_KIND
+    fi
+    unset AFL_LLVM_LAF_ALL AFL_LLVM_CTX AFL_LLVM_NGRAM_SIZE AFL_LLVM_CMPLOG
 }
 
 ############################################################
 # Main
 ############################################################
 usage() {
-    echo "Usage: $0 [--compiler CC] [--all | --cgc | --lava | --google-fts] [--with-coverage]"
+    echo "Usage: $0 [--compiler CC] [--all | --cgc | --lava | --google-fts | --jhead] [--with-coverage]"
     echo ""
     echo "Build public benchmark programs. Assumes repos are already cloned"
     echo "into benchmark/public/ (use setup_public_benchmarks.sh first)."
@@ -1039,8 +1198,11 @@ usage() {
     echo "  --cgc             Build CGC cb-multios challenges"
     echo "  --lava            Build LAVA-M targets (base64, md5sum, uniq, who)"
     echo "  --google-fts      Build Google fuzzer-test-suite"
+    echo "  --jhead           Build jhead JPEG metadata parser"
     echo "  --with-coverage   Also build coverage-instrumented binaries (gcc --coverage)"
     echo "  --with-afl        Also build AFL-instrumented binaries (afl-clang-fast)"
+    echo "  --with-afl-variants"
+    echo "                    Also build AFL++ LAF/CTX/Ngram/CmpLog profile variants"
     echo ""
     echo "Output:"
     echo "  Binaries:  $BUILD_DIR/<suite>/"
@@ -1062,8 +1224,10 @@ usage() {
 BUILD_CGC=false
 BUILD_LAVA=false
 BUILD_GOOGLE=false
+BUILD_JHEAD=false
 WITH_COVERAGE=false
 WITH_AFL=false
+WITH_AFL_VARIANTS=false
 
 if [ $# -eq 0 ]; then
     usage
@@ -1086,12 +1250,17 @@ while [ $# -gt 0 ]; do
                 CXX="${CC}++"
             fi
             ;;
-        --all)            BUILD_CGC=true; BUILD_LAVA=true; BUILD_GOOGLE=true ;;
+        --all)            BUILD_CGC=true; BUILD_LAVA=true; BUILD_GOOGLE=true; BUILD_JHEAD=true ;;
         --cgc)            BUILD_CGC=true ;;
         --lava)           BUILD_LAVA=true ;;
         --google-fts)     BUILD_GOOGLE=true ;;
+        --jhead)          BUILD_JHEAD=true ;;
         --with-coverage)  WITH_COVERAGE=true ;;
         --with-afl)       WITH_AFL=true ;;
+        --with-afl-variants)
+            WITH_AFL=true
+            WITH_AFL_VARIANTS=true
+            ;;
         --help|-h)        usage; exit 0 ;;
         *)                error "Unknown option: $1"; usage; exit 1 ;;
     esac
@@ -1125,6 +1294,7 @@ echo ""
 $BUILD_CGC    && build_cgc
 $BUILD_LAVA   && build_lava
 $BUILD_GOOGLE && build_google_fts
+$BUILD_JHEAD  && build_jhead
 
 # AFL builds 必须在 coverage 之前，因为两者都会 distclean 库源码
 # Coverage 最后编译确保 .gcno 文件不被后续步骤覆盖
@@ -1136,12 +1306,22 @@ if $WITH_AFL; then
     echo ""
     $BUILD_GOOGLE && build_google_fts_afl
     $BUILD_LAVA   && build_lava_afl
+    $BUILD_JHEAD  && build_jhead_afl
     # 将 FTS LLVMFuzzer/ossfuzz 目标（libarchive/pcre2/sqlite）重链接为持久模式+共享内存。
     # png/xml 已由上面的 dual-mode heredoc 天然持久；此步骤补齐其余目标（幂等、缺构件则跳过）。
     if [ -f "$SCRIPT_DIR/make_afl_targets_persistent.sh" ]; then
         echo ""; echo "  Making FTS AFL targets persistent (shmem)..."
         bash "$SCRIPT_DIR/make_afl_targets_persistent.sh" || true
     fi
+fi
+
+if $WITH_AFL_VARIANTS; then
+    echo ""
+    echo "================================================================"
+    echo "  Building AFL++ Profile Variants"
+    echo "================================================================"
+    echo ""
+    build_afl_profile_variants
 fi
 
 # Coverage builds (使用 gcc --coverage -O0 -g 重新编译) — 必须最后！

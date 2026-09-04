@@ -1,0 +1,64 @@
+F340 reproducibility and evidence boundary
+Date: 2026-08-10 UTC
+Platform: Linux 7.0.0-28-generic x86_64
+Python: 3.12.3
+MPI: Open MPI 4.1.6
+Filesystem under test: local overlayfs
+
+Production mechanism:
+- rank 0 strictly parses and broadcasts one object/byte budget pair
+- default per-parent limits are 4096 objects and 268435456 logical bytes
+- output discovery consumes one context-managed scandir iterator
+- discovery stops at object limit+1 and accepts only no-follow regular entries
+- metadata byte admission precedes staging, but actual copied bytes are checked again
+- source open requires O_NOFOLLOW and same-descriptor fstat must be regular
+- SHA-256 and temporary output are updated from a fixed 1 MiB read window
+- fsync-backed temporary output is atomically renamed to its content hash
+- ordered hashes retain duplicates; staged_bytes counts every original source
+- master independently rehashes unique staged inodes and reconstructs duplicate logical bytes
+- exact inventory, count, declaration, and both budgets precede begin_commit
+- explicit overflow does not truncate, commit, publish, or deterministically retry
+- overflow attempts local deletion; if cleanup is uncertain, its staging identity
+  reaches the master for a second deletion attempt before Abort(70)
+- current admission budgets are not reapplied to a durable committing manifest during replay
+
+Automated tests:
+- directed lifecycle: 45 passed, 35 subtests passed, 0.93 s
+- related six-module integration: 334 passed, 62 subtests passed, 16.51 s
+- full warnings-as-errors Python: 727 passed, 82 subtests passed, 94.94 s
+- Ruff: passed
+- py_compile: passed
+- git diff --check: passed
+
+Actual MPI transport:
+- three Open MPI runs, each 2 ranks, 1 master, 1 worker
+- one physical host; actual_multi_host=false
+- deterministic synthetic output-contract target; no solver
+- budget is 2 objects and 16 bytes per parent
+- success: returncode=0, seed+child public, active/retired epoch=0/1, no staging residue
+- object overflow: observed=3 limit=2, returncode=70, only seed public, active/retired=1/0
+- byte overflow: observed=17 limit=16, returncode=70, only seed public, active/retired=1/0
+- every visible 64-hex object is a real regular file with exact name/content SHA-256
+- all MPI checks passed
+
+Fresh-process result-staging microbenchmark:
+- source scales: 8388608 and 33554432 bytes
+- sparse zero-filled regular source on local overlayfs
+- 2 warmups and 10 retained samples per mechanism and scale
+- old path: read-all, SHA-256, atomic write, post-write SHA-256
+- F340 path: production streaming helper, fsync-backed rename, post-write SHA-256
+- 8 MiB traced peak: 10487262 -> 2099636 bytes, old/new=4.994800
+- 8 MiB max RSS median: 45980 -> 37270 KiB, old/new=1.233700
+- 8 MiB elapsed median: 32789.311 -> 41965.793 us, new is 27.9862% slower
+- 32 MiB traced peak: 35653086 -> 2099636 bytes, old/new=16.980603
+- 32 MiB max RSS median: 70600 -> 37252 KiB, old/new=1.895200
+- 32 MiB elapsed median: 65323.067 -> 71958.304 us, new is 10.1576% slower
+
+Strict boundary:
+- The result path retains O(max_objects) path/hash metadata; it is not globally O(1) memory.
+- A synchronous filesystem call is not preempted by the admission budget.
+- MPI deserialization occurs before master-side list-length validation; workers are non-Byzantine.
+- O_NOFOLLOW constrains the final component; controlled parent roots remain an assumption.
+- The benchmark uses sparse/page-cached local files and is mechanism-only.
+- No real multi-host, NFS/Lustre/GPFS, storage failover, or power-loss evidence exists.
+- No DSE throughput, solver, coverage, bug-discovery, campaign, or LAVA-M uplift is claimed.

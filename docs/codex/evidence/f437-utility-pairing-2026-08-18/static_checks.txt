@@ -1,0 +1,11 @@
+F437 static and generated-artifact checks
+
+python3 -m py_compile: passed
+python3 -m ruff check: passed
+technology index --check: passed
+SVG XML parse and PNG 2160x1350 dimensions: passed
+git diff --check: passed
+
+The checked Python set includes the controller, realtime stream, persistent
+backend, QueryStore, service parser, multi-rank evaluator/runner/oracles,
+delivery verifier, generator, and affected tests.

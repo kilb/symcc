@@ -1,0 +1,49 @@
+{
+  "all_passed": true,
+  "associated_python": {
+    "passed": 30,
+    "subtests_passed": 19
+  },
+  "claim_boundary": "official PalRUP global checker mechanism on a shared filesystem; no native SymCC proof generation, solver speedup, coverage, defect yield, recovery, or multi-node scaling claim",
+  "focused_python": {
+    "passed": 6,
+    "subtests_passed": 7
+  },
+  "llvm17": {
+    "discovered": 330,
+    "failed": 0,
+    "passed": 328,
+    "unresolved": 0,
+    "unsupported": 2
+  },
+  "llvm18": {
+    "discovered": 330,
+    "failed": 0,
+    "passed": 329,
+    "unresolved": 0,
+    "unsupported": 1
+  },
+  "official_oracle": {
+    "bundle_sha256": "907e2f075457bf2c544015696e984f589ff683ce73630e7eaa64922ac282fe2b",
+    "confirmed_ranks": 12,
+    "confirm_tasks": 12,
+    "fragment_bytes": 8452282,
+    "fragments": 12,
+    "local_tasks": 12,
+    "matrix_tasks": 16,
+    "matrix_width": 4,
+    "redistribute_tasks": 16,
+    "stage_artifact_bytes": 8644,
+    "stage_artifacts": 40,
+    "unsat_witness_ranks": [
+      3
+    ],
+    "workspace_sha256": "f5e9c3e0b975166e1362dbfa0cab48610b9d5f1fd88710aef3526b0ddb9f7b5a"
+  },
+  "python": {
+    "inventory_sha256": "2d439dbca05a05e8d917dd45e7a3d881e400eb1e50a8c3ffd090b7067094e4ca",
+    "passed": 1326,
+    "subtests_passed": 310
+  },
+  "schema": "symcc-f440-full-suite-summary-v1"
+}

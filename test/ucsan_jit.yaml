@@ -1,0 +1,4 @@
+entry: cal
+scope:
+  - cal
+external: pure

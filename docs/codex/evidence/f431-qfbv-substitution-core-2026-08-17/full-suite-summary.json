@@ -1,0 +1,48 @@
+{
+  "all_passed": true,
+  "benchmarks": {
+    "padding_0": {
+      "cold_reuse_us": 119787,
+      "rounds": 64,
+      "total_speedup": 13.861478448746942
+    },
+    "padding_128": {
+      "cold_reuse_us": 134715,
+      "rounds": 64,
+      "total_speedup": 5.972816992004526
+    }
+  },
+  "debug_allocator": {
+    "passed": 38
+  },
+  "llvm17": {
+    "discovered": 317,
+    "passed": 315,
+    "unsupported": 2
+  },
+  "llvm18": {
+    "discovered": 317,
+    "passed": 316,
+    "unsupported": 1
+  },
+  "oracles": {
+    "cases_per_run": 512,
+    "mismatches_per_run": 0,
+    "negative_per_run": 218,
+    "non_injective_positive_per_run": 97,
+    "positive_per_run": 294,
+    "runs": 2
+  },
+  "python": {
+    "passed": 1221,
+    "subtests_passed": 278
+  },
+  "related_python": {
+    "passed": 101,
+    "subtests_passed": 45
+  },
+  "schema": "symcc-f431-full-suite-summary-v1",
+  "targeted_python": {
+    "passed": 38
+  }
+}

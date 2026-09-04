@@ -1,0 +1,238 @@
+{
+  "checks": {
+    "fallback_no_model_calls": true,
+    "online_candidates_applied": true,
+    "online_responses": true,
+    "reactive_gate": true,
+    "shadow_candidates_not_applied": true,
+    "shadow_candidates_observed": true,
+    "shadow_responses": true,
+    "task_set_equal": true,
+    "token_accounting_nonzero": true
+  },
+  "comparison": {
+    "arms": {
+      "fallback": {
+        "base_policy_sha256": "eecfb358955b3473ef3a07572c35aeeff7d4b9dbffc37230d192ef62837fe953",
+        "candidate_actions": 0,
+        "candidate_bytes": 0,
+        "cost_microusd": 0,
+        "coverage_delta": 0,
+        "fallbacks": 3,
+        "generated": 0,
+        "hint_selections": 0,
+        "input_tokens": 0,
+        "ledger_tail_sha256": "f2aa526db5ee7491de5d8b3f8330cf26313adb9af1bac2890d6753435fa55c66",
+        "mode": "fallback",
+        "model_time_us": 0,
+        "outcomes": 0,
+        "output_tokens": 0,
+        "policy_sha256": "31cedfbd972e0aae1baeb85c3a889642d91b7eb30a6c2a8120ba5a353893a799",
+        "proposed_candidate_actions": 0,
+        "proposed_candidate_bytes": 0,
+        "requests": 0,
+        "schema": "symcc-agentic-ablation-summary-v1",
+        "summary_sha256": "3538d24fba729baddb1a4a39247f68209828a1b3e192f91dc4d639062c96bdd7",
+        "suppressed_requests": 1,
+        "target_reached": 0,
+        "trigger_evaluations": 4,
+        "triggered_requests": 3,
+        "valid_responses": 0
+      },
+      "online": {
+        "base_policy_sha256": "eecfb358955b3473ef3a07572c35aeeff7d4b9dbffc37230d192ef62837fe953",
+        "candidate_actions": 3,
+        "candidate_bytes": 6,
+        "cost_microusd": 0,
+        "coverage_delta": 0,
+        "fallbacks": 0,
+        "generated": 0,
+        "hint_selections": 0,
+        "input_tokens": 999,
+        "ledger_tail_sha256": "ad5d8189811b9a7d14a08ef0e92cd50c07aa535d147e83716af0e9fae89ecb14",
+        "mode": "online",
+        "model_time_us": 33684,
+        "outcomes": 0,
+        "output_tokens": 354,
+        "policy_sha256": "0c06941adb1b399d64076e1577fbc96d477a0fdd2685d192dc6374b0d29e80a8",
+        "proposed_candidate_actions": 3,
+        "proposed_candidate_bytes": 6,
+        "requests": 3,
+        "schema": "symcc-agentic-ablation-summary-v1",
+        "summary_sha256": "07490a537ab2690c3b30474cfe3a7d529afbf4e2bff76c0419febbcfd3fb3f43",
+        "suppressed_requests": 1,
+        "target_reached": 0,
+        "trigger_evaluations": 4,
+        "triggered_requests": 3,
+        "valid_responses": 3
+      },
+      "shadow": {
+        "base_policy_sha256": "eecfb358955b3473ef3a07572c35aeeff7d4b9dbffc37230d192ef62837fe953",
+        "candidate_actions": 0,
+        "candidate_bytes": 6,
+        "cost_microusd": 0,
+        "coverage_delta": 0,
+        "fallbacks": 0,
+        "generated": 0,
+        "hint_selections": 0,
+        "input_tokens": 999,
+        "ledger_tail_sha256": "57a91e92ef279df5f0e7f95c19fd3aa42a9ed7354f282c01a4e4c862d02e46a8",
+        "mode": "shadow",
+        "model_time_us": 34195,
+        "outcomes": 0,
+        "output_tokens": 354,
+        "policy_sha256": "1e0cfee8ad8efd57476647cd1bfeb52d738c47ce1077d198b466270402eeedae",
+        "proposed_candidate_actions": 3,
+        "proposed_candidate_bytes": 6,
+        "requests": 3,
+        "schema": "symcc-agentic-ablation-summary-v1",
+        "summary_sha256": "58ba6589950063e9c3ead70a036d9130f820cab41cbcc26bc7e8a5efc767a762",
+        "suppressed_requests": 1,
+        "target_reached": 0,
+        "trigger_evaluations": 4,
+        "triggered_requests": 3,
+        "valid_responses": 3
+      }
+    },
+    "base_policy_sha256": "eecfb358955b3473ef3a07572c35aeeff7d4b9dbffc37230d192ef62837fe953",
+    "comparison_sha256": "e0ac2e2e0d2bdbae7a2f30896a9920b696e12bc9ce93e9904c1b103a6724c276",
+    "deltas_vs_fallback": {
+      "online": {
+        "cost_microusd": 0,
+        "coverage_delta": 0,
+        "generated": 0,
+        "input_tokens": 999,
+        "model_time_us": 33684,
+        "output_tokens": 354,
+        "target_reached": 0
+      },
+      "shadow": {
+        "cost_microusd": 0,
+        "coverage_delta": 0,
+        "generated": 0,
+        "input_tokens": 999,
+        "model_time_us": 34195,
+        "output_tokens": 354,
+        "target_reached": 0
+      }
+    },
+    "schema": "symcc-agentic-ablation-comparison-v1",
+    "task_count": 3,
+    "task_set_sha256": "3b87996b341910d17f3c515d6ae94fba59ed5faced4186685e0dc7bf0e033a51"
+  },
+  "decisions": {
+    "fallback": [
+      {
+        "hint": {
+          "strategy": 0,
+          "target_branch": 77
+        },
+        "model_actions": 0,
+        "proposals": 0,
+        "source": "fallback"
+      },
+      {
+        "hint": {
+          "strategy": 0,
+          "target_branch": 77
+        },
+        "model_actions": 0,
+        "proposals": 0,
+        "source": "fallback"
+      },
+      {
+        "hint": {
+          "strategy": 0,
+          "target_branch": 77
+        },
+        "model_actions": 0,
+        "proposals": 0,
+        "source": "fallback"
+      }
+    ],
+    "online": [
+      {
+        "hint": {
+          "focus_bytes": "0-1",
+          "route": "cottontail",
+          "s2f_actions": [
+            [
+              77,
+              "solve"
+            ]
+          ],
+          "strategy": 4,
+          "target_branch": 77
+        },
+        "model_actions": 2,
+        "proposals": 1,
+        "source": "model"
+      },
+      {
+        "hint": {
+          "focus_bytes": "0-1",
+          "route": "cottontail",
+          "s2f_actions": [
+            [
+              77,
+              "solve"
+            ]
+          ],
+          "strategy": 4,
+          "target_branch": 77
+        },
+        "model_actions": 2,
+        "proposals": 1,
+        "source": "model"
+      },
+      {
+        "hint": {
+          "focus_bytes": "0-1",
+          "route": "cottontail",
+          "s2f_actions": [
+            [
+              77,
+              "solve"
+            ]
+          ],
+          "strategy": 4,
+          "target_branch": 77
+        },
+        "model_actions": 2,
+        "proposals": 1,
+        "source": "model"
+      }
+    ],
+    "shadow": [
+      {
+        "hint": {
+          "strategy": 0,
+          "target_branch": 77
+        },
+        "model_actions": 2,
+        "proposals": 0,
+        "source": "fallback"
+      },
+      {
+        "hint": {
+          "strategy": 0,
+          "target_branch": 77
+        },
+        "model_actions": 2,
+        "proposals": 0,
+        "source": "fallback"
+      },
+      {
+        "hint": {
+          "strategy": 0,
+          "target_branch": 77
+        },
+        "model_actions": 2,
+        "proposals": 0,
+        "source": "fallback"
+      }
+    ]
+  },
+  "result_sha256": "5c018bd19b19286cc7e63465cb907bab80027ce292bd1fa3235b2c9f3da0d0a8",
+  "schema": "symcc-f455-structured-agentic-oracle-v1"
+}

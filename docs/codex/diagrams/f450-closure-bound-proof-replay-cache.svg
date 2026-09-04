@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="940" viewBox="0 0 1500 940" role="img" aria-labelledby="title desc">
+  <title id="title">F450 closure-bound proof replay cache</title>
+  <desc id="desc">A proof record is normalized and bound to one immutable bit-blast plan. A cache miss performs complete LRUP replay and captures the transitive CAS closure. A cache hit batch-attests every imported object before returning authorization; any mismatch evicts the entry and fails closed.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f7f9fc}.panel{fill:#fff;stroke:#cbd5e1;stroke-width:2}.trusted{fill:#edf5ff;stroke:#2563eb;stroke-width:2.5}.cold{fill:#fff7e8;stroke:#c57a12;stroke-width:2.5}.hot{fill:#ecf9f1;stroke:#168552;stroke-width:2.5}.cache{fill:#f5f0ff;stroke:#7357b7;stroke-width:2.5}.bad{fill:#fff0f0;stroke:#c43d4b;stroke-width:2.5}.neutral{fill:#f8fafc;stroke:#64748b;stroke-width:2}.title{font:700 31px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#17212b}.subtitle{font:400 16px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#526273}.h{font:700 19px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#17212b}.t{font:400 15px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#273444}.small{font:400 13px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#526273}.mono{font:500 13px ui-monospace,SFMono-Regular,Consolas,monospace;fill:#273444}.lane{font:700 14px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#fff}.arrow{fill:none;stroke:#334155;stroke-width:2.4;marker-end:url(#arrow)}.arrow-cold{fill:none;stroke:#c57a12;stroke-width:2.6;marker-end:url(#arrow-cold)}.arrow-hot{fill:none;stroke:#168552;stroke-width:2.6;marker-end:url(#arrow-hot)}.arrow-bad{fill:none;stroke:#c43d4b;stroke-width:2.6;marker-end:url(#arrow-bad)}.dash{stroke-dasharray:8 6}.num{font:700 15px -apple-system,BlinkMacSystemFont,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#fff}
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#334155"/></marker>
+    <marker id="arrow-cold" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#c57a12"/></marker>
+    <marker id="arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#168552"/></marker>
+    <marker id="arrow-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#c43d4b"/></marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#64748b" flood-opacity=".14"/></filter>
+  </defs>
+
+  <rect class="bg" width="1500" height="940"/>
+  <text class="title" x="64" y="62">F450：闭包绑定的证明重放授权缓存</text>
+  <text class="subtitle" x="64" y="91">缓存只省略重复语义重放；每次命中仍对完整传递依赖做稳定读取和字节摘要见证</text>
+
+  <rect x="64" y="125" width="300" height="34" rx="5" fill="#2563eb"/>
+  <text class="lane" x="214" y="147" text-anchor="middle">可信输入与规范化</text>
+  <rect x="404" y="125" width="510" height="34" rx="5" fill="#7357b7"/>
+  <text class="lane" x="659" y="147" text-anchor="middle">同 plan 的有界授权缓存</text>
+  <rect x="954" y="125" width="482" height="34" rx="5" fill="#168552"/>
+  <text class="lane" x="1195" y="147" text-anchor="middle">返回前的完整性线性化点</text>
+
+  <g filter="url(#shadow)">
+    <rect class="trusted" x="64" y="190" width="300" height="118" rx="7"/>
+    <circle cx="92" cy="217" r="14" fill="#2563eb"/><text class="num" x="92" y="222" text-anchor="middle">1</text>
+    <text class="h" x="116" y="224">确定性 BitBlastPlan</text>
+    <text class="t" x="88" y="254">Query IR 重建 clauses / increments</text>
+    <text class="mono" x="88" y="279">formula + assumptions + max_variable</text>
+
+    <rect class="trusted" x="64" y="344" width="300" height="138" rx="7"/>
+    <circle cx="92" cy="371" r="14" fill="#2563eb"/><text class="num" x="92" y="376" text-anchor="middle">2</text>
+    <text class="h" x="116" y="378">证明记录规范化</text>
+    <text class="t" x="88" y="408">字段与数量上界、canonical JSON</text>
+    <text class="t" x="88" y="433">重新计算 record SHA-256</text>
+    <text class="small" x="88" y="459">根记录始终先检查，不能借缓存绕过</text>
+  </g>
+
+  <path class="arrow" d="M214 308V344"/>
+  <path class="arrow" d="M364 413H428"/>
+
+  <g filter="url(#shadow)">
+    <rect class="cache" x="428" y="190" width="462" height="136" rx="7"/>
+    <circle cx="456" cy="217" r="14" fill="#7357b7"/><text class="num" x="456" y="222" text-anchor="middle">3</text>
+    <text class="h" x="480" y="224">严格作用域的缓存键</text>
+    <text class="mono" x="452" y="255">(id(plan), record_sha256)</text>
+    <text class="t" x="452" y="282">weakref + query/formula/assumption + tuple identity</text>
+    <text class="small" x="452" y="307">不同 plan、scope 漂移、mutable plan 均不能复用</text>
+
+    <rect class="cache" x="428" y="363" width="462" height="142" rx="7"/>
+    <circle cx="456" cy="390" r="14" fill="#7357b7"/><text class="num" x="456" y="395" text-anchor="middle">4</text>
+    <text class="h" x="480" y="397">双预算 LRU</text>
+    <text class="t" x="452" y="428">entry count 与 accounted bytes 同时受限</text>
+    <text class="mono" x="452" y="454">default: 4096 entries / 16 MiB</text>
+    <text class="small" x="452" y="480">policy digest 独立；不改变既有 proof receipt identity</text>
+  </g>
+
+  <path class="arrow" d="M659 326V363"/>
+
+  <rect x="553" y="536" width="210" height="45" rx="7" fill="#fff" stroke="#64748b" stroke-width="2"/>
+  <text class="h" x="658" y="565" text-anchor="middle">缓存中存在有效 entry？</text>
+  <path class="arrow" d="M658 505V536"/>
+
+  <g filter="url(#shadow)">
+    <rect class="cold" x="80" y="625" width="520" height="178" rx="7"/>
+    <text class="h" x="108" y="660">MISS：完整可信重放</text>
+    <text class="t" x="108" y="692">逐层 load imports → 校验 formula position / clause identity</text>
+    <text class="t" x="108" y="721">ordered LRUP propagation → 生成 ClauseAuthorization</text>
+    <text class="t" x="108" y="750">收集全部传递依赖的 (CAS digest, encoded SHA-256)</text>
+    <text class="small" x="108" y="779">成功后按预算写入缓存；首次检查的语义成本不变</text>
+
+    <rect class="hot" x="638" y="625" width="510" height="178" rx="7"/>
+    <text class="h" x="666" y="660">HIT CANDIDATE：批量闭包见证</text>
+    <text class="t" x="666" y="692">一个 shared flock + 一个 SQLite connection</text>
+    <text class="t" x="666" y="721">逐对象核对 canonical path / indexed size / stable identity</text>
+    <text class="t" x="666" y="750">重新计算 encoded SHA-256，与 cold replay 见证比较</text>
+    <text class="small" x="666" y="779">只有完整闭包全部通过，才在线性化点递增 hit</text>
+  </g>
+
+  <text class="small" x="470" y="609">否：miss / bypass</text>
+  <path class="arrow-cold" d="M600 558H340V625"/>
+  <text class="small" x="781" y="609">是：先见证，后命中</text>
+  <path class="arrow-hot" d="M763 558H893V625"/>
+
+  <g filter="url(#shadow)">
+    <rect class="hot" x="1184" y="625" width="252" height="76" rx="7"/>
+    <text class="h" x="1310" y="657" text-anchor="middle">授权成功</text>
+    <text class="small" x="1310" y="681" text-anchor="middle">返回 immutable authorization</text>
+    <rect class="bad" x="1184" y="727" width="252" height="76" rx="7"/>
+    <text class="h" x="1310" y="759" text-anchor="middle">失败关闭</text>
+    <text class="small" x="1310" y="783" text-anchor="middle">不计 hit · 驱逐 entry · 抛错</text>
+  </g>
+
+  <path class="arrow-hot" d="M1148 675H1184"/>
+  <path class="arrow-bad" d="M1148 756H1184"/>
+  <path class="arrow-cold dash" d="M600 714H618V850H1310V803"/>
+  <text class="small" x="626" y="842">cold replay 授权也到同一可信出口</text>
+
+  <rect class="panel" x="64" y="858" width="1372" height="54" rx="7"/>
+  <rect x="82" y="875" width="16" height="16" rx="3" fill="#2563eb"/><text class="small" x="107" y="888">确定性可信输入</text>
+  <rect x="290" y="875" width="16" height="16" rx="3" fill="#7357b7"/><text class="small" x="315" y="888">缓存控制面</text>
+  <rect x="468" y="875" width="16" height="16" rx="3" fill="#c57a12"/><text class="small" x="493" y="888">完整 LRUP 重放</text>
+  <rect x="690" y="875" width="16" height="16" rx="3" fill="#168552"/><text class="small" x="715" y="888">闭包见证与成功授权</text>
+  <rect x="983" y="875" width="16" height="16" rx="3" fill="#c43d4b"/><text class="small" x="1008" y="888">篡改或 I/O 失败</text>
+  <text class="small" x="1416" y="888" text-anchor="end">缓存不产生 SAT/UNSAT，只复用已检查授权</text>
+</svg>

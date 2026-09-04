@@ -1,0 +1,111 @@
+{
+  "all_checks_passed": true,
+  "cardinalities": {
+    "intersection_external": 2048,
+    "intersection_generated": 2048,
+    "intersection_public": 4096,
+    "legacy_generated": 0,
+    "legacy_public": 4096
+  },
+  "checks": {
+    "all_samples_positive": true,
+    "intersection_external_exact": true,
+    "intersection_generated_exact": true,
+    "intersection_public_exact": true,
+    "legacy_public_exact": true,
+    "legacy_subtraction_is_wrong": true,
+    "raw_sample_cardinality_exact": true
+  },
+  "configuration": {
+    "filesystem": "local temporary directory",
+    "objects": 4096,
+    "order": "deterministically shuffled within every round",
+    "phantom_external": 2048,
+    "present_external": 2048,
+    "retained_samples_per_mechanism": 30,
+    "warmups_per_mechanism": 5
+  },
+  "elapsed_ratio_intersection_over_legacy": 1.0176557855428374,
+  "proof_boundary": "A local metadata-hot mechanism benchmark over empty regular files. It measures one final namespace scan and demonstrates the F341 counterfactual's cardinality error; it is not campaign throughput, storage, solver, coverage, multi-host, or bug-finding evidence.",
+  "raw_elapsed_us": {
+    "intersection": [
+      9980.598,
+      9967.249,
+      9947.498,
+      9979.988,
+      9972.847,
+      9986.667,
+      10380.099,
+      11058.167,
+      10556.764,
+      10603.204,
+      10552.637,
+      10584.535,
+      10553.959,
+      12091.828,
+      10984.036,
+      10530.735,
+      10527.54,
+      10639.758,
+      10814.26,
+      10533.89,
+      10625.187,
+      10610.264,
+      10555.201,
+      10606.539,
+      10659.768,
+      10577.084,
+      10606.218,
+      10653.669,
+      10542.162,
+      10612.367
+    ],
+    "legacy": [
+      9765.715,
+      9770.874,
+      9766.236,
+      9765.435,
+      9781.369,
+      9790.784,
+      14925.905,
+      10292.537,
+      10382.201,
+      10360.038,
+      10388.331,
+      10393.208,
+      10359.627,
+      14124.431,
+      10472.878,
+      10878.937,
+      10327.389,
+      10430.604,
+      10583.644,
+      10361.28,
+      10431.135,
+      10386.037,
+      10349.482,
+      10384.986,
+      10353.519,
+      10385.537,
+      10409.483,
+      10400.71,
+      10391.095,
+      10331.926
+    ]
+  },
+  "schema": "symcc-f342-provenance-intersection-cost-v1",
+  "summaries": {
+    "intersection": {
+      "maximum_us": 12091.828,
+      "median_us": 10566.923999999999,
+      "minimum_us": 9947.498,
+      "p95_us": 11058.167
+    },
+    "legacy": {
+      "maximum_us": 14925.905,
+      "median_us": 10383.593499999999,
+      "minimum_us": 9765.435,
+      "p95_us": 14124.431
+    }
+  }
+}

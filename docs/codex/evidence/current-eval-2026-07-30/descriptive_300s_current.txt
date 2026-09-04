@@ -1,0 +1,71 @@
+================================================================================
+  SymCC MPI Parallelization Benchmark Report
+  Generated: 2026-07-30 13:16:11
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+  Target: libarchive-archive_fuzzer
+────────────────────────────────────────────────────────────────────────────────
+
+  Mode         NP       Time      Gen  ShowmapCov          Edges  FstatsCov         FEdges      Execs   exec/s
+  ────────── ──── ────────── ──────── ─────────── ────────────── ────────── ────────────── ────────── ────────
+  afl-only      1     5m0.1s     2787      20.85%     2856/13696     20.87%     2857/13691   21731887    72443
+  hybrid        8     5m1.5s    11192      24.31%     3330/13696     23.69%     3243/13691   81561081   271739
+  seed          0       0.0s       13       6.10%      835/13696        N/A            N/A          0        0
+
+  Edge Coverage Chart (afl-showmap):
+     afl-only np=1 |██████████████████████████████████░░░░░░| 20.85%
+       hybrid np=8 |████████████████████████████████████████| 24.31%
+              seed |██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░| 6.10%
+
+  SymCC Contribution Analysis:
+    Seed baseline: 6.10% (835 edges)
+       afl-only np=1: 20.85% (+14.75pp, +241.8% relative)
+         hybrid np=8: 24.31% (+18.21pp, +298.5% relative)
+
+  Throughput Speedup Chart (tc/s ratio vs serial):
+    np=  1 |████████████████████████████████████████| 1.0x
+    np=  8 |████████████████████████████████████████| 1.0x
+    np=  0 |████████████████████████████████████████| 1.0x
+
+
+────────────────────────────────────────────────────────────────────────────────
+  Target: sqlite-sqlite_fuzzer
+────────────────────────────────────────────────────────────────────────────────
+
+  Mode         NP       Time      Gen  ShowmapCov          Edges  FstatsCov         FEdges      Execs   exec/s
+  ────────── ──── ────────── ──────── ─────────── ────────────── ────────── ────────────── ────────── ────────
+  afl-only      1     5m0.3s     4519      27.46%     8663/31552     27.59%     8697/31525   14929395    49769
+  hybrid        8     5m2.0s    18111      28.04%     8848/31552     26.16%     8246/31525   63604671   211781
+  seed          0       0.0s       25      13.85%     4370/31552        N/A            N/A          0        0
+
+  Edge Coverage Chart (afl-showmap):
+     afl-only np=1 |███████████████████████████████████████░| 27.46%
+       hybrid np=8 |████████████████████████████████████████| 28.04%
+              seed |███████████████████░░░░░░░░░░░░░░░░░░░░░| 13.85%
+
+  SymCC Contribution Analysis:
+    Seed baseline: 13.85% (4370 edges)
+       afl-only np=1: 27.46% (+13.61pp, +98.3% relative)
+         hybrid np=8: 28.04% (+14.19pp, +102.5% relative)
+
+  Throughput Speedup Chart (tc/s ratio vs serial):
+    np=  1 |████████████████████████████████████████| 1.0x
+    np=  8 |████████████████████████████████████████| 1.0x
+    np=  0 |████████████████████████████████████████| 1.0x
+
+
+================================================================================
+  OVERALL SUMMARY
+================================================================================
+
+  libarchive-archive_fuzzer: best = hybrid np=8 (5m1.5s, 11192 test cases, 37.1 tc/s, edge_cov=24.31%)
+  sqlite-sqlite_fuzzer: best = hybrid np=8 (5m2.0s, 18111 test cases, 60.0 tc/s, edge_cov=28.04%)
+
+  Report files:
+    Text:  /home/ubuntu/code/symcc/.symcc-research-evidence/current-eval-2026-07-30/runs/descriptive_300s_current/benchmark_report.txt
+    CSV:   /home/ubuntu/code/symcc/.symcc-research-evidence/current-eval-2026-07-30/runs/descriptive_300s_current/benchmark_data.csv
+    JSON:  /home/ubuntu/code/symcc/.symcc-research-evidence/current-eval-2026-07-30/runs/descriptive_300s_current/benchmark_data.json
+
+================================================================================

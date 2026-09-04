@@ -1,0 +1,1 @@
+<?xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"?><!DOCTYPE t [<!ENTITY f "bar">]><root a="v"><c>&f;</c></root>

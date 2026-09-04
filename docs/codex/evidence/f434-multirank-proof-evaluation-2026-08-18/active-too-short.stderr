@@ -1,0 +1,51 @@
+Traceback (most recent call last):
+  File "/home/ubuntu/code/symcc/benchmark/run_qfbv_realtime_multirank.py", line 511, in <module>
+Traceback (most recent call last):
+  File "/home/ubuntu/code/symcc/benchmark/run_qfbv_realtime_multirank.py", line 511, in <module>
+Traceback (most recent call last):
+  File "/home/ubuntu/code/symcc/benchmark/run_qfbv_realtime_multirank.py", line 511, in <module>
+Traceback (most recent call last):
+  File "/home/ubuntu/code/symcc/benchmark/run_qfbv_realtime_multirank.py", line 511, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/ubuntu/code/symcc/benchmark/run_qfbv_realtime_multirank.py", line 500, in main
+    raise SystemExit(main())
+    raise SystemExit(main())
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/ubuntu/code/symcc/benchmark/run_qfbv_realtime_multirank.py", line 500, in main
+    result = run(args)
+             ^^^^^^^^^
+  File "/home/ubuntu/code/symcc/benchmark/run_qfbv_realtime_multirank.py", line 349, in run
+                     ^^^^^^
+  File "/home/ubuntu/code/symcc/benchmark/run_qfbv_realtime_multirank.py", line 500, in main
+    result = run(args)
+             ^^^^^^^^^
+  File "/home/ubuntu/code/symcc/benchmark/run_qfbv_realtime_multirank.py", line 349, in run
+                     ^^^^^^
+  File "/home/ubuntu/code/symcc/benchmark/run_qfbv_realtime_multirank.py", line 500, in main
+    result = run(args)
+             ^^^^^^^^^
+  File "/home/ubuntu/code/symcc/benchmark/run_qfbv_realtime_multirank.py", line 349, in run
+    result = run(args)
+             ^^^^^^^^^
+  File "/home/ubuntu/code/symcc/benchmark/run_qfbv_realtime_multirank.py", line 349, in run
+    raise MultirankEvaluationError(
+qfbv_multirank_evaluation.MultirankEvaluationError: consumer readiness or publisher cardinality failed
+    raise MultirankEvaluationError(
+qfbv_multirank_evaluation.MultirankEvaluationError: consumer readiness or publisher cardinality failed
+    raise MultirankEvaluationError(
+qfbv_multirank_evaluation.MultirankEvaluationError: consumer readiness or publisher cardinality failed
+    raise MultirankEvaluationError(
+qfbv_multirank_evaluation.MultirankEvaluationError: consumer readiness or publisher cardinality failed
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpiexec detected that one or more processes exited with non-zero status, thus causing
+the job to be terminated. The first process to do so was:
+
+  Process name: [[57460,1],0]
+  Exit code:    1
+--------------------------------------------------------------------------

@@ -1,0 +1,43 @@
+================================================================================
+  SymCC MPI Parallelization Benchmark Report
+  Generated: 2026-08-19 12:31:26
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+  Target: pcre2-pcre2_fuzzer
+────────────────────────────────────────────────────────────────────────────────
+
+  Mode         NP       Time   SymCCGen    AFLExec   Unique  ShowmapCov          Edges  FstatsCov         FEdges      AFL/s
+  ────────── ──── ────────── ────────── ────────── ──────── ─────────── ────────────── ────────── ────────────── ──────────
+  hybrid       16      46.1s          0        301     5632      31.35%      3050/9728      0.95%      713/75238     301000
+  seed          0       0.0s          0          0        8       7.22%       702/9728        N/A            N/A          0
+
+  Online SymCC -> AFL Native Peer Sync:
+    hybrid np=16: published=0.0, scanned=0.0, imported=0.0, not-retained=0.0, complete-runs=0/1
+
+  Edge Coverage Chart (afl-showmap):
+      hybrid np=16 |████████████████████████████████████████| 31.35%
+              seed |█████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░| 7.22%
+
+  Coverage Gain over Seed Baseline:
+    Seed baseline: 7.22% (702 edges)
+        hybrid np=16: 31.35% (+24.13pp, +334.2% relative)
+
+  Like-for-like Throughput Speedup vs Serial:
+    hybrid np= 16 |                  N/A                   | different unit: afl-executions-plus-symcc-candidates-per-second
+    seed np=  0 |                  N/A                   | different unit: not-applicable
+
+
+================================================================================
+  OVERALL SUMMARY
+================================================================================
+
+  pcre2-pcre2_fuzzer: best = hybrid np=16 (46.1s, 5632 retained unique, 0 SymCC candidates, 301 AFL executions, edge_cov=31.35%)
+
+  Report files:
+    Text:  /home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/preflight_pcre2_current/benchmark_report.txt
+    CSV:   /home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/preflight_pcre2_current/benchmark_data.csv
+    JSON:  /home/ubuntu/code/symcc/benchmark/evidence/current-advantage-2026-08-19/preflight_pcre2_current/benchmark_data.json
+
+================================================================================

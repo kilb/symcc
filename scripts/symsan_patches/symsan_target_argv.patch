@@ -1,0 +1,80 @@
+diff --git a/driver/fgtest.cpp b/driver/fgtest.cpp
+--- a/driver/fgtest.cpp
++++ b/driver/fgtest.cpp
+@@ -211,13 +211,14 @@ static void __handle_gep(dfsan_label ptr_label, uptr ptr,
+ 
+ int main(int argc, char* const argv[]) {
+ 
+-  if (argc != 3) {
+-    fprintf(stderr, "Usage: %s target input\n", argv[0]);
++  if (argc < 3 || (argc > 3 && strcmp(argv[3], "--") != 0)) {
++    fprintf(stderr, "Usage: %s target input [-- target-arg ...]\n", argv[0]);
+     exit(1);
+   }
+ 
+   char *program = argv[1];
+   char *input = argv[2];
++  int target_argc = argc == 3 ? 2 : argc - 3;
+ 
+   int is_stdin = 0;
+   int solve_ub = 0;
+@@ -331,13 +332,16 @@ int main(int argc, char* const argv[]) {
+     exit(1);
+   }
+ 
+-  char* args[3];
+-  args[0] = program;
+-  args[1] = input;
+-  args[2] = NULL;
+-  if (symsan_set_args(2, args) != 0) {
++  std::vector<char *> target_args;
++  target_args.push_back(program);
++  if (argc == 3)
++    target_args.push_back(input);  // legacy driver contract
++  else
++    for (int i = 4; i < argc; ++i) target_args.push_back(argv[i]);
++  if ((int)target_args.size() != target_argc ||
++      symsan_set_args(target_argc, target_args.data()) != 0) {
+     fprintf(stderr, "Failed to set args\n");
+     exit(1);
+   }
+ 
+   symsan_set_debug(debug);
+diff --git a/driver/fgtest_rgd.cpp b/driver/fgtest_rgd.cpp
+--- a/driver/fgtest_rgd.cpp
++++ b/driver/fgtest_rgd.cpp
+@@ -178,12 +178,13 @@ static void solve_all_tasks() {
+ }
+ 
+ int main(int argc, char *const argv[]) {
+-  if (argc != 3) {
+-    fprintf(stderr, "Usage: %s target input\n", argv[0]);
++  if (argc < 3 || (argc > 3 && strcmp(argv[3], "--") != 0)) {
++    fprintf(stderr, "Usage: %s target input [-- target-arg ...]\n", argv[0]);
+     exit(1);
+   }
+   char *program = argv[1];
+   char *input = argv[2];
++  int target_argc = argc == 3 ? 2 : argc - 3;
+ 
+   int is_stdin = 0;
+   int solve_ub = 0;
+@@ -252,8 +253,16 @@ int main(int argc, char *const argv[]) {
+   __label_info_base = (dfsan_label_info *)shm_base;   // get_label_info 索引基址
+   __max_label = uniontable_size / sizeof(dfsan_label_info);
+   if (symsan_set_input(is_stdin ? "stdin" : input) != 0) { fprintf(stderr, "set input\n"); exit(1); }
+-  char *args[3] = {program, input, NULL};
+-  if (symsan_set_args(2, args) != 0) { fprintf(stderr, "set args\n"); exit(1); }
++  std::vector<char *> target_args;
++  target_args.push_back(program);
++  if (argc == 3)
++    target_args.push_back(input);  // legacy driver contract
++  else
++    for (int i = 4; i < argc; ++i) target_args.push_back(argv[i]);
++  if ((int)target_args.size() != target_argc ||
++      symsan_set_args(target_argc, target_args.data()) != 0) {
++    fprintf(stderr, "set args\n"); exit(1);
++  }
+   symsan_set_debug(__debug);
+   // "遇内存错误即退出"对 concolic 有害:目标合法的未初始化内存访问会在 bounds/GEP 追踪里
+   // 产生 kInitializingLabel → 提前 Die() → 丢大量产出。默认关掉严格更优(见 fgtest.cpp 注)。

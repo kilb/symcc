@@ -1,0 +1,55 @@
+F342 reproducibility and evidence boundary
+Date: 2026-08-10 UTC
+Platform: Linux 7.0.0-28-generic x86_64
+Python: 3.12.3
+MPI: Open MPI 4.1.6
+Filesystem under test: local overlayfs / temporary directory
+
+Production mechanism:
+- external_hashes remains the complete set of stable external content observations
+- final accounting streams canonical 64-hex no-follow regular public entries
+- the same pass counts public objects and membership in external_hashes
+- present external is |public intersection observed-external|
+- generated/new is |public| - |public intersection observed-external|
+- phantom external observations cannot suppress a public generated object
+- metadata, directories, noncanonical names, and canonical-looking links remain excluded
+- no listdir or public-name materialization is introduced
+
+Automated tests:
+- directed lifecycle: 49 passed, 40 subtests passed, 0.90 s
+- related six-module integration: 338 passed, 67 subtests passed, 16.58 s
+- full warnings-as-errors Python: 731 passed, 87 subtests passed, 94.03 s
+- Ruff over production, test, verifier, MPI driver, and benchmark: passed
+- py_compile over the same five Python files: passed
+- git diff --check: passed
+- SVG XML parse and 1900x1400 browser rendering: passed and visually reviewed
+- Codex delivery verifier including F302-F342 recomputation: passed
+
+Actual MPI transport:
+- one Open MPI run, 7 ranks, 2 masters, 5 workers, one physical host
+- rank 0 observes one external hash whose HRW owner is delayed rank 1
+- the evidence driver removes that source after rank-0 observation and before owner service
+- one pre-existing public generated object is executed exactly once
+- phantom external is never public; final public namespace is the generated hash only
+- final external=0 and new=1, returncode=0, active/retired epoch=0/1
+- worker shutdown acknowledges 3/3 and 2/2; no staging residue remains
+- all 10 structured MPI checks pass
+
+Interleaved mechanism benchmark:
+- 4096 canonical empty regular public objects on a local temporary directory
+- 2048 present external hashes, 2048 generated hashes, and 2048 phantom external hashes
+- five warmups and 30 retained observations per mechanism
+- deterministic per-round order shuffle; all 60 raw observations are preserved
+- F341 counterfactual: public=4096, generated=0 (incorrect)
+- F342 intersection: public=4096, external=2048, generated=2048 (exact)
+- legacy count-only median=10383.5935 us, P95=14124.431 us
+- streamed-intersection median=10566.924 us, P95=11058.167 us
+- median intersection/legacy ratio=1.0176557855428374 (about 1.77% overhead)
+
+Strict boundary:
+- The MPI run uses an explicit rank delay and a synthetic observer target.
+- The benchmark uses empty, metadata-hot local files and measures final scan cost only.
+- The final scan trusts prior content-addressed admission and does not rehash every object.
+- external_hashes and imported-name identity state remain O(number of observations).
+- No real multi-host, NFS/Lustre/GPFS, power-loss, or storage-failover evidence exists.
+- No DSE throughput, solver, coverage, campaign, bug-discovery, or LAVA-M uplift is claimed.

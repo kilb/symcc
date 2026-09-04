@@ -1,0 +1,15 @@
+ParaSuit official ICSE 2026 page:
+https://conf.researchr.org/details/icse-2026/icse-2026-research-track/222/Enhancing-Symbolic-Execution-with-Self-Configuring-Parameters
+
+ParaSuit official artifact:
+https://github.com/skkusal/ParaSuit
+
+Audited HEAD on 2026-08-13 UTC:
+e991924b827db80b117e1f5389fe07820bad13f0
+
+The paper's reported 26% average branch-coverage improvement and 11 unique bugs
+(four exclusive) belong to its KLEE/12-program evaluation. F396 does not reuse
+those numbers as SymCC results. The official artifact exposes separate
+extraction, parameter-selection, and value-sampling stages plus a silhouette
+threshold; F396 implements only the executable discovery/control-plane
+prerequisite and lifecycle-safe routing described in the local report.

@@ -1,0 +1,1125 @@
+{
+  "adaptive": {
+    "adaptive": {
+      "backend_realtime_adaptive_action_counts": {
+        "admit": 8,
+        "defer": 8,
+        "reject": 0
+      },
+      "backend_realtime_adaptive_controller_snapshot": {
+        "next_decision_ordinal": 17,
+        "pending_feedback": 0,
+        "policy_sha256": "f9b9b02b29c6599cef50be02157fb28fe48e3ca9f2aae416cf635d6e5303417d",
+        "protocol": "symcc-qfbv-adaptive-proof-admission-v1",
+        "schema": "symcc-qfbv-adaptive-proof-snapshot-v1",
+        "snapshot_sha256": "f474cc5c0312334a60f6b0638d6966999dfe31cbc8ffbb09089bb05b62b1c308",
+        "sources": {
+          "f435-publisher-1": {
+            "ack_latency_total_us": 1151,
+            "admit_decisions": 1,
+            "backpressure": 0,
+            "defer_decisions": 1,
+            "delivered": 1,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 2
+          },
+          "f435-publisher-2": {
+            "ack_latency_total_us": 1096,
+            "admit_decisions": 1,
+            "backpressure": 0,
+            "defer_decisions": 1,
+            "delivered": 1,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 2
+          },
+          "f435-publisher-3": {
+            "ack_latency_total_us": 1103,
+            "admit_decisions": 1,
+            "backpressure": 0,
+            "defer_decisions": 1,
+            "delivered": 1,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 2
+          },
+          "f435-publisher-4": {
+            "ack_latency_total_us": 1080,
+            "admit_decisions": 1,
+            "backpressure": 0,
+            "defer_decisions": 1,
+            "delivered": 1,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 2
+          },
+          "f435-publisher-5": {
+            "ack_latency_total_us": 1111,
+            "admit_decisions": 1,
+            "backpressure": 0,
+            "defer_decisions": 1,
+            "delivered": 1,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 2
+          },
+          "f435-publisher-6": {
+            "ack_latency_total_us": 1102,
+            "admit_decisions": 1,
+            "backpressure": 0,
+            "defer_decisions": 1,
+            "delivered": 1,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 2
+          },
+          "f435-publisher-7": {
+            "ack_latency_total_us": 1130,
+            "admit_decisions": 1,
+            "backpressure": 0,
+            "defer_decisions": 1,
+            "delivered": 1,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 2
+          },
+          "f435-publisher-8": {
+            "ack_latency_total_us": 1083,
+            "admit_decisions": 1,
+            "backpressure": 0,
+            "defer_decisions": 1,
+            "delivered": 1,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 2
+          }
+        },
+        "totals": {
+          "ack_latency_total_us": 8856,
+          "admit_decisions": 8,
+          "backpressure": 0,
+          "defer_decisions": 8,
+          "delivered": 8,
+          "expired": 0,
+          "reject_decisions": 0,
+          "verified": 16
+        }
+      },
+      "backend_realtime_adaptive_decision_budget_dropped": 0,
+      "backend_realtime_adaptive_decision_budget_exhausted": false,
+      "backend_realtime_adaptive_decisions": [
+        {
+          "action": "defer",
+          "candidate": {
+            "checker_elapsed_us": 1775,
+            "clause_literals": 1,
+            "event_sequence": 1,
+            "formula_sha256": "dc92bed77e788af47bf56b7add37f2a89721c8e55e4d292980aa8b8febec13de",
+            "proof_steps": 1,
+            "propagation_count": 0,
+            "record_sha256": "9f3b43c25caa5e31b01f9116e87bc2dc2d097c95ae15c3897cb2bfad06974a3e",
+            "retry_count": 0,
+            "source_worker": "f435-publisher-1",
+            "stream_id": "f1393d7300356b17dc24e9cd046f3b2827bbbb612d564f20624b0f6df966aad7"
+          },
+          "decision_ordinal": 1,
+          "decision_sha256": "c3820d4e339bf13ce2e9f6bf92ae598c9871ebdff4955167c14a1fd5f52a3d93",
+          "observation": {
+            "ack_depth": 0,
+            "deferred_depth": 0,
+            "queue_depth": 0,
+            "remaining_ms": 30000,
+            "solve_age_ms": 0,
+            "solve_generation": 0,
+            "solving": false
+          },
+          "policy_sha256": "f9b9b02b29c6599cef50be02157fb28fe48e3ca9f2aae416cf635d6e5303417d",
+          "protocol": "symcc-qfbv-adaptive-proof-admission-v1",
+          "reasons": [
+            "solver-inactive"
+          ],
+          "schema": "symcc-qfbv-adaptive-proof-decision-v1",
+          "score": 3225,
+          "score_components": {
+            "checker_penalty": 1775,
+            "length_quality": 4000,
+            "proof_density": 0,
+            "queue_penalty": 0,
+            "retry_penalty": 0,
+            "solve_age_bonus": 0,
+            "source_failure_penalty": 0,
+            "source_yield": 1000
+          },
+          "source_feedback": {
+            "ack_latency_total_us": 0,
+            "admit_decisions": 0,
+            "backpressure": 0,
+            "defer_decisions": 0,
+            "delivered": 0,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 0
+          },
+          "threshold": 1500
+        },
+        {
+          "action": "defer",
+          "candidate": {
+            "checker_elapsed_us": 1632,
+            "clause_literals": 2,
+            "event_sequence": 2,
+            "formula_sha256": "dc92bed77e788af47bf56b7add37f2a89721c8e55e4d292980aa8b8febec13de",
+            "proof_steps": 1,
+            "propagation_count": 1,
+            "record_sha256": "a4fb9d62dddca5c9aca800bde5d5c0fcff7a7dc9dda101b77feb08012ebbbc71",
+            "retry_count": 0,
+            "source_worker": "f435-publisher-2",
+            "stream_id": "f1393d7300356b17dc24e9cd046f3b2827bbbb612d564f20624b0f6df966aad7"
+          },
+          "decision_ordinal": 2,
+          "decision_sha256": "861c13fcdd674ae658588c5906d7ac3e48b945f1f7b26cc24b93e0e625def8fc",
+          "observation": {
+            "ack_depth": 0,
+            "deferred_depth": 1,
+            "queue_depth": 0,
+            "remaining_ms": 30000,
+            "solve_age_ms": 0,
+            "solve_generation": 0,
+            "solving": false
+          },
+          "policy_sha256": "f9b9b02b29c6599cef50be02157fb28fe48e3ca9f2aae416cf635d6e5303417d",
+          "protocol": "symcc-qfbv-adaptive-proof-admission-v1",
+          "reasons": [
+            "solver-inactive"
+          ],
+          "schema": "symcc-qfbv-adaptive-proof-decision-v1",
+          "score": 4368,
+          "score_components": {
+            "checker_penalty": 1632,
+            "length_quality": 4000,
+            "proof_density": 1000,
+            "queue_penalty": 0,
+            "retry_penalty": 0,
+            "solve_age_bonus": 0,
+            "source_failure_penalty": 0,
+            "source_yield": 1000
+          },
+          "source_feedback": {
+            "ack_latency_total_us": 0,
+            "admit_decisions": 0,
+            "backpressure": 0,
+            "defer_decisions": 0,
+            "delivered": 0,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 0
+          },
+          "threshold": 1500
+        },
+        {
+          "action": "defer",
+          "candidate": {
+            "checker_elapsed_us": 1191,
+            "clause_literals": 2,
+            "event_sequence": 3,
+            "formula_sha256": "dc92bed77e788af47bf56b7add37f2a89721c8e55e4d292980aa8b8febec13de",
+            "proof_steps": 1,
+            "propagation_count": 1,
+            "record_sha256": "129c623c38c6945383bd6d6206de6cf5ce0317919903bcf1e1850979cda76e75",
+            "retry_count": 0,
+            "source_worker": "f435-publisher-3",
+            "stream_id": "f1393d7300356b17dc24e9cd046f3b2827bbbb612d564f20624b0f6df966aad7"
+          },
+          "decision_ordinal": 3,
+          "decision_sha256": "28655ab9b27d4ab989261662092f97000e1aa0a6445573617c30530c188c40ef",
+          "observation": {
+            "ack_depth": 0,
+            "deferred_depth": 2,
+            "queue_depth": 0,
+            "remaining_ms": 30000,
+            "solve_age_ms": 0,
+            "solve_generation": 0,
+            "solving": false
+          },
+          "policy_sha256": "f9b9b02b29c6599cef50be02157fb28fe48e3ca9f2aae416cf635d6e5303417d",
+          "protocol": "symcc-qfbv-adaptive-proof-admission-v1",
+          "reasons": [
+            "solver-inactive"
+          ],
+          "schema": "symcc-qfbv-adaptive-proof-decision-v1",
+          "score": 4809,
+          "score_components": {
+            "checker_penalty": 1191,
+            "length_quality": 4000,
+            "proof_density": 1000,
+            "queue_penalty": 0,
+            "retry_penalty": 0,
+            "solve_age_bonus": 0,
+            "source_failure_penalty": 0,
+            "source_yield": 1000
+          },
+          "source_feedback": {
+            "ack_latency_total_us": 0,
+            "admit_decisions": 0,
+            "backpressure": 0,
+            "defer_decisions": 0,
+            "delivered": 0,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 0
+          },
+          "threshold": 1500
+        },
+        {
+          "action": "defer",
+          "candidate": {
+            "checker_elapsed_us": 1122,
+            "clause_literals": 2,
+            "event_sequence": 4,
+            "formula_sha256": "dc92bed77e788af47bf56b7add37f2a89721c8e55e4d292980aa8b8febec13de",
+            "proof_steps": 1,
+            "propagation_count": 2,
+            "record_sha256": "41bb44735e930af5a487b0fd31c4d0a69d92d09480b6634379abfc068ad39d78",
+            "retry_count": 0,
+            "source_worker": "f435-publisher-4",
+            "stream_id": "f1393d7300356b17dc24e9cd046f3b2827bbbb612d564f20624b0f6df966aad7"
+          },
+          "decision_ordinal": 4,
+          "decision_sha256": "46782125ed3c43383bd403e4a5a5bc49b1072a94e0efb2e819abe7e82ed51fa9",
+          "observation": {
+            "ack_depth": 0,
+            "deferred_depth": 3,
+            "queue_depth": 0,
+            "remaining_ms": 30000,
+            "solve_age_ms": 0,
+            "solve_generation": 0,
+            "solving": false
+          },
+          "policy_sha256": "f9b9b02b29c6599cef50be02157fb28fe48e3ca9f2aae416cf635d6e5303417d",
+          "protocol": "symcc-qfbv-adaptive-proof-admission-v1",
+          "reasons": [
+            "solver-inactive"
+          ],
+          "schema": "symcc-qfbv-adaptive-proof-decision-v1",
+          "score": 5878,
+          "score_components": {
+            "checker_penalty": 1122,
+            "length_quality": 4000,
+            "proof_density": 2000,
+            "queue_penalty": 0,
+            "retry_penalty": 0,
+            "solve_age_bonus": 0,
+            "source_failure_penalty": 0,
+            "source_yield": 1000
+          },
+          "source_feedback": {
+            "ack_latency_total_us": 0,
+            "admit_decisions": 0,
+            "backpressure": 0,
+            "defer_decisions": 0,
+            "delivered": 0,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 0
+          },
+          "threshold": 1500
+        },
+        {
+          "action": "defer",
+          "candidate": {
+            "checker_elapsed_us": 1705,
+            "clause_literals": 2,
+            "event_sequence": 5,
+            "formula_sha256": "dc92bed77e788af47bf56b7add37f2a89721c8e55e4d292980aa8b8febec13de",
+            "proof_steps": 1,
+            "propagation_count": 1,
+            "record_sha256": "6c7b93029044c973fa6019373299922d1cb373c97bf517137e854c477f5447ce",
+            "retry_count": 0,
+            "source_worker": "f435-publisher-5",
+            "stream_id": "f1393d7300356b17dc24e9cd046f3b2827bbbb612d564f20624b0f6df966aad7"
+          },
+          "decision_ordinal": 5,
+          "decision_sha256": "38f334e88740ee3502301e2081c1dfe76f8662aa110dff5f90337abd3740b332",
+          "observation": {
+            "ack_depth": 0,
+            "deferred_depth": 4,
+            "queue_depth": 0,
+            "remaining_ms": 30000,
+            "solve_age_ms": 0,
+            "solve_generation": 0,
+            "solving": false
+          },
+          "policy_sha256": "f9b9b02b29c6599cef50be02157fb28fe48e3ca9f2aae416cf635d6e5303417d",
+          "protocol": "symcc-qfbv-adaptive-proof-admission-v1",
+          "reasons": [
+            "solver-inactive"
+          ],
+          "schema": "symcc-qfbv-adaptive-proof-decision-v1",
+          "score": 4295,
+          "score_components": {
+            "checker_penalty": 1705,
+            "length_quality": 4000,
+            "proof_density": 1000,
+            "queue_penalty": 0,
+            "retry_penalty": 0,
+            "solve_age_bonus": 0,
+            "source_failure_penalty": 0,
+            "source_yield": 1000
+          },
+          "source_feedback": {
+            "ack_latency_total_us": 0,
+            "admit_decisions": 0,
+            "backpressure": 0,
+            "defer_decisions": 0,
+            "delivered": 0,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 0
+          },
+          "threshold": 1500
+        },
+        {
+          "action": "defer",
+          "candidate": {
+            "checker_elapsed_us": 1473,
+            "clause_literals": 2,
+            "event_sequence": 6,
+            "formula_sha256": "dc92bed77e788af47bf56b7add37f2a89721c8e55e4d292980aa8b8febec13de",
+            "proof_steps": 1,
+            "propagation_count": 2,
+            "record_sha256": "6756e54461aeb1f6291f9adbe51fc6d8cfc6436c475edf9c66d44dd5fcf996a5",
+            "retry_count": 0,
+            "source_worker": "f435-publisher-6",
+            "stream_id": "f1393d7300356b17dc24e9cd046f3b2827bbbb612d564f20624b0f6df966aad7"
+          },
+          "decision_ordinal": 6,
+          "decision_sha256": "f9b8819cd4590c40c4e925a8ffa86926018eed41979b270d9aadf70438f78fd4",
+          "observation": {
+            "ack_depth": 0,
+            "deferred_depth": 5,
+            "queue_depth": 0,
+            "remaining_ms": 30000,
+            "solve_age_ms": 0,
+            "solve_generation": 0,
+            "solving": false
+          },
+          "policy_sha256": "f9b9b02b29c6599cef50be02157fb28fe48e3ca9f2aae416cf635d6e5303417d",
+          "protocol": "symcc-qfbv-adaptive-proof-admission-v1",
+          "reasons": [
+            "solver-inactive"
+          ],
+          "schema": "symcc-qfbv-adaptive-proof-decision-v1",
+          "score": 5527,
+          "score_components": {
+            "checker_penalty": 1473,
+            "length_quality": 4000,
+            "proof_density": 2000,
+            "queue_penalty": 0,
+            "retry_penalty": 0,
+            "solve_age_bonus": 0,
+            "source_failure_penalty": 0,
+            "source_yield": 1000
+          },
+          "source_feedback": {
+            "ack_latency_total_us": 0,
+            "admit_decisions": 0,
+            "backpressure": 0,
+            "defer_decisions": 0,
+            "delivered": 0,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 0
+          },
+          "threshold": 1500
+        },
+        {
+          "action": "defer",
+          "candidate": {
+            "checker_elapsed_us": 1169,
+            "clause_literals": 2,
+            "event_sequence": 7,
+            "formula_sha256": "dc92bed77e788af47bf56b7add37f2a89721c8e55e4d292980aa8b8febec13de",
+            "proof_steps": 1,
+            "propagation_count": 1,
+            "record_sha256": "d4f9fea05e0e404873e50277e6f948d8d2e20ce46b495322f4aa9a45ed3014a7",
+            "retry_count": 0,
+            "source_worker": "f435-publisher-7",
+            "stream_id": "f1393d7300356b17dc24e9cd046f3b2827bbbb612d564f20624b0f6df966aad7"
+          },
+          "decision_ordinal": 7,
+          "decision_sha256": "50a6b838a379559dc37705f98355b2055a03d878ad8040a70e1e82d73be9c479",
+          "observation": {
+            "ack_depth": 0,
+            "deferred_depth": 6,
+            "queue_depth": 0,
+            "remaining_ms": 30000,
+            "solve_age_ms": 0,
+            "solve_generation": 0,
+            "solving": false
+          },
+          "policy_sha256": "f9b9b02b29c6599cef50be02157fb28fe48e3ca9f2aae416cf635d6e5303417d",
+          "protocol": "symcc-qfbv-adaptive-proof-admission-v1",
+          "reasons": [
+            "solver-inactive"
+          ],
+          "schema": "symcc-qfbv-adaptive-proof-decision-v1",
+          "score": 4831,
+          "score_components": {
+            "checker_penalty": 1169,
+            "length_quality": 4000,
+            "proof_density": 1000,
+            "queue_penalty": 0,
+            "retry_penalty": 0,
+            "solve_age_bonus": 0,
+            "source_failure_penalty": 0,
+            "source_yield": 1000
+          },
+          "source_feedback": {
+            "ack_latency_total_us": 0,
+            "admit_decisions": 0,
+            "backpressure": 0,
+            "defer_decisions": 0,
+            "delivered": 0,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 0
+          },
+          "threshold": 1500
+        },
+        {
+          "action": "defer",
+          "candidate": {
+            "checker_elapsed_us": 1141,
+            "clause_literals": 2,
+            "event_sequence": 8,
+            "formula_sha256": "dc92bed77e788af47bf56b7add37f2a89721c8e55e4d292980aa8b8febec13de",
+            "proof_steps": 1,
+            "propagation_count": 2,
+            "record_sha256": "8d0ab49075e6a51b601c8c5d5b8c2d3666c7d2ed652fcf2a78ce746310095e0e",
+            "retry_count": 0,
+            "source_worker": "f435-publisher-8",
+            "stream_id": "f1393d7300356b17dc24e9cd046f3b2827bbbb612d564f20624b0f6df966aad7"
+          },
+          "decision_ordinal": 8,
+          "decision_sha256": "a5e340d324b7f371919ff95c3cb47688a1ffad621489b60c18cbef6beb82f3bf",
+          "observation": {
+            "ack_depth": 0,
+            "deferred_depth": 7,
+            "queue_depth": 0,
+            "remaining_ms": 30000,
+            "solve_age_ms": 0,
+            "solve_generation": 0,
+            "solving": false
+          },
+          "policy_sha256": "f9b9b02b29c6599cef50be02157fb28fe48e3ca9f2aae416cf635d6e5303417d",
+          "protocol": "symcc-qfbv-adaptive-proof-admission-v1",
+          "reasons": [
+            "solver-inactive"
+          ],
+          "schema": "symcc-qfbv-adaptive-proof-decision-v1",
+          "score": 5859,
+          "score_components": {
+            "checker_penalty": 1141,
+            "length_quality": 4000,
+            "proof_density": 2000,
+            "queue_penalty": 0,
+            "retry_penalty": 0,
+            "solve_age_bonus": 0,
+            "source_failure_penalty": 0,
+            "source_yield": 1000
+          },
+          "source_feedback": {
+            "ack_latency_total_us": 0,
+            "admit_decisions": 0,
+            "backpressure": 0,
+            "defer_decisions": 0,
+            "delivered": 0,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 0
+          },
+          "threshold": 1500
+        },
+        {
+          "action": "admit",
+          "candidate": {
+            "checker_elapsed_us": 1775,
+            "clause_literals": 1,
+            "event_sequence": 1,
+            "formula_sha256": "dc92bed77e788af47bf56b7add37f2a89721c8e55e4d292980aa8b8febec13de",
+            "proof_steps": 1,
+            "propagation_count": 0,
+            "record_sha256": "9f3b43c25caa5e31b01f9116e87bc2dc2d097c95ae15c3897cb2bfad06974a3e",
+            "retry_count": 1,
+            "source_worker": "f435-publisher-1",
+            "stream_id": "f1393d7300356b17dc24e9cd046f3b2827bbbb612d564f20624b0f6df966aad7"
+          },
+          "decision_ordinal": 9,
+          "decision_sha256": "57312935770023264e949c481a8b71bd4cda4154a700c480959aab8d5af71cf7",
+          "observation": {
+            "ack_depth": 0,
+            "deferred_depth": 7,
+            "queue_depth": 0,
+            "remaining_ms": 30000,
+            "solve_age_ms": 0,
+            "solve_generation": 1,
+            "solving": true
+          },
+          "policy_sha256": "f9b9b02b29c6599cef50be02157fb28fe48e3ca9f2aae416cf635d6e5303417d",
+          "protocol": "symcc-qfbv-adaptive-proof-admission-v1",
+          "reasons": [
+            "score-and-capacity-admit"
+          ],
+          "schema": "symcc-qfbv-adaptive-proof-decision-v1",
+          "score": 2975,
+          "score_components": {
+            "checker_penalty": 1775,
+            "length_quality": 4000,
+            "proof_density": 0,
+            "queue_penalty": 0,
+            "retry_penalty": 250,
+            "solve_age_bonus": 0,
+            "source_failure_penalty": 0,
+            "source_yield": 1000
+          },
+          "source_feedback": {
+            "ack_latency_total_us": 0,
+            "admit_decisions": 0,
+            "backpressure": 0,
+            "defer_decisions": 1,
+            "delivered": 0,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 1
+          },
+          "threshold": 1500
+        },
+        {
+          "action": "admit",
+          "candidate": {
+            "checker_elapsed_us": 1632,
+            "clause_literals": 2,
+            "event_sequence": 2,
+            "formula_sha256": "dc92bed77e788af47bf56b7add37f2a89721c8e55e4d292980aa8b8febec13de",
+            "proof_steps": 1,
+            "propagation_count": 1,
+            "record_sha256": "a4fb9d62dddca5c9aca800bde5d5c0fcff7a7dc9dda101b77feb08012ebbbc71",
+            "retry_count": 1,
+            "source_worker": "f435-publisher-2",
+            "stream_id": "f1393d7300356b17dc24e9cd046f3b2827bbbb612d564f20624b0f6df966aad7"
+          },
+          "decision_ordinal": 10,
+          "decision_sha256": "c8a722c2a9517228f22ea87aedfc16e819f25d71c0e342ddce74f03c9ecaed70",
+          "observation": {
+            "ack_depth": 0,
+            "deferred_depth": 6,
+            "queue_depth": 1,
+            "remaining_ms": 30000,
+            "solve_age_ms": 0,
+            "solve_generation": 1,
+            "solving": true
+          },
+          "policy_sha256": "f9b9b02b29c6599cef50be02157fb28fe48e3ca9f2aae416cf635d6e5303417d",
+          "protocol": "symcc-qfbv-adaptive-proof-admission-v1",
+          "reasons": [
+            "score-and-capacity-admit"
+          ],
+          "schema": "symcc-qfbv-adaptive-proof-decision-v1",
+          "score": 2618,
+          "score_components": {
+            "checker_penalty": 1632,
+            "length_quality": 4000,
+            "proof_density": 1000,
+            "queue_penalty": 1500,
+            "retry_penalty": 250,
+            "solve_age_bonus": 0,
+            "source_failure_penalty": 0,
+            "source_yield": 1000
+          },
+          "source_feedback": {
+            "ack_latency_total_us": 0,
+            "admit_decisions": 0,
+            "backpressure": 0,
+            "defer_decisions": 1,
+            "delivered": 0,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 1
+          },
+          "threshold": 1500
+        },
+        {
+          "action": "admit",
+          "candidate": {
+            "checker_elapsed_us": 1191,
+            "clause_literals": 2,
+            "event_sequence": 3,
+            "formula_sha256": "dc92bed77e788af47bf56b7add37f2a89721c8e55e4d292980aa8b8febec13de",
+            "proof_steps": 1,
+            "propagation_count": 1,
+            "record_sha256": "129c623c38c6945383bd6d6206de6cf5ce0317919903bcf1e1850979cda76e75",
+            "retry_count": 1,
+            "source_worker": "f435-publisher-3",
+            "stream_id": "f1393d7300356b17dc24e9cd046f3b2827bbbb612d564f20624b0f6df966aad7"
+          },
+          "decision_ordinal": 11,
+          "decision_sha256": "6a5010a7092d06930309ae6da0b61f3446dc734cde95615c15d26c8f663663dd",
+          "observation": {
+            "ack_depth": 0,
+            "deferred_depth": 5,
+            "queue_depth": 0,
+            "remaining_ms": 29999,
+            "solve_age_ms": 1,
+            "solve_generation": 1,
+            "solving": true
+          },
+          "policy_sha256": "f9b9b02b29c6599cef50be02157fb28fe48e3ca9f2aae416cf635d6e5303417d",
+          "protocol": "symcc-qfbv-adaptive-proof-admission-v1",
+          "reasons": [
+            "score-and-capacity-admit"
+          ],
+          "schema": "symcc-qfbv-adaptive-proof-decision-v1",
+          "score": 4569,
+          "score_components": {
+            "checker_penalty": 1191,
+            "length_quality": 4000,
+            "proof_density": 1000,
+            "queue_penalty": 0,
+            "retry_penalty": 250,
+            "solve_age_bonus": 10,
+            "source_failure_penalty": 0,
+            "source_yield": 1000
+          },
+          "source_feedback": {
+            "ack_latency_total_us": 0,
+            "admit_decisions": 0,
+            "backpressure": 0,
+            "defer_decisions": 1,
+            "delivered": 0,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 1
+          },
+          "threshold": 1500
+        },
+        {
+          "action": "admit",
+          "candidate": {
+            "checker_elapsed_us": 1122,
+            "clause_literals": 2,
+            "event_sequence": 4,
+            "formula_sha256": "dc92bed77e788af47bf56b7add37f2a89721c8e55e4d292980aa8b8febec13de",
+            "proof_steps": 1,
+            "propagation_count": 2,
+            "record_sha256": "41bb44735e930af5a487b0fd31c4d0a69d92d09480b6634379abfc068ad39d78",
+            "retry_count": 1,
+            "source_worker": "f435-publisher-4",
+            "stream_id": "f1393d7300356b17dc24e9cd046f3b2827bbbb612d564f20624b0f6df966aad7"
+          },
+          "decision_ordinal": 12,
+          "decision_sha256": "17b86ba2b00e41cbbe2f3a1212a061f5843840d0d3cf9a22975a140cedae4690",
+          "observation": {
+            "ack_depth": 0,
+            "deferred_depth": 4,
+            "queue_depth": 1,
+            "remaining_ms": 29999,
+            "solve_age_ms": 1,
+            "solve_generation": 1,
+            "solving": true
+          },
+          "policy_sha256": "f9b9b02b29c6599cef50be02157fb28fe48e3ca9f2aae416cf635d6e5303417d",
+          "protocol": "symcc-qfbv-adaptive-proof-admission-v1",
+          "reasons": [
+            "score-and-capacity-admit"
+          ],
+          "schema": "symcc-qfbv-adaptive-proof-decision-v1",
+          "score": 4138,
+          "score_components": {
+            "checker_penalty": 1122,
+            "length_quality": 4000,
+            "proof_density": 2000,
+            "queue_penalty": 1500,
+            "retry_penalty": 250,
+            "solve_age_bonus": 10,
+            "source_failure_penalty": 0,
+            "source_yield": 1000
+          },
+          "source_feedback": {
+            "ack_latency_total_us": 0,
+            "admit_decisions": 0,
+            "backpressure": 0,
+            "defer_decisions": 1,
+            "delivered": 0,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 1
+          },
+          "threshold": 1500
+        },
+        {
+          "action": "admit",
+          "candidate": {
+            "checker_elapsed_us": 1705,
+            "clause_literals": 2,
+            "event_sequence": 5,
+            "formula_sha256": "dc92bed77e788af47bf56b7add37f2a89721c8e55e4d292980aa8b8febec13de",
+            "proof_steps": 1,
+            "propagation_count": 1,
+            "record_sha256": "6c7b93029044c973fa6019373299922d1cb373c97bf517137e854c477f5447ce",
+            "retry_count": 1,
+            "source_worker": "f435-publisher-5",
+            "stream_id": "f1393d7300356b17dc24e9cd046f3b2827bbbb612d564f20624b0f6df966aad7"
+          },
+          "decision_ordinal": 13,
+          "decision_sha256": "1a3864b98c1a93c5056d79704abeca45b67145e8d8a3d8675ab7cbf5b568a1d3",
+          "observation": {
+            "ack_depth": 0,
+            "deferred_depth": 3,
+            "queue_depth": 0,
+            "remaining_ms": 29998,
+            "solve_age_ms": 2,
+            "solve_generation": 1,
+            "solving": true
+          },
+          "policy_sha256": "f9b9b02b29c6599cef50be02157fb28fe48e3ca9f2aae416cf635d6e5303417d",
+          "protocol": "symcc-qfbv-adaptive-proof-admission-v1",
+          "reasons": [
+            "score-and-capacity-admit"
+          ],
+          "schema": "symcc-qfbv-adaptive-proof-decision-v1",
+          "score": 4065,
+          "score_components": {
+            "checker_penalty": 1705,
+            "length_quality": 4000,
+            "proof_density": 1000,
+            "queue_penalty": 0,
+            "retry_penalty": 250,
+            "solve_age_bonus": 20,
+            "source_failure_penalty": 0,
+            "source_yield": 1000
+          },
+          "source_feedback": {
+            "ack_latency_total_us": 0,
+            "admit_decisions": 0,
+            "backpressure": 0,
+            "defer_decisions": 1,
+            "delivered": 0,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 1
+          },
+          "threshold": 1500
+        },
+        {
+          "action": "admit",
+          "candidate": {
+            "checker_elapsed_us": 1473,
+            "clause_literals": 2,
+            "event_sequence": 6,
+            "formula_sha256": "dc92bed77e788af47bf56b7add37f2a89721c8e55e4d292980aa8b8febec13de",
+            "proof_steps": 1,
+            "propagation_count": 2,
+            "record_sha256": "6756e54461aeb1f6291f9adbe51fc6d8cfc6436c475edf9c66d44dd5fcf996a5",
+            "retry_count": 1,
+            "source_worker": "f435-publisher-6",
+            "stream_id": "f1393d7300356b17dc24e9cd046f3b2827bbbb612d564f20624b0f6df966aad7"
+          },
+          "decision_ordinal": 14,
+          "decision_sha256": "9a4dea06366200eb95b10bf4cebda1590f64fd0974d87d40441876af8b8d8b36",
+          "observation": {
+            "ack_depth": 0,
+            "deferred_depth": 2,
+            "queue_depth": 1,
+            "remaining_ms": 29998,
+            "solve_age_ms": 2,
+            "solve_generation": 1,
+            "solving": true
+          },
+          "policy_sha256": "f9b9b02b29c6599cef50be02157fb28fe48e3ca9f2aae416cf635d6e5303417d",
+          "protocol": "symcc-qfbv-adaptive-proof-admission-v1",
+          "reasons": [
+            "score-and-capacity-admit"
+          ],
+          "schema": "symcc-qfbv-adaptive-proof-decision-v1",
+          "score": 3797,
+          "score_components": {
+            "checker_penalty": 1473,
+            "length_quality": 4000,
+            "proof_density": 2000,
+            "queue_penalty": 1500,
+            "retry_penalty": 250,
+            "solve_age_bonus": 20,
+            "source_failure_penalty": 0,
+            "source_yield": 1000
+          },
+          "source_feedback": {
+            "ack_latency_total_us": 0,
+            "admit_decisions": 0,
+            "backpressure": 0,
+            "defer_decisions": 1,
+            "delivered": 0,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 1
+          },
+          "threshold": 1500
+        },
+        {
+          "action": "admit",
+          "candidate": {
+            "checker_elapsed_us": 1169,
+            "clause_literals": 2,
+            "event_sequence": 7,
+            "formula_sha256": "dc92bed77e788af47bf56b7add37f2a89721c8e55e4d292980aa8b8febec13de",
+            "proof_steps": 1,
+            "propagation_count": 1,
+            "record_sha256": "d4f9fea05e0e404873e50277e6f948d8d2e20ce46b495322f4aa9a45ed3014a7",
+            "retry_count": 1,
+            "source_worker": "f435-publisher-7",
+            "stream_id": "f1393d7300356b17dc24e9cd046f3b2827bbbb612d564f20624b0f6df966aad7"
+          },
+          "decision_ordinal": 15,
+          "decision_sha256": "f8413c96af94cdcbff4d09b0bccabf608f6bb2004342d21394c5f9efe9073f69",
+          "observation": {
+            "ack_depth": 0,
+            "deferred_depth": 1,
+            "queue_depth": 0,
+            "remaining_ms": 29997,
+            "solve_age_ms": 3,
+            "solve_generation": 1,
+            "solving": true
+          },
+          "policy_sha256": "f9b9b02b29c6599cef50be02157fb28fe48e3ca9f2aae416cf635d6e5303417d",
+          "protocol": "symcc-qfbv-adaptive-proof-admission-v1",
+          "reasons": [
+            "score-and-capacity-admit"
+          ],
+          "schema": "symcc-qfbv-adaptive-proof-decision-v1",
+          "score": 4611,
+          "score_components": {
+            "checker_penalty": 1169,
+            "length_quality": 4000,
+            "proof_density": 1000,
+            "queue_penalty": 0,
+            "retry_penalty": 250,
+            "solve_age_bonus": 30,
+            "source_failure_penalty": 0,
+            "source_yield": 1000
+          },
+          "source_feedback": {
+            "ack_latency_total_us": 0,
+            "admit_decisions": 0,
+            "backpressure": 0,
+            "defer_decisions": 1,
+            "delivered": 0,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 1
+          },
+          "threshold": 1500
+        },
+        {
+          "action": "admit",
+          "candidate": {
+            "checker_elapsed_us": 1141,
+            "clause_literals": 2,
+            "event_sequence": 8,
+            "formula_sha256": "dc92bed77e788af47bf56b7add37f2a89721c8e55e4d292980aa8b8febec13de",
+            "proof_steps": 1,
+            "propagation_count": 2,
+            "record_sha256": "8d0ab49075e6a51b601c8c5d5b8c2d3666c7d2ed652fcf2a78ce746310095e0e",
+            "retry_count": 1,
+            "source_worker": "f435-publisher-8",
+            "stream_id": "f1393d7300356b17dc24e9cd046f3b2827bbbb612d564f20624b0f6df966aad7"
+          },
+          "decision_ordinal": 16,
+          "decision_sha256": "1ba7e047f43716e02a85961558ffa18909449404780c4fd265457b30a0066bc8",
+          "observation": {
+            "ack_depth": 0,
+            "deferred_depth": 0,
+            "queue_depth": 1,
+            "remaining_ms": 29997,
+            "solve_age_ms": 3,
+            "solve_generation": 1,
+            "solving": true
+          },
+          "policy_sha256": "f9b9b02b29c6599cef50be02157fb28fe48e3ca9f2aae416cf635d6e5303417d",
+          "protocol": "symcc-qfbv-adaptive-proof-admission-v1",
+          "reasons": [
+            "score-and-capacity-admit"
+          ],
+          "schema": "symcc-qfbv-adaptive-proof-decision-v1",
+          "score": 4139,
+          "score_components": {
+            "checker_penalty": 1141,
+            "length_quality": 4000,
+            "proof_density": 2000,
+            "queue_penalty": 1500,
+            "retry_penalty": 250,
+            "solve_age_bonus": 30,
+            "source_failure_penalty": 0,
+            "source_yield": 1000
+          },
+          "source_feedback": {
+            "ack_latency_total_us": 0,
+            "admit_decisions": 0,
+            "backpressure": 0,
+            "defer_decisions": 1,
+            "delivered": 0,
+            "expired": 0,
+            "reject_decisions": 0,
+            "verified": 1
+          },
+          "threshold": 1500
+        }
+      ],
+      "backend_realtime_adaptive_deferred_final": 0,
+      "backend_realtime_adaptive_enqueued_decisions": {
+        "129c623c38c6945383bd6d6206de6cf5ce0317919903bcf1e1850979cda76e75": "6a5010a7092d06930309ae6da0b61f3446dc734cde95615c15d26c8f663663dd",
+        "41bb44735e930af5a487b0fd31c4d0a69d92d09480b6634379abfc068ad39d78": "17b86ba2b00e41cbbe2f3a1212a061f5843840d0d3cf9a22975a140cedae4690",
+        "6756e54461aeb1f6291f9adbe51fc6d8cfc6436c475edf9c66d44dd5fcf996a5": "9a4dea06366200eb95b10bf4cebda1590f64fd0974d87d40441876af8b8d8b36",
+        "6c7b93029044c973fa6019373299922d1cb373c97bf517137e854c477f5447ce": "1a3864b98c1a93c5056d79704abeca45b67145e8d8a3d8675ab7cbf5b568a1d3",
+        "8d0ab49075e6a51b601c8c5d5b8c2d3666c7d2ed652fcf2a78ce746310095e0e": "1ba7e047f43716e02a85961558ffa18909449404780c4fd265457b30a0066bc8",
+        "9f3b43c25caa5e31b01f9116e87bc2dc2d097c95ae15c3897cb2bfad06974a3e": "57312935770023264e949c481a8b71bd4cda4154a700c480959aab8d5af71cf7",
+        "a4fb9d62dddca5c9aca800bde5d5c0fcff7a7dc9dda101b77feb08012ebbbc71": "c8a722c2a9517228f22ea87aedfc16e819f25d71c0e342ddce74f03c9ecaed70",
+        "d4f9fea05e0e404873e50277e6f948d8d2e20ce46b495322f4aa9a45ed3014a7": "f8413c96af94cdcbff4d09b0bccabf608f6bb2004342d21394c5f9efe9073f69"
+      },
+      "backend_realtime_adaptive_policy": {
+        "age_ramp_ms": 100,
+        "checker_reference_us": 1000,
+        "high_watermark_permille": 1000,
+        "max_clause_literals": 32,
+        "max_decisions": 256,
+        "max_deferred": 8,
+        "max_retries": 32,
+        "min_score": 1500,
+        "minimum_remaining_ms": 0,
+        "protocol": "symcc-qfbv-adaptive-proof-admission-v1",
+        "queue_capacity": 2,
+        "schema": "symcc-qfbv-adaptive-proof-policy-v1"
+      },
+      "backend_realtime_adaptive_policy_sha256": "f9b9b02b29c6599cef50be02157fb28fe48e3ca9f2aae416cf635d6e5303417d",
+      "backend_realtime_adaptive_protocol": "symcc-qfbv-adaptive-proof-admission-v1",
+      "backend_realtime_adaptive_rejected": 0,
+      "backend_realtime_adaptive_retried": 8
+    },
+    "authorized": 8,
+    "backpressure": 0,
+    "candidates": 8,
+    "cnf_sha256": "6d63b4e03065641c05b09e8a54b0ba5f9205d7b2f8effe2a4604d633bbe984c9",
+    "delivered": 8,
+    "delivered_record_sha256": [
+      "9f3b43c25caa5e31b01f9116e87bc2dc2d097c95ae15c3897cb2bfad06974a3e",
+      "a4fb9d62dddca5c9aca800bde5d5c0fcff7a7dc9dda101b77feb08012ebbbc71",
+      "129c623c38c6945383bd6d6206de6cf5ce0317919903bcf1e1850979cda76e75",
+      "41bb44735e930af5a487b0fd31c4d0a69d92d09480b6634379abfc068ad39d78",
+      "6c7b93029044c973fa6019373299922d1cb373c97bf517137e854c477f5447ce",
+      "6756e54461aeb1f6291f9adbe51fc6d8cfc6436c475edf9c66d44dd5fcf996a5",
+      "d4f9fea05e0e404873e50277e6f948d8d2e20ce46b495322f4aa9a45ed3014a7",
+      "8d0ab49075e6a51b601c8c5d5b8c2d3666c7d2ed652fcf2a78ce746310095e0e"
+    ],
+    "duplicate_clauses": 0,
+    "events": 8,
+    "formula_sha256": "dc92bed77e788af47bf56b7add37f2a89721c8e55e4d292980aa8b8febec13de",
+    "mode": "adaptive",
+    "pending": 0,
+    "pre_solve": {
+      "adaptive_actions": {
+        "admit": 0,
+        "defer": 8,
+        "reject": 0
+      },
+      "authorized": 0,
+      "backpressure": 0,
+      "candidates": 8,
+      "decision_budget_exhausted": false,
+      "deferred": 8,
+      "duplicate_clauses": 0,
+      "events": 8,
+      "fatal_error": "",
+      "pending": 0,
+      "settled_candidates": 8
+    },
+    "published": 8,
+    "published_record_sha256": [
+      "9f3b43c25caa5e31b01f9116e87bc2dc2d097c95ae15c3897cb2bfad06974a3e",
+      "a4fb9d62dddca5c9aca800bde5d5c0fcff7a7dc9dda101b77feb08012ebbbc71",
+      "129c623c38c6945383bd6d6206de6cf5ce0317919903bcf1e1850979cda76e75",
+      "41bb44735e930af5a487b0fd31c4d0a69d92d09480b6634379abfc068ad39d78",
+      "6c7b93029044c973fa6019373299922d1cb373c97bf517137e854c477f5447ce",
+      "6756e54461aeb1f6291f9adbe51fc6d8cfc6436c475edf9c66d44dd5fcf996a5",
+      "d4f9fea05e0e404873e50277e6f948d8d2e20ce46b495322f4aa9a45ed3014a7",
+      "8d0ab49075e6a51b601c8c5d5b8c2d3666c7d2ed652fcf2a78ce746310095e0e"
+    ],
+    "settled_candidates": 8,
+    "solve_elapsed_us": 174945,
+    "solve_error": "",
+    "solve_result": 10,
+    "timed_out": false
+  },
+  "artifact_sha256": "60a15448e730b17f9f528b9424baef8142356f41baaee4eb94ba4fdc064bd77d",
+  "claim_boundary": "synchronized local burst mechanism oracle; no coverage, solver speedup, multi-node scaling, LBD, or defect-yield claim",
+  "clauses": 860,
+  "delivery_gain": 6,
+  "elapsed_us": 859129,
+  "library": "/tmp/f434-review/libsymcc_qfbv_cadical_realtime.so",
+  "library_sha256": "fb1d08ed0c3039ddf4e5ed4ddb3d89c8ea09423b4fceb100c10fd5bc39325ba9",
+  "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+  "queue_capacity": 2,
+  "records": 8,
+  "schema": "symcc-f435-adaptive-proof-oracle-v1",
+  "seed": 62517,
+  "static": {
+    "adaptive": null,
+    "authorized": 2,
+    "backpressure": 6,
+    "candidates": 8,
+    "cnf_sha256": "6d63b4e03065641c05b09e8a54b0ba5f9205d7b2f8effe2a4604d633bbe984c9",
+    "delivered": 2,
+    "delivered_record_sha256": [
+      "9f3b43c25caa5e31b01f9116e87bc2dc2d097c95ae15c3897cb2bfad06974a3e",
+      "a4fb9d62dddca5c9aca800bde5d5c0fcff7a7dc9dda101b77feb08012ebbbc71"
+    ],
+    "duplicate_clauses": 0,
+    "events": 8,
+    "formula_sha256": "dc92bed77e788af47bf56b7add37f2a89721c8e55e4d292980aa8b8febec13de",
+    "mode": "static",
+    "pending": 0,
+    "pre_solve": {
+      "adaptive_actions": {
+        "admit": 0,
+        "defer": 0,
+        "reject": 0
+      },
+      "authorized": 2,
+      "backpressure": 6,
+      "candidates": 8,
+      "decision_budget_exhausted": false,
+      "deferred": 0,
+      "duplicate_clauses": 0,
+      "events": 8,
+      "fatal_error": "",
+      "pending": 2,
+      "settled_candidates": 8
+    },
+    "published": 8,
+    "published_record_sha256": [
+      "9f3b43c25caa5e31b01f9116e87bc2dc2d097c95ae15c3897cb2bfad06974a3e",
+      "a4fb9d62dddca5c9aca800bde5d5c0fcff7a7dc9dda101b77feb08012ebbbc71",
+      "129c623c38c6945383bd6d6206de6cf5ce0317919903bcf1e1850979cda76e75",
+      "41bb44735e930af5a487b0fd31c4d0a69d92d09480b6634379abfc068ad39d78",
+      "6c7b93029044c973fa6019373299922d1cb373c97bf517137e854c477f5447ce",
+      "6756e54461aeb1f6291f9adbe51fc6d8cfc6436c475edf9c66d44dd5fcf996a5",
+      "d4f9fea05e0e404873e50277e6f948d8d2e20ce46b495322f4aa9a45ed3014a7",
+      "8d0ab49075e6a51b601c8c5d5b8c2d3666c7d2ed652fcf2a78ce746310095e0e"
+    ],
+    "settled_candidates": 8,
+    "solve_elapsed_us": 170923,
+    "solve_error": "",
+    "solve_result": 10,
+    "timed_out": false
+  },
+  "status": "pass",
+  "variables": 200
+}

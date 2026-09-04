@@ -1,0 +1,8 @@
+experiment_id,run_id,pair_id,target,configuration,mode,np,round,timestamp_sec,edge_cov_pct,edges_found,edges_total,total_cases
+symcc-ea44d3cf972d173a,0769de24bee38f9a9883228b,a4a7c82c4adcfaadeba52a6f,gfts-xml_read_fuzzer,hybrid,hybrid,32,1,0.0,4.54,2312,50880,20
+symcc-ea44d3cf972d173a,0769de24bee38f9a9883228b,a4a7c82c4adcfaadeba52a6f,gfts-xml_read_fuzzer,hybrid,hybrid,32,1,15.0,9.9,5035,50880,32037
+symcc-ea44d3cf972d173a,0769de24bee38f9a9883228b,a4a7c82c4adcfaadeba52a6f,gfts-xml_read_fuzzer,hybrid,hybrid,32,1,30.0,10.35,5266,50880,42931
+symcc-ea44d3cf972d173a,0769de24bee38f9a9883228b,a4a7c82c4adcfaadeba52a6f,gfts-xml_read_fuzzer,hybrid,hybrid,32,1,45.0,10.59,5388,50880,52214
+symcc-ea44d3cf972d173a,0769de24bee38f9a9883228b,a4a7c82c4adcfaadeba52a6f,gfts-xml_read_fuzzer,hybrid,hybrid,32,1,60.0,10.7,5444,50880,57819
+symcc-ea44d3cf972d173a,0769de24bee38f9a9883228b,a4a7c82c4adcfaadeba52a6f,gfts-xml_read_fuzzer,hybrid,hybrid,32,1,75.0,10.82,5506,50880,61571
+symcc-ea44d3cf972d173a,0769de24bee38f9a9883228b,a4a7c82c4adcfaadeba52a6f,gfts-xml_read_fuzzer,hybrid,hybrid,32,1,90.0,10.88,5534,50880,63303

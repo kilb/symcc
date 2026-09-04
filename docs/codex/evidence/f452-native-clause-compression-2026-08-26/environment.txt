@@ -1,0 +1,12 @@
+captured_utc=2026-08-26
+kernel=Linux-7.0.0-28-generic-x86_64-with-glibc2.39
+python=3.12.3
+pytest=pytest 9.1.1
+gxx=g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+clangxx=Ubuntu clang version 18.1.3 (1ubuntu1)
+repository=/home/ubuntu/code/symcc
+git_commit=146e01b2d6f8e02fd2526764d46ea0d80a4bb6f6
+nodeid_count=1467
+nodeid_sha256=5053be0bda2990851f1297cf8cc168150d01c5eb45edef55f3edd481747877ee
+upstream_impcheck_commit=b5f37b21385ee802ce015103b23aff62f92b1734
+cadical_commit=c60730422e758ef1cebe7aeddf2dda31c996bf04

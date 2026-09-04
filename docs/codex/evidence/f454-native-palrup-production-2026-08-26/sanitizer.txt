@@ -1,0 +1,23 @@
+F454 wrapper-boundary sanitizer rerun: PASS
+Captured: 2026-08-26 UTC
+
+Compile scope:
+  util/qfbv_cadical_palrup_pool.cpp
+  -fsanitize=address,undefined -fno-omit-frame-pointer
+  -Wall -Wextra -Werror
+  linked to the fixed, uninstrumented upstream libcadical.a
+
+Run scope:
+  2-rank pigeonhole(9,8), 72 variables, 549 clauses
+  native_status=20
+  imported=68289
+  sanitizer stderr bytes=0
+
+Runtime options:
+  ASAN_OPTIONS=detect_leaks=0:halt_on_error=1
+  UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+
+LeakSanitizer is explicitly disabled because the host Python interpreter and
+upstream static archive are uninstrumented. This is an AddressSanitizer and
+UndefinedBehaviorSanitizer check of the project wrapper/C ABI boundary, not a
+full-stack leak qualification.

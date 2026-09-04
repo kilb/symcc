@@ -1,0 +1,73 @@
+{
+  "clock": "time.perf_counter_ns",
+  "scenarios": [
+    {
+      "active_shards": 1,
+      "batch_directory_syncs": 2,
+      "batch_median_ms": 180.959,
+      "batch_p95_ms": 182.362,
+      "batch_samples_ms": [
+        179.827,
+        180.583,
+        180.023,
+        181.377,
+        182.362,
+        180.959,
+        181.346
+      ],
+      "configured_shards": 1,
+      "directory_sync_reduction_pct": 98.438,
+      "median_speedup": 2.815,
+      "mutations_per_cycle": 128,
+      "records": 64,
+      "rounds": 7,
+      "scalar_directory_syncs": 128,
+      "scalar_median_ms": 509.349,
+      "scalar_p95_ms": 510.06,
+      "scalar_samples_ms": [
+        508.629,
+        510.06,
+        509.569,
+        509.26,
+        509.916,
+        509.349,
+        507.883
+      ]
+    },
+    {
+      "active_shards": 8,
+      "batch_directory_syncs": 16,
+      "batch_median_ms": 180.124,
+      "batch_p95_ms": 182.235,
+      "batch_samples_ms": [
+        179.193,
+        180.753,
+        178.626,
+        178.238,
+        182.235,
+        180.595,
+        180.124
+      ],
+      "configured_shards": 8,
+      "directory_sync_reduction_pct": 87.5,
+      "median_speedup": 2.825,
+      "mutations_per_cycle": 128,
+      "records": 64,
+      "rounds": 7,
+      "scalar_directory_syncs": 128,
+      "scalar_median_ms": 508.899,
+      "scalar_p95_ms": 510.699,
+      "scalar_samples_ms": [
+        506.804,
+        509.408,
+        509.763,
+        510.699,
+        506.355,
+        508.849,
+        508.899
+      ]
+    }
+  ],
+  "schema": "symcc-f325-target-mutation-benchmark-v1",
+  "scope": "target lease claim+release persistence only; not DSE, coverage, or solver throughput"
+}

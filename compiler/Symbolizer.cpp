@@ -14,16 +14,361 @@
 
 #include "Symbolizer.h"
 
+#include <algorithm>
+#include <cstdlib>
 #include <cstdint>
+#include <functional>
+#include <vector>
+#include <llvm/Analysis/AliasAnalysis.h>
+#include <llvm/Analysis/MemoryLocation.h>
+#include <llvm/Analysis/MemorySSA.h>
+#include <llvm/Analysis/PostDominators.h>
+#include <llvm/Analysis/ValueTracking.h>
 #include <llvm/ADT/SmallPtrSet.h>
+#include <llvm/IR/CFG.h>
 #include <llvm/IR/Constants.h>
+#include <llvm/IR/Dominators.h>
 #include <llvm/IR/GetElementPtrTypeIterator.h>
+#include <llvm/IR/InstIterator.h>
 #include <llvm/IR/Intrinsics.h>
+#include <llvm/Support/ModRef.h>
 #include <llvm/Transforms/Utils/BasicBlockUtils.h>
 
 #include "Runtime.h"
 
 using namespace llvm;
+
+namespace {
+
+constexpr unsigned kMaxVeritestingRegionDepth = 12;
+constexpr unsigned kMaxVeritestingRegionBlocks = 32;
+constexpr unsigned kMaxIFSSMergeArms = 8;
+constexpr unsigned kMaxIFSSRegionPaths = 64;
+constexpr unsigned kMaxIFSSMemoryDefChain = 8;
+constexpr char kScheduleAtomicMetadata[] =
+    "symcc.schedule.atomic.instrumented";
+
+struct IFSSPathStep {
+  BranchInst *branch = nullptr;
+  bool takeTrue = false;
+};
+
+using IFSSRegionPath = SmallVector<IFSSPathStep, 8>;
+using IFSSRegionPaths =
+    DenseMap<BasicBlock *, SmallVector<IFSSRegionPath, 2>>;
+
+bool envEnabled(const char *name) {
+  const char *value = std::getenv(name);
+  if (value == nullptr || *value == '\0')
+    return false;
+  return StringRef(value).lower() != "0" && StringRef(value).lower() != "false" &&
+         StringRef(value).lower() != "off" && StringRef(value).lower() != "no";
+}
+
+uint64_t typeStoreBytes(const DataLayout &dataLayout, Type *type) {
+#if LLVM_VERSION_MAJOR >= 11
+  return dataLayout.getTypeStoreSize(type).getFixedValue();
+#else
+  return dataLayout.getTypeStoreSize(type);
+#endif
+}
+
+uint8_t scheduleAtomicOrder(AtomicOrdering ordering) {
+  switch (ordering) {
+  case AtomicOrdering::Acquire:
+    return 2;
+  case AtomicOrdering::Release:
+    return 3;
+  case AtomicOrdering::AcquireRelease:
+    return 4;
+  case AtomicOrdering::SequentiallyConsistent:
+    return 5;
+  case AtomicOrdering::NotAtomic:
+  case AtomicOrdering::Unordered:
+  case AtomicOrdering::Monotonic:
+    return 0;
+  default:
+    return 0;
+  }
+}
+
+bool isSupportedMergedType(Type *type) {
+  return type->isIntegerTy() || type->isFloatingPointTy() ||
+         type->isPointerTy();
+}
+
+bool isSupportedRegionBinaryOpcode(unsigned opcode) {
+  switch (opcode) {
+  case Instruction::Add:
+  case Instruction::Sub:
+  case Instruction::Mul:
+  case Instruction::Shl:
+  case Instruction::LShr:
+  case Instruction::AShr:
+  case Instruction::And:
+  case Instruction::Or:
+  case Instruction::Xor:
+  case Instruction::FAdd:
+  case Instruction::FSub:
+  case Instruction::FMul:
+    return true;
+  default:
+    return false;
+  }
+}
+
+bool isSupportedRegionCastOpcode(unsigned opcode) {
+  switch (opcode) {
+  case Instruction::Trunc:
+  case Instruction::ZExt:
+  case Instruction::SExt:
+  case Instruction::FPTrunc:
+  case Instruction::FPExt:
+  case Instruction::FPToUI:
+  case Instruction::FPToSI:
+  case Instruction::UIToFP:
+  case Instruction::SIToFP:
+  case Instruction::PtrToInt:
+  case Instruction::IntToPtr:
+  case Instruction::BitCast:
+    return true;
+  default:
+    return false;
+  }
+}
+
+bool isNumericDataIntrinsic(const IntrinsicInst &intrinsic) {
+  switch (intrinsic.getIntrinsicID()) {
+  case Intrinsic::bswap:
+  case Intrinsic::ctpop:
+  case Intrinsic::ctlz:
+  case Intrinsic::cttz:
+  case Intrinsic::fshl:
+  case Intrinsic::fshr:
+#if LLVM_VERSION_MAJOR > 11
+  case Intrinsic::smin:
+  case Intrinsic::smax:
+  case Intrinsic::umin:
+  case Intrinsic::umax:
+#endif
+    return true;
+  default:
+    return false;
+  }
+}
+
+Value *findDataOrigin(Value *value, SmallPtrSetImpl<Value *> &visited,
+                      unsigned depth = 0) {
+  if (value == nullptr || depth > 16 || !visited.insert(value).second)
+    return nullptr;
+  if (auto *load = dyn_cast<LoadInst>(value))
+    return load->getPointerOperand();
+  if (auto *cast = dyn_cast<CastInst>(value))
+    return findDataOrigin(cast->getOperand(0), visited, depth + 1);
+  if (auto *unary = dyn_cast<UnaryOperator>(value))
+    return findDataOrigin(unary->getOperand(0), visited, depth + 1);
+  if (auto *intrinsic = dyn_cast<IntrinsicInst>(value)) {
+    if (isNumericDataIntrinsic(*intrinsic)) {
+      for (Value *argument : intrinsic->args())
+        if (Value *origin =
+                findDataOrigin(argument, visited, depth + 1))
+          return origin;
+    }
+    return nullptr;
+  }
+  if (auto *binary = dyn_cast<BinaryOperator>(value)) {
+    Value *left =
+        findDataOrigin(binary->getOperand(0), visited, depth + 1);
+    Value *right =
+        findDataOrigin(binary->getOperand(1), visited, depth + 1);
+    return left != nullptr ? left : right;
+  }
+  return nullptr;
+}
+
+Value *findDataOrigin(Value *value) {
+  SmallPtrSet<Value *, 16> visited;
+  Value *origin = findDataOrigin(value, visited);
+  if (origin == nullptr || !origin->getType()->isPointerTy() ||
+      cast<PointerType>(origin->getType())->getAddressSpace() != 0)
+    return nullptr;
+  return origin;
+}
+
+bool reachesIntegerComparison(Value *value,
+                              SmallPtrSetImpl<Value *> &visited,
+                              unsigned depth = 0) {
+  if (value == nullptr || depth > 16 || !visited.insert(value).second)
+    return false;
+  for (User *user : value->users()) {
+    if (isa<ICmpInst>(user))
+      return true;
+    if (isa<CastInst>(user) || isa<UnaryOperator>(user) ||
+        isa<BinaryOperator>(user)) {
+      if (reachesIntegerComparison(user, visited, depth + 1))
+        return true;
+      continue;
+    }
+    if (auto *intrinsic = dyn_cast<IntrinsicInst>(user))
+      if (isNumericDataIntrinsic(*intrinsic) &&
+          reachesIntegerComparison(user, visited, depth + 1))
+        return true;
+  }
+  return false;
+}
+
+bool reachesIntegerComparison(Value *value) {
+  SmallPtrSet<Value *, 16> visited;
+  return reachesIntegerComparison(value, visited);
+}
+
+bool mayModifyLocationConservatively(AAResults &aliasAnalysis,
+                                     Instruction &instruction,
+                                     const MemoryLocation &location) {
+  if (!instruction.mayWriteToMemory())
+    return false;
+  if (isa<CallBase>(&instruction))
+    return true;
+  return isModSet(aliasAnalysis.getModRefInfo(&instruction, location));
+}
+
+bool verifyAcyclicEasyRegion(
+    BasicBlock *entry, BasicBlock *merge,
+    SmallPtrSetImpl<BasicBlock *> *regionBlocks = nullptr) {
+  SmallPtrSet<BasicBlock *, kMaxVeritestingRegionBlocks> visiting;
+  SmallPtrSet<BasicBlock *, kMaxVeritestingRegionBlocks> verified;
+  unsigned blocks = 0;
+  std::function<bool(BasicBlock *)> visit = [&](BasicBlock *block) {
+    if (block == merge)
+      return true;
+    if (verified.count(block) != 0)
+      return true;
+    if (block == nullptr || visiting.count(block) != 0 ||
+        ++blocks > kMaxVeritestingRegionBlocks)
+      return false;
+
+    auto *terminator = block->getTerminator();
+    if (terminator == nullptr || terminator->getNumSuccessors() == 0 ||
+        !(isa<BranchInst>(terminator) || isa<SwitchInst>(terminator)))
+      return false;
+
+    visiting.insert(block);
+    for (BasicBlock *successor : successors(block))
+      if (!visit(successor))
+        return false;
+    visiting.erase(block);
+    verified.insert(block);
+    if (regionBlocks != nullptr)
+      regionBlocks->insert(block);
+    return true;
+  };
+  return visit(entry);
+}
+
+bool buildIFSSRegionPartition(
+    ArrayRef<BasicBlock *> endpoints, BasicBlock *merge,
+    DominatorTree &dominators, PostDominatorTree &postDominators,
+    BasicBlock *&controller, IFSSRegionPaths &pathsByPredecessor) {
+  if (endpoints.size() < 2 ||
+      endpoints.size() > kMaxIFSSMergeArms || merge == nullptr)
+    return false;
+
+  controller = endpoints.front();
+  for (BasicBlock *endpoint : endpoints.drop_front()) {
+    controller =
+        dominators.findNearestCommonDominator(controller, endpoint);
+    if (controller == nullptr)
+      return false;
+  }
+  if (controller == merge ||
+      !postDominators.dominates(merge, controller))
+    return false;
+
+  auto *rootBranch = dyn_cast<BranchInst>(controller->getTerminator());
+  if (rootBranch == nullptr || !rootBranch->isConditional())
+    return false;
+  SmallPtrSet<BasicBlock *, kMaxVeritestingRegionBlocks> regionBlocks;
+  for (BasicBlock *successor : successors(controller))
+    if (!verifyAcyclicEasyRegion(successor, merge, &regionBlocks) ||
+        regionBlocks.size() > kMaxVeritestingRegionBlocks)
+      return false;
+
+  SmallPtrSet<BasicBlock *, kMaxVeritestingRegionBlocks> visiting;
+  unsigned pathCount = 0;
+  IFSSRegionPath path;
+  std::function<bool(BasicBlock *)> enumerate = [&](BasicBlock *block) {
+    if (block == nullptr || block == merge ||
+        !visiting.insert(block).second)
+      return false;
+    auto *branch = dyn_cast<BranchInst>(block->getTerminator());
+    if (branch == nullptr) {
+      visiting.erase(block);
+      return false;
+    }
+    if (branch->isUnconditional()) {
+      BasicBlock *successor = branch->getSuccessor(0);
+      if (successor == merge) {
+        if (++pathCount > kMaxIFSSRegionPaths) {
+          visiting.erase(block);
+          return false;
+        }
+        pathsByPredecessor[block].push_back(path);
+      } else if (!enumerate(successor)) {
+        visiting.erase(block);
+        return false;
+      }
+    } else {
+      for (unsigned successorIndex = 0; successorIndex < 2;
+           ++successorIndex) {
+        BasicBlock *successor = branch->getSuccessor(successorIndex);
+        if (successor == merge) {
+          // A conditional edge entering a block-keyed PHI requires edge
+          // splitting before it can be represented without ambiguity.
+          visiting.erase(block);
+          return false;
+        }
+        path.push_back({branch, successorIndex == 0});
+        bool valid = enumerate(successor);
+        path.pop_back();
+        if (!valid) {
+          visiting.erase(block);
+          return false;
+        }
+      }
+    }
+    visiting.erase(block);
+    return true;
+  };
+  if (!enumerate(controller))
+    return false;
+
+  SmallPtrSet<BasicBlock *, kMaxIFSSMergeArms> endpointSet;
+  for (BasicBlock *endpoint : endpoints)
+    if (!endpointSet.insert(endpoint).second ||
+        pathsByPredecessor.find(endpoint) == pathsByPredecessor.end())
+      return false;
+  return pathsByPredecessor.size() == endpoints.size();
+}
+
+} // namespace
+
+Symbolizer::Symbolizer(Module &M, Function &F, AAResults *aliasAnalysis,
+                       MemorySSA *memorySSA)
+    : runtime(M), dataLayout(M.getDataLayout()),
+      ptrBits(M.getDataLayout().getPointerSizeInBits()),
+      intPtrType(M.getDataLayout().getIntPtrType(M.getContext())),
+      scheduleMemoryTracing(envEnabled("SYMCC_DPOR_MEMORY")),
+      aliasAnalysis(aliasAnalysis), memorySSA(memorySSA) {
+  for (Argument &argument : F.args())
+    siteIds[&argument] = symcc::stableSiteId(argument);
+  for (BasicBlock &block : F) {
+    siteIds[&block] = symcc::stableSiteId(block);
+    for (Instruction &instruction : block) {
+      originalInstructions.insert(&instruction);
+      siteIds[&instruction] = symcc::stableSiteId(instruction);
+    }
+  }
+}
 
 void Symbolizer::symbolizeFunctionArguments(Function &F) {
   // The main function doesn't receive symbolic arguments.
@@ -42,19 +387,703 @@ void Symbolizer::symbolizeFunctionArguments(Function &F) {
 void Symbolizer::insertBasicBlockNotification(llvm::BasicBlock &B) {
   IRBuilder<> IRB(&*B.getFirstInsertionPt());
   IRB.CreateCall(runtime.notifyBasicBlock, getTargetPreferredInt(&B));
+  if (scheduleMemoryTracing)
+    IRB.CreateCall(runtime.notifyScheduleBlock, getTargetPreferredInt(&B));
+}
+
+bool Symbolizer::tryBuildImplicitFlowPHI(PHINode &phi,
+                                         PHINode &symbolicPHI,
+                                         DominatorTree &dominators,
+                                         PostDominatorTree &postDominators) {
+  if (phi.getNumIncomingValues() > 2)
+    return tryBuildMultiArmImplicitFlowPHI(
+        phi, symbolicPHI, dominators, postDominators);
+  if (phi.getNumIncomingValues() != 2)
+    return false;
+
+  Type *type = phi.getType();
+  if (!isSupportedMergedType(type))
+    return false;
+
+  BasicBlock *left = phi.getIncomingBlock(0);
+  BasicBlock *right = phi.getIncomingBlock(1);
+  BasicBlock *controller =
+      dominators.findNearestCommonDominator(left, right);
+  BasicBlock *merge = phi.getParent();
+  if (controller == nullptr || controller == merge ||
+      !postDominators.dominates(merge, controller))
+    return false;
+
+  auto *branch = dyn_cast<BranchInst>(controller->getTerminator());
+  if (branch != nullptr && branch->isConditional() &&
+      (branch->getMetadata("symcc.ifss_switch_shared") != nullptr ||
+       branch->getMetadata("symcc.ifss_force_partition") != nullptr))
+    return tryBuildMultiArmImplicitFlowPHI(
+        phi, symbolicPHI, dominators, postDominators);
+  if (branch == nullptr || !branch->isConditional() ||
+      getSymbolicExpression(branch->getCondition()) == nullptr)
+      return false;
+
+  BasicBlock *trueSuccessor = branch->getSuccessor(0);
+  BasicBlock *falseSuccessor = branch->getSuccessor(1);
+  if (!verifyAcyclicEasyRegion(trueSuccessor, merge) ||
+      !verifyAcyclicEasyRegion(falseSuccessor, merge))
+    return false;
+  bool trueSelectsLeft = dominators.dominates(trueSuccessor, left);
+  bool falseSelectsLeft = dominators.dominates(falseSuccessor, left);
+  bool trueSelectsRight = dominators.dominates(trueSuccessor, right);
+  bool falseSelectsRight = dominators.dominates(falseSuccessor, right);
+
+  Value *trueValue = nullptr;
+  Value *falseValue = nullptr;
+  if (trueSelectsLeft && !falseSelectsLeft && falseSelectsRight &&
+      !trueSelectsRight) {
+    trueValue = phi.getIncomingValue(0);
+    falseValue = phi.getIncomingValue(1);
+  } else if (trueSelectsRight && !falseSelectsRight && falseSelectsLeft &&
+             !trueSelectsLeft) {
+    trueValue = phi.getIncomingValue(1);
+    falseValue = phi.getIncomingValue(0);
+  } else {
+    return false;
+  }
+
+  auto insertIt = phi.getParent()->getFirstInsertionPt();
+  if (insertIt == phi.getParent()->end())
+    return false;
+  Instruction *insertBefore = &*insertIt;
+
+  Value *conditionExpr = getSymbolicExpression(branch->getCondition());
+  if (conditionExpr == nullptr ||
+      !canUseValueAt(branch->getCondition(), insertBefore, dominators) ||
+      !canUseValueAt(conditionExpr, insertBefore, dominators))
+    return false;
+
+  RegionValue trueRegion;
+  RegionValue falseRegion;
+  if (!trySynthesizeRegionValue(trueValue, insertBefore, controller,
+                                dominators, 0, trueRegion) ||
+      !trySynthesizeRegionValue(falseValue, insertBefore, controller,
+                                dominators, 0, falseRegion))
+    return false;
+
+  IRBuilder<> IRB(insertBefore);
+  SymbolicComputation computation;
+  if (trueRegion.computation.firstInstruction != nullptr)
+    computation.merge(trueRegion.computation);
+  if (falseRegion.computation.firstInstruction != nullptr)
+    computation.merge(falseRegion.computation);
+
+  auto regionArg = [](const RegionValue &source) {
+    return RegionRuntimeArg{
+        source.concreteValue, source.expressionValue, true,
+        source.computation.firstInstruction == nullptr ||
+            source.expressionValue == nullptr};
+  };
+  auto ite = forceBuildRuntimeCallWithExpressions(
+      IRB, runtime.buildIte,
+      {{branch->getCondition(), conditionExpr, true},
+       regionArg(trueRegion),
+       regionArg(falseRegion)});
+  computation.merge(ite);
+
+  symbolicPHI.replaceAllUsesWith(ite.lastInstruction);
+  registerSymbolicComputation(computation, &phi);
+  return true;
+}
+
+bool Symbolizer::tryBuildMultiArmImplicitFlowPHI(
+    PHINode &phi, PHINode &symbolicPHI, DominatorTree &dominators,
+    PostDominatorTree &postDominators) {
+  const unsigned arms = phi.getNumIncomingValues();
+  if (arms < 2 || arms > kMaxIFSSMergeArms ||
+      !isSupportedMergedType(phi.getType()))
+    return false;
+
+  BasicBlock *merge = phi.getParent();
+  SmallVector<BasicBlock *, kMaxIFSSMergeArms> endpoints;
+  endpoints.reserve(arms);
+  for (unsigned index = 0; index < arms; ++index)
+    endpoints.push_back(phi.getIncomingBlock(index));
+  BasicBlock *controller = nullptr;
+  IFSSRegionPaths pathsByPredecessor;
+  if (!buildIFSSRegionPartition(
+          endpoints, merge, dominators, postDominators, controller,
+          pathsByPredecessor))
+    return false;
+  auto *rootBranch = dyn_cast<BranchInst>(controller->getTerminator());
+  if (rootBranch == nullptr ||
+      getSymbolicExpression(rootBranch->getCondition()) == nullptr)
+    return false;
+
+  auto insertIt = merge->getFirstInsertionPt();
+  if (insertIt == merge->end())
+    return false;
+  Instruction *insertBefore = &*insertIt;
+  IRBuilder<> IRB(insertBefore);
+  auto rollback = [&]() {
+    auto instruction = merge->getFirstInsertionPt();
+    while (instruction != merge->end() && &*instruction != insertBefore)
+      instruction = instruction->eraseFromParent();
+    return false;
+  };
+
+  auto mergeIfAny = [](SymbolicComputation &target,
+                       const RegionValue &source) {
+    if (source.computation.firstInstruction != nullptr)
+      target.merge(source.computation);
+  };
+  auto regionArg = [](const RegionValue &source) {
+    return RegionRuntimeArg{
+        source.concreteValue, source.expressionValue, true,
+        source.computation.firstInstruction == nullptr ||
+            source.expressionValue == nullptr};
+  };
+  auto negate = [&](const RegionValue &source, RegionValue &result) {
+    result.concreteValue = IRB.CreateNot(source.concreteValue, "ifss.not");
+    result.computation = source.computation;
+    auto *trueExpression =
+        IRB.CreateCall(runtime.buildBool, {IRB.getInt1(true)});
+    result.computation.merge(
+        SymbolicComputation(trueExpression, trueExpression, {}));
+    auto expression = forceBuildRuntimeCallWithExpressions(
+        IRB, runtime.buildBoolXor,
+        {regionArg(source),
+         {IRB.getInt1(true), trueExpression, true, false}});
+    result.computation.merge(expression);
+    result.expressionValue = expression.lastInstruction;
+  };
+  auto combine = [&](const RegionValue &left, const RegionValue &right,
+                     bool conjunction, RegionValue &result) {
+    result.concreteValue =
+        conjunction
+            ? IRB.CreateAnd(left.concreteValue, right.concreteValue,
+                            "ifss.and")
+            : IRB.CreateOr(left.concreteValue, right.concreteValue,
+                           "ifss.or");
+    mergeIfAny(result.computation, left);
+    mergeIfAny(result.computation, right);
+    auto expression = forceBuildRuntimeCallWithExpressions(
+        IRB, conjunction ? runtime.buildBoolAnd : runtime.buildBoolOr,
+        {regionArg(left), regionArg(right)});
+    result.computation.merge(expression);
+    result.expressionValue = expression.lastInstruction;
+  };
+
+  SmallVector<Value *, kMaxVeritestingRegionBlocks> uniqueConditions;
+  SmallPtrSet<Value *, kMaxVeritestingRegionBlocks> seenConditions;
+  for (unsigned index = 0; index + 1 < arms; ++index)
+    for (const IFSSRegionPath &regionPath :
+         pathsByPredecessor[phi.getIncomingBlock(index)])
+      for (const IFSSPathStep &step : regionPath)
+        if (seenConditions.insert(step.branch->getCondition()).second)
+          uniqueConditions.push_back(step.branch->getCondition());
+
+  DenseMap<Value *, RegionValue> conditionCache;
+  SmallVector<SymbolicComputation, kMaxVeritestingRegionBlocks>
+      conditionComputations;
+  for (Value *conditionValue : uniqueConditions) {
+    RegionValue condition;
+    if (!trySynthesizeRegionValue(
+            conditionValue, insertBefore, controller, dominators, 0,
+            condition))
+      return rollback();
+    if (condition.computation.firstInstruction != nullptr) {
+      if (condition.computation.inputs.empty())
+        return rollback();
+      conditionComputations.push_back(condition.computation);
+      if (auto *expression =
+              dyn_cast_or_null<Instruction>(condition.expressionValue))
+        expression->setMetadata(
+            "symcc.ifss_condition",
+            MDNode::get(
+                conditionValue->getContext(),
+                {
+                    MDString::get(
+                        conditionValue->getContext(),
+                        "partition-condition-cache-v1"),
+                    ConstantAsMetadata::get(
+                        getTargetPreferredInt(conditionValue)),
+                }));
+    }
+    condition.computation = SymbolicComputation();
+    conditionCache[conditionValue] = condition;
+  }
+
+  SmallVector<RegionValue, kMaxIFSSMergeArms> predicates;
+  SmallVector<RegionValue, kMaxIFSSMergeArms> values;
+  predicates.reserve(arms - 1);
+  values.reserve(arms);
+  for (unsigned index = 0; index < arms; ++index) {
+    BasicBlock *incoming = phi.getIncomingBlock(index);
+    if (index + 1 < arms) {
+      RegionValue incomingPredicate;
+      bool haveIncomingPredicate = false;
+      for (const IFSSRegionPath &regionPath :
+           pathsByPredecessor[incoming]) {
+        RegionValue pathPredicate;
+        bool havePathPredicate = false;
+        for (const IFSSPathStep &step : regionPath) {
+          auto cached =
+              conditionCache.find(step.branch->getCondition());
+          if (cached == conditionCache.end())
+            return rollback();
+          RegionValue condition = cached->second;
+          RegionValue literal;
+          if (step.takeTrue)
+            literal = condition;
+          else
+            negate(condition, literal);
+          if (!havePathPredicate) {
+            pathPredicate = literal;
+            havePathPredicate = true;
+          } else {
+            RegionValue conjunction;
+            combine(pathPredicate, literal, true, conjunction);
+            pathPredicate = conjunction;
+          }
+        }
+        if (!havePathPredicate)
+          return rollback();
+        if (!haveIncomingPredicate) {
+          incomingPredicate = pathPredicate;
+          haveIncomingPredicate = true;
+        } else {
+          RegionValue disjunction;
+          combine(incomingPredicate, pathPredicate, false, disjunction);
+          incomingPredicate = disjunction;
+        }
+      }
+      if (!haveIncomingPredicate)
+        return rollback();
+      predicates.push_back(incomingPredicate);
+    }
+
+    RegionValue incomingValue;
+    if (!trySynthesizeRegionValue(
+            phi.getIncomingValue(index), insertBefore, controller, dominators,
+            0, incomingValue))
+      return rollback();
+    values.push_back(incomingValue);
+  }
+
+  RegionValue merged = values.back();
+  for (unsigned index = arms - 1; index-- > 0;) {
+    RegionValue next;
+    next.concreteValue =
+        IRB.CreateSelect(predicates[index].concreteValue,
+                         values[index].concreteValue, merged.concreteValue,
+                         "ifss.state");
+    mergeIfAny(next.computation, predicates[index]);
+    mergeIfAny(next.computation, values[index]);
+    mergeIfAny(next.computation, merged);
+    auto expression = forceBuildRuntimeCallWithExpressions(
+        IRB, runtime.buildIte,
+        {regionArg(predicates[index]), regionArg(values[index]),
+         regionArg(merged)});
+    next.computation.merge(expression);
+    next.expressionValue = expression.lastInstruction;
+    merged = next;
+  }
+
+  symbolicPHI.replaceAllUsesWith(merged.expressionValue);
+  for (const SymbolicComputation &condition : conditionComputations)
+    registerSymbolicComputation(condition);
+  registerSymbolicComputation(merged.computation, &phi);
+  return true;
+}
+
+bool Symbolizer::tryBuildImplicitFlowMemoryLoad(
+    LoadInst &load, DominatorTree &dominators,
+    PostDominatorTree &postDominators) {
+  if (aliasAnalysis == nullptr || memorySSA == nullptr || !load.isSimple() ||
+      !isSupportedMergedType(load.getType()))
+    return false;
+
+  auto *loadAccess =
+      dyn_cast_or_null<MemoryUse>(memorySSA->getMemoryAccess(&load));
+  auto *memoryPhi =
+      loadAccess == nullptr
+          ? nullptr
+          : dyn_cast<MemoryPhi>(loadAccess->getDefiningAccess());
+  const unsigned arms =
+      memoryPhi == nullptr ? 0 : memoryPhi->getNumIncomingValues();
+  if (arms < 2 || arms > kMaxIFSSMergeArms ||
+      memoryPhi->getBlock() != load.getParent())
+    return false;
+
+  SmallVector<StoreInst *, kMaxIFSSMergeArms> stores(arms, nullptr);
+  SmallVector<
+      SmallVector<Instruction *, kMaxIFSSMemoryDefChain>,
+      kMaxIFSSMergeArms>
+      skippedDefinitions(arms);
+  SmallVector<BasicBlock *, kMaxIFSSMergeArms> incomingBlocks(arms, nullptr);
+  MemoryLocation loadLocation = MemoryLocation::get(&load);
+  auto findMustAliasStore =
+      [&](MemoryAccess *access,
+          SmallVectorImpl<Instruction *> &skipped) -> StoreInst * {
+    while (auto *memoryDef = dyn_cast_or_null<MemoryDef>(access)) {
+      Instruction *instruction = memoryDef->getMemoryInst();
+      auto *store = dyn_cast_or_null<StoreInst>(instruction);
+      if ((store != nullptr && !store->isSimple()) ||
+          isa_and_nonnull<AtomicRMWInst, AtomicCmpXchgInst, FenceInst>(
+              instruction))
+        return nullptr;
+      if (store != nullptr &&
+          aliasAnalysis->alias(
+              loadLocation, MemoryLocation::get(store)) ==
+              AliasResult::MustAlias) {
+        if (!store->isSimple() ||
+            store->getValueOperand()->getType() != load.getType() ||
+            isa<UndefValue, PoisonValue>(store->getValueOperand()))
+          return nullptr;
+        return store;
+      }
+      if (instruction == nullptr ||
+          mayModifyLocationConservatively(
+              *aliasAnalysis, *instruction, loadLocation) ||
+          skipped.size() >= kMaxIFSSMemoryDefChain)
+        return nullptr;
+      skipped.push_back(instruction);
+      access = memoryDef->getDefiningAccess();
+    }
+    return nullptr;
+  };
+  for (unsigned index = 0; index < arms; ++index) {
+    stores[index] = findMustAliasStore(
+        memoryPhi->getIncomingValue(index), skippedDefinitions[index]);
+    incomingBlocks[index] = memoryPhi->getIncomingBlock(index);
+    if (stores[index] == nullptr ||
+        stores[index]->getParent() != incomingBlocks[index] ||
+        originalInstructions.count(stores[index]) == 0)
+      return false;
+    auto *terminator =
+        dyn_cast<BranchInst>(incomingBlocks[index]->getTerminator());
+    if (terminator == nullptr || !terminator->isUnconditional() ||
+        terminator->getSuccessor(0) != load.getParent())
+      return false;
+  }
+
+  BasicBlock *merge = load.getParent();
+  BasicBlock *controller = nullptr;
+  IFSSRegionPaths pathsByPredecessor;
+  if (!buildIFSSRegionPartition(
+          incomingBlocks, merge, dominators, postDominators, controller,
+          pathsByPredecessor))
+    return false;
+  auto *rootBranch = dyn_cast<BranchInst>(controller->getTerminator());
+  if (rootBranch == nullptr ||
+      getSymbolicExpression(rootBranch->getCondition()) == nullptr)
+    return false;
+
+  SmallPtrSet<BasicBlock *, kMaxVeritestingRegionBlocks> regionBlocks;
+  if (!verifyAcyclicEasyRegion(rootBranch->getSuccessor(0), merge,
+                               &regionBlocks) ||
+      !verifyAcyclicEasyRegion(rootBranch->getSuccessor(1), merge,
+                               &regionBlocks))
+    return false;
+  for (BasicBlock *block : regionBlocks) {
+    for (Instruction &instruction : *block) {
+      if (std::find(stores.begin(), stores.end(), &instruction) !=
+              stores.end() ||
+          originalInstructions.count(&instruction) == 0 ||
+          !instruction.mayWriteToMemory())
+        continue;
+      if (memorySSA->getMemoryAccess(&instruction) == nullptr ||
+          mayModifyLocationConservatively(
+              *aliasAnalysis, instruction, loadLocation))
+        return false;
+    }
+  }
+
+  Instruction *rollbackAnchor = load.getPrevNode();
+  auto rollback = [&]() {
+    Instruction *instruction =
+        rollbackAnchor == nullptr ? &load.getParent()->front()
+                                  : rollbackAnchor->getNextNode();
+    while (instruction != &load) {
+      Instruction *next = instruction->getNextNode();
+      instruction->eraseFromParent();
+      instruction = next;
+    }
+    return false;
+  };
+
+  auto mergeIfAny = [](SymbolicComputation &target,
+                       const RegionValue &source) {
+    if (source.computation.firstInstruction != nullptr)
+      target.merge(source.computation);
+  };
+  auto regionArg = [](const RegionValue &source) {
+    return RegionRuntimeArg{
+        source.concreteValue, source.expressionValue, true,
+        source.computation.firstInstruction == nullptr ||
+            source.expressionValue == nullptr};
+  };
+
+  IRBuilder<> IRB(&load);
+  auto negate = [&](const RegionValue &source, RegionValue &result) {
+    result.concreteValue =
+        IRB.CreateNot(source.concreteValue, "ifss.memory.not");
+    result.computation = source.computation;
+    auto *trueExpression =
+        IRB.CreateCall(runtime.buildBool, {IRB.getInt1(true)});
+    result.computation.merge(
+        SymbolicComputation(trueExpression, trueExpression, {}));
+    auto expression = forceBuildRuntimeCallWithExpressions(
+        IRB, runtime.buildBoolXor,
+        {regionArg(source),
+         {IRB.getInt1(true), trueExpression, true, false}});
+    result.computation.merge(expression);
+    result.expressionValue = expression.lastInstruction;
+  };
+  auto combine = [&](const RegionValue &left, const RegionValue &right,
+                     bool conjunction, RegionValue &result) {
+    result.concreteValue =
+        conjunction
+            ? IRB.CreateAnd(left.concreteValue, right.concreteValue,
+                            "ifss.memory.and")
+            : IRB.CreateOr(left.concreteValue, right.concreteValue,
+                           "ifss.memory.or");
+    mergeIfAny(result.computation, left);
+    mergeIfAny(result.computation, right);
+    auto expression = forceBuildRuntimeCallWithExpressions(
+        IRB, conjunction ? runtime.buildBoolAnd : runtime.buildBoolOr,
+        {regionArg(left), regionArg(right)});
+    result.computation.merge(expression);
+    result.expressionValue = expression.lastInstruction;
+  };
+
+  SmallVector<Value *, kMaxVeritestingRegionBlocks> uniqueConditions;
+  SmallPtrSet<Value *, kMaxVeritestingRegionBlocks> seenConditions;
+  for (unsigned index = 0; index + 1 < arms; ++index)
+    for (const IFSSRegionPath &regionPath :
+         pathsByPredecessor[incomingBlocks[index]])
+      for (const IFSSPathStep &step : regionPath)
+        if (seenConditions.insert(step.branch->getCondition()).second)
+          uniqueConditions.push_back(step.branch->getCondition());
+
+  DenseMap<Value *, RegionValue> conditionCache;
+  SmallVector<SymbolicComputation, kMaxVeritestingRegionBlocks>
+      conditionComputations;
+  for (Value *conditionValue : uniqueConditions) {
+    RegionValue condition;
+    if (!trySynthesizeRegionValue(
+            conditionValue, &load, controller, dominators, 0, condition))
+      return rollback();
+    if (condition.computation.firstInstruction != nullptr) {
+      if (condition.computation.inputs.empty())
+        return rollback();
+      conditionComputations.push_back(condition.computation);
+      if (auto *expression =
+              dyn_cast_or_null<Instruction>(condition.expressionValue))
+        expression->setMetadata(
+            "symcc.ifss_condition",
+            MDNode::get(
+                conditionValue->getContext(),
+                {
+                    MDString::get(
+                        conditionValue->getContext(),
+                        "partition-condition-cache-v1"),
+                    ConstantAsMetadata::get(
+                        getTargetPreferredInt(conditionValue)),
+                }));
+    }
+    condition.computation = SymbolicComputation();
+    conditionCache[conditionValue] = condition;
+  }
+
+  SmallVector<RegionValue, kMaxIFSSMergeArms> predicates;
+  SmallVector<RegionValue, kMaxIFSSMergeArms> values;
+  predicates.reserve(arms - 1);
+  values.reserve(arms);
+  for (unsigned index = 0; index < arms; ++index) {
+    BasicBlock *incoming = incomingBlocks[index];
+    if (index + 1 < arms) {
+      RegionValue incomingPredicate;
+      bool haveIncomingPredicate = false;
+      for (const IFSSRegionPath &regionPath :
+           pathsByPredecessor[incoming]) {
+        RegionValue pathPredicate;
+        bool havePathPredicate = false;
+        for (const IFSSPathStep &step : regionPath) {
+          auto cached =
+              conditionCache.find(step.branch->getCondition());
+          if (cached == conditionCache.end())
+            return rollback();
+          RegionValue condition = cached->second;
+          RegionValue literal;
+          if (step.takeTrue)
+            literal = condition;
+          else
+            negate(condition, literal);
+          if (!havePathPredicate) {
+            pathPredicate = literal;
+            havePathPredicate = true;
+          } else {
+            RegionValue conjunction;
+            combine(pathPredicate, literal, true, conjunction);
+            pathPredicate = conjunction;
+          }
+        }
+        if (!havePathPredicate)
+          return rollback();
+        if (!haveIncomingPredicate) {
+          incomingPredicate = pathPredicate;
+          haveIncomingPredicate = true;
+        } else {
+          RegionValue disjunction;
+          combine(incomingPredicate, pathPredicate, false, disjunction);
+          incomingPredicate = disjunction;
+        }
+      }
+      if (!haveIncomingPredicate)
+        return rollback();
+      predicates.push_back(incomingPredicate);
+    }
+
+    RegionValue value;
+    if (!trySynthesizeRegionValue(
+            stores[index]->getValueOperand(), &load, controller, dominators,
+            0, value))
+      return rollback();
+    values.push_back(value);
+  }
+
+  RegionValue merged = values.back();
+  for (unsigned index = arms - 1; index-- > 0;) {
+    RegionValue next;
+    next.concreteValue =
+        IRB.CreateSelect(predicates[index].concreteValue,
+                         values[index].concreteValue, merged.concreteValue,
+                         "ifss.memory.state.value");
+    mergeIfAny(next.computation, predicates[index]);
+    mergeIfAny(next.computation, values[index]);
+    mergeIfAny(next.computation, merged);
+    auto expression = forceBuildRuntimeCallWithExpressions(
+        IRB, runtime.buildIte,
+        {regionArg(predicates[index]), regionArg(values[index]),
+         regionArg(merged)});
+    next.computation.merge(expression);
+    next.expressionValue = expression.lastInstruction;
+    merged = next;
+  }
+  auto *mergedInstruction = cast<Instruction>(merged.expressionValue);
+  mergedInstruction->setName("ifss.memory.state");
+
+  LLVMContext &context = load.getContext();
+  SmallVector<Metadata *, 96> proof;
+  int trueIndex = -1;
+  int falseIndex = -1;
+  const bool forcedPartition =
+      rootBranch->getMetadata("symcc.ifss_switch_shared") != nullptr ||
+      rootBranch->getMetadata("symcc.ifss_force_partition") != nullptr;
+  if (arms == 2 && !forcedPartition) {
+    for (unsigned index = 0; index < arms; ++index) {
+      bool selectedByTrue = dominators.dominates(
+          rootBranch->getSuccessor(0), incomingBlocks[index]);
+      bool selectedByFalse = dominators.dominates(
+          rootBranch->getSuccessor(1), incomingBlocks[index]);
+      if (selectedByTrue && !selectedByFalse)
+        trueIndex = static_cast<int>(index);
+      if (selectedByFalse && !selectedByTrue)
+        falseIndex = static_cast<int>(index);
+    }
+  }
+  if (trueIndex >= 0 && falseIndex >= 0 && trueIndex != falseIndex) {
+    const auto &trueSkipped = skippedDefinitions[trueIndex];
+    const auto &falseSkipped = skippedDefinitions[falseIndex];
+    bool hasSkippedDefinitions =
+        !trueSkipped.empty() || !falseSkipped.empty();
+    proof.push_back(MDString::get(
+        context, hasSkippedDefinitions ? "must-alias-memoryssa-chain-v1"
+                                       : "must-alias-memoryssa-v1"));
+    proof.push_back(
+        ConstantAsMetadata::get(getTargetPreferredInt(&load)));
+    proof.push_back(
+        ConstantAsMetadata::get(getTargetPreferredInt(rootBranch)));
+    proof.push_back(ConstantAsMetadata::get(
+        getTargetPreferredInt(stores[trueIndex])));
+    proof.push_back(ConstantAsMetadata::get(
+        getTargetPreferredInt(stores[falseIndex])));
+    if (hasSkippedDefinitions) {
+      proof.push_back(ConstantAsMetadata::get(ConstantInt::get(
+          Type::getInt32Ty(context), trueSkipped.size())));
+      for (Instruction *instruction : trueSkipped)
+        proof.push_back(
+            ConstantAsMetadata::get(getTargetPreferredInt(instruction)));
+      proof.push_back(ConstantAsMetadata::get(ConstantInt::get(
+          Type::getInt32Ty(context), falseSkipped.size())));
+      for (Instruction *instruction : falseSkipped)
+        proof.push_back(
+            ConstantAsMetadata::get(getTargetPreferredInt(instruction)));
+    }
+  } else {
+    proof.push_back(
+        MDString::get(context, "must-alias-memoryssa-multi-v1"));
+    proof.push_back(
+        ConstantAsMetadata::get(getTargetPreferredInt(&load)));
+    proof.push_back(
+        ConstantAsMetadata::get(getTargetPreferredInt(rootBranch)));
+    proof.push_back(ConstantAsMetadata::get(
+        ConstantInt::get(Type::getInt32Ty(context), arms)));
+    for (unsigned index = 0; index < arms; ++index) {
+      proof.push_back(ConstantAsMetadata::get(
+          getTargetPreferredInt(incomingBlocks[index])));
+      proof.push_back(
+          ConstantAsMetadata::get(getTargetPreferredInt(stores[index])));
+      proof.push_back(ConstantAsMetadata::get(ConstantInt::get(
+          Type::getInt32Ty(context),
+          pathsByPredecessor[incomingBlocks[index]].size())));
+      proof.push_back(ConstantAsMetadata::get(ConstantInt::get(
+          Type::getInt32Ty(context), skippedDefinitions[index].size())));
+      for (Instruction *instruction : skippedDefinitions[index])
+        proof.push_back(
+            ConstantAsMetadata::get(getTargetPreferredInt(instruction)));
+    }
+  }
+  mergedInstruction->setMetadata(
+      "symcc.ifss_memory", MDNode::get(context, proof));
+
+  Value *oldExpression = getSymbolicExpression(&load);
+  if (oldExpression == nullptr)
+    return rollback();
+  oldExpression->replaceAllUsesWith(merged.expressionValue);
+  for (const SymbolicComputation &condition : conditionComputations)
+    registerSymbolicComputation(condition);
+  registerSymbolicComputation(merged.computation, &load);
+  return true;
 }
 
 void Symbolizer::finalizePHINodes() {
   SmallPtrSet<PHINode *, 32> nodesToErase;
+  Function *function = !phiNodes.empty()
+                           ? phiNodes.front()->getFunction()
+                           : (!memoryMergeLoads.empty()
+                                  ? memoryMergeLoads.front()->getFunction()
+                                  : nullptr);
+  std::optional<DominatorTree> dominators;
+  std::optional<PostDominatorTree> postDominators;
+  if (function != nullptr) {
+    dominators.emplace(*function);
+    postDominators.emplace(*function);
+  }
 
   for (auto *phi : phiNodes) {
     auto symbolicPHI = cast<PHINode>(symbolicExpressions[phi]);
 
-    // A PHI node that receives only compile-time constants can be replaced by
-    // a null expression.
-    if (std::all_of(phi->op_begin(), phi->op_end(), [this](Value *input) {
+    bool allConcrete =
+        std::all_of(phi->op_begin(), phi->op_end(), [this](Value *input) {
           return (getSymbolicExpression(input) == nullptr);
-        })) {
+        });
+    if (dominators && postDominators &&
+        tryBuildImplicitFlowPHI(*phi, *symbolicPHI, *dominators,
+                                *postDominators)) {
+      nodesToErase.insert(symbolicPHI);
+      continue;
+    }
+
+    if (allConcrete) {
       nodesToErase.insert(symbolicPHI);
       continue;
     }
@@ -66,6 +1095,11 @@ void Symbolizer::finalizePHINodes() {
           getSymbolicExpressionOrNull(phi->getIncomingValue(incoming)));
     }
   }
+
+  if (dominators && postDominators)
+    for (LoadInst *load : memoryMergeLoads)
+      tryBuildImplicitFlowMemoryLoad(
+          *load, *dominators, *postDominators);
 
   for (auto *symbolicPHI : nodesToErase) {
     symbolicPHI->replaceAllUsesWith(
@@ -337,6 +1371,38 @@ void Symbolizer::handleIntrinsicCall(CallBase &I) {
     registerSymbolicComputation(abs, &I);
     break;
   }
+  case Intrinsic::smin:
+  case Intrinsic::smax:
+  case Intrinsic::umin:
+  case Intrinsic::umax: {
+    if (!I.getType()->isIntegerTy()) {
+      errs() << "Warning: unhandled vector LLVM intrinsic "
+             << callee->getName() << "; the result will be concretized\n";
+      break;
+    }
+    IRBuilder<> IRB(&I);
+    SymFnT handler;
+    switch (I.getIntrinsicID()) {
+    case Intrinsic::smin:
+      handler = runtime.buildSignedMin;
+      break;
+    case Intrinsic::smax:
+      handler = runtime.buildSignedMax;
+      break;
+    case Intrinsic::umin:
+      handler = runtime.buildUnsignedMin;
+      break;
+    case Intrinsic::umax:
+      handler = runtime.buildUnsignedMax;
+      break;
+    default:
+      llvm_unreachable("Unexpected integer min/max intrinsic");
+    }
+    auto extremum =
+        buildRuntimeCall(IRB, handler, {I.getOperand(0), I.getOperand(1)});
+    registerSymbolicComputation(extremum, &I);
+    break;
+  }
 #endif
   case Intrinsic::eh_typeid_for:
     // This intrinsic returns a constant for our purposes.
@@ -435,24 +1501,65 @@ void Symbolizer::visitUnaryOperator(UnaryOperator &I) {
   registerSymbolicComputation(runtimeCall, &I);
 }
 
+void Symbolizer::visitFreezeInst(FreezeInst &I) {
+  // SymCC does not maintain a separate poison lattice. For every value that
+  // already has a symbolic expression, freeze is therefore the identity on
+  // that expression while LLVM retains the concrete execution semantics.
+  if (auto *expression = getSymbolicExpression(I.getOperand(0)))
+    symbolicExpressions[&I] = expression;
+}
+
+void Symbolizer::instrumentValueProfileForPathSite(
+    IRBuilder<> &IRB, Value *condition, Instruction &site) {
+  auto *comparison = dyn_cast<ICmpInst>(condition);
+  if (comparison == nullptr)
+    return;
+  auto *integer_type = dyn_cast<IntegerType>(
+      comparison->getOperand(0)->getType());
+  auto *left_constant = dyn_cast<ConstantInt>(comparison->getOperand(0));
+  auto *right_constant = dyn_cast<ConstantInt>(comparison->getOperand(1));
+  Value *concrete = nullptr;
+  if (left_constant != nullptr && right_constant == nullptr)
+    concrete = comparison->getOperand(1);
+  else if (right_constant != nullptr && left_constant == nullptr)
+    concrete = comparison->getOperand(0);
+  if (integer_type == nullptr || concrete == nullptr ||
+      integer_type->getBitWidth() > 64)
+    return;
+  Value *symbolic = getSymbolicExpression(condition);
+  if (symbolic == nullptr)
+    return;
+  IRB.CreateCall(runtime.notifyValueProfile,
+                 {getTargetPreferredInt(&site),
+                  IRB.CreateZExtOrTrunc(concrete, IRB.getInt64Ty()),
+                  IRB.getInt8(integer_type->getBitWidth()), symbolic});
+}
+
 void Symbolizer::visitSelectInst(SelectInst &I) {
-  // Select is like the ternary operator ("?:") in C. We push the (potentially
-  // negated) condition to the path constraints and copy the symbolic
-  // expression over from the chosen argument.
+  // Select is like the ternary operator ("?:") in C. Record the concrete
+  // condition as a path choice, but preserve both arms in the value expression.
+  // Keeping the ITE is essential for later targets whose feasibility requires
+  // changing this earlier choice.
 
   IRBuilder<> IRB(&I);
-  auto runtimeCall = buildRuntimeCall(IRB, runtime.pushPathConstraint,
-                                      {{I.getCondition(), true},
-                                       {I.getCondition(), false},
-                                       {getTargetPreferredInt(&I), false}});
-  registerSymbolicComputation(runtimeCall);
-  if (getSymbolicExpression(I.getTrueValue()) ||
-      getSymbolicExpression(I.getFalseValue())) {
-    auto *data = IRB.CreateSelect(
-        I.getCondition(), getSymbolicExpressionOrNull(I.getTrueValue()),
-        getSymbolicExpressionOrNull(I.getFalseValue()));
-    symbolicExpressions[&I] = data;
+  // Hydra-generated selects replace one deliberately eliminated expensive
+  // branch. They still need an ITE value, but turning each inserted operand
+  // select back into a solver path choice would recreate the fork fan-out that
+  // the control-flow transformation removed.
+  if (I.getMetadata("symcc.hydra_select") == nullptr) {
+    instrumentValueProfileForPathSite(IRB, I.getCondition(), I);
+    auto pathConstraint = buildRuntimeCall(
+        IRB, runtime.pushPathConstraint,
+        {{I.getCondition(), true},
+         {I.getCondition(), false},
+         {getTargetPreferredInt(&I), false}});
+    registerSymbolicComputation(pathConstraint);
   }
+
+  auto ite = buildRuntimeCall(
+      IRB, runtime.buildIte,
+      {I.getCondition(), I.getTrueValue(), I.getFalseValue()});
+  registerSymbolicComputation(ite, &I);
 }
 
 void Symbolizer::visitCmpInst(CmpInst &I) {
@@ -460,6 +1567,60 @@ void Symbolizer::visitCmpInst(CmpInst &I) {
   // simply include either in the resulting expression.
 
   IRBuilder<> IRB(&I);
+  // Data Coverage distinguishes immediate predicates from predicates whose
+  // operands originate in static storage. The runtime filters dynamic origins
+  // against the module object registry.
+  if (isa<ICmpInst>(I)) {
+    auto *integerType = dyn_cast<IntegerType>(I.getOperand(0)->getType());
+    auto *leftConstant = dyn_cast<ConstantInt>(I.getOperand(0));
+    auto *rightConstant = dyn_cast<ConstantInt>(I.getOperand(1));
+    Value *leftOrigin = findDataOrigin(I.getOperand(0));
+    Value *rightOrigin = findDataOrigin(I.getOperand(1));
+    ConstantInt *constant = nullptr;
+    Value *concrete = nullptr;
+    if (leftConstant && !rightConstant) {
+      constant = leftConstant;
+      concrete = I.getOperand(1);
+    } else if (rightConstant && !leftConstant) {
+      constant = rightConstant;
+      concrete = I.getOperand(0);
+    }
+    if (integerType && integerType->getBitWidth() <= 64) {
+      auto bits = integerType->getBitWidth();
+      if (leftOrigin != nullptr || rightOrigin != nullptr) {
+        auto *bytePointer = IRB.getInt8Ty()->getPointerTo();
+        auto *nullOrigin = ConstantPointerNull::get(
+            cast<PointerType>(bytePointer));
+        IRB.CreateCall(
+            runtime.notifyDataCompareExtended,
+            {
+                getTargetPreferredInt(&I),
+                IRB.CreateZExtOrTrunc(I.getOperand(0), IRB.getInt64Ty()),
+                IRB.CreateZExtOrTrunc(I.getOperand(1), IRB.getInt64Ty()),
+                leftOrigin != nullptr
+                    ? IRB.CreatePointerCast(leftOrigin, bytePointer)
+                    : nullOrigin,
+                rightOrigin != nullptr
+                    ? IRB.CreatePointerCast(rightOrigin, bytePointer)
+                    : nullOrigin,
+                IRB.getInt8(bits),
+                IRB.getInt8(
+                    I.getPredicate() == CmpInst::ICMP_EQ ||
+                            I.getPredicate() == CmpInst::ICMP_NE
+                        ? 0
+                        : 1),
+            });
+      }
+      if (constant != nullptr) {
+        auto *concrete64 =
+            IRB.CreateZExtOrTrunc(concrete, IRB.getInt64Ty());
+        IRB.CreateCall(runtime.notifyDataCompare,
+                       {getTargetPreferredInt(&I), concrete64,
+                        IRB.getInt64(constant->getValue().getZExtValue()),
+                        IRB.getInt8(bits)});
+      }
+    }
+  }
   SymFnT handler = runtime.comparisonHandlers.at(I.getPredicate());
   assert(handler && "Unable to handle icmp/fcmp variant");
   auto runtimeCall =
@@ -491,6 +1652,22 @@ void Symbolizer::visitBranchInst(BranchInst &I) {
     return;
 
   IRBuilder<> IRB(&I);
+  instrumentValueProfileForPathSite(IRB, I.getCondition(), I);
+  if (scheduleMemoryTracing) {
+    Value *successor = IRB.CreateSelect(
+        I.getCondition(),
+        ConstantInt::get(
+            intPtrType, symcc::stableSiteId(*I.getSuccessor(0))),
+        ConstantInt::get(
+            intPtrType, symcc::stableSiteId(*I.getSuccessor(1))));
+    IRB.CreateCall(
+        runtime.notifyScheduleBranch,
+        {
+            getTargetPreferredInt(&I),
+            IRB.CreateZExt(I.getCondition(), IRB.getInt64Ty()),
+            successor,
+        });
+  }
   auto runtimeCall = buildRuntimeCall(IRB, runtime.pushPathConstraint,
                                       {{I.getCondition(), true},
                                        {I.getCondition(), false},
@@ -531,9 +1708,46 @@ void Symbolizer::visitLoadInst(LoadInst &I) {
   IRBuilder<> IRB(&I);
 
   auto *addr = I.getPointerOperand();
+  auto *dataType = I.getType();
+  uint64_t byteWidth = typeStoreBytes(dataLayout, dataType);
+  if (scheduleMemoryTracing && byteWidth != 0) {
+    Value *scheduleAddress =
+        IRB.CreatePointerCast(addr, IRB.getInt8Ty()->getPointerTo());
+    if (I.isAtomic()) {
+      if (I.getMetadata(kScheduleAtomicMetadata) == nullptr)
+        IRB.CreateCall(
+            runtime.notifyScheduleAtomic,
+            {
+                scheduleAddress,
+                ConstantInt::get(intPtrType, byteWidth),
+                IRB.getInt8(0),
+                IRB.getInt8(scheduleAtomicOrder(I.getOrdering())),
+                IRB.getInt8(0),
+                IRB.getInt8(0),
+            });
+    } else if (!I.isVolatile()) {
+      IRB.CreateCall(
+          runtime.notifyScheduleRead,
+          {
+              scheduleAddress,
+              ConstantInt::get(intPtrType, byteWidth),
+          });
+    }
+  }
+  if (!reachesIntegerComparison(&I)) {
+    if (byteWidth != 0 && byteWidth <= UINT32_MAX / 8) {
+      IRB.CreateCall(
+          runtime.notifyDataLoad,
+          {
+              getTargetPreferredInt(&I),
+              IRB.CreatePointerCast(
+                  addr, IRB.getInt8Ty()->getPointerTo()),
+              IRB.getInt32(static_cast<uint32_t>(byteWidth * 8)),
+          });
+    }
+  }
   tryAlternative(IRB, addr);
 
-  auto *dataType = I.getType();
   auto *data = IRB.CreateCall(
       runtime.readMemory,
       {IRB.CreatePtrToInt(addr, intPtrType),
@@ -541,6 +1755,9 @@ void Symbolizer::visitLoadInst(LoadInst &I) {
        IRB.getInt1(isLittleEndian(dataType) ? 1 : 0)});
 
   symbolicExpressions[&I] = convertBitVectorExprForType(IRB, data, dataType);
+  if (memorySSA != nullptr && I.isSimple() &&
+      I.getMetadata("symcc.ifss_continuation_memory_source") == nullptr)
+    memoryMergeLoads.push_back(&I);
 }
 
 void Symbolizer::visitStoreInst(StoreInst &I) {
@@ -554,16 +1771,110 @@ void Symbolizer::visitStoreInst(StoreInst &I) {
   // runtime function we call can handle null expressions.
 
   auto V = I.getValueOperand();
+  uint64_t byteWidth = typeStoreBytes(dataLayout, V->getType());
+  if (scheduleMemoryTracing && byteWidth != 0) {
+    Value *scheduleAddress = IRB.CreatePointerCast(
+        I.getPointerOperand(), IRB.getInt8Ty()->getPointerTo());
+    if (I.isAtomic()) {
+      if (I.getMetadata(kScheduleAtomicMetadata) == nullptr)
+        IRB.CreateCall(
+            runtime.notifyScheduleAtomic,
+            {
+                scheduleAddress,
+                ConstantInt::get(intPtrType, byteWidth),
+                IRB.getInt8(1),
+                IRB.getInt8(scheduleAtomicOrder(I.getOrdering())),
+                IRB.getInt8(0),
+                IRB.getInt8(0),
+            });
+    } else if (!I.isVolatile()) {
+      IRB.CreateCall(
+          runtime.notifyScheduleWrite,
+          {
+              scheduleAddress,
+              ConstantInt::get(intPtrType, byteWidth),
+          });
+    }
+  }
   auto maybeConversion =
       convertExprForTypeToBitVectorExpr(IRB, V, getSymbolicExpression(V));
 
   IRB.CreateCall(
       runtime.writeMemory,
       {IRB.CreatePtrToInt(I.getPointerOperand(), intPtrType),
-       ConstantInt::get(intPtrType, dataLayout.getTypeStoreSize(V->getType())),
+       ConstantInt::get(intPtrType, byteWidth),
        maybeConversion ? maybeConversion->lastInstruction
                        : getSymbolicExpressionOrNull(V),
        IRB.getInt1(isLittleEndian(V->getType()) ? 1 : 0)});
+}
+
+void Symbolizer::visitAtomicRMWInst(AtomicRMWInst &I) {
+  if (!scheduleMemoryTracing ||
+      I.getMetadata(kScheduleAtomicMetadata) != nullptr)
+    return;
+  IRBuilder<> IRB(&I);
+  uint64_t byteWidth = typeStoreBytes(
+      dataLayout, I.getValOperand()->getType());
+  if (byteWidth == 0)
+    return;
+  IRB.CreateCall(
+      runtime.notifyScheduleAtomic,
+      {
+          IRB.CreatePointerCast(
+              I.getPointerOperand(), IRB.getInt8Ty()->getPointerTo()),
+          ConstantInt::get(intPtrType, byteWidth),
+          IRB.getInt8(2),
+          IRB.getInt8(scheduleAtomicOrder(I.getOrdering())),
+          IRB.getInt8(0),
+          IRB.getInt8(static_cast<uint8_t>(I.getOperation())),
+      });
+}
+
+void Symbolizer::visitAtomicCmpXchgInst(AtomicCmpXchgInst &I) {
+  if (!scheduleMemoryTracing ||
+      I.getMetadata(kScheduleAtomicMetadata) != nullptr)
+    return;
+  IRBuilder<> before(&I);
+  uint64_t byteWidth = typeStoreBytes(
+      dataLayout, I.getCompareOperand()->getType());
+  if (byteWidth == 0)
+    return;
+  Value *address = before.CreatePointerCast(
+      I.getPointerOperand(), before.getInt8Ty()->getPointerTo());
+  Value *group = before.CreateCall(
+      runtime.notifyScheduleAtomic,
+      {
+          address,
+          ConstantInt::get(intPtrType, byteWidth),
+          before.getInt8(3),
+          before.getInt8(scheduleAtomicOrder(I.getSuccessOrdering())),
+          before.getInt8(scheduleAtomicOrder(I.getFailureOrdering())),
+          before.getInt8(0),
+      });
+  IRBuilder<> after(I.getNextNode());
+  Value *success = after.CreateExtractValue(&I, 1);
+  after.CreateCall(
+      runtime.notifyScheduleAtomicResult,
+      {group, address, success});
+}
+
+void Symbolizer::visitFenceInst(FenceInst &I) {
+  if (!scheduleMemoryTracing ||
+      I.getMetadata(kScheduleAtomicMetadata) != nullptr)
+    return;
+  IRBuilder<> IRB(&I);
+  Value *site = IRB.CreateIntToPtr(
+      getTargetPreferredInt(&I), IRB.getInt8Ty()->getPointerTo());
+  IRB.CreateCall(
+      runtime.notifyScheduleAtomic,
+      {
+          site,
+          ConstantInt::get(intPtrType, 0),
+          IRB.getInt8(4),
+          IRB.getInt8(scheduleAtomicOrder(I.getOrdering())),
+          IRB.getInt8(0),
+          IRB.getInt8(0),
+      });
 }
 
 void Symbolizer::visitGetElementPtrInst(GetElementPtrInst &I) {
@@ -593,11 +1904,64 @@ void Symbolizer::visitGetElementPtrInst(GetElementPtrInst &I) {
   IRBuilder<> IRB(&I);
   SymbolicComputation symbolicComputation;
   Value *currentAddress = I.getPointerOperand();
+  const unsigned addressSpace = I.getPointerAddressSpace();
+  const unsigned pointerWidth =
+      dataLayout.getPointerSizeInBits(addressSpace);
+  const unsigned indexWidth = dataLayout.getIndexSizeInBits(addressSpace);
+  if (dataLayout.isNonIntegralAddressSpace(addressSpace) ||
+      pointerWidth != ptrBits || indexWidth == 0 || indexWidth > pointerWidth) {
+    errs() << "Warning: unsupported GEP pointer/index layout " << I
+           << "; the result will be concretized\n";
+    return;
+  }
+  auto *indexType = IRB.getIntNTy(indexWidth);
+
+  auto appendAddressOffset = [&](Value *offset, bool lookupOffsetExpression) {
+    const bool lookupCurrentExpression =
+        currentAddress == I.getPointerOperand();
+    if (indexWidth == pointerWidth) {
+      symbolicComputation.merge(forceBuildRuntimeCall(
+          IRB, runtime.binaryOperatorHandlers[Instruction::Add],
+          {{offset, lookupOffsetExpression},
+           {currentAddress, lookupCurrentExpression}}));
+      currentAddress = symbolicComputation.lastInstruction;
+      return;
+    }
+
+    // DataLayout may use fewer address bits for GEP arithmetic than for the
+    // pointer representation. LLVM updates only that low index-width slice;
+    // carry out of the slice must not alter the pointer's high bits.
+    symbolicComputation.merge(forceBuildRuntimeCall(
+        IRB, runtime.buildTrunc,
+        {{currentAddress, lookupCurrentExpression},
+         {IRB.getInt8(indexWidth), false}}));
+    Value *lowAddress = symbolicComputation.lastInstruction;
+    symbolicComputation.merge(forceBuildRuntimeCall(
+        IRB, runtime.binaryOperatorHandlers[Instruction::Add],
+        {{lowAddress, false}, {offset, lookupOffsetExpression}}));
+    Value *lowSum = symbolicComputation.lastInstruction;
+
+    APInt highMask = APInt::getHighBitsSet(
+        pointerWidth, pointerWidth - indexWidth);
+    symbolicComputation.merge(forceBuildRuntimeCall(
+        IRB, runtime.binaryOperatorHandlers[Instruction::And],
+        {{currentAddress, lookupCurrentExpression},
+         {ConstantInt::get(intPtrType, highMask), true}}));
+    Value *highAddress = symbolicComputation.lastInstruction;
+    symbolicComputation.merge(forceBuildRuntimeCall(
+        IRB, runtime.buildZExt,
+        {{lowSum, false},
+         {IRB.getInt8(pointerWidth - indexWidth), false}}));
+    Value *extendedLowSum = symbolicComputation.lastInstruction;
+    symbolicComputation.merge(forceBuildRuntimeCall(
+        IRB, runtime.binaryOperatorHandlers[Instruction::Or],
+        {{highAddress, false}, {extendedLowSum, false}}));
+    currentAddress = symbolicComputation.lastInstruction;
+  };
 
   for (auto type_it = gep_type_begin(I), type_end = gep_type_end(I);
        type_it != type_end; ++type_it) {
     auto *index = type_it.getOperand();
-    std::pair<Value *, bool> addressContribution;
 
     // There are two cases for the calculation:
     // 1. If the indexed type is a struct, we need to add the offset of the
@@ -609,9 +1973,9 @@ void Symbolizer::visitGetElementPtrInst(GetElementPtrInst &I) {
       // (https://llvm.org/docs/LangRef.html#getelementptr-instruction).
 
       unsigned memberIndex = cast<ConstantInt>(index)->getZExtValue();
-      unsigned memberOffset =
+      uint64_t memberOffset =
           dataLayout.getStructLayout(structType)->getElementOffset(memberIndex);
-      addressContribution = {ConstantInt::get(intPtrType, memberOffset), true};
+      appendAddressOffset(ConstantInt::get(indexType, memberOffset), true);
     } else {
       if (auto *ci = dyn_cast<ConstantInt>(index);
           ci != nullptr && ci->isZero()) {
@@ -624,34 +1988,41 @@ void Symbolizer::visitGetElementPtrInst(GetElementPtrInst &I) {
       // multiplication ourselves instead of having the solver do it. Also, if
       // the element size is 1, we can omit the multiplication.
 
-      unsigned elementSize =
+      TypeSize elementSize =
           dataLayout.getTypeAllocSize(type_it.getIndexedType());
-      if (auto indexWidth = index->getType()->getIntegerBitWidth();
-          indexWidth != ptrBits) {
+      Value *elementSizeValue = ConstantInt::get(
+          indexType, elementSize.getKnownMinValue());
+      if (elementSize.isScalable()) {
+        // A scalable vector occupies vscale times its known minimum size.
+        // vscale is concrete for one execution but must participate in the
+        // symbolic address expression whenever the index is symbolic.
+        elementSizeValue = IRB.CreateVScale(
+            cast<Constant>(elementSizeValue), "symcc.gep.element.size");
+      }
+      const unsigned sourceWidth = index->getType()->getIntegerBitWidth();
+      Value *normalizedIndex = index;
+      bool lookupNormalizedExpression = true;
+      if (sourceWidth < indexWidth) {
         symbolicComputation.merge(forceBuildRuntimeCall(
-            IRB, runtime.buildZExt,
+            IRB, runtime.buildSExt,
             {{index, true},
-             {ConstantInt::get(IRB.getInt8Ty(), ptrBits - indexWidth),
-              false}}));
+             {IRB.getInt8(indexWidth - sourceWidth), false}}));
+        normalizedIndex = symbolicComputation.lastInstruction;
+        lookupNormalizedExpression = false;
+      } else if (sourceWidth > indexWidth) {
         symbolicComputation.merge(forceBuildRuntimeCall(
-            IRB, runtime.binaryOperatorHandlers[Instruction::Mul],
-            {{symbolicComputation.lastInstruction, false},
-             {ConstantInt::get(intPtrType, elementSize), true}}));
-      } else {
-        symbolicComputation.merge(forceBuildRuntimeCall(
-            IRB, runtime.binaryOperatorHandlers[Instruction::Mul],
-            {{index, true},
-             {ConstantInt::get(intPtrType, elementSize), true}}));
+            IRB, runtime.buildTrunc,
+            {{index, true}, {IRB.getInt8(indexWidth), false}}));
+        normalizedIndex = symbolicComputation.lastInstruction;
+        lookupNormalizedExpression = false;
       }
 
-      addressContribution = {symbolicComputation.lastInstruction, false};
+      symbolicComputation.merge(forceBuildRuntimeCall(
+          IRB, runtime.binaryOperatorHandlers[Instruction::Mul],
+          {{normalizedIndex, lookupNormalizedExpression},
+           {elementSizeValue, true}}));
+      appendAddressOffset(symbolicComputation.lastInstruction, false);
     }
-
-    symbolicComputation.merge(forceBuildRuntimeCall(
-        IRB, runtime.binaryOperatorHandlers[Instruction::Add],
-        {addressContribution,
-         {currentAddress, (currentAddress == I.getPointerOperand())}}));
-    currentAddress = symbolicComputation.lastInstruction;
   }
 
   registerSymbolicComputation(symbolicComputation, &I);
@@ -706,15 +2077,55 @@ void Symbolizer::visitTruncInst(TruncInst &I) {
 }
 
 void Symbolizer::visitIntToPtrInst(IntToPtrInst &I) {
-  if (auto *expr = getSymbolicExpression(I.getOperand(0)))
+  auto *expr = getSymbolicExpression(I.getOperand(0));
+  if (expr == nullptr)
+    return;
+
+  const unsigned sourceBits = I.getSrcTy()->getIntegerBitWidth();
+  if (sourceBits == ptrBits) {
     symbolicExpressions[&I] = expr;
-  // TODO handle truncation and zero extension
+    return;
+  }
+
+  IRBuilder<> IRB(&I);
+  if (sourceBits < ptrBits) {
+    auto conversion = buildRuntimeCall(
+        IRB, runtime.buildZExt,
+        {{I.getOperand(0), true},
+         {IRB.getInt8(ptrBits - sourceBits), false}});
+    registerSymbolicComputation(conversion, &I);
+  } else {
+    auto conversion = buildRuntimeCall(
+        IRB, runtime.buildTrunc,
+        {{I.getOperand(0), true}, {IRB.getInt8(ptrBits), false}});
+    registerSymbolicComputation(conversion, &I);
+  }
 }
 
 void Symbolizer::visitPtrToIntInst(PtrToIntInst &I) {
-  if (auto *expr = getSymbolicExpression(I.getOperand(0)))
+  auto *expr = getSymbolicExpression(I.getOperand(0));
+  if (expr == nullptr)
+    return;
+
+  const unsigned destinationBits = I.getDestTy()->getIntegerBitWidth();
+  if (destinationBits == ptrBits) {
     symbolicExpressions[&I] = expr;
-  // TODO handle truncation and zero extension
+    return;
+  }
+
+  IRBuilder<> IRB(&I);
+  if (destinationBits < ptrBits) {
+    auto conversion = buildRuntimeCall(
+        IRB, runtime.buildTrunc,
+        {{I.getOperand(0), true}, {IRB.getInt8(destinationBits), false}});
+    registerSymbolicComputation(conversion, &I);
+  } else {
+    auto conversion = buildRuntimeCall(
+        IRB, runtime.buildZExt,
+        {{I.getOperand(0), true},
+         {IRB.getInt8(destinationBits - ptrBits), false}});
+    registerSymbolicComputation(conversion, &I);
+  }
 }
 
 void Symbolizer::visitSIToFPInst(SIToFPInst &I) {
@@ -909,6 +2320,60 @@ void Symbolizer::visitSwitchInst(SwitchInst &I) {
 
   IRBuilder<> IRB(&I);
   auto *condition = I.getCondition();
+  auto bits = condition->getType()->getIntegerBitWidth();
+  if (scheduleMemoryTracing && bits <= 64) {
+    Value *successor = ConstantInt::get(
+        intPtrType, symcc::stableSiteId(*I.getDefaultDest()));
+    for (const auto &caseHandle : I.cases()) {
+      Value *matches = IRB.CreateICmpEQ(
+          condition, caseHandle.getCaseValue());
+      successor = IRB.CreateSelect(
+          matches,
+          ConstantInt::get(
+              intPtrType,
+              symcc::stableSiteId(*caseHandle.getCaseSuccessor())),
+          successor);
+    }
+    IRB.CreateCall(
+        runtime.notifyScheduleBranch,
+        {
+            getTargetPreferredInt(&I),
+            IRB.CreateZExtOrTrunc(condition, IRB.getInt64Ty()),
+            successor,
+        });
+  }
+  if (bits <= 64 && I.getNumCases() != 0 &&
+      I.getNumCases() <= 65536) {
+    std::vector<uint64_t> caseValues;
+    caseValues.reserve(I.getNumCases());
+    for (const auto &caseHandle : I.cases())
+      caseValues.push_back(caseHandle.getCaseValue()->getZExtValue());
+    std::sort(caseValues.begin(), caseValues.end());
+    std::vector<Constant *> constants;
+    constants.reserve(caseValues.size());
+    for (uint64_t value : caseValues)
+      constants.push_back(IRB.getInt64(value));
+    ArrayType *arrayType =
+        ArrayType::get(IRB.getInt64Ty(), constants.size());
+    auto *caseArray = new GlobalVariable(
+        *I.getModule(), arrayType, true, GlobalValue::PrivateLinkage,
+        ConstantArray::get(arrayType, constants),
+        "__sym_data_switch_" +
+            std::to_string(symcc::stableSiteId(I)));
+    caseArray->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
+    Value *zero = IRB.getInt32(0);
+    Value *casePointer = IRB.CreateInBoundsGEP(
+        arrayType, caseArray, {zero, zero});
+    IRB.CreateCall(
+        runtime.notifyDataSwitch,
+        {
+            getTargetPreferredInt(&I),
+            IRB.CreateZExtOrTrunc(condition, IRB.getInt64Ty()),
+            casePointer,
+            ConstantInt::get(intPtrType, caseValues.size()),
+            IRB.getInt8(bits),
+        });
+  }
   auto *conditionExpr = getSymbolicExpression(condition);
   if (conditionExpr == nullptr)
     return;
@@ -921,6 +2386,11 @@ void Symbolizer::visitSwitchInst(SwitchInst &I) {
 
   // In the constraint block, we push one path constraint per case.
   IRB.SetInsertPoint(constraintBlock);
+  if (bits <= 64 && I.getNumCases() != 0)
+    IRB.CreateCall(runtime.notifyValueProfile,
+                   {getTargetPreferredInt(&I),
+                    IRB.CreateZExtOrTrunc(condition, IRB.getInt64Ty()),
+                    IRB.getInt8(bits), conditionExpr});
   for (auto &caseHandle : I.cases()) {
     auto *caseTaken = IRB.CreateICmpEQ(condition, caseHandle.getCaseValue());
     auto *caseConstraint = IRB.CreateCall(
@@ -1069,6 +2539,547 @@ Instruction *Symbolizer::createValueExpression(Value *V, IRBuilder<> &IRB) {
   }
 
   llvm_unreachable("Unhandled type for constant expression");
+}
+
+bool Symbolizer::canUseValueAt(Value *value, Instruction *insertBefore,
+                               DominatorTree &dominators) const {
+  if (value == nullptr)
+    return false;
+  if (isa<Constant>(value) || isa<Argument>(value))
+    return true;
+  if (auto *instruction = dyn_cast<Instruction>(value))
+    return dominators.dominates(instruction, insertBefore);
+  return false;
+}
+
+bool Symbolizer::trySynthesizeRegionLoad(
+    LoadInst &load, Instruction *insertBefore, BasicBlock *regionEntry,
+    DominatorTree &dominators, RegionValue &result) {
+  if (aliasAnalysis == nullptr || memorySSA == nullptr || !load.isSimple() ||
+      !isSupportedMergedType(load.getType()) ||
+      !canUseValueAt(load.getPointerOperand(), insertBefore, dominators) ||
+      !isSafeToSpeculativelyExecute(
+          &load, insertBefore, nullptr, &dominators))
+    return false;
+
+  auto *loadAccess = memorySSA->getMemoryAccess(&load);
+  if (loadAccess == nullptr || !isa<MemoryUse>(loadAccess))
+    return false;
+
+  SmallPtrSet<BasicBlock *, kMaxVeritestingRegionBlocks> regionBlocks;
+  BasicBlock *merge = insertBefore->getParent();
+  if (!verifyAcyclicEasyRegion(regionEntry, merge, &regionBlocks) ||
+      regionBlocks.count(load.getParent()) == 0)
+    return false;
+
+  MemoryLocation location = MemoryLocation::get(&load);
+  for (BasicBlock *block : regionBlocks) {
+    // Instructions before the controller terminator execute before every arm;
+    // their effects are already visible to both the original and snapshot
+    // loads. Only writes after the region forks can invalidate the snapshot.
+    if (block == regionEntry)
+      continue;
+    for (Instruction &instruction : *block) {
+      if (&instruction == &load ||
+          originalInstructions.count(&instruction) == 0 ||
+          !instruction.mayWriteToMemory())
+        continue;
+      if (memorySSA->getMemoryAccess(&instruction) == nullptr ||
+          mayModifyLocationConservatively(
+              *aliasAnalysis, instruction, location))
+        return false;
+    }
+  }
+
+  IRBuilder<> IRB(insertBefore);
+  auto *concrete =
+      IRB.CreateLoad(load.getType(), load.getPointerOperand(), "sym.region.ld");
+  concrete->setAlignment(load.getAlign());
+  auto *data = IRB.CreateCall(
+      runtime.readMemory,
+      {IRB.CreatePtrToInt(load.getPointerOperand(), intPtrType),
+       ConstantInt::get(
+           intPtrType, dataLayout.getTypeStoreSize(load.getType())),
+       IRB.getInt1(isLittleEndian(load.getType()) ? 1 : 0)});
+  Instruction *expression =
+      convertBitVectorExprForType(IRB, data, load.getType());
+
+  result.concreteValue = concrete;
+  result.expressionValue = expression;
+  result.computation = SymbolicComputation(data, expression, {});
+  return true;
+}
+
+bool Symbolizer::trySynthesizeRegionValue(Value *value,
+                                          Instruction *insertBefore,
+                                          BasicBlock *regionEntry,
+                                          DominatorTree &dominators,
+                                          unsigned depth,
+                                          RegionValue &result) {
+  if (value == nullptr || depth > kMaxVeritestingRegionDepth ||
+      !isSupportedMergedType(value->getType()) ||
+      isa<UndefValue, PoisonValue>(value))
+    return false;
+
+  Value *expression = getSymbolicExpression(value);
+  if (canUseValueAt(value, insertBefore, dominators)) {
+    if (expression != nullptr &&
+        !canUseValueAt(expression, insertBefore, dominators))
+      return false;
+    result.concreteValue = value;
+    result.expressionValue = expression;
+    return true;
+  }
+
+  auto *instruction = dyn_cast<Instruction>(value);
+  if (instruction == nullptr || regionEntry == nullptr ||
+      !dominators.dominates(regionEntry, instruction->getParent()) ||
+      instruction->isTerminator())
+    return false;
+
+  if (auto *load = dyn_cast<LoadInst>(instruction))
+    return trySynthesizeRegionLoad(
+        *load, insertBefore, regionEntry, dominators, result);
+  if (instruction->mayReadOrWriteMemory())
+    return false;
+
+  IRBuilder<> IRB(insertBefore);
+
+  auto mergeIfAny = [](SymbolicComputation &target,
+                       const RegionValue &source) {
+    if (source.computation.firstInstruction != nullptr)
+      target.merge(source.computation);
+  };
+  auto regionArg = [](const RegionValue &source) {
+    return RegionRuntimeArg{
+        source.concreteValue, source.expressionValue, true,
+        source.computation.firstInstruction == nullptr ||
+            source.expressionValue == nullptr};
+  };
+  auto hoistConcreteBeforeComputation =
+      [](Value *concrete, const SymbolicComputation &computation) {
+        auto *instruction = dyn_cast<Instruction>(concrete);
+        Instruction *first = computation.firstInstruction;
+        if (instruction == nullptr || first == nullptr ||
+            instruction->getParent() != first->getParent())
+          return;
+
+        SmallPtrSet<Instruction *, 16> visited;
+        std::function<void(Instruction *)> hoist =
+            [&](Instruction *current) {
+              if (!visited.insert(current).second)
+                return;
+              for (Value *operand : current->operand_values()) {
+                auto *dependency = dyn_cast<Instruction>(operand);
+                if (dependency != nullptr &&
+                    dependency->getParent() == first->getParent() &&
+                    first->comesBefore(dependency))
+                  hoist(dependency);
+              }
+              if (first->comesBefore(current))
+                current->moveBefore(first);
+            };
+        hoist(instruction);
+      };
+
+  if (auto *phi = dyn_cast<PHINode>(instruction)) {
+    if (phi->getNumIncomingValues() != 2)
+      return false;
+
+    BasicBlock *left = phi->getIncomingBlock(0);
+    BasicBlock *right = phi->getIncomingBlock(1);
+    BasicBlock *controller =
+        dominators.findNearestCommonDominator(left, right);
+    BasicBlock *merge = phi->getParent();
+    if (controller == nullptr || controller == merge ||
+        !dominators.dominates(regionEntry, controller))
+      return false;
+
+    auto *branch = dyn_cast<BranchInst>(controller->getTerminator());
+    if (branch == nullptr || !branch->isConditional() ||
+        !verifyAcyclicEasyRegion(branch->getSuccessor(0), merge) ||
+        !verifyAcyclicEasyRegion(branch->getSuccessor(1), merge))
+      return false;
+
+    bool trueSelectsLeft =
+        dominators.dominates(branch->getSuccessor(0), left);
+    bool falseSelectsLeft =
+        dominators.dominates(branch->getSuccessor(1), left);
+    bool trueSelectsRight =
+        dominators.dominates(branch->getSuccessor(0), right);
+    bool falseSelectsRight =
+        dominators.dominates(branch->getSuccessor(1), right);
+
+    Value *trueValue = nullptr;
+    Value *falseValue = nullptr;
+    if (trueSelectsLeft && !falseSelectsLeft && falseSelectsRight &&
+        !trueSelectsRight) {
+      trueValue = phi->getIncomingValue(0);
+      falseValue = phi->getIncomingValue(1);
+    } else if (trueSelectsRight && !falseSelectsRight && falseSelectsLeft &&
+               !trueSelectsLeft) {
+      trueValue = phi->getIncomingValue(1);
+      falseValue = phi->getIncomingValue(0);
+    } else {
+      return false;
+    }
+
+    RegionValue condition;
+    RegionValue trueArm;
+    RegionValue falseArm;
+    if (!trySynthesizeRegionValue(branch->getCondition(), insertBefore,
+                                  regionEntry, dominators, depth + 1,
+                                  condition) ||
+        !trySynthesizeRegionValue(trueValue, insertBefore, controller,
+                                  dominators, depth + 1, trueArm) ||
+        !trySynthesizeRegionValue(falseValue, insertBefore, controller,
+                                  dominators, depth + 1, falseArm))
+      return false;
+
+    Value *concrete =
+        IRB.CreateSelect(condition.concreteValue, trueArm.concreteValue,
+                         falseArm.concreteValue);
+    SymbolicComputation computation;
+    mergeIfAny(computation, condition);
+    mergeIfAny(computation, trueArm);
+    mergeIfAny(computation, falseArm);
+    auto expr = forceBuildRuntimeCallWithExpressions(
+        IRB, runtime.buildIte,
+        {regionArg(condition), regionArg(trueArm), regionArg(falseArm)});
+    computation.merge(expr);
+    hoistConcreteBeforeComputation(concrete, computation);
+
+    result.concreteValue = concrete;
+    result.expressionValue = expr.lastInstruction;
+    result.computation = computation;
+    return true;
+  }
+
+  if (auto *binary = dyn_cast<BinaryOperator>(instruction)) {
+    if (!isSupportedRegionBinaryOpcode(binary->getOpcode()))
+      return false;
+
+    RegionValue left;
+    RegionValue right;
+    if (!trySynthesizeRegionValue(binary->getOperand(0), insertBefore,
+                                  regionEntry, dominators, depth + 1, left) ||
+        !trySynthesizeRegionValue(binary->getOperand(1), insertBefore,
+                                  regionEntry, dominators, depth + 1, right))
+      return false;
+
+    Value *concrete =
+        IRB.CreateBinOp(binary->getOpcode(), left.concreteValue,
+                        right.concreteValue);
+    SymFnT handler = runtime.binaryOperatorHandlers.at(binary->getOpcode());
+    if (binary->getOperand(0)->getType()->isIntegerTy(1)) {
+      switch (binary->getOpcode()) {
+      case Instruction::And:
+        handler = runtime.buildBoolAnd;
+        break;
+      case Instruction::Or:
+        handler = runtime.buildBoolOr;
+        break;
+      case Instruction::Xor:
+        handler = runtime.buildBoolXor;
+        break;
+      default:
+        return false;
+      }
+    }
+
+    SymbolicComputation computation;
+    mergeIfAny(computation, left);
+    mergeIfAny(computation, right);
+    auto expr = forceBuildRuntimeCallWithExpressions(
+        IRB, handler,
+        {regionArg(left), regionArg(right)});
+    computation.merge(expr);
+    hoistConcreteBeforeComputation(concrete, computation);
+
+    result.concreteValue = concrete;
+    result.expressionValue = expr.lastInstruction;
+    result.computation = computation;
+    return true;
+  }
+
+  if (auto *unary = dyn_cast<UnaryOperator>(instruction)) {
+    if (unary->getOpcode() != Instruction::FNeg)
+      return false;
+
+    RegionValue operand;
+    if (!trySynthesizeRegionValue(unary->getOperand(0), insertBefore,
+                                  regionEntry, dominators, depth + 1, operand))
+      return false;
+
+    Value *concrete = IRB.CreateFNeg(operand.concreteValue);
+    auto expr = forceBuildRuntimeCallWithExpressions(
+        IRB, runtime.unaryOperatorHandlers.at(unary->getOpcode()),
+        {regionArg(operand)});
+
+    SymbolicComputation computation;
+    mergeIfAny(computation, operand);
+    computation.merge(expr);
+    hoistConcreteBeforeComputation(concrete, computation);
+
+    result.concreteValue = concrete;
+    result.expressionValue = expr.lastInstruction;
+    result.computation = computation;
+    return true;
+  }
+
+  if (auto *comparison = dyn_cast<CmpInst>(instruction)) {
+    RegionValue left;
+    RegionValue right;
+    if (!trySynthesizeRegionValue(comparison->getOperand(0), insertBefore,
+                                  regionEntry, dominators, depth + 1, left) ||
+        !trySynthesizeRegionValue(comparison->getOperand(1), insertBefore,
+                                  regionEntry, dominators, depth + 1, right))
+      return false;
+
+    Value *concrete = IRB.CreateCmp(comparison->getPredicate(),
+                                    left.concreteValue, right.concreteValue);
+    auto expr = forceBuildRuntimeCallWithExpressions(
+        IRB, runtime.comparisonHandlers.at(comparison->getPredicate()),
+        {regionArg(left), regionArg(right)});
+
+    SymbolicComputation computation;
+    mergeIfAny(computation, left);
+    mergeIfAny(computation, right);
+    computation.merge(expr);
+    hoistConcreteBeforeComputation(concrete, computation);
+
+    result.concreteValue = concrete;
+    result.expressionValue = expr.lastInstruction;
+    result.computation = computation;
+    return true;
+  }
+
+  if (auto *cast = dyn_cast<CastInst>(instruction)) {
+    if (!isSupportedRegionCastOpcode(cast->getOpcode()))
+      return false;
+
+    RegionValue operand;
+    if (!trySynthesizeRegionValue(cast->getOperand(0), insertBefore,
+                                  regionEntry, dominators, depth + 1, operand))
+      return false;
+
+    Value *concrete =
+        IRB.CreateCast(cast->getOpcode(), operand.concreteValue,
+                       cast->getDestTy());
+    SymbolicComputation computation;
+    mergeIfAny(computation, operand);
+    Value *resultExpression = operand.expressionValue;
+
+    auto mergeExpr = [&](SymbolicComputation expr) {
+      computation.merge(expr);
+      resultExpression = expr.lastInstruction;
+    };
+
+    switch (cast->getOpcode()) {
+    case Instruction::SExt:
+    case Instruction::ZExt: {
+      SymFnT target =
+          cast->getOpcode() == Instruction::SExt ? runtime.buildSExt
+                                                 : runtime.buildZExt;
+      auto *sourceType = cast->getSrcTy();
+      auto *destType = cast->getDestTy();
+      if (!sourceType->isIntegerTy() || !destType->isIntegerTy())
+        return false;
+      if (sourceType->getIntegerBitWidth() == 1) {
+        auto bit = forceBuildRuntimeCallWithExpressions(
+            IRB, runtime.buildBoolToBit, {regionArg(operand)});
+        computation.merge(bit);
+        auto ext = forceBuildRuntimeCallWithExpressions(
+            IRB, target,
+            {{bit.lastInstruction, nullptr, false},
+             {IRB.getInt8(destType->getIntegerBitWidth() - 1), nullptr,
+              false}});
+        mergeExpr(ext);
+      } else {
+        mergeExpr(forceBuildRuntimeCallWithExpressions(
+            IRB, target,
+            {regionArg(operand),
+             {IRB.getInt8(destType->getIntegerBitWidth() -
+                          sourceType->getIntegerBitWidth()),
+              nullptr, false}}));
+      }
+      break;
+    }
+    case Instruction::Trunc: {
+      auto *destType = cast->getDestTy();
+      if (!destType->isIntegerTy())
+        return false;
+      auto trunc = forceBuildRuntimeCallWithExpressions(
+          IRB, runtime.buildTrunc,
+          {regionArg(operand),
+           {IRB.getInt8(destType->getIntegerBitWidth()), nullptr, false}});
+      computation.merge(trunc);
+      resultExpression = trunc.lastInstruction;
+      if (destType->getIntegerBitWidth() == 1)
+        mergeExpr(forceBuildRuntimeCallWithExpressions(
+            IRB, runtime.buildBitToBool,
+            {{trunc.lastInstruction, nullptr, false}}));
+      break;
+    }
+    case Instruction::BitCast:
+      if (cast->getSrcTy()->isIntegerTy() &&
+          cast->getDestTy()->isFloatingPointTy()) {
+        mergeExpr(forceBuildRuntimeCallWithExpressions(
+            IRB, runtime.buildBitsToFloat,
+            {regionArg(operand),
+             {IRB.getInt1(cast->getDestTy()->isDoubleTy()), nullptr, false}}));
+      } else if (cast->getSrcTy()->isFloatingPointTy() &&
+                 cast->getDestTy()->isIntegerTy()) {
+        mergeExpr(forceBuildRuntimeCallWithExpressions(
+            IRB, runtime.buildFloatToBits,
+            {regionArg(operand)}));
+      } else if (!(cast->getSrcTy()->isPointerTy() &&
+                   cast->getDestTy()->isPointerTy())) {
+        return false;
+      }
+      break;
+    case Instruction::PtrToInt: {
+      auto destinationBits = cast->getDestTy()->getIntegerBitWidth();
+      if (destinationBits < ptrBits) {
+        mergeExpr(forceBuildRuntimeCallWithExpressions(
+            IRB, runtime.buildTrunc,
+            {regionArg(operand),
+             {IRB.getInt8(destinationBits), nullptr, false}}));
+      } else if (destinationBits > ptrBits) {
+        mergeExpr(forceBuildRuntimeCallWithExpressions(
+            IRB, runtime.buildZExt,
+            {regionArg(operand),
+             {IRB.getInt8(destinationBits - ptrBits), nullptr, false}}));
+      }
+      break;
+    }
+    case Instruction::IntToPtr: {
+      auto sourceBits = cast->getSrcTy()->getIntegerBitWidth();
+      if (sourceBits < ptrBits) {
+        mergeExpr(forceBuildRuntimeCallWithExpressions(
+            IRB, runtime.buildZExt,
+            {regionArg(operand),
+             {IRB.getInt8(ptrBits - sourceBits), nullptr, false}}));
+      } else if (sourceBits > ptrBits) {
+        mergeExpr(forceBuildRuntimeCallWithExpressions(
+            IRB, runtime.buildTrunc,
+            {regionArg(operand),
+             {IRB.getInt8(ptrBits), nullptr, false}}));
+      }
+      break;
+    }
+    case Instruction::SIToFP:
+    case Instruction::UIToFP:
+      mergeExpr(forceBuildRuntimeCallWithExpressions(
+          IRB, runtime.buildIntToFloat,
+          {regionArg(operand),
+           {IRB.getInt1(cast->getDestTy()->isDoubleTy()), nullptr, false},
+           {IRB.getInt1(cast->getOpcode() == Instruction::SIToFP), nullptr,
+            false}}));
+      break;
+    case Instruction::FPExt:
+    case Instruction::FPTrunc:
+      mergeExpr(forceBuildRuntimeCallWithExpressions(
+          IRB, runtime.buildFloatToFloat,
+          {regionArg(operand),
+           {IRB.getInt1(cast->getDestTy()->isDoubleTy()), nullptr, false}}));
+      break;
+    case Instruction::FPToSI:
+    case Instruction::FPToUI:
+      mergeExpr(forceBuildRuntimeCallWithExpressions(
+          IRB,
+          cast->getOpcode() == Instruction::FPToSI
+              ? runtime.buildFloatToSignedInt
+              : runtime.buildFloatToUnsignedInt,
+          {regionArg(operand),
+           {IRB.getInt8(cast->getDestTy()->getIntegerBitWidth()), nullptr,
+            false}}));
+      break;
+    default:
+      return false;
+    }
+
+    hoistConcreteBeforeComputation(concrete, computation);
+    result.concreteValue = concrete;
+    result.expressionValue = resultExpression;
+    result.computation = computation;
+    return true;
+  }
+
+  if (auto *select = dyn_cast<SelectInst>(instruction)) {
+    RegionValue condition;
+    RegionValue trueArm;
+    RegionValue falseArm;
+    if (!trySynthesizeRegionValue(select->getCondition(), insertBefore,
+                                  regionEntry, dominators, depth + 1,
+                                  condition) ||
+        !trySynthesizeRegionValue(select->getTrueValue(), insertBefore,
+                                  regionEntry, dominators, depth + 1,
+                                  trueArm) ||
+        !trySynthesizeRegionValue(select->getFalseValue(), insertBefore,
+                                  regionEntry, dominators, depth + 1,
+                                  falseArm))
+      return false;
+
+    Value *concrete =
+        IRB.CreateSelect(condition.concreteValue, trueArm.concreteValue,
+                         falseArm.concreteValue);
+    SymbolicComputation computation;
+    mergeIfAny(computation, condition);
+    mergeIfAny(computation, trueArm);
+    mergeIfAny(computation, falseArm);
+    auto expr = forceBuildRuntimeCallWithExpressions(
+        IRB, runtime.buildIte,
+        {regionArg(condition), regionArg(trueArm), regionArg(falseArm)});
+    computation.merge(expr);
+    hoistConcreteBeforeComputation(concrete, computation);
+
+    result.concreteValue = concrete;
+    result.expressionValue = expr.lastInstruction;
+    result.computation = computation;
+    return true;
+  }
+
+  if (auto *freeze = dyn_cast<FreezeInst>(instruction)) {
+    RegionValue operand;
+    if (!trySynthesizeRegionValue(freeze->getOperand(0), insertBefore,
+                                  regionEntry, dominators, depth + 1, operand))
+      return false;
+    result.concreteValue = IRB.CreateFreeze(operand.concreteValue);
+    result.expressionValue = operand.expressionValue;
+    result.computation = operand.computation;
+    hoistConcreteBeforeComputation(
+        result.concreteValue, result.computation);
+    return true;
+  }
+
+  return false;
+}
+
+Symbolizer::SymbolicComputation
+Symbolizer::forceBuildRuntimeCallWithExpressions(
+    IRBuilder<> &IRB, SymFnT function, ArrayRef<RegionRuntimeArg> args) const {
+  auto *nullExpression =
+      ConstantPointerNull::get(IRB.getInt8Ty()->getPointerTo());
+
+  std::vector<Value *> functionArgs;
+  functionArgs.reserve(args.size());
+  for (const auto &arg : args) {
+    functionArgs.push_back(arg.symbolic ? (arg.expressionValue != nullptr
+                                               ? arg.expressionValue
+                                               : nullExpression)
+                                        : arg.concreteValue);
+  }
+
+  auto *call = IRB.CreateCall(function, functionArgs);
+
+  std::vector<Input> inputs;
+  for (unsigned i = 0; i < args.size(); i++) {
+    if (args[i].symbolic && args[i].trackInput)
+      inputs.push_back(Input(args[i].concreteValue, i, call));
+  }
+
+  return SymbolicComputation(call, call, inputs);
 }
 
 Symbolizer::SymbolicComputation Symbolizer::forceBuildRuntimeCall(

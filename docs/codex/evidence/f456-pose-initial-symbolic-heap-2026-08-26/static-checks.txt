@@ -1,0 +1,15 @@
+F456 static checks, 2026-08-26 UTC
+$ ruff check <F456 implementation/tests/oracle/benchmark/verifier>
+All checks passed!
+$ python3 -m py_compile <same Python sources>
+py_compile: PASS
+$ git diff --check
+git diff --check: PASS
+$ SVG XML/dimension validation
+svg_xml=PASS dimensions=1600x1000
+$ sealed oracle summary validation
+oracle checks=9/9 result_sha256=e913dcfc6499a632a2f0895638caef16b39c2c7e3b5335f4c8ab4221869d1212
+$ sealed mechanism benchmark validation
+benchmark rows=5 heap_forks=0
+$ Z3 QF_BV smoke
+z3_qfbv_smoke=PASS

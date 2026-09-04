@@ -1,0 +1,32 @@
+{
+  "schema": "symcc-f424-full-suite-summary-v1",
+  "python": {
+    "collected": 1130,
+    "passed": 1130,
+    "subtests_passed": 253,
+    "skipped": 0,
+    "xfailed": 0,
+    "deselected": 0,
+    "elapsed_seconds": 160.70
+  },
+  "llvm17": {
+    "discovered": 306,
+    "passed": 304,
+    "unsupported": 2,
+    "workers": 16,
+    "elapsed_seconds": 336.8636062145233
+  },
+  "llvm18": {
+    "discovered": 306,
+    "passed": 305,
+    "unsupported": 1,
+    "workers": 16,
+    "elapsed_seconds": 336.3815829753876
+  },
+  "targeted_python_passed": 2,
+  "related_python_passed": 135,
+  "related_python_subtests_passed": 25,
+  "targeted_llvm17_passed": 1,
+  "targeted_llvm18_passed": 1,
+  "all_passed": true
+}

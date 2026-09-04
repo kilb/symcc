@@ -1,0 +1,68 @@
+F434 multi-round review findings and dispositions
+Date: 2026-08-18
+
+R1  Shared-state persistence
+Finding: IncrementalProofStore forced SQLite WAL, whose shared-memory sidecar is
+not a valid network-filesystem contract.
+Disposition: switched the externally flock-serialized index to DELETE rollback
+journal, retained synchronous=FULL, and bound delete-flock-v1 into metadata and
+store identity. Added a direct journal/metadata regression test.
+
+R2  Concurrent event attribution
+Finding: a publisher cannot attribute latest_event_sequence() to itself after
+concurrent commits.
+Disposition: added event_for_record(digest), which returns the immutable event
+sequence and formula under the stable store lock. The MPI publisher checks the
+formula before emitting evidence.
+
+R3  Host identity
+Finding: equal MPI processor strings do not prove physical co-location.
+Disposition: same-host admission now requires one MPI COMM_TYPE_SHARED domain.
+Multiple domains require the existing cross-host lock and namespace proof.
+
+R4  Active-solve causality
+Finding: Python thread start and solve_generation alone do not prove the solver
+is still active when publishers are released.
+Disposition: added an atomic native solving statistic. Every consumer must
+report generation=1 and solving=1 into the readiness collective; it is checked
+again after publication notification.
+
+R5  Timeout lifetime
+Finding: releasing a native context while its solve thread survived termination
+would be a use-after-free.
+Disposition: timeout requests termination and performs a bounded join. A still
+live thread rejects the experiment before session finish or context release.
+
+R6  Clock-domain validity
+Finding: subtracting publisher and consumer monotonic timestamps across hosts is
+invalid without a clock synchronization/error model.
+Disposition: removed cross-rank subtraction. Only publisher-local, consumer-
+local and rank-0-local durations are aggregated and the artifact states this
+claim boundary.
+
+R7  Partial-success aggregation
+Finding: matching a delivered count was insufficient; duplicate/missing ACKs,
+backpressure, timeout and stream errors could remain hidden in rank evidence.
+Disposition: aggregate requires exact publisher-record sets per consumer,
+one ACK per record, exact formula/CNF/round identities, no timeout/error/
+backpressure, and active_at_publication in active mode. Rank 0 also independently
+replays every ACK against the CAS and checker.
+
+R8  Event ordering
+Finding: concurrent publishers have no rank-ordered event guarantee.
+Disposition: events need only be unique inside one round; the next round's
+minimum must exceed the preceding round's maximum.
+
+R9  Test determinism
+Finding: the F433 backpressure test used a fixed 20 ms sleep. Under 192-worker
+lit execution, solve could consume the first fake import before the second was
+rejected, and the fake single ACK slot exposed ordinal 2 without ordinal 1.
+Disposition: the test now waits on the observable native rejected counter.
+Eight repeated standalone runs passed before the final dual-LLVM run.
+
+R10 Result/claim boundary
+Finding: three local MPI jobs cannot support a multi-node speedup, coverage or
+defect-yield statement.
+Disposition: result scope is local-host-mpi-mechanism; the report retains raw
+timings but explicitly leaves 8/32/128-worker, >=20-trial, public-target R-level
+evaluation open.

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#142533" flood-opacity="0.13"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#1677a8"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#18805e"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#b64747"/>
+    </marker>
+    <style>
+      .title { font: 700 44px "WenQuanYi Zen Hei", "Noto Sans CJK SC", sans-serif; fill: #102a3a; }
+      .subtitle { font: 400 22px "WenQuanYi Zen Hei", "Noto Sans CJK SC", sans-serif; fill: #49616f; }
+      .stage { font: 700 24px "WenQuanYi Zen Hei", "Noto Sans CJK SC", sans-serif; fill: #ffffff; }
+      .panel-title { font: 700 25px "WenQuanYi Zen Hei", "Noto Sans CJK SC", sans-serif; fill: #17384a; }
+      .node-title { font: 700 20px "WenQuanYi Zen Hei", "Noto Sans CJK SC", sans-serif; fill: #17384a; }
+      .body { font: 400 17px "WenQuanYi Zen Hei", "Noto Sans CJK SC", sans-serif; fill: #354f5e; }
+      .small { font: 400 15px "WenQuanYi Zen Hei", "Noto Sans CJK SC", sans-serif; fill: #4a626f; }
+      .mono { font: 600 16px "DejaVu Sans Mono", monospace; fill: #17384a; }
+      .badge { font: 700 14px "WenQuanYi Zen Hei", "Noto Sans CJK SC", sans-serif; }
+      .footer-title { font: 700 18px "WenQuanYi Zen Hei", "Noto Sans CJK SC", sans-serif; fill: #17384a; }
+      .footer { font: 400 15px "WenQuanYi Zen Hei", "Noto Sans CJK SC", sans-serif; fill: #405966; }
+    </style>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#f4f7f8"/>
+  <rect x="0" y="0" width="1920" height="12" fill="#1677a8"/>
+  <text x="70" y="70" class="title">F408 · LLVM MemorySSA/AA 有界堆初始化证明</text>
+  <text x="70" y="108" class="subtitle">从 may-reaching memory definitions 到可持久化、可重放、运行时不越权的 proof-carrying continuation</text>
+
+  <g filter="url(#shadow)">
+    <rect x="55" y="152" width="490" height="700" rx="7" fill="#ffffff" stroke="#b9d1dc" stroke-width="2"/>
+    <rect x="585" y="152" width="750" height="700" rx="7" fill="#ffffff" stroke="#b7d9cc" stroke-width="2"/>
+    <rect x="1375" y="152" width="490" height="700" rx="7" fill="#ffffff" stroke="#c7ced4" stroke-width="2"/>
+  </g>
+
+  <circle cx="92" cy="192" r="23" fill="#1677a8"/>
+  <text x="85" y="201" class="stage">1</text>
+  <text x="128" y="201" class="panel-title">分析生命周期</text>
+
+  <rect x="90" y="240" width="420" height="90" rx="6" fill="#eaf5fa" stroke="#72aec9" stroke-width="2"/>
+  <text x="115" y="274" class="node-title">LLVM IR 输入</text>
+  <text x="115" y="305" class="body">heap allocation · branch/switch · store · load</text>
+
+  <line x1="300" y1="330" x2="300" y2="370" stroke="#1677a8" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <rect x="90" y="380" width="420" height="90" rx="6" fill="#fff5d9" stroke="#d5a93c" stroke-width="2"/>
+  <text x="115" y="414" class="node-title">先执行 scalar mem2reg</text>
+  <text x="115" y="445" class="body">IR 改变后逐函数 invalidate FAM</text>
+
+  <line x1="300" y1="470" x2="300" y2="510" stroke="#1677a8" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <rect x="90" y="520" width="420" height="118" rx="6" fill="#e9f7f1" stroke="#62a98e" stroke-width="2"/>
+  <text x="115" y="554" class="node-title">懒获取新 PM 分析</text>
+  <text x="115" y="585" class="mono">AAManager · MemorySSAAnalysis</text>
+  <text x="115" y="614" class="body">每个 reachable function 注入 FunctionContext</text>
+
+  <rect x="90" y="680" width="420" height="118" rx="6" fill="#f7eeee" stroke="#c78282" stroke-width="2"/>
+  <text x="115" y="716" class="node-title">失败关闭边界</text>
+  <text x="115" y="748" class="body">legacy PM / stale analysis / 未知定义</text>
+  <text x="115" y="778" class="body">不猜测，回退 F406/F407 或拒绝 lowering</text>
+
+  <circle cx="622" cy="192" r="23" fill="#18805e"/>
+  <text x="615" y="201" class="stage">2</text>
+  <text x="658" y="201" class="panel-title">真实 MemorySSA clobber 图</text>
+
+  <rect x="815" y="236" width="290" height="66" rx="6" fill="#eaf5fa" stroke="#1677a8" stroke-width="2"/>
+  <text x="850" y="264" class="node-title">MemoryUse</text>
+  <text x="850" y="289" class="mono">load %selected</text>
+  <line x1="960" y1="302" x2="960" y2="344" stroke="#1677a8" stroke-width="4" marker-end="url(#arrow-blue)"/>
+
+  <rect x="800" y="354" width="320" height="72" rx="6" fill="#e9f7f1" stroke="#18805e" stroke-width="3"/>
+  <text x="838" y="383" class="node-title">MemoryPhi @ merge</text>
+  <text x="838" y="410" class="body">may-reach incoming 必须全部证明</text>
+
+  <path d="M875 426 C875 462,700 454,700 498" fill="none" stroke="#18805e" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <path d="M960 426 L960 498" fill="none" stroke="#18805e" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <path d="M1045 426 C1045 462,1220 454,1220 498" fill="none" stroke="#18805e" stroke-width="3" marker-end="url(#arrow-green)"/>
+
+  <g>
+    <rect x="620" y="508" width="235" height="86" rx="6" fill="#fff5d9" stroke="#d5a93c" stroke-width="2"/>
+    <text x="642" y="540" class="node-title">MemoryDef</text>
+    <text x="642" y="568" class="body">scratch store</text>
+    <rect x="642" y="603" width="192" height="28" rx="14" fill="#dff3eb"/>
+    <text x="660" y="622" class="badge" fill="#176e53">allocation/AA NoAlias</text>
+
+    <rect x="842" y="508" width="235" height="86" rx="6" fill="#f2edfa" stroke="#8e76b7" stroke-width="2"/>
+    <text x="864" y="540" class="node-title">MemoryDef</text>
+    <text x="864" y="568" class="body">internal direct call</text>
+    <rect x="864" y="603" width="190" height="28" rx="14" fill="#ece5f7"/>
+    <text x="888" y="622" class="badge" fill="#6e5599">AA says NoModRef</text>
+
+    <rect x="1064" y="508" width="235" height="86" rx="6" fill="#fff5d9" stroke="#d5a93c" stroke-width="2"/>
+    <text x="1086" y="540" class="node-title">MemoryDef</text>
+    <text x="1086" y="568" class="body">scratch store</text>
+    <rect x="1086" y="603" width="192" height="28" rx="14" fill="#dff3eb"/>
+    <text x="1104" y="622" class="badge" fill="#176e53">allocation/AA NoAlias</text>
+  </g>
+
+  <line x1="738" y1="638" x2="738" y2="678" stroke="#18805e" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <line x1="960" y1="638" x2="960" y2="678" stroke="#18805e" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <line x1="1182" y1="638" x2="1182" y2="678" stroke="#18805e" stroke-width="3" marker-end="url(#arrow-green)"/>
+
+  <g>
+    <rect x="620" y="688" width="235" height="96" rx="6" fill="#e9f7f1" stroke="#18805e" stroke-width="2"/>
+    <text x="642" y="720" class="node-title">Terminal Store 0</text>
+    <text x="642" y="749" class="body">same owner · full interval</text>
+    <text x="642" y="773" class="small">pointer edge = incoming 0</text>
+    <rect x="842" y="688" width="235" height="96" rx="6" fill="#e9f7f1" stroke="#18805e" stroke-width="2"/>
+    <text x="864" y="720" class="node-title">Terminal Store 1</text>
+    <text x="864" y="749" class="body">same owner · full interval</text>
+    <text x="864" y="773" class="small">single-object merge</text>
+    <rect x="1064" y="688" width="235" height="96" rx="6" fill="#e9f7f1" stroke="#18805e" stroke-width="2"/>
+    <text x="1086" y="720" class="node-title">Terminal Store 2</text>
+    <text x="1086" y="749" class="body">same owner · full interval</text>
+    <text x="1086" y="773" class="small">pointer edge = incoming 2</text>
+  </g>
+
+  <circle cx="1412" cy="192" r="23" fill="#4b6574"/>
+  <text x="1405" y="201" class="stage">3</text>
+  <text x="1448" y="201" class="panel-title">证书重放与运行语义</text>
+
+  <rect x="1410" y="240" width="420" height="138" rx="6" fill="#eaf5fa" stroke="#72aec9" stroke-width="2"/>
+  <text x="1436" y="274" class="node-title">Proof transcript</text>
+  <text x="1436" y="306" class="body">MemoryPhi incoming · forward node IDs</text>
+  <text x="1436" y="334" class="body">store/call ordinal · base · interval · proof</text>
+  <text x="1436" y="362" class="small">上限：128 nodes / 64 incoming / depth 8</text>
+
+  <line x1="1620" y1="378" x2="1620" y2="420" stroke="#1677a8" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <rect x="1410" y="430" width="420" height="190" rx="6" fill="#ffffff" stroke="#18805e" stroke-width="2"/>
+  <text x="1436" y="465" class="node-title">Python consumer 独立闭合</text>
+  <text x="1436" y="498" class="body">① CFG logical predecessors 精确相等</text>
+  <text x="1436" y="528" class="body">② DAG 可达、无环、无 orphan/back-edge</text>
+  <text x="1436" y="558" class="body">③ heap owner、pointer edge、store interval</text>
+  <text x="1436" y="588" class="body">④ skipped definition 定位真实 artifact op</text>
+
+  <line x1="1620" y1="620" x2="1620" y2="662" stroke="#18805e" stroke-width="4" marker-end="url(#arrow-green)"/>
+  <rect x="1410" y="672" width="420" height="126" rx="6" fill="#e9f7f1" stroke="#18805e" stroke-width="2"/>
+  <text x="1436" y="707" class="node-title">Runtime 最终权威</text>
+  <text x="1436" y="740" class="body">真实 store 才更新 byte-init marker</text>
+  <text x="1436" y="770" class="body">live · runtime size · init 检查始终保留</text>
+
+  <line x1="1335" y1="510" x2="1370" y2="510" stroke="#1677a8" stroke-width="4" marker-end="url(#arrow-blue)"/>
+
+  <rect x="55" y="890" width="1810" height="145" rx="7" fill="#ffffff" stroke="#c7d3da" stroke-width="2"/>
+  <rect x="77" y="912" width="15" height="101" rx="5" fill="#1677a8"/>
+  <text x="115" y="937" class="footer-title">三层互不替代的信任边界</text>
+  <text x="115" y="969" class="footer">LLVM pass 负责 NoAlias / NoModRef 数学判定；consumer 负责 CFG 与 artifact 身份重放；runtime 负责真实对象生命周期和逐字节初始化状态。</text>
+  <text x="115" y="1000" class="footer">任一层未知、超限或不一致均失败关闭。机制证据不外推为一般 MemorySSA、完整 POSE、公共 coverage 或端到端 speedup。</text>
+
+  <rect x="1490" y="922" width="150" height="34" rx="17" fill="#dff3eb"/>
+  <text x="1520" y="945" class="badge" fill="#176e53">证明成功</text>
+  <rect x="1655" y="922" width="170" height="34" rx="17" fill="#f7e5e5"/>
+  <text x="1682" y="945" class="badge" fill="#a33e3e">未知则拒绝</text>
+  <line x1="1570" y1="970" x2="1745" y2="970" stroke="#b64747" stroke-width="3" marker-end="url(#arrow-red)"/>
+  <text x="1550" y="1001" class="small">MayAlias · partial store · cycle · liveOnEntry</text>
+</svg>

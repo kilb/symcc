@@ -1,0 +1,30 @@
+{
+  "cold_full_shape": {
+    "max_us": 1115.239,
+    "median_us": 970.792,
+    "p95_us": 1040.777
+  },
+  "different_constant_separated": true,
+  "equivalent_shifted_offsets": true,
+  "nodes": 192,
+  "query_ingest_shape_pipeline": {
+    "max_us": 631.971,
+    "median_us": 514.5645,
+    "p95_us": 588.766
+  },
+  "reads": 64,
+  "reused_target_and_suffix_projection": {
+    "max_us": 89.785,
+    "median_us": 73.1,
+    "p95_us": 83.846
+  },
+  "runs": 1000,
+  "schema": "symcc-constraint-shape-benchmark-v1",
+  "shape": {
+    "node_count": 192,
+    "read_count": 64,
+    "root_count": 64,
+    "schema": "symcc-alpha-constraint-shape-v1",
+    "shape_hash": "900fea38814a03b870bc730aaa58917c32b864162f92451186aaafba1000fe35"
+  }
+}

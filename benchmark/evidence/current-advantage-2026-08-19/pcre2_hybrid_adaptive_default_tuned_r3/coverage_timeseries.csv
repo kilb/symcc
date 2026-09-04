@@ -1,0 +1,13 @@
+experiment_id,run_id,pair_id,target,configuration,mode,np,round,timestamp_sec,edge_cov_pct,edges_found,edges_total,total_cases
+symcc-d66ecb16ec5581a1,360d2f04f83ca7f902134f11,6c18c93b20b2937a7ac4c9ab,pcre2-pcre2_fuzzer,hybrid,hybrid,16,1,0.0,7.22,702,9728,8
+symcc-d66ecb16ec5581a1,360d2f04f83ca7f902134f11,6c18c93b20b2937a7ac4c9ab,pcre2-pcre2_fuzzer,hybrid,hybrid,16,1,15.0,44.94,4372,9728,34560
+symcc-d66ecb16ec5581a1,360d2f04f83ca7f902134f11,6c18c93b20b2937a7ac4c9ab,pcre2-pcre2_fuzzer,hybrid,hybrid,16,1,30.0,48.42,4710,9728,49344
+symcc-d66ecb16ec5581a1,360d2f04f83ca7f902134f11,6c18c93b20b2937a7ac4c9ab,pcre2-pcre2_fuzzer,hybrid,hybrid,16,1,45.0,49.48,4813,9728,56986
+symcc-d66ecb16ec5581a1,58465bc0106c431501245596,2d2eacb526ae599aac38c868,pcre2-pcre2_fuzzer,hybrid,hybrid,16,2,0.0,7.22,702,9728,8
+symcc-d66ecb16ec5581a1,58465bc0106c431501245596,2d2eacb526ae599aac38c868,pcre2-pcre2_fuzzer,hybrid,hybrid,16,2,15.0,45.22,4399,9728,31925
+symcc-d66ecb16ec5581a1,58465bc0106c431501245596,2d2eacb526ae599aac38c868,pcre2-pcre2_fuzzer,hybrid,hybrid,16,2,30.0,48.51,4719,9728,43428
+symcc-d66ecb16ec5581a1,58465bc0106c431501245596,2d2eacb526ae599aac38c868,pcre2-pcre2_fuzzer,hybrid,hybrid,16,2,45.0,49.93,4857,9728,50061
+symcc-d66ecb16ec5581a1,98876399956ef261dfed6849,64559d151e37b01f87c75590,pcre2-pcre2_fuzzer,hybrid,hybrid,16,3,0.0,7.22,702,9728,8
+symcc-d66ecb16ec5581a1,98876399956ef261dfed6849,64559d151e37b01f87c75590,pcre2-pcre2_fuzzer,hybrid,hybrid,16,3,15.0,45.86,4461,9728,34046
+symcc-d66ecb16ec5581a1,98876399956ef261dfed6849,64559d151e37b01f87c75590,pcre2-pcre2_fuzzer,hybrid,hybrid,16,3,30.0,48.88,4755,9728,46348
+symcc-d66ecb16ec5581a1,98876399956ef261dfed6849,64559d151e37b01f87c75590,pcre2-pcre2_fuzzer,hybrid,hybrid,16,3,45.0,49.68,4833,9728,52784

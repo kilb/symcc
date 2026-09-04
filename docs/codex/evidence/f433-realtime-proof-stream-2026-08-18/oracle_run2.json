@@ -1,0 +1,21 @@
+{
+  "artifact_sha256": "ad901c2276dca21493658ecf669f1b51c9d57b4a9cbd22f42d879ff784261b1f",
+  "cases": 512,
+  "checked_import_acks_replayed": 512,
+  "checked_imports_delivered": 512,
+  "claim_boundary": "randomized mechanism oracle; no fuzzing coverage, defect-rate, or distributed-scaling claim",
+  "elapsed_us": 10224779,
+  "learned_records_published": 0,
+  "library": "/tmp/f433-review/libsymcc_qfbv_cadical_realtime.so",
+  "library_sha256": "5afef95ef6744d9a5aed36a4cd4375b9268dcbe256439634f9999f6412a8cb06",
+  "mismatch_samples": [],
+  "mismatches": 0,
+  "native_signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+  "post_clear_result": 10,
+  "pre_solve_cancel_result": 0,
+  "proof_events": 512,
+  "proof_records": 512,
+  "schema": "symcc-f433-realtime-stream-oracle-v1",
+  "seed": 62515,
+  "tampered_ack_rejected": true
+}

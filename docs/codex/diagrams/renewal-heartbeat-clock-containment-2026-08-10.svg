@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080" role="img" aria-labelledby="title desc">
+  <title id="title">F357 Renewal Heartbeat and Clock Containment</title>
+  <desc id="desc">Old heartbeat and clock exception escapes, the new at-most-once observation pipeline, state semantics, production wiring, and evidence boundaries.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#38566f"/>
+    </marker>
+    <style>
+      .bg { fill: #f7f9fb; }
+      .title { font: 700 36px Inter, Arial, sans-serif; fill: #142433; }
+      .subtitle { font: 400 18px Inter, Arial, sans-serif; fill: #40566a; }
+      .section { font: 700 23px Inter, Arial, sans-serif; fill: #142433; }
+      .label { font: 700 18px Inter, Arial, sans-serif; fill: #20384c; }
+      .body { font: 400 16px Inter, Arial, sans-serif; fill: #314b60; }
+      .small { font: 400 14px Inter, Arial, sans-serif; fill: #486176; }
+      .mono { font: 600 14px ui-monospace, SFMono-Regular, Consolas, monospace; fill: #243b50; }
+      .panel { fill: #ffffff; stroke: #cbd7e1; stroke-width: 2; }
+      .old { fill: #fff3f1; stroke: #ce6158; stroke-width: 2; }
+      .core { fill: #edf5fa; stroke: #38769d; stroke-width: 2; }
+      .good { fill: #edf8f0; stroke: #39845a; stroke-width: 2; }
+      .warn { fill: #fff8e7; stroke: #b68020; stroke-width: 2; }
+      .signal { fill: #f3eff8; stroke: #735a91; stroke-width: 2; }
+      .line { fill: none; stroke: #38566f; stroke-width: 2.5; marker-end: url(#arrow); }
+      .dash { fill: none; stroke: #a04c45; stroke-width: 2.5; stroke-dasharray: 9 7; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1600" height="1080"/>
+  <text class="title" x="70" y="66">F357 - Renewal Heartbeat and Clock Containment</text>
+  <text class="subtitle" x="70" y="101">Close the ordinary-exception gap immediately around runtime qualification</text>
+
+  <text class="section" x="70" y="151">Before: three rank-local escape points</text>
+  <rect class="old" x="70" y="178" width="450" height="205" rx="8"/>
+  <text class="label" x="100" y="215">Heartbeat catch tuple</text>
+  <text class="mono" x="100" y="250">heartbeat_all()  except OSError</text>
+  <text class="body" x="100" y="282">LookupError can skip membership</text>
+  <text class="small" x="100" y="314">Adapter result was not admitted before metrics</text>
+  <path class="dash" d="M480 326 L480 362"/>
+  <text class="mono" x="100" y="372">rank unwinds; peer waits</text>
+
+  <rect class="old" x="575" y="178" width="450" height="205" rx="8"/>
+  <text class="label" x="605" y="215">Pre-qualification clock</text>
+  <text class="mono" x="605" y="250">last_heartbeat = monotonic()</text>
+  <text class="body" x="605" y="282">Extra call after generation acceptance</text>
+  <text class="small" x="605" y="314">Exception occurs before the F355 boundary</text>
+  <path class="dash" d="M985 326 L985 362"/>
+  <text class="mono" x="605" y="372">no qualification result</text>
+
+  <rect class="old" x="1080" y="178" width="450" height="205" rx="8"/>
+  <text class="label" x="1110" y="215">Post-qualification clock</text>
+  <text class="mono" x="1110" y="250">completed_at = monotonic()</text>
+  <text class="body" x="1110" y="282">Call sits outside F354 completion</text>
+  <text class="small" x="1110" y="314">Peers may already have completed qualification</text>
+  <path class="dash" d="M1490 326 L1490 362"/>
+  <text class="mono" x="1110" y="372">controller remains in flight</text>
+
+  <text class="section" x="70" y="439">After: one ordered, at-most-once runtime path</text>
+  <rect class="core" x="70" y="468" width="220" height="122" rx="8"/>
+  <text class="label" x="95" y="503">Event-loop now</text>
+  <text class="body" x="95" y="534">Already checked by due()</text>
+  <text class="small" x="95" y="562">Reuse for heartbeat schedule</text>
+  <path class="line" d="M290 529 L330 529"/>
+
+  <rect class="core" x="335" y="468" width="280" height="122" rx="8"/>
+  <text class="label" x="360" y="503">Observe heartbeat once</text>
+  <text class="mono" x="360" y="534">{ lost_count, error&lt;=512 }</text>
+  <text class="small" x="360" y="562">Validate exact batch partition</text>
+  <path class="line" d="M615 529 L655 529"/>
+
+  <rect class="core" x="660" y="468" width="250" height="122" rx="8"/>
+  <text class="label" x="685" y="503">F356 inputs</text>
+  <text class="body" x="685" y="534">capability + processor</text>
+  <text class="small" x="685" y="562">Carry pre-renewal error</text>
+  <path class="line" d="M910 529 L950 529"/>
+
+  <rect class="core" x="955" y="468" width="250" height="122" rx="8"/>
+  <text class="label" x="980" y="503">Membership + proof</text>
+  <text class="body" x="980" y="534">Failure is collective-visible</text>
+  <text class="small" x="980" y="562">No rounds after local error</text>
+  <path class="line" d="M1205 529 L1245 529"/>
+
+  <rect class="core" x="1250" y="468" width="280" height="122" rx="8"/>
+  <text class="label" x="1275" y="503">Completion owns clock</text>
+  <text class="mono" x="1275" y="534">clock() then complete()</text>
+  <text class="small" x="1275" y="562">Exception becomes accounting error</text>
+
+  <text class="section" x="70" y="656">State semantics: local rollback is not external rollback</text>
+  <rect class="good" x="70" y="686" width="455" height="198" rx="8"/>
+  <text class="label" x="100" y="724">Valid heartbeat / proof result</text>
+  <text class="mono" x="100" y="759">provider calls = 1</text>
+  <text class="mono" x="100" y="790">attempts = successes + failures</text>
+  <text class="body" x="100" y="824">Proof rejection commits one failure</text>
+  <text class="small" x="100" y="854">No extra MPI phase or disk schema</text>
+
+  <rect class="warn" x="570" y="686" width="455" height="198" rx="8"/>
+  <text class="label" x="600" y="724">Heartbeat Exception / invalid batch</text>
+  <text class="mono" x="600" y="759">local metrics + tokens = pre-state</text>
+  <text class="body" x="600" y="794">Enter membership with bounded error</text>
+  <text class="small" x="600" y="824">External lease writes may already exist</text>
+  <text class="small" x="600" y="854">Do not retry an uncertain side effect</text>
+
+  <rect class="signal" x="1070" y="686" width="460" height="198" rx="8"/>
+  <text class="label" x="1100" y="724">Clock Exception / process signal</text>
+  <text class="mono" x="1100" y="759">Exception =&gt; accounting error + S0</text>
+  <text class="mono" x="1100" y="790">BaseException =&gt; propagate</text>
+  <text class="body" x="1100" y="824">No fabricated completed attempt</text>
+  <text class="small" x="1100" y="854">F353 strong exception safety remains intact</text>
+
+  <text class="section" x="70" y="946">Evidence boundary</text>
+  <rect class="panel" x="70" y="971" width="920" height="76" rx="8"/>
+  <text class="body" x="100" y="1004">Real local filesystem probe + production APIs + synthetic two-rank collective</text>
+  <text class="small" x="100" y="1031">Both ranks return the same heartbeat failure; each controller records one failure</text>
+  <rect class="panel" x="1025" y="971" width="230" height="76" rx="8"/>
+  <text class="label" x="1055" y="1005">14 / 14 checks</text>
+  <text class="small" x="1055" y="1031">Deterministic JSON</text>
+  <rect class="panel" x="1290" y="971" width="240" height="76" rx="8"/>
+  <text class="label" x="1320" y="1005">No uplift claim</text>
+  <text class="small" x="1320" y="1031">No real MPI / ULFM</text>
+</svg>

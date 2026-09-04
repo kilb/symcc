@@ -1,0 +1,11 @@
+run1_sha256=28640a2bf960538ba99fa6a7f0d8b5202dfdab1e7c62490c6970c7d586bbd3c3
+run2_sha256=28640a2bf960538ba99fa6a7f0d8b5202dfdab1e7c62490c6970c7d586bbd3c3
+byte_identical=true
+configurations=176
+memory_byte_equivalences=2112
+initializedness_equivalences=2112
+defined_load_value_equivalences=33
+partial_or_uninitialized_loads=143
+summary_transfers=176
+forks=0
+maximum_steps=27

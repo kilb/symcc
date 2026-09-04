@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">F453 在线 activity/cost 引导的认证分块闭环</title>
+  <desc id="desc">查询按公式族进入持久在线策略，策略在静态、activity 和 cost 三个分支间做有界探索；guided 分支执行有预算的预运行并只使用可复核 activity，随后由 F448 生成认证分区、F449 执行并将可验证结果和成本反馈给同一公式族。</desc>
+  <defs>
+    <style>
+      .bg{fill:#f7f8fa}.panel{fill:#fff;stroke:#263247;stroke-width:2}.soft{fill:#eef3f8;stroke:#53647b;stroke-width:1.5}.blue{fill:#e6f0fb;stroke:#2867a5;stroke-width:2}.green{fill:#e7f4ed;stroke:#287a55;stroke-width:2}.amber{fill:#fff3d7;stroke:#ad7218;stroke-width:2}.red{fill:#fbeceb;stroke:#a8443d;stroke-width:2}.ink{fill:#172033;font-family:Arial,"Noto Sans SC",sans-serif}.h1{font-size:31px;font-weight:700}.h2{font-size:21px;font-weight:700}.body{font-size:17px}.small{font-size:14px}.mono{font-family:"DejaVu Sans Mono",monospace;font-size:14px}.arrow{stroke:#34445b;stroke-width:2.5;fill:none;marker-end:url(#head)}.feedback{stroke:#287a55;stroke-width:3;fill:none;stroke-dasharray:9 7;marker-end:url(#head-green)}.boundary{fill:none;stroke:#8b98aa;stroke-width:1.5;stroke-dasharray:6 5}.tag{fill:#263247}.tagtext{fill:#fff;font-family:Arial,"Noto Sans SC",sans-serif;font-size:13px;font-weight:700}
+    </style>
+    <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#34445b"/></marker>
+    <marker id="head-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#287a55"/></marker>
+  </defs>
+  <rect class="bg" width="1440" height="900"/>
+  <text class="ink h1" x="70" y="68">F453：在线 activity / cost 引导的认证分块闭环</text>
+  <text class="ink body" x="70" y="101">启发式只决定“怎样切、切多少份”；SAT/UNSAT 正确性仍由 Query IR、F448 分区证书和 F449 结果复核共同保证。</text>
+
+  <rect class="boundary" x="55" y="135" width="1330" height="600" rx="6"/>
+  <rect class="tag" x="72" y="122" width="164" height="28" rx="3"/><text class="tagtext" x="91" y="142">每个查询的执行路径</text>
+
+  <rect class="panel" x="85" y="218" width="205" height="152" rx="6"/>
+  <text class="ink h2" x="112" y="260">QF_BV 查询</text>
+  <text class="ink body" x="112" y="295">Query IR + CNF</text>
+  <text class="ink body" x="112" y="324">公式族 SHA-256</text>
+  <text class="ink small" x="112" y="348">同构问题共享历史</text>
+
+  <rect class="blue" x="350" y="170" width="285" height="250" rx="6"/>
+  <text class="ink h2" x="378" y="211">持久在线策略</text>
+  <text class="ink body" x="378" y="247">① static：确定性回退</text>
+  <text class="ink body" x="378" y="278">② activity：checked signal</text>
+  <text class="ink body" x="378" y="309">③ cost：观测成本效用</text>
+  <text class="ink body" x="378" y="340">候选 cube 数：2 / 4 / 8 / 16</text>
+  <text class="ink small" x="378" y="374">有界 warm-up + ε/UCB</text>
+  <text class="ink small" x="378" y="397">记录策略身份与精确 propensity</text>
+
+  <rect class="amber" x="695" y="170" width="270" height="250" rx="6"/>
+  <text class="ink h2" x="722" y="211">可选预运行</text>
+  <text class="ink body" x="722" y="249">仅 activity / cost 执行</text>
+  <text class="ink body" x="722" y="280">固定上限：250 ms</text>
+  <text class="ink body" x="722" y="311">ACK 配对 activity receipt</text>
+  <text class="ink small" x="722" y="345">SAT：候选输入回放验证</text>
+  <text class="ink small" x="722" y="371">UNSAT：checked proof 授权</text>
+  <text class="ink small" x="722" y="397">无能力或无证据 → static</text>
+
+  <rect class="green" x="1025" y="170" width="290" height="250" rx="6"/>
+  <text class="ink h2" x="1052" y="211">F448 认证分区</text>
+  <text class="ink body" x="1052" y="249">activity 只参与 split 排序</text>
+  <text class="ink body" x="1052" y="280">K−1 次二叉切分</text>
+  <text class="ink body" x="1052" y="311">完整性 + 互斥性重放</text>
+  <text class="ink small" x="1052" y="345">证书绑定 formula / policy</text>
+  <text class="ink small" x="1052" y="371">任何证据不一致均失败关闭</text>
+
+  <path class="arrow" d="M290 294H350"/>
+  <path class="arrow" d="M635 294H695"/>
+  <path class="arrow" d="M965 294H1025"/>
+
+  <rect class="red" x="1025" y="500" width="290" height="170" rx="6"/>
+  <text class="ink h2" x="1052" y="540">F449 认证执行</text>
+  <text class="ink body" x="1052" y="577">fenced lease + retry</text>
+  <text class="ink body" x="1052" y="608">SAT model / UNSAT proof 复核</text>
+  <text class="ink small" x="1052" y="638">只提交已验证终态</text>
+
+  <rect class="soft" x="695" y="500" width="270" height="170" rx="6"/>
+  <text class="ink h2" x="722" y="540">结果与成本记录</text>
+  <text class="ink body" x="722" y="577">状态、完成 cube、总耗时</text>
+  <text class="ink body" x="722" y="608">预运行耗时、有效预算</text>
+  <text class="ink small" x="722" y="638">canonical JSON + digest</text>
+
+  <path class="arrow" d="M1170 420V500"/>
+  <path class="arrow" d="M1025 585H965"/>
+  <path class="feedback" d="M695 585H493V420"/>
+  <text class="ink small" x="512" y="565">按公式族反馈；重启后继续</text>
+
+  <rect class="panel" x="85" y="770" width="1230" height="82" rx="6"/>
+  <text class="ink h2" x="112" y="806">等 CPU-ms 预算合同</text>
+  <text class="ink mono" x="370" y="806">B = K_base × timeout_base × attempts；t_cube = floor((B − t_prerun) / (K_chosen × attempts))</text>
+  <text class="ink small" x="112" y="834">因此不同 arm 和 cube 数在同一资源上限内比较；预运行不是额外赠送的计算预算。</text>
+</svg>

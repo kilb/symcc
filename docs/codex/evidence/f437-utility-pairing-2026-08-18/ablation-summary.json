@@ -1,0 +1,100 @@
+{
+  "artifact_sha256": "058c5deeac5684aa0dc2b06f4a6d46fdfcc9d9a0f97346bb210fd794c2cc97d4",
+  "claim_boundary": "paired local MPI mechanism ablation; suppression and activation retention only, with no solve-time, fuzzing-coverage, defect-yield, or multi-node scaling claim",
+  "clauses": 860,
+  "consumers": 2,
+  "elapsed_us": 20027372,
+  "library": "/tmp/f436/libsymcc_qfbv_cadical_realtime.so",
+  "library_sha256": "dc55826dcda173d607df89db8fae5997c14b9048a15282cf9f22f10c8125633f",
+  "pairs": [
+    {
+      "admitted": 10,
+      "baseline_activated": 6,
+      "baseline_artifact_sha256": "f9d6a54c61a0b66c3b52c7b66480a34d6cdcbad744a69629052c46c568557c53",
+      "baseline_checker_total_us": 18440,
+      "baseline_delivered": 12,
+      "baseline_files": {
+        "result": "seed-62519-baseline.json",
+        "result_sha256": "cc2ed531563a619593043f7da281bb29cbe402bd1f7605c1deed49d9fb6ee5ac",
+        "stderr": "seed-62519-baseline.stderr.txt",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout": "seed-62519-baseline.stdout.txt",
+        "stdout_sha256": "cc2ed531563a619593043f7da281bb29cbe402bd1f7605c1deed49d9fb6ee5ac"
+      },
+      "baseline_solve_total_us": 7957901,
+      "baseline_unactivated": 6,
+      "formula_sha256": [
+        "3e668d5664772c9f6e682f9a928b67447e81f22ce11c7f783865052da6608ff6",
+        "aa401bbee7d58c98331c819a5a3e17717ed24318e6064d8749e26322189367c8",
+        "92acf558a867dc500a94c7ee696e3e6b9f840bedc8d73d1a5322bb9a64d0cec5"
+      ],
+      "opportunities": 12,
+      "pairing_activated": 6,
+      "pairing_artifact_sha256": "efee60316f7a0475a8ecfc81a96ff05ff60c0c1afbe8b15557b5c6b83efe4905",
+      "pairing_checker_total_us": 17511,
+      "pairing_delivered": 10,
+      "pairing_files": {
+        "result": "seed-62519-pairing.json",
+        "result_sha256": "be24e492c6c61754370c4a821b1edb71061892338caab4a7347e3a50420a4ad7",
+        "stderr": "seed-62519-pairing.stderr.txt",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout": "seed-62519-pairing.stdout.txt",
+        "stdout_sha256": "be24e492c6c61754370c4a821b1edb71061892338caab4a7347e3a50420a4ad7"
+      },
+      "pairing_solve_total_us": 8001819,
+      "pairing_unactivated": 4,
+      "seed": 62519,
+      "suppressed": 2
+    },
+    {
+      "admitted": 10,
+      "baseline_activated": 6,
+      "baseline_artifact_sha256": "d905e44a0d98ae899ac3f4a43f740c8f16da7fd6a482b9915f31c9fa0e6e67cc",
+      "baseline_checker_total_us": 19939,
+      "baseline_delivered": 12,
+      "baseline_files": {
+        "result": "seed-128056-baseline.json",
+        "result_sha256": "ce10d52982937240d73b3fefe896a2a88bea5cb0bc57cb81f48e4ff7f9d864d0",
+        "stderr": "seed-128056-baseline.stderr.txt",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout": "seed-128056-baseline.stdout.txt",
+        "stdout_sha256": "ce10d52982937240d73b3fefe896a2a88bea5cb0bc57cb81f48e4ff7f9d864d0"
+      },
+      "baseline_solve_total_us": 7926864,
+      "baseline_unactivated": 6,
+      "formula_sha256": [
+        "305b08d8a7a10febb679a1cfe93746bab70d9b74da26c06d7fa284d760325b8a",
+        "1542288850d875e8fb259aeeb8bdd22fa0cd96439dca0339e51dd82cd993b2e3",
+        "ce84e928301dbe0c1f7e89401830c5d25b32b11ce0c99c5b4ebd9095b316d927"
+      ],
+      "opportunities": 12,
+      "pairing_activated": 6,
+      "pairing_artifact_sha256": "7075615e87ae47ed3397efe6ad3992aa0694aad9fa172ec4c02b407401161629",
+      "pairing_checker_total_us": 18056,
+      "pairing_delivered": 10,
+      "pairing_files": {
+        "result": "seed-128056-pairing.json",
+        "result_sha256": "6b84babb380114507e2af9f950aecd3622bf8f1801290aed7a437ccf850d2429",
+        "stderr": "seed-128056-pairing.stderr.txt",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout": "seed-128056-pairing.stdout.txt",
+        "stdout_sha256": "6b84babb380114507e2af9f950aecd3622bf8f1801290aed7a437ccf850d2429"
+      },
+      "pairing_solve_total_us": 7817553,
+      "pairing_unactivated": 4,
+      "seed": 128056,
+      "suppressed": 2
+    }
+  ],
+  "processes": 5,
+  "publishers": 2,
+  "repetitions": 2,
+  "rounds": 3,
+  "schema": "symcc-f437-utility-pairing-ablation-v1",
+  "status": "pass",
+  "total_baseline_activated": 12,
+  "total_opportunities": 24,
+  "total_pairing_activated": 12,
+  "total_suppressed": 4,
+  "variables": 200
+}

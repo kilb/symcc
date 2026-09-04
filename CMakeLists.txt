@@ -98,6 +98,12 @@ endif()
 
 add_definitions(${LLVM_DEFINITIONS})
 include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
+find_package(Threads REQUIRED)
+
+option(SYMCC_BUILD_QFBV_Z3_FORKSERVER
+  "Build the Linux copy-on-write QF_BV Z3 forkserver" ON)
+set(SYMCC_QFBV_Z3_ROOT "" CACHE PATH
+  "Optional Z3 distribution root for the QF_BV forkserver")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
@@ -114,8 +120,53 @@ set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,-z,nodelete")
 add_library(SymCC MODULE
   compiler/Symbolizer.cpp
   compiler/Pass.cpp
+  compiler/IFSSSwitchLowering.cpp
+  compiler/IFSSLoopSummary.cpp
+  compiler/IFSSExitLowering.cpp
+  compiler/IFSSContinuationLowering.cpp
+  compiler/IFSSContinuationMemory.cpp
+  compiler/HydraTransformation.cpp
+  compiler/ContinuationLowering.cpp
+  compiler/UCSan.cpp
   compiler/Runtime.cpp
   compiler/Main.cpp)
+
+add_library(symcc_schedule_rt SHARED
+  util/symcc_schedule_rt.c)
+target_link_libraries(symcc_schedule_rt PRIVATE
+  ${CMAKE_DL_LIBS}
+  Threads::Threads)
+set_target_properties(symcc_schedule_rt PROPERTIES
+  OUTPUT_NAME "symcc_schedule_rt")
+
+set(SYMCC_HAVE_QFBV_Z3_FORKSERVER OFF)
+if (SYMCC_BUILD_QFBV_Z3_FORKSERVER AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  if (SYMCC_QFBV_Z3_ROOT)
+    find_path(SYMCC_QFBV_Z3_INCLUDE_DIR NAMES z3++.h
+      PATHS "${SYMCC_QFBV_Z3_ROOT}/include" NO_DEFAULT_PATH)
+    find_library(SYMCC_QFBV_Z3_LIBRARY NAMES z3
+      PATHS "${SYMCC_QFBV_Z3_ROOT}/lib" "${SYMCC_QFBV_Z3_ROOT}/bin"
+      NO_DEFAULT_PATH)
+  else()
+    find_path(SYMCC_QFBV_Z3_INCLUDE_DIR NAMES z3++.h)
+    find_library(SYMCC_QFBV_Z3_LIBRARY NAMES z3)
+  endif()
+  if (SYMCC_QFBV_Z3_INCLUDE_DIR AND SYMCC_QFBV_Z3_LIBRARY)
+    add_executable(symcc_qfbv_z3_forkserver
+      util/qfbv_z3_forkserver.cpp)
+    target_include_directories(symcc_qfbv_z3_forkserver PRIVATE
+      ${SYMCC_QFBV_Z3_INCLUDE_DIR})
+    target_link_libraries(symcc_qfbv_z3_forkserver PRIVATE
+      ${SYMCC_QFBV_Z3_LIBRARY})
+    set_target_properties(symcc_qfbv_z3_forkserver PROPERTIES
+      OUTPUT_NAME "symcc-qfbv-z3-forkserver")
+    set(SYMCC_HAVE_QFBV_Z3_FORKSERVER ON)
+    message(STATUS
+      "Building the QF_BV Z3 forkserver with ${SYMCC_QFBV_Z3_LIBRARY}")
+  else()
+    message(STATUS "QF_BV Z3 forkserver disabled: Z3 development files not found")
+  endif()
+endif()
 
 set_target_properties(SymCC PROPERTIES OUTPUT_NAME "symcc")
 if (NOT LLVM_ENABLE_RTTI)

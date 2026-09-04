@@ -1,0 +1,47 @@
+{
+  "all_passed": true,
+  "claim_boundary": "generation-fenced logical malleability over prelaunched slots and local physical MPI ownership only; no dynamic MPI spawn, failed-communicator repair, solver speedup, fuzzing coverage, defect-yield, network, or multi-node claim",
+  "focused_python": {
+    "passed": 17,
+    "subtests_passed": 0
+  },
+  "llvm17": {
+    "discovered": 328,
+    "failed": 0,
+    "passed": 326,
+    "unresolved": 0,
+    "unsupported": 2
+  },
+  "llvm18": {
+    "discovered": 328,
+    "failed": 0,
+    "passed": 327,
+    "unresolved": 0,
+    "unsupported": 1
+  },
+  "nodeids_sha256": "a02d0a87dbcf1660e8b390930e9e91e2e231c7ce7a8b219d148c0c904734bf92",
+  "physical_mpi": {
+    "attached_leases": 38,
+    "durable_proofs": 38,
+    "epochs": 16,
+    "physical_rank_runs": 10,
+    "retired_leases": 38,
+    "runs": 2,
+    "stale_fences_rejected": 31,
+    "worker_operations_attested": 145
+  },
+  "python": {
+    "collected": 1307,
+    "collection_errors": 0,
+    "deselected": 0,
+    "failed": 0,
+    "passed": 1307,
+    "skipped": 0,
+    "subtests_failed": 0,
+    "subtests_passed": 291,
+    "subtests_skipped": 0,
+    "xfailed": 0,
+    "xpassed": 0
+  },
+  "schema": "symcc-f438-full-suite-summary-v1"
+}

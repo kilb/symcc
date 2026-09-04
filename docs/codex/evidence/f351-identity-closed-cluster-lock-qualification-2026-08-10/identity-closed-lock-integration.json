@@ -1,0 +1,149 @@
+{
+  "all_checks_passed": true,
+  "checks": {
+    "local_probe_remains_explicitly_same_host": true,
+    "normal_litmus_closes_every_master_namespace": true,
+    "one_processor_name_never_claims_cross_host_proof": true,
+    "runtime_controller_rejects_legacy_v1_evidence": true,
+    "same_content_replacement_fails_every_master": true,
+    "stale_publication_binding_fails_before_rounds": true,
+    "stale_state_filesystem_binding_fails_before_rounds": true,
+    "upgraded_snapshot_is_v3_and_v2_scoped": true
+  },
+  "environment": {
+    "actual_mpi_transport": false,
+    "actual_multi_host": false,
+    "filesystem_type": "overlay",
+    "kernel": "7.0.0-28-generic",
+    "machine": "x86_64",
+    "python": "3.12.3",
+    "synthetic_processor_names": true
+  },
+  "legacy_controller": {
+    "attempts": 1,
+    "failures": 1,
+    "generation": 1,
+    "in_flight_generation": 0,
+    "interval": 5.0,
+    "jitter_fraction": 0.0,
+    "last_elapsed": 0.1,
+    "last_scheduled_interval": 5.0,
+    "maximum_interval": 5.0,
+    "next_scheduled_interval": 5.0,
+    "schema": "symcc-cluster-lock-renewal-metrics-v2",
+    "successes": 0,
+    "timeout": 2.0,
+    "total_elapsed": 0.1
+  },
+  "normal": {
+    "capability": {
+      "advisory_lock_exclusion": true,
+      "advisory_lock_release": true,
+      "cluster_lock_contention_checks": 4,
+      "cluster_lock_identity_checks": 3,
+      "cluster_lock_members": [
+        {
+          "processor": "synthetic-node-a",
+          "rank": 0
+        },
+        {
+          "processor": "synthetic-node-b",
+          "rank": 1
+        },
+        {
+          "processor": "synthetic-node-b",
+          "rank": 2
+        }
+      ],
+      "cluster_lock_release_checks": 2,
+      "cluster_lock_representatives": [
+        0,
+        1
+      ],
+      "cluster_lock_rounds": 2,
+      "cluster_lock_verified": true,
+      "cross_directory_replace": true,
+      "device": 92,
+      "directory_fsync": true,
+      "distributed_filesystem": false,
+      "durable_unlink": true,
+      "file_fsync": true,
+      "filesystem_id": 18395215968828387670,
+      "filesystem_type": "overlay",
+      "hard_link": true,
+      "mount_point": "/",
+      "mount_source": "overlay",
+      "probe_scope": "cross-host-mpi-lock-v2",
+      "publication_device": 92,
+      "publication_filesystem_id": 18395215968828387670,
+      "publication_replace": true,
+      "publication_root": "/tmp/symcc-f351-integration-v4l_73c1/normal",
+      "root": "/tmp/symcc-f351-integration-v4l_73c1/normal",
+      "same_directory_replace": true,
+      "schema": "symcc-shared-filesystem-capabilities-v3"
+    },
+    "contention_checks": 4,
+    "identity_checks": 3,
+    "members": [
+      [
+        0,
+        "synthetic-node-a"
+      ],
+      [
+        1,
+        "synthetic-node-b"
+      ],
+      [
+        2,
+        "synthetic-node-b"
+      ]
+    ],
+    "release_checks": 2,
+    "representatives": [
+      0,
+      1
+    ],
+    "rounds": 2
+  },
+  "same_content_replacement": {
+    "errors": [
+      "master 0: [Errno 116] cluster lock path identity changed: '/tmp/symcc-f351-integration-v4l_73c1/same-content-replacement/.cluster-filesystem.lock'",
+      "master 0: [Errno 116] cluster lock path identity changed: '/tmp/symcc-f351-integration-v4l_73c1/same-content-replacement/.cluster-filesystem.lock'"
+    ],
+    "identity_checks": [
+      0,
+      0
+    ],
+    "new_inode": 42481525,
+    "old_inode": 42481524,
+    "public_sha256_after_replace": "f516c05bb88b9138195730af6889f2ca2f4c6354ed3072407052211701814dfc",
+    "rounds": [
+      2,
+      2
+    ],
+    "sha256": "f516c05bb88b9138195730af6889f2ca2f4c6354ed3072407052211701814dfc"
+  },
+  "same_host": {
+    "clean": [
+      true,
+      true
+    ],
+    "identity_checks": [
+      0,
+      0
+    ],
+    "verified": [
+      false,
+      false
+    ]
+  },
+  "schema": "symcc-f351-identity-closed-lock-evidence-v1",
+  "stale_publication_binding_errors": [
+    "master 0 local probe failed: publication root filesystem identity changed: expected dev/fsid=92/18395215968828387671, observed=92/18395215968828387670",
+    "master 0 local probe failed: publication root filesystem identity changed: expected dev/fsid=92/18395215968828387671, observed=92/18395215968828387670"
+  ],
+  "stale_state_binding_errors": [
+    "master 0 local probe failed: state root filesystem identity changed: expected dev/fsid=93/18395215968828387670, observed=92/18395215968828387670",
+    "master 0 local probe failed: state root filesystem identity changed: expected dev/fsid=93/18395215968828387670, observed=92/18395215968828387670"
+  ]
+}

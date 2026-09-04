@@ -1,0 +1,11 @@
+F456 execution environment, 2026-08-26 UTC
+captured_at=2026-08-26T08:41:11Z
+kernel=Linux 7.0.0-28-generic x86_64 GNU/Linux
+python=Python 3.12.3
+pytest=pytest 9.1.1
+ruff=ruff 0.15.20
+z3=Z3 version 4.8.12 - 64 bit
+llvm=Ubuntu LLVM version 18.1.3
+git_head=146e01b2d6f8e02fd2526764d46ea0d80a4bb6f6
+pytest_nodeids=1542
+pytest_nodeids_sha256=ea94daa8784559ecec3e5d583fa17d0f97588e558f2da6b02bb1c986a6c8ead2

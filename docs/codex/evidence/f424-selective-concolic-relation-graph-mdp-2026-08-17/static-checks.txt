@@ -1,0 +1,22 @@
+LLVM 18 symcc-query-solver C++ rebuild: PASS
+LLVM 17 symcc-query-solver C++ rebuild: PASS
+LLVM 18 targeted query_solver_selective.py: 1 PASS / 306 discovered
+LLVM 17 targeted query_solver_selective.py: 1 PASS / 306 discovered
+LLVM 18 native provider schema test: 1 PASS / 306 discovered
+LLVM 17 native provider schema test: 1 PASS / 306 discovered
+ruff changed Python and delivery verifier: PASS
+py_compile changed Python and delivery verifier: PASS
+git diff --check: PASS
+runtime submodule git diff --check: PASS
+C++ graph resource review: PASS
+  maximum assertions=65536
+  maximum variables=4096
+  maximum variables per assertion=256
+  maximum unique relation edges=262144
+  maximum relation pair observations=1048576
+Authority review: PASS
+  partial UNSAT/unknown/timeout/miss is non-authoritative
+  partial solver construction/check/model exceptions become unknown + fallback
+  every graph hit is SAT on the original complete solver
+  QueryStore requires graph hit attribution to z3-selective-graph
+  QueryStore cross-field validation remains mandatory

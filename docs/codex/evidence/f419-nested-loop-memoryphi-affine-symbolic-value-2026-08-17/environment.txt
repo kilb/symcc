@@ -1,0 +1,11 @@
+date_utc=2026-08-17
+repository=/home/ubuntu/code/symcc
+git_head=146e01b2d6f8e02fd2526764d46ea0d80a4bb6f6
+kernel=Linux cuda-ke 7.0.0-28-generic x86_64
+llvm17=17.0.6
+llvm18=18.1.3
+python=3.12.3
+pytest=9.1.1
+python_nodeids=1097
+python_nodeids_sha256=0879d6e20ef492b553b2929a587f7bf3d9af9c684a45196686a65d86f51fe07d
+

@@ -1,0 +1,57 @@
+{
+  "schema": "symcc-deep-review-kernel-evidence-v1",
+  "date_utc": "2026-08-11",
+  "claim_scope": "data-coverage path_bonus Python kernel only",
+  "evidence_level": "mechanism-microbenchmark",
+  "environment": {
+    "cpu": "AMD Ryzen Threadripper PRO 9995WX 96-Cores",
+    "logical_cpus": 192,
+    "kernel": "Linux 7.0.0-28-generic x86_64",
+    "python": "3.12.3",
+    "pythonhashseed": "0",
+    "timer": "time.process_time"
+  },
+  "workload": {
+    "comparison_winners": 16384,
+    "static_winners": 65536,
+    "total_winners": 81920,
+    "queried_paths_per_trial": 512,
+    "trials": 5
+  },
+  "implementations": {
+    "reference": "legacy exact full scan of comparison and static winner maps",
+    "candidate": "incrementally maintained per-path quality_sum and winner_count"
+  },
+  "reference_cpu_seconds": [
+    0.720233232,
+    0.735076572,
+    0.7242767370000001,
+    0.724015192,
+    0.727817194
+  ],
+  "candidate_cpu_seconds": [
+    0.00014217299999999544,
+    0.00007734600000000591,
+    0.00007573399999999397,
+    0.00007988000000000439,
+    0.00007554400000001071
+  ],
+  "median_reference_cpu_seconds": 0.7242767370000001,
+  "median_candidate_cpu_seconds": 0.00007734600000000591,
+  "median_ratio": 9364.113683964842,
+  "semantic_check": {
+    "checksum_equal": true,
+    "absolute_tolerance": 1e-12
+  },
+  "source_sha256": {
+    "util/hybrid_feedback.py": "a24cfc06529481fa0e86580213dda2591e0f362f671ffca62e2b64da57c82f8a",
+    "util/query_store.py": "4363fff007d937badf04f539b39a3e7f1badfdcc298cf0155b4d7c1f10561f7e",
+    "test/test_hybrid_feedback.py": "d06beced818fcf059680a541de68e4ee3187b0b51e1b8a5e2feaf0fa812f393e",
+    "test/test_query_store.py": "7236a85896de384658706b915616a6efc1df9197fc932c73c40ec6e6ffe429d0"
+  },
+  "limitations": [
+    "This isolates one in-process Python scoring kernel.",
+    "It does not measure end-to-end scheduling, solver throughput, target coverage, or campaign time.",
+    "The ratio must not be reported as a LAVA-M, Magma, or multi-node speedup."
+  ]
+}

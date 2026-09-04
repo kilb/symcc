@@ -1,0 +1,16 @@
+{
+  "__version__": [
+    18,
+    1,
+    8
+  ],
+  "elapsed": 2.0693585872650146,
+  "tests": [
+    {
+      "code": "PASS",
+      "elapsed": 2.0613925457000732,
+      "name": "compiler :: query_solver_selective.py",
+      "output": "Exit Code: 0\n\nCommand Output (stdout):\n--\n# RUN: at line 2\npython3 /home/ubuntu/code/symcc/test/query_solver_selective.py /home/ubuntu/code/symcc/build-llvm17/SymCCRuntime-prefix/src/SymCCRuntime-build/src/backends/qsym/symcc-query-solver\n# executed command: python3 /home/ubuntu/code/symcc/test/query_solver_selective.py /home/ubuntu/code/symcc/build-llvm17/SymCCRuntime-prefix/src/SymCCRuntime-build/src/backends/qsym/symcc-query-solver\n\n--\n"
+    }
+  ]
+}

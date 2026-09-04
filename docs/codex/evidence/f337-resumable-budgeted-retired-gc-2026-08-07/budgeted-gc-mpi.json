@@ -1,0 +1,99 @@
+{
+  "actual_mpi_transport": true,
+  "actual_multi_host": false,
+  "all_checks_passed": true,
+  "checks": {
+    "all_runs_are_bounded": true,
+    "all_three_real_mpi_runs_succeed": true,
+    "all_workers_ack_on_every_run": true,
+    "content_addressed_seed_remains_intact": true,
+    "each_successful_run_retires_its_own_epoch": true,
+    "first_two_runs_make_exact_bounded_partial_progress": true,
+    "real_multi_master_frontend_exercised": true,
+    "retirement_primitive_qualified_every_time": true,
+    "third_run_durably_completes_old_root": true
+  },
+  "command": [
+    "mpirun",
+    "--oversubscribe",
+    "-np",
+    "7",
+    "python3",
+    "/home/ubuntu/code/symcc/util/mpi_concolic_execution.py",
+    "-i",
+    "/tmp/symcc-f337-budgeted-gc-rafyq3tl/input",
+    "-o",
+    "/tmp/symcc-f337-budgeted-gc-rafyq3tl/output",
+    "-t",
+    "1",
+    "--max-idle",
+    "1",
+    "--wall-timeout",
+    "3",
+    "--workers-per-master",
+    "3",
+    "--simulate",
+    "--",
+    "/bin/true"
+  ],
+  "configuration": {
+    "masters": 2,
+    "old_epoch": "0000000000000000000000000000000000000000000000000000000000000000",
+    "old_retirement_id": "77777777777777777777777777777777",
+    "old_tree_files": 5,
+    "ranks": 7,
+    "retired_gc_entry_budget": 2,
+    "retired_gc_root_limit": 1,
+    "retired_gc_time_budget_seconds": 1.0,
+    "work_epoch": "f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337",
+    "workers": 5
+  },
+  "corpus_seed_digest": "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd",
+  "corpus_seed_intact": true,
+  "deployment_evidence": false,
+  "proof_boundary": "Three real Open MPI runs on one physical host and local overlayfs prove exact two-entry startup progress, partial-tree retention, cross-restart convergence, worker ACKs, and normal epoch retirement. They do not prove a hard wall-clock bound around blocking syscalls, remote-filesystem crash persistence, multi-host failover, DSE throughput, coverage, solver, or LAVA-M uplift.",
+  "runs": [
+    {
+      "elapsed": 3.7485774129163474,
+      "returncode": 0
+    },
+    {
+      "elapsed": 3.7317223970312625,
+      "returncode": 0
+    },
+    {
+      "elapsed": 3.7034892509691417,
+      "returncode": 0
+    }
+  ],
+  "schema": "symcc-f337-resumable-budgeted-retired-gc-mpi-v1",
+  "state_observations": [
+    {
+      "old_file_count": 3,
+      "old_root_exists": true,
+      "retired_roots": [
+        ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000000-77777777777777777777777777777777",
+        ".retired-standalone-work-f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337-0e927c4ba66435f313493d477aca88de"
+      ]
+    },
+    {
+      "old_file_count": 1,
+      "old_root_exists": true,
+      "retired_roots": [
+        ".retired-standalone-work-0000000000000000000000000000000000000000000000000000000000000000-77777777777777777777777777777777",
+        ".retired-standalone-work-f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337-0e927c4ba66435f313493d477aca88de",
+        ".retired-standalone-work-f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337-27b53c238a1dc3ec17dd1856e87cbf9d"
+      ]
+    },
+    {
+      "old_file_count": 0,
+      "old_root_exists": false,
+      "retired_roots": [
+        ".retired-standalone-work-f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337-0e927c4ba66435f313493d477aca88de",
+        ".retired-standalone-work-f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337-27b53c238a1dc3ec17dd1856e87cbf9d",
+        ".retired-standalone-work-f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337f337-64cf63f079b3d4c25e6da53e5ac06481"
+      ]
+    }
+  ],
+  "synthetic_topology": false
+}

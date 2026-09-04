@@ -1,0 +1,6 @@
+review_1=Closed the dual-lowering semantic gap with SMT AST equivalence; required exact correct-newline verdict, empty stderr, explicit false conclusion, top-level proof allowlist, bounded reference grammar, and no symlink in the signature tree.
+review_2=Introduced one absolute deadline across reuse/generation/checking/publication; moved quota admission before CAS writes under a stable cross-process flock; added real two-process quota and proof-disabled compatibility counterexamples.
+review_3=Installed and cached pinned cvc5/Ethos in zero-skip CI; regenerated the exact pytest identity manifest; separated protocol-cost observations from performance claims.
+review_4=Final real-tool replay found that cvc5 1.3.4 safe mode rejects an explicit expert proof-format-mode=cpc option; removed the redundant CLI option from code examples/tests/oracle while retaining CPC in the schema and validating the CPC wrapper with Ethos.
+result=All four findings are fixed and covered by executable regression tests or the real oracle.
+

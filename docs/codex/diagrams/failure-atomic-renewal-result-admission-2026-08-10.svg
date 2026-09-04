@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050" role="img" aria-labelledby="title desc">
+  <title id="title">F353 failure-atomic renewal result admission</title>
+  <desc id="desc">Comparison of the old partial-state failure with the new validate, derive, commit state transition and its invariants.</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="7" flood-color="#172033" flood-opacity="0.13"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#475569"/>
+    </marker>
+    <marker id="redArrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#c2413a"/>
+    </marker>
+    <style>
+      .title{font:700 38px Arial,sans-serif;fill:#172033}.subtitle{font:400 19px Arial,sans-serif;fill:#d8e2ee}
+      .section{font:700 22px Arial,sans-serif;fill:#172033}.head{font:700 18px Arial,sans-serif;fill:#172033}
+      .body{font:400 16px Arial,sans-serif;fill:#334155}.small{font:400 14px Arial,sans-serif;fill:#526071}
+      .mono{font:600 15px 'Courier New',monospace;fill:#263244}.white{fill:#fff}.green{fill:#166534}.red{fill:#a62d2d}.blue{fill:#1d4ed8}
+      .line{stroke:#475569;stroke-width:3;fill:none;marker-end:url(#arrow)}.redline{stroke:#c2413a;stroke-width:3;fill:none;marker-end:url(#redArrow)}
+    </style>
+  </defs>
+  <rect width="1600" height="1050" fill="#f7f9fc"/>
+  <rect x="0" y="0" width="1600" height="118" fill="#172033"/>
+  <text x="64" y="58" class="title white">F353  Failure-Atomic Renewal Result Admission</text>
+  <text x="64" y="91" class="subtitle" fill="#d8e2ee">Validate every fallible operation first, then cross one explicit state-commit boundary</text>
+
+  <text x="64" y="160" class="section">Before: proof validation could split controller state</text>
+  <rect x="64" y="184" width="315" height="132" rx="8" fill="#ffffff" stroke="#cbd5e1" filter="url(#shadow)"/>
+  <text x="88" y="218" class="head">Pre-state S0</text>
+  <text x="88" y="251" class="mono">generation = 0</text>
+  <text x="88" y="276" class="mono">in_flight = 1</text>
+  <text x="88" y="301" class="mono">A / S / F = 0 / 0 / 0</text>
+  <path d="M379 250 H463" class="redline"/>
+  <rect x="466" y="184" width="330" height="132" rx="8" fill="#fff4f2" stroke="#e48a80" filter="url(#shadow)"/>
+  <text x="490" y="218" class="head red">Writes happen early</text>
+  <text x="490" y="251" class="body">advance generation, clear in-flight</text>
+  <text x="490" y="276" class="body">increment attempts, update schedule</text>
+  <text x="490" y="301" class="small red">state is already externally observable</text>
+  <path d="M796 250 H880" class="redline"/>
+  <rect x="883" y="184" width="280" height="132" rx="8" fill="#fff4f2" stroke="#e48a80" filter="url(#shadow)"/>
+  <text x="907" y="218" class="head red">Validator throws</text>
+  <text x="907" y="251" class="mono">tuple(object())</text>
+  <text x="907" y="276" class="body">TypeError escapes</text>
+  <text x="907" y="301" class="small">no success/failure decision</text>
+  <path d="M1163 250 H1247" class="redline"/>
+  <rect x="1250" y="184" width="286" height="132" rx="8" fill="#fde8e5" stroke="#c2413a" filter="url(#shadow)"/>
+  <text x="1274" y="218" class="head red">Partial state</text>
+  <text x="1274" y="251" class="mono">A / S / F = 1 / 0 / 0</text>
+  <text x="1274" y="276" class="body red">A != S + F</text>
+  <text x="1274" y="301" class="small red">generation consumed without outcome</text>
+
+  <text x="64" y="372" class="section">After: Validate / Derive / Commit</text>
+  <rect x="64" y="398" width="260" height="166" rx="8" fill="#ffffff" stroke="#94a3b8" filter="url(#shadow)"/>
+  <rect x="64" y="398" width="260" height="42" rx="8" fill="#e8eef6"/>
+  <text x="87" y="426" class="head">1  Envelope gate</text>
+  <text x="87" y="469" class="body">exact integer generation</text>
+  <text x="87" y="496" class="body">current in-flight identity</text>
+  <text x="87" y="523" class="body">configuration + completion time</text>
+  <text x="87" y="550" class="small">no controller writes</text>
+  <path d="M324 481 H375" class="line"/>
+  <rect x="378" y="398" width="300" height="166" rx="8" fill="#ffffff" stroke="#60a5fa" filter="url(#shadow)"/>
+  <rect x="378" y="398" width="300" height="42" rx="8" fill="#dbeafe"/>
+  <text x="401" y="426" class="head blue">2  Total proof admission</text>
+  <text x="401" y="469" class="body">tuple shape + topology</text>
+  <text x="401" y="496" class="body">F351 evidence-shape replay</text>
+  <text x="401" y="523" class="body">F352 transcript + capability</text>
+  <text x="401" y="550" class="small">malformed object maps to False</text>
+  <path d="M678 481 H729" class="line"/>
+  <rect x="732" y="398" width="286" height="166" rx="8" fill="#ffffff" stroke="#60a5fa" filter="url(#shadow)"/>
+  <rect x="732" y="398" width="286" height="42" rx="8" fill="#dbeafe"/>
+  <text x="755" y="426" class="head blue">3  Derive next state</text>
+  <text x="755" y="469" class="body">finite elapsed + total</text>
+  <text x="755" y="496" class="body">next jitter schedule</text>
+  <text x="755" y="523" class="body">success / failure delta</text>
+  <text x="755" y="550" class="small">still no controller writes</text>
+  <path d="M1018 481 H1070" class="line"/>
+  <circle cx="1128" cy="481" r="57" fill="#172033" filter="url(#shadow)"/>
+  <text x="1128" y="474" text-anchor="middle" class="head white">COMMIT</text>
+  <text x="1128" y="500" text-anchor="middle" class="small" fill="#d8e2ee">one boundary</text>
+  <path d="M1185 481 H1236" class="line"/>
+  <rect x="1239" y="398" width="297" height="166" rx="8" fill="#edf8f1" stroke="#5ca775" filter="url(#shadow)"/>
+  <text x="1262" y="432" class="head green">4  Complete outcome</text>
+  <text x="1262" y="469" class="mono">generation = 1</text>
+  <text x="1262" y="496" class="mono">in_flight = 0</text>
+  <text x="1262" y="523" class="mono">A = S + F</text>
+  <text x="1262" y="550" class="small green">valid success or total failure</text>
+
+  <path d="M528 564 V626 H309" class="redline"/>
+  <path d="M875 564 V626 H309" class="redline"/>
+  <rect x="64" y="603" width="490" height="118" rx="8" fill="#fff4f2" stroke="#e48a80" filter="url(#shadow)"/>
+  <text x="88" y="637" class="head red">Unexpected internal exception</text>
+  <text x="88" y="670" class="body">validator or scheduler raises before COMMIT</text>
+  <text x="88" y="698" class="mono">after snapshot == before snapshot</text>
+  <path d="M554 662 H662" class="line"/>
+  <rect x="665" y="603" width="353" height="118" rx="8" fill="#eef2f7" stroke="#94a3b8" filter="url(#shadow)"/>
+  <text x="689" y="637" class="head">Preserve diagnostic state</text>
+  <text x="689" y="670" class="mono">generation = 0, in_flight = 1</text>
+  <text x="689" y="698" class="mono">A / S / F = 0 / 0 / 0</text>
+  <path d="M528 564 V770 H1388 V725" class="line"/>
+  <rect x="1239" y="603" width="297" height="118" rx="8" fill="#edf8f1" stroke="#5ca775" filter="url(#shadow)"/>
+  <text x="1262" y="637" class="head green">Malformed proof</text>
+  <text x="1262" y="670" class="body">validator returns False</text>
+  <text x="1262" y="698" class="mono">A / S / F = 1 / 0 / 1</text>
+
+  <text x="64" y="791" class="section">Mechanism evidence and scope</text>
+  <rect x="64" y="817" width="460" height="166" rx="8" fill="#ffffff" stroke="#cbd5e1" filter="url(#shadow)"/>
+  <text x="88" y="851" class="head">Exact fault matrix</text>
+  <text x="88" y="884" class="body">5 malformed result shapes: total failure</text>
+  <text x="88" y="911" class="body">2 internal exceptions: zero state change</text>
+  <text x="88" y="938" class="body">1 bool generation: rejected atomically</text>
+  <text x="88" y="965" class="mono green">production mechanism: 10 / 10</text>
+  <rect x="570" y="817" width="460" height="166" rx="8" fill="#ffffff" stroke="#cbd5e1" filter="url(#shadow)"/>
+  <text x="594" y="851" class="head">Regression evidence</text>
+  <text x="594" y="884" class="body">directed: 2 passed + 7 subtests</text>
+  <text x="594" y="911" class="body">qualification + lifecycle: 92 + 75</text>
+  <text x="594" y="938" class="body">six related modules: 375 + 101</text>
+  <text x="594" y="965" class="small">full: 768 passed + 121 subtests</text>
+  <rect x="1076" y="817" width="460" height="166" rx="8" fill="#fff9eb" stroke="#d5a53b" filter="url(#shadow)"/>
+  <text x="1100" y="851" class="head">Claim boundary</text>
+  <text x="1100" y="884" class="body">local controller + real local capability probe</text>
+  <text x="1100" y="911" class="body">no real MPI or multi-host filesystem</text>
+  <text x="1100" y="938" class="body">no solver, coverage, campaign or LAVA-M</text>
+  <text x="1100" y="965" class="small red">correctness evidence, not an uplift claim</text>
+  <text x="64" y="1020" class="small">F353 · SymCC parallel concolic execution research implementation · 2026-08-10</text>
+</svg>

@@ -1,0 +1,53 @@
+{
+  "all_passed": true,
+  "associated_python": {
+    "passed": 128,
+    "subtests_passed": 79
+  },
+  "capability_oracle": {
+    "all_ranks_available": true,
+    "result_sha256": "2ec01d6e452b1e833652d377ee1ee0d136e57f4fed0ee48f94fe067d97d3b27a",
+    "world_size": 4
+  },
+  "claim_boundary": "I/T/E-local recovery substrate and physical local TCP-transport process-failure evidence; no main-executor integration, multi-node MTTR, solver speedup, coverage, or defect-yield claim",
+  "deterministic_oracle": {
+    "leases_replayed": 24,
+    "old_lease_tokens_rejected": 24,
+    "result_sha256": "d6a1c847c0372a3efb5422bb718657bd387a2ada5c6abfe4e51ed1a0d519ce42",
+    "shards": 96,
+    "shards_reassigned": 16
+  },
+  "focused_python": {
+    "passed": 11,
+    "subtests_passed": 0
+  },
+  "live_failure_oracle": {
+    "failed_rank": 3,
+    "receipt_sha256": "451a6b2a60783919cc008ad469581eb5b99caba8eb1c7ea2a2841913a36211e8",
+    "repair_attempts": 1,
+    "result_sha256": "c787b0f2e4a5f824514b0190edea54ec6f7d80351757e7cb4f520462f10eb70e",
+    "survivor_receipts_identical": true,
+    "world_size_after": 3,
+    "world_size_before": 4
+  },
+  "llvm17": {
+    "discovered": 331,
+    "failed": 0,
+    "passed": 329,
+    "unresolved": 0,
+    "unsupported": 2
+  },
+  "llvm18": {
+    "discovered": 331,
+    "failed": 0,
+    "passed": 330,
+    "unresolved": 0,
+    "unsupported": 1
+  },
+  "python": {
+    "inventory_sha256": "12f3d882d2be17b9ee7e187efb8d747697f0890a22431a2b94809c387b2d6529",
+    "passed": 1337,
+    "subtests_passed": 310
+  },
+  "schema": "symcc-f441-full-suite-summary-v1"
+}

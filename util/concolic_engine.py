@@ -60,6 +60,8 @@ class SymCCEngine(ConcolicEngine):
                  env: "dict[str, str]", use_stdin: bool, timeout_sec: int
                  ) -> "tuple[list[str], dict[str, str], bool]":
         env = dict(env)
+        if not target_cmd:
+            raise ValueError("SymSan target command must not be empty")
         env["SYMCC_OUTPUT_DIR"] = output_dir
         env["SYMCC_ENABLE_LINEARIZATION"] = "1"
         # hint 文件默认开,允许【调用方传入的 env】关(消融技术②)。
@@ -140,8 +142,18 @@ class SymSanEngine(ConcolicEngine):
         if focus:
             taint_opts += f" focus_bytes={focus}"
         env["TAINT_OPTIONS"] = taint_opts
-        binary = target_cmd[0]                 # _symsan 二进制;fgtest 只取 (target, input),丢弃 @@ 等额外 argv
-        cmd = ["timeout", "-k", "5", str(timeout_sec), self.fgtest, binary, str(input_file)]
+        binary = target_cmd[0]
+        cmd = [
+            "timeout", "-k", "5", str(timeout_sec),
+            self.fgtest, binary, str(input_file),
+        ]
+        if len(target_cmd) > 1:
+            # Driver 的前两个参数仍是“污点输入契约”；`--` 后才是目标
+            # argv[1:]。逐元素传递而非拼 shell 字符串，空参数、空格和标点均
+            # 保持原样，且 @@ 与 SymCC 后端采用相同替换语义。
+            cmd += ["--"] + [
+                arg.replace("@@", str(input_file)) for arg in target_cmd[1:]
+            ]
         return cmd, env, False                 # SymSan 走 argv 文件输入,不喂 stdin
 
     @staticmethod

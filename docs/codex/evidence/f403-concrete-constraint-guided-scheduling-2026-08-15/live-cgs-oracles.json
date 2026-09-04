@@ -1,0 +1,28 @@
+{
+  "all_passed": true,
+  "bit_widths": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "cases": 80,
+  "operators": [
+    "eq",
+    "ne",
+    "ult",
+    "ule",
+    "ugt",
+    "uge",
+    "slt",
+    "sle",
+    "sgt",
+    "sge"
+  ],
+  "predicate_evaluations": 10200,
+  "schema": "symcc-live-cgs-oracle-v1"
+}

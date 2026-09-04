@@ -1,0 +1,15 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/ubuntu/venv/symcc/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/ubuntu/code/symcc
+collecting ... collected 7 items
+
+test/test_distributed_state.py::DurableFilesystemTests::test_cross_directory_replace_syncs_public_then_staging PASSED [ 14%]
+test/test_distributed_state.py::DurableFilesystemTests::test_directory_sync_failure_is_reported_after_visible_replace PASSED [ 28%]
+test/test_distributed_state.py::DurableFilesystemTests::test_link_and_unlink_require_directory_durability PASSED [ 42%]
+test/test_distributed_state.py::DurableFilesystemTests::test_nested_directory_creation_persists_each_new_component PASSED [ 57%]
+test/test_distributed_state.py::FencedWorkLeaseTableTests::test_directory_sync_failure_leaves_recoverable_fenced_record PASSED [ 71%]
+test/test_mpi_lifecycle.py::MpiLifecycleTests::test_atomic_corpus_publish_is_verified_and_reports_failure PASSED [ 85%]
+test/test_mpi_lifecycle.py::MpiLifecycleTests::test_standalone_commit_manifest_and_epoch_are_canonical PASSED [100%]
+
+============================== 7 passed in 0.46s ===============================

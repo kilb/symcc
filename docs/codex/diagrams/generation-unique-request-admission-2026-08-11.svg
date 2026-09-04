@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1100" viewBox="0 0 1600 1100" role="img" aria-labelledby="title desc">
+  <title id="title">F371 generation-unique logical request admission</title>
+  <desc id="desc">A systems schematic showing the stale same-ID response counterexample, generation-scoped admission decision, cold generation fencing, bounded digest history, and verified outcomes.</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#18232d" flood-opacity="0.13"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10Z" fill="#286f8e"/>
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10Z" fill="#bd4b4b"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10Z" fill="#2d7d62"/>
+    </marker>
+    <style>
+      .bg{fill:#f4f6f7}.panel{fill:#fff;stroke:#c8d0d5;stroke-width:2;filter:url(#shadow)}
+      .bad{fill:#fff3f2;stroke:#dc918b;stroke-width:2}.worker{fill:#eef5fa;stroke:#79a5bd;stroke-width:2}
+      .helper{fill:#f2f0f8;stroke:#998dba;stroke-width:2}.gate{fill:#fff8e6;stroke:#d3ae55;stroke-width:2}
+      .fresh{fill:#edf8f2;stroke:#72a88f;stroke-width:2}.bound{fill:#f1f3f4;stroke:#939fa7;stroke-width:2}
+      .title{font:700 38px Arial,sans-serif;fill:#18232d}.subtitle{font:400 18px Arial,sans-serif;fill:#53616b}
+      .section{font:700 24px Arial,sans-serif;fill:#25343e}.label{font:700 18px Arial,sans-serif;fill:#24323c}
+      .body{font:400 16px Arial,sans-serif;fill:#354650}.small{font:400 14px Arial,sans-serif;fill:#56636c}
+      .mono{font:600 15px 'DejaVu Sans Mono',monospace;fill:#26343e}.red{fill:#a83c3c}.green{fill:#216e54}.blue{fill:#245f7d}
+      .line{fill:none;stroke:#286f8e;stroke-width:4;marker-end:url(#arrow)}
+      .line-red{fill:none;stroke:#bd4b4b;stroke-width:4;marker-end:url(#arrow-red)}
+      .line-green{fill:none;stroke:#2d7d62;stroke-width:4;marker-end:url(#arrow-green)}
+      .dash{stroke-dasharray:9 8}
+    </style>
+  </defs>
+  <rect class="bg" width="1600" height="1100"/>
+  <text class="title" x="70" y="67">F371 · Generation-Unique Logical Request Admission</text>
+  <text class="subtitle" x="70" y="101">Stable logical ID · generation-scoped at-most-once · protocol-preserving retry fence</text>
+
+  <rect class="panel" x="60" y="132" width="1480" height="250" rx="8"/>
+  <text class="section red" x="90" y="174">Counterexample: equality of response ID does not identify the call</text>
+  <rect class="worker" x="92" y="207" width="230" height="115" rx="6"/>
+  <text class="label" x="118" y="242">Worker call #1</text>
+  <text class="mono" x="118" y="273">query_id = repeat</text>
+  <text class="body green" x="118" y="301">accept assignment 11</text>
+  <rect class="helper" x="400" y="207" width="270" height="115" rx="6"/>
+  <text class="label" x="426" y="242">Helper generation G</text>
+  <text class="body" x="426" y="272">response repeat → 11</text>
+  <text class="body red" x="426" y="300">delayed duplicate → 22</text>
+  <rect class="bad" x="755" y="207" width="280" height="115" rx="6"/>
+  <text class="label" x="781" y="242">Old stdout buffer</text>
+  <text class="mono red" x="781" y="275">{ repeat, 22 }</text>
+  <text class="small" x="781" y="301">valid JSON · matching ID</text>
+  <rect class="bad" x="1120" y="207" width="320" height="115" rx="6"/>
+  <text class="label" x="1146" y="242">Worker retry #2</text>
+  <text class="mono" x="1146" y="273">query_id = repeat</text>
+  <text class="body red" x="1146" y="301">stale 22 is admitted</text>
+  <path class="line" d="M322 263H390"/>
+  <path class="line-red" d="M670 263H745"/>
+  <path class="line-red" d="M1035 263H1110"/>
+  <text class="small red" x="670" y="352">F368-F370 framing and ID checks all pass</text>
+
+  <rect class="panel" x="60" y="417" width="1480" height="500" rx="8"/>
+  <text class="section blue" x="90" y="460">F371 production admission flow</text>
+  <rect class="gate" x="92" y="500" width="255" height="142" rx="6"/>
+  <text class="label" x="118" y="535">1 · Pure preflight</text>
+  <text class="body" x="118" y="566">six-field commit image</text>
+  <text class="body" x="118" y="592">UTF-8 · size · deadline</text>
+  <text class="small green" x="118" y="620">reject: no ID admitted</text>
+  <rect class="worker" x="408" y="500" width="265" height="142" rx="6"/>
+  <text class="label" x="434" y="535">2 · Healthy generation</text>
+  <text class="mono" x="434" y="568">process = ensure(G)</text>
+  <text class="body" x="434" y="596">cancel check #1</text>
+  <text class="small" x="434" y="620">state identity rechecked</text>
+  <rect class="gate" x="735" y="486" width="330" height="172" rx="6"/>
+  <text class="label" x="761" y="521">3 · Generation admission</text>
+  <text class="mono" x="761" y="554">h = SHA-256(query_id)</text>
+  <text class="body" x="761" y="584">h already present?</text>
+  <text class="body" x="761" y="610">history reached 65,536?</text>
+  <text class="small" x="761" y="636">decision before any transport</text>
+  <rect class="fresh" x="1140" y="500" width="300" height="142" rx="6"/>
+  <text class="label" x="1166" y="535">4A · First ID in G</text>
+  <text class="body" x="1166" y="566">atomically add digest</text>
+  <text class="body" x="1166" y="594">submit on generation G</text>
+  <text class="small green" x="1166" y="620">prefix cache retained</text>
+  <path class="line" d="M347 571H398"/>
+  <path class="line" d="M673 571H725"/>
+  <path class="line-green" d="M1065 535H1130"/>
+  <text class="small green" x="1079" y="520">NO</text>
+
+  <rect class="bad" x="735" y="719" width="330" height="132" rx="6"/>
+  <text class="label red" x="761" y="754">4B · Repeat or capacity</text>
+  <text class="body" x="761" y="784">retire G: socket + stdio + process</text>
+  <text class="body" x="761" y="812">spawn G+1 · clear history · add h</text>
+  <text class="small" x="761" y="837">cancel check #2 before transport</text>
+  <rect class="fresh" x="1140" y="719" width="300" height="132" rx="6"/>
+  <text class="label" x="1166" y="754">5 · Fresh response</text>
+  <text class="mono green" x="1166" y="786">{ repeat, 11 }</text>
+  <text class="body" x="1166" y="814">read only from G+1</text>
+  <text class="small" x="1166" y="838">same F370 absolute deadline</text>
+  <path class="line-red" d="M900 658V709"/>
+  <text class="small red" x="916" y="692">YES</text>
+  <path class="line-green" d="M1065 785H1130"/>
+
+  <rect class="bound" x="92" y="704" width="520" height="162" rx="6"/>
+  <text class="label" x="118" y="739">Bounded metadata and compatibility</text>
+  <text class="body" x="118" y="771">32-byte digests · at most 65,536 per generation</text>
+  <text class="body" x="118" y="800">field 0 remains the stable logical query ID</text>
+  <text class="body" x="118" y="829">native seed, descriptor binding, helper protocol unchanged</text>
+
+  <rect class="panel" x="60" y="952" width="1480" height="105" rx="8"/>
+  <text class="section green" x="90" y="992">Measured mechanism evidence</text>
+  <text class="body" x="90" y="1024">Counterfactual: 11 → stale 22, one generation · Production: 11 → fresh 11, two generations · bounded rotation PASS</text>
+  <text class="body" x="90" y="1049">Regression: 787 passed + 137 subtests · 16 capabilities · canonical identities unchanged · no performance claim</text>
+</svg>

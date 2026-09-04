@@ -1,0 +1,3 @@
+(foo|bad)*\v*>a
+
+(poo|bad)€

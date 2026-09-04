@@ -1,0 +1,10 @@
+-- Testing: 3 of 277 tests, 3 workers --
+PASS: compiler :: live_strided_loop_memoryphi_byte_lane_induction.ll (1 of 3)
+PASS: compiler :: live_conditional_loop_memoryphi_byte_lane_induction.ll (2 of 3)
+PASS: compiler :: live_loop_memoryphi_byte_lane_induction.ll (3 of 3)
+
+Testing Time: 6.07s
+
+Total Discovered Tests: 277
+  Excluded: 274 (98.92%)
+  Passed  :   3 (1.08%)

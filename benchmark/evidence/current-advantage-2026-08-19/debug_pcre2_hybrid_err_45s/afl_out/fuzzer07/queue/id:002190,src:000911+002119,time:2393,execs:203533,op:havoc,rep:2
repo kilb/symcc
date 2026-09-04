@@ -1,0 +1,3 @@
+(foo|bad)*
+(foo|iad()\w+
+\w+)*

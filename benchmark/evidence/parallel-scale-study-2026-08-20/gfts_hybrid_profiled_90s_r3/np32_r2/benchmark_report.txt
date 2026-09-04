@@ -1,0 +1,43 @@
+================================================================================
+  SymCC MPI Parallelization Benchmark Report
+  Generated: 2026-08-20 13:51:33
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+  Target: gfts-xml_read_fuzzer
+────────────────────────────────────────────────────────────────────────────────
+
+  Mode         NP       Time   SymCCGen    AFLExec   Unique  ShowmapCov          Edges  FstatsCov         FEdges      AFL/s
+  ────────── ──── ────────── ────────── ────────── ──────── ─────────── ────────────── ────────── ────────────── ──────────
+  hybrid       32    1m37.2s       2984   58896129    62772      11.05%     5624/50880     10.95%     5568/50870     627329
+  seed          0       0.0s          0          0       20       4.55%     2314/50880        N/A            N/A          0
+
+  Online SymCC -> AFL Native Peer Sync:
+    hybrid np=32: published=206.0, scanned=120.0, imported=0.0, not-retained=120.0, complete-runs=0/1
+
+  Edge Coverage Chart (afl-showmap):
+      hybrid np=32 |████████████████████████████████████████| 11.05%
+              seed |████████████████░░░░░░░░░░░░░░░░░░░░░░░░| 4.55%
+
+  Coverage Gain over Seed Baseline:
+    Seed baseline: 4.55% (2314 edges)
+        hybrid np=32: 11.05% (+6.50pp, +142.9% relative)
+
+  Like-for-like Throughput Speedup vs Serial:
+    hybrid np= 32 |                  N/A                   | different unit: afl-executions-plus-symcc-candidates-per-second
+    seed np=  0 |                  N/A                   | different unit: not-applicable
+
+
+================================================================================
+  OVERALL SUMMARY
+================================================================================
+
+  gfts-xml_read_fuzzer: best = hybrid np=32 (1m37.2s, 62772 retained unique, 2984 SymCC candidates, 58896129 AFL executions, edge_cov=11.05%)
+
+  Report files:
+    Text:  /home/ubuntu/code/symcc/benchmark/evidence/parallel-scale-study-2026-08-20/gfts_hybrid_profiled_90s_r3/np32_r2/benchmark_report.txt
+    CSV:   /home/ubuntu/code/symcc/benchmark/evidence/parallel-scale-study-2026-08-20/gfts_hybrid_profiled_90s_r3/np32_r2/benchmark_data.csv
+    JSON:  /home/ubuntu/code/symcc/benchmark/evidence/parallel-scale-study-2026-08-20/gfts_hybrid_profiled_90s_r3/np32_r2/benchmark_data.json
+
+================================================================================

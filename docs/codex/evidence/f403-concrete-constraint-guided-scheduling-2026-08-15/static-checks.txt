@@ -1,0 +1,12 @@
+ruff check: PASS
+py_compile: PASS
+generated technology index check: PASS
+git diff --check: PASS
+SVG ElementTree parse: PASS
+PNG dimensions/mode 2880x1620 RGB: PASS
+diagram visual inspection: PASS
+independent CGS oracle: PASS (10200 evaluations)
+snapshot v1-v4 upgrade and v5 corruption checks: PASS
+persistent worker restart and environment drift checks: PASS
+terminal-set equality check: PASS ({10,20,30})
+public/coverage/solver-speedup claim: intentionally absent

@@ -1,0 +1,62 @@
+{
+  "claim_or_solver_execution_included": false,
+  "clock": "time.perf_counter_ns",
+  "rows": [
+    {
+      "candidates": 64,
+      "feedback_contexts": 64,
+      "last_selected": "state-00000000",
+      "median_ms": 0.000841,
+      "p95_ms": 0.001672,
+      "snapshot_bytes": 1848,
+      "strategy": "bfs"
+    },
+    {
+      "candidates": 64,
+      "feedback_contexts": 64,
+      "last_selected": "state-00000000",
+      "median_ms": 0.128764,
+      "p95_ms": 0.142005,
+      "snapshot_bytes": 1872,
+      "strategy": "multi-objective"
+    },
+    {
+      "candidates": 1024,
+      "feedback_contexts": 257,
+      "last_selected": "state-00000000",
+      "median_ms": 0.000801,
+      "p95_ms": 0.001201,
+      "snapshot_bytes": 6668,
+      "strategy": "bfs"
+    },
+    {
+      "candidates": 1024,
+      "feedback_contexts": 257,
+      "last_selected": "state-00000506",
+      "median_ms": 2.164946,
+      "p95_ms": 2.172848,
+      "snapshot_bytes": 6692,
+      "strategy": "multi-objective"
+    },
+    {
+      "candidates": 4096,
+      "feedback_contexts": 257,
+      "last_selected": "state-00000000",
+      "median_ms": 0.000871,
+      "p95_ms": 0.001332,
+      "snapshot_bytes": 6668,
+      "strategy": "bfs"
+    },
+    {
+      "candidates": 4096,
+      "feedback_contexts": 257,
+      "last_selected": "state-00001173",
+      "median_ms": 8.027188,
+      "p95_ms": 8.548484,
+      "snapshot_bytes": 6693,
+      "strategy": "multi-objective"
+    }
+  ],
+  "samples": 31,
+  "schema": "symcc-f400-live-state-policy-microbenchmark-v1"
+}

@@ -1,0 +1,2 @@
+command=python3 -m pytest -q test/test_distributed_state.py -k 'heap or pointer' -p no:cacheprovider
+17 passed, 147 deselected in 12.29s

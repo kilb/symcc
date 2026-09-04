@@ -1,0 +1,62 @@
+F345 stable hybrid input admission evidence
+Date: 2026-08-10 UTC
+Repository base commit: 146e01b2d6f8e02fd2526764d46ea0d80a4bb6f6 (dirty research worktree)
+Host: Linux 7.0.0-28-generic x86_64 GNU/Linux
+Python: 3.12.3
+Evidence filesystem: overlay
+
+Implementation
+- bounded O_NOFOLLOW|O_NONBLOCK regular-file SHA-256 snapshot in fixed 1 MiB chunks
+- fd-before/fd-after/path-after device/inode/size/mtime/ctime identity closure
+- optional bounded content retention only for transport callers
+- AFL queue cache keyed by path plus stable identity; same-name changes are rescored
+- finite batch uses deterministic capacity-K heap; selected records are pinned after scan eviction
+- cache cap is enforced during the scan rather than only before it
+- frontier showmap receives an immutable content-addressed path
+- master establishes exact input identity before policy, lease, state, and agentic side effects
+- content-object and path-locator modes both require the worker digest to equal the master fence
+- CAS objects are no-follow regular files and are rehashed before reuse unless stable identity is cached
+- corrupt or symlinked cache objects reject contentless reuse and can be atomically repaired by exact content
+- worker object residency is recorded only after a current RESULT echoes the exact object id
+- missing or mismatched acknowledgement evicts residency; future work resends content
+- CAS identity and per-worker residency caches clear at 300000 entries
+- live continuation initialization uses a stable snapshot capped at 4 MiB
+- self-contained continuation dispatch uses its canonical checkpoint id and does not reopen the seed path
+
+Directed regression
+- 205 passed + 58 subtests, 17.43 s
+- distributed-state and MPI-lifecycle modules
+- stable import, symlink/path replacement, corruption/repair, fast-path identity cache
+- queue replacement, bounded Top-K, selected-record pin, object/path fences, ACK transitions, continuation identity
+
+Related regression
+- 349 passed + 74 subtests, warnings as errors, 18.38 s
+
+Full Python regression
+- 742 passed + 94 subtests, warnings as errors, 100.85 s
+
+Local production-primitive integration
+- real regular files through production queue, CAS, master, worker, ACK, and continuation helpers
+- first SHA-256: cb8f3a160bdac8da0606d2dd85d50284f5034f935846cd5746cda83d61574ebe
+- second/admitted SHA-256: a78d986a5010b4f0a1390092180a3282c448619ad4a2833be5688524f98efada
+- continuation identity: 2cf497146993db3cdbf58cfc77e416ec6de27d9cc5caeec1a29122ee5dc45822
+- 11/11 exact checks true
+
+Fresh-process mechanism benchmark
+- 2 warm-ups + 10 retained samples per mechanism and scale; 40 retained samples total
+- deterministic interleaving seed: 0xF345 (62277)
+- every retained input size and SHA-256 vector is exact
+- 32 MiB legacy/F345 traced peak: 33,559,002 / 2,098,278 bytes (15.993592x lower)
+- 128 MiB legacy/F345 traced peak: 134,222,298 / 2,098,278 bytes (63.967834x lower)
+- 32 MiB legacy/F345 RSS median: 60,104 / 27,816 KiB (2.160771x lower)
+- 128 MiB legacy/F345 RSS median: 158,374 / 27,816 KiB (5.693630x lower)
+- 32 MiB legacy/F345 elapsed median: 23,306.0485 / 16,127.0705 us (0.691969 new/old; 1.445151x local speed)
+- 128 MiB legacy/F345 elapsed median: 91,090.9805 / 63,279.571 us (0.694685 new/old; 1.439501x local speed)
+
+Claim boundary
+- mechanism and local production-primitive evidence only
+- sparse regular fixtures on local overlayfs
+- no real MPI transport, multi-host/NFS/Lustre, target, afl-showmap, or solver invocation
+- no campaign throughput, network-volume, coverage, bug-discovery, or LAVA-M uplift claim
+- tracemalloc excludes native/kernel/MPI buffers; ru_maxrss is a fresh-process peak
+- final-component O_NOFOLLOW is not openat2(RESOLVE_BENEATH) or Byzantine storage proof

@@ -1,0 +1,43 @@
+F350 component-wise anchored CAS root checks
+Date: 2026-08-10 UTC
+
+Production implementation
+- CAS root is canonicalized to one absolute public and internal path.
+- The root is walked from / one component at a time.
+- Every component open uses O_DIRECTORY, O_NOFOLLOW, and O_CLOEXEC.
+- Existing components follow an open-first path with no failed mkdir call.
+- Only ENOENT enters mkdirat(parent_fd, leaf, 0777 & umask).
+- A new child and its parent directory are fsynced before traversal continues.
+- The public root is strictly re-walked and device/inode checked after object I/O.
+- Digest shard and leaf operations retain F349 descriptor-relative semantics.
+- Positive identity is admitted only after root and shard contexts close cleanly.
+- Input objects and live-state JSON use the same production CAS primitive.
+
+Deterministic integration
+- 11/11 checks true.
+- Nested root creation calls mkdir for level-one, level-two, objects, and shard 17.
+- All 4 observed mkdir calls carry a parent dir_fd and a leaf-only name.
+- A relative configured root returns an absolute path valid after chdir("/").
+- Missing descendants below a symlink ancestor create 0 external entries.
+- An existing root below a symlink ancestor is rejected and its sentinel is exact.
+- Publication ancestor replacement is rejected after writing exact detached bytes.
+- Publication outside directory remains sentinel-only; no write is redirected.
+- Live read rejects an alias containing byte-identical, same-digest JSON.
+- Publication and live-read failed positive caches both contain 0 identities.
+- The correct same-digest competitor converges with exactly 1 fallback hash.
+- Temporary residue is empty.
+- F346/F347/F348/F349 production drivers still recompute 8/8, 8/8, 9/9, 11/11.
+
+Regression gates
+- Directed: 8 passed, 155 deselected in 0.21s.
+- Six related modules: 366 passed + 81 subtests in 17.05s.
+- Complete test/test_*.py: 759 passed + 101 subtests in 95.53s.
+- Ruff: all checks passed.
+
+Claim boundary
+- Local overlayfs mechanism evidence only.
+- No openat2 or RESOLVE_BENEATH/NO_SYMLINKS implementation claim.
+- No mount-topology or Byzantine-storage proof.
+- No NFS, Lustre, cross-host, or independent mount-namespace evidence.
+- No real MPI transport, target, afl-showmap, Z3, or fuzzing campaign.
+- No throughput, coverage, solver, bug-discovery, or LAVA-M uplift claim.

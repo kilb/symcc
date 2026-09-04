@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="980" viewBox="0 0 1600 980" role="img" aria-labelledby="title desc">
+  <title id="title">F454 solver-native PalRUP production architecture</title>
+  <desc id="desc">A staged architecture from an immutable DIMACS snapshot through isolated parallel CaDiCaL ranks, a bounded clause bus, per-rank proof fragments, the official three-phase PalRUP checker, and atomic durable publication.</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#1b2530" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#34495e"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#1976a3"/>
+    </marker>
+    <style>
+      text { font-family: "WenQuanYi Zen Hei", Arial, sans-serif; letter-spacing: 0; }
+      .title { font-size: 36px; font-weight: 700; fill: #17212b; }
+      .subtitle { font-size: 18px; font-weight: 400; fill: #52616f; }
+      .stage { font-size: 16px; font-weight: 700; fill: #34495e; }
+      .h { font-size: 21px; font-weight: 700; fill: #17212b; }
+      .body { font-size: 16px; font-weight: 400; fill: #34495e; }
+      .small { font-size: 14px; font-weight: 400; fill: #52616f; }
+      .white { fill: #fff; }
+      .line { fill: none; stroke: #34495e; stroke-width: 3; marker-end: url(#arrow); }
+      .blueLine { fill: none; stroke: #1976a3; stroke-width: 3; marker-end: url(#arrowBlue); }
+      .dash { fill: none; stroke: #71808d; stroke-width: 2; stroke-dasharray: 8 7; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="980" fill="#f5f7f8"/>
+  <text x="80" y="72" class="title">Solver-native PalRUP 生产闭环</text>
+  <text x="80" y="108" class="subtitle">搜索可并行、子句可丢弃，SAT/UNSAT 结论必须由独立官方 checker 裁决</text>
+
+  <text x="80" y="160" class="stage">01  输入与隔离</text>
+  <text x="430" y="160" class="stage">02  并行求解与交换</text>
+  <text x="1080" y="160" class="stage">03  独立检查与发布</text>
+
+  <g filter="url(#shadow)">
+    <rect x="80" y="192" width="260" height="152" rx="6" fill="#ffffff" stroke="#c6d0d8" stroke-width="2"/>
+    <rect x="80" y="192" width="12" height="152" rx="5" fill="#377d8c"/>
+    <text x="118" y="236" class="h">不可变输入快照</text>
+    <text x="118" y="271" class="body">DIMACS CNF</text>
+    <text x="118" y="299" class="body">工具与源码 SHA-256</text>
+    <text x="118" y="327" class="small">私有 staging，不直接发布</text>
+  </g>
+
+  <path d="M340 268 H408" class="line"/>
+
+  <g filter="url(#shadow)">
+    <rect x="430" y="192" width="570" height="500" rx="6" fill="#ffffff" stroke="#aebcc6" stroke-width="2"/>
+    <rect x="430" y="192" width="570" height="56" rx="6" fill="#273846"/>
+    <text x="458" y="228" class="h white">隔离 helper / Native CaDiCaL Pool</text>
+
+    <rect x="468" y="286" width="188" height="142" rx="5" fill="#e9f3f6" stroke="#75a8b4" stroke-width="2"/>
+    <text x="493" y="324" class="h">Rank 0</text>
+    <text x="493" y="355" class="body">Solver + Tracer</text>
+    <text x="493" y="383" class="small">seed / phase 0</text>
+    <text x="493" y="409" class="small">proof-0.palrup</text>
+
+    <rect x="774" y="286" width="188" height="142" rx="5" fill="#e9f3f6" stroke="#75a8b4" stroke-width="2"/>
+    <text x="799" y="324" class="h">Rank N-1</text>
+    <text x="799" y="355" class="body">Solver + Tracer</text>
+    <text x="799" y="383" class="small">seed / phase N-1</text>
+    <text x="799" y="409" class="small">proof-N-1.palrup</text>
+
+    <text x="696" y="355" class="h" text-anchor="middle">…</text>
+
+    <rect x="534" y="506" width="362" height="126" rx="5" fill="#fff4dc" stroke="#d29b37" stroke-width="2"/>
+    <text x="715" y="544" class="h" text-anchor="middle">有界 ClauseBus</text>
+    <text x="715" y="576" class="body" text-anchor="middle">规范化短学习子句 · per-rank 队列</text>
+    <text x="715" y="605" class="small" text-anchor="middle">export / deliver / import / drop / pending</text>
+
+    <path d="M562 428 V478 H626 V506" class="blueLine"/>
+    <path d="M868 428 V478 H804 V506" class="blueLine"/>
+    <path d="M626 506 V466 H562 V428" class="blueLine"/>
+    <path d="M804 506 V466 H868 V428" class="blueLine"/>
+  </g>
+
+  <path d="M1000 300 H1042 V260 H1080" class="line"/>
+
+  <g filter="url(#shadow)">
+    <rect x="1080" y="192" width="440" height="152" rx="6" fill="#ffffff" stroke="#c6d0d8" stroke-width="2"/>
+    <rect x="1080" y="192" width="12" height="152" rx="5" fill="#52796f"/>
+    <text x="1120" y="232" class="h">结构与身份早检</text>
+    <text x="1120" y="265" class="body">rank namespace · exact tree layout</text>
+    <text x="1120" y="294" class="body">CNF header · worker statistics</text>
+    <text x="1120" y="322" class="small">只拒绝错误，不签发 UNSAT 结论</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1080" y="382" width="440" height="164" rx="6" fill="#ffffff" stroke="#aebcc6" stroke-width="2"/>
+    <rect x="1080" y="382" width="12" height="164" rx="5" fill="#1976a3"/>
+    <text x="1120" y="424" class="h">官方 PalRUP Checker</text>
+    <rect x="1120" y="451" width="108" height="50" rx="4" fill="#e7f2f8" stroke="#6ba2bd"/>
+    <rect x="1242" y="451" width="112" height="50" rx="4" fill="#e7f2f8" stroke="#6ba2bd"/>
+    <rect x="1368" y="451" width="112" height="50" rx="4" fill="#e7f2f8" stroke="#6ba2bd"/>
+    <text x="1174" y="482" class="small" text-anchor="middle">Local check</text>
+    <text x="1298" y="482" class="small" text-anchor="middle">Redistribute</text>
+    <text x="1424" y="482" class="small" text-anchor="middle">Confirm</text>
+    <path d="M1228 476 H1242" class="line"/>
+    <path d="M1354 476 H1368" class="line"/>
+    <text x="1120" y="528" class="small">唯一 UNSAT 裁决边界</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1080" y="584" width="440" height="164" rx="6" fill="#ffffff" stroke="#c6d0d8" stroke-width="2"/>
+    <rect x="1080" y="584" width="12" height="164" rx="5" fill="#8b5e83"/>
+    <text x="1120" y="626" class="h">耐久原子发布</text>
+    <text x="1120" y="660" class="body">receipt + proof tree + tool identity</text>
+    <text x="1120" y="690" class="body">fsync + RENAME_NOREPLACE</text>
+    <text x="1120" y="720" class="small">staging 重查后发布 · 验收 oracle 再查最终目录</text>
+  </g>
+
+  <path d="M1300 344 V382" class="line"/>
+  <path d="M1300 546 V584" class="line"/>
+
+  <rect x="80" y="806" width="1440" height="106" rx="6" fill="#e9edef" stroke="#bcc8cf" stroke-width="2"/>
+  <text x="112" y="846" class="h">失败关闭规则</text>
+  <text x="112" y="878" class="body">SAT、crash、timeout、协议/哈希/统计不一致、checker 失败 → 删除 staging，不产生可见 proof root</text>
+  <text x="112" y="903" class="small">共享队列丢弃仅影响性能；任何启发式和并行策略都不能绕过官方 proof replay。</text>
+</svg>

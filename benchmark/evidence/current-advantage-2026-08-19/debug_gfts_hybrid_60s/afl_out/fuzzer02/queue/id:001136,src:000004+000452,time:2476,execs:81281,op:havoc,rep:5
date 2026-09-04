@@ -1,0 +1,1 @@
+<?xNT froPCDATA)><!ELEMENT E<(#PCDATA)><!ELEMENT CTYPE note [<!ELEMENT note (to,from,body)><!ELEMENT to (#m (#PCDATA)><!ELEMfrom (#PCDATA)><!ELEME<T body (#PCDATA)>]><note><to>A</to><from>B</from><body>C</bodz></note>

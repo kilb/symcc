@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1150" viewBox="0 0 1800 1150">
+  <defs>
+    <style>
+      .title { font: 700 38px 'WenQuanYi Zen Hei', sans-serif; fill: #172033; }
+      .subtitle { font: 400 19px 'WenQuanYi Zen Hei', sans-serif; fill: #526078; }
+      .lane { font: 700 18px 'WenQuanYi Zen Hei', sans-serif; fill: #ffffff; }
+      .head { font: 700 23px 'WenQuanYi Zen Hei', sans-serif; fill: #172033; }
+      .body { font: 400 17px 'WenQuanYi Zen Hei', sans-serif; fill: #354158; }
+      .small { font: 400 15px 'WenQuanYi Zen Hei', sans-serif; fill: #526078; }
+      .mono { font: 600 15px 'WenQuanYi Zen Hei Mono', monospace; fill: #253148; }
+      .arrow { stroke: #5e6e86; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .state-arrow { stroke: #137c6b; stroke-width: 4; fill: none; marker-end: url(#green-arrow); }
+      .rethrow-arrow { stroke: #bd5d23; stroke-width: 4; fill: none; marker-end: url(#orange-arrow); }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#5e6e86"/>
+    </marker>
+    <marker id="green-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#137c6b"/>
+    </marker>
+    <marker id="orange-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#bd5d23"/>
+    </marker>
+  </defs>
+
+  <rect width="1800" height="1150" fill="#f7f9fc"/>
+  <rect x="0" y="0" width="1800" height="112" fill="#ffffff"/>
+  <rect x="0" y="110" width="1800" height="2" fill="#d9e0ea"/>
+  <text x="70" y="57" class="title">F378 受限异常 token 与 catch 生命周期</text>
+  <text x="70" y="88" class="subtitle">LLVM Itanium-style landingpad → capability-closed continuation IR → CAS 可恢复状态机</text>
+
+  <rect x="55" y="145" width="405" height="245" rx="8" fill="#ffffff" stroke="#aebbd0" stroke-width="2"/>
+  <rect x="55" y="145" width="405" height="48" rx="8" fill="#315b88"/>
+  <rect x="55" y="185" width="405" height="8" fill="#315b88"/>
+  <text x="78" y="177" class="lane">1  LLVM / Clang 输入</text>
+  <text x="78" y="228" class="mono">landingpad { ptr, i32 }</text>
+  <text x="78" y="260" class="mono">extractvalue ..., 0</text>
+  <text x="78" y="292" class="mono">__cxa_begin_catch(token)</text>
+  <text x="78" y="324" class="mono">__cxa_end_catch()</text>
+  <text x="78" y="356" class="mono">__cxa_rethrow() noreturn</text>
+
+  <rect x="515" y="145" width="500" height="245" rx="8" fill="#ffffff" stroke="#aebbd0" stroke-width="2"/>
+  <rect x="515" y="145" width="500" height="48" rx="8" fill="#4c657f"/>
+  <rect x="515" y="185" width="500" height="8" fill="#4c657f"/>
+  <text x="538" y="177" class="lane">2  Lowering 准入与证明边界</text>
+  <text x="538" y="226" class="body">- 精确 C calling convention、函数签名与 operand bundle</text>
+  <text x="538" y="258" class="body">- begin 参数必须来自当前 landingpad token</text>
+  <text x="538" y="290" class="body">- begin 返回对象指针必须无使用；不允许 load/cast</text>
+  <text x="538" y="322" class="body">- rethrow 必须 noreturn invoke，normal edge unreachable</text>
+  <text x="538" y="354" class="body">- end invoke 的异常边在标量模型中不可达</text>
+
+  <rect x="1070" y="145" width="675" height="245" rx="8" fill="#ffffff" stroke="#aebbd0" stroke-width="2"/>
+  <rect x="1070" y="145" width="675" height="48" rx="8" fill="#137c6b"/>
+  <rect x="1070" y="185" width="675" height="8" fill="#137c6b"/>
+  <text x="1093" y="177" class="lane">3  可审计 continuation artifact</text>
+  <text x="1093" y="226" class="mono">exception_match(types, cleanup, catch_all)</text>
+  <text x="1093" y="258" class="mono">exception_token(dst, bits)</text>
+  <text x="1093" y="290" class="mono">exception_begin_catch(token, token_bits)</text>
+  <text x="1093" y="322" class="mono">exception_end_catch(normal?)</text>
+  <text x="1093" y="354" class="mono">exception_rethrow(unwind)</text>
+
+  <path d="M460 268 H505" class="arrow"/>
+  <path d="M1015 268 H1060" class="arrow"/>
+
+  <text x="70" y="449" class="head">运行时状态机：一个活动标量异常，四种可判定状态</text>
+  <rect x="65" y="482" width="300" height="164" rx="8" fill="#ffffff" stroke="#aebbd0" stroke-width="3"/>
+  <text x="95" y="523" class="head">No exception</text>
+  <text x="95" y="557" class="body">无 @exception:* 元数据</text>
+  <text x="95" y="589" class="small">正常执行 / catch 已结束</text>
+  <text x="95" y="618" class="small">checkpoint 可直接迁移</text>
+
+  <rect x="505" y="482" width="330" height="164" rx="8" fill="#e9f6f2" stroke="#218b78" stroke-width="3"/>
+  <text x="535" y="523" class="head">Unwinding · phase 1</text>
+  <text x="535" y="557" class="mono">active, value, type, token</text>
+  <text x="535" y="589" class="mono">handler-depth</text>
+  <text x="535" y="618" class="small">catch 匹配后临时增加 catch-match</text>
+
+  <rect x="980" y="482" width="330" height="164" rx="8" fill="#eef3fb" stroke="#315b88" stroke-width="3"/>
+  <text x="1010" y="523" class="head">Caught · phase 2</text>
+  <text x="1010" y="557" class="mono">catch-depth = handler-depth</text>
+  <text x="1010" y="589" class="small">begin 验证非零归一化 token</text>
+  <text x="1010" y="618" class="small">正常 end 销毁标量异常状态</text>
+
+  <rect x="1415" y="482" width="330" height="164" rx="8" fill="#fff2e8" stroke="#bd5d23" stroke-width="3"/>
+  <text x="1445" y="523" class="head">Rethrowing · phase 3</text>
+  <text x="1445" y="557" class="mono">payload/type/token retained</text>
+  <text x="1445" y="589" class="small">只允许同 frame cleanup</text>
+  <text x="1445" y="618" class="small">end 后回到 phase 1 再 resume</text>
+
+  <path d="M365 555 H495" class="state-arrow"/>
+  <text x="383" y="539" class="small">throw_if</text>
+  <path d="M835 555 H970" class="state-arrow"/>
+  <text x="852" y="539" class="small">token + begin</text>
+  <path d="M1310 555 H1405" class="rethrow-arrow"/>
+  <text x="1321" y="539" class="small">rethrow</text>
+  <path d="M1580 646 C1580 718, 670 718, 670 656" class="rethrow-arrow"/>
+  <rect x="985" y="688" width="610" height="28" fill="#f7f9fc"/>
+  <text x="1010" y="708" class="small">cleanup → end_catch 保留对象 → phase 1 → resume 到外层 invoke</text>
+  <path d="M1145 646 C1145 790, 215 790, 215 656" class="state-arrow"/>
+  <rect x="585" y="754" width="350" height="28" fill="#f7f9fc"/>
+  <text x="610" y="774" class="small">正常 end_catch：删除全部异常元数据</text>
+
+  <rect x="65" y="830" width="835" height="245" rx="8" fill="#ffffff" stroke="#aebbd0" stroke-width="2"/>
+  <text x="95" y="872" class="head">Checkpoint / CAS 完整性</text>
+  <text x="95" y="912" class="body">- phase 为 i2 常量 1/2/3，token 为非零 i64 常量</text>
+  <text x="95" y="946" class="body">- catch-depth 仅在 phase 2/3 存在，且等于 handler-depth</text>
+  <text x="95" y="980" class="body">- lifecycle 字段与 program capability 双向绑定</text>
+  <text x="95" y="1014" class="body">- throw、begin、end、rethrow 之间均可暂停、迁移、恢复</text>
+  <text x="95" y="1048" class="small">搜索图同时记录 throw normal/unwind、rethrow unwind 与 end normal 边</text>
+
+  <rect x="955" y="830" width="790" height="245" rx="8" fill="#fff8f6" stroke="#cf7054" stroke-width="2"/>
+  <text x="985" y="872" class="head">失败关闭与明确未覆盖范围</text>
+  <text x="985" y="912" class="body">- token 来源错误、位宽错误、begin/end 不配对、handler 提前返回</text>
+  <text x="985" y="946" class="body">- exception object 指针被读取、转换或逃逸</text>
+  <text x="985" y="980" class="body">- 对象析构、继承调整、exception_ptr、嵌套活动异常</text>
+  <text x="985" y="1014" class="body">- Windows funclet EH 与完整 personality / Itanium ABI</text>
+  <text x="985" y="1048" class="small">本图描述已验证的标量子集，不代表完整 C++ 异常兼容性</text>
+
+  <text x="70" y="1120" class="small">F378 · 2026-08-12 · semantic mechanism evidence; no benchmark or coverage-uplift claim</text>
+</svg>

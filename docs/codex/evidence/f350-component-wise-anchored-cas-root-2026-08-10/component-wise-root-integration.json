@@ -1,0 +1,67 @@
+{
+  "all_checks_passed": true,
+  "checks": {
+    "exact_leaf_competitor_still_converges": true,
+    "existing_root_below_symlink_ancestor_is_rejected": true,
+    "failed_operations_admit_no_positive_cache": true,
+    "live_read_rejects_exact_alias_after_ancestor_replacement": true,
+    "missing_descendants_below_symlink_ancestor_are_not_created": true,
+    "nested_root_round_trip_is_exact": true,
+    "new_components_use_descriptor_relative_mkdir": true,
+    "publication_ancestor_replacement_fails_closed": true,
+    "publication_stays_on_detached_anchor_without_redirect": true,
+    "relative_root_remains_absolute_across_chdir": true,
+    "temporary_publication_names_are_cleaned": true
+  },
+  "configuration": {
+    "cases": [
+      "nested-root-create-and-round-trip",
+      "relative-root-cross-chdir",
+      "missing-descendants-below-symlink-ancestor",
+      "existing-root-below-symlink-ancestor",
+      "ancestor-replacement-during-publication",
+      "same-digest-leaf-competitor",
+      "ancestor-replacement-during-live-read"
+    ],
+    "max_object_bytes": 128,
+    "source": "real regular files, directories, and symlinks with deterministic ancestor-replacement fault injection"
+  },
+  "observations": {
+    "competitor_fallback_hashes": 1,
+    "errors": {
+      "existing_alias": "NotADirectoryError",
+      "live_read": "ValueError",
+      "missing_alias": "NotADirectoryError",
+      "publication": "NotADirectoryError"
+    },
+    "failed_identity_caches": {
+      "live_read": [],
+      "publication": []
+    },
+    "mkdir_calls": [
+      {
+        "dir_fd_present": true,
+        "name": "level-one"
+      },
+      {
+        "dir_fd_present": true,
+        "name": "level-two"
+      },
+      {
+        "dir_fd_present": true,
+        "name": "objects"
+      },
+      {
+        "dir_fd_present": true,
+        "name": "17"
+      }
+    ],
+    "normal_object_id": "17876391d93c7ac6f062c86145779341d7107d31bc05d03e94c4ee4e3c399e33",
+    "publication_descriptor_seen": true,
+    "publication_detached_object_exact": true,
+    "relative_public_path_is_absolute": true,
+    "temporary_residue": []
+  },
+  "proof_boundary": "This local overlayfs mechanism integration exercises production CAS and live-state paths. It does not test openat2, remote shared filesystems, mount replacement, another host, MPI, a target, afl-showmap, a symbolic solver, or a fuzzing campaign, and makes no throughput, coverage, bug-discovery, or LAVA-M uplift claim.",
+  "schema": "symcc-f350-component-wise-anchored-cas-root-v1"
+}

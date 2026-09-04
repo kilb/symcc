@@ -1,0 +1,44 @@
+{
+  "builds": {
+    "llvm17": "passed",
+    "llvm18": "passed"
+  },
+  "coupled_python": {
+    "passed": 342,
+    "subtests_passed": 116
+  },
+  "date": "2026-08-28",
+  "delivery_verifier": {
+    "failed_checks": 13,
+    "f461_hashes": "passed",
+    "local_links": "passed",
+    "status": "historical-frozen-manifest-drift"
+  },
+  "full_python": {
+    "elapsed_seconds": 323.06,
+    "passed": 1611,
+    "subtests_passed": 607,
+    "warnings": 4
+  },
+  "llvm17_lit": {
+    "discovered": 347,
+    "jobs": 16,
+    "passed": 345,
+    "unsupported": 2
+  },
+  "llvm18_lit": {
+    "discovered": 347,
+    "jobs": 16,
+    "passed": 346,
+    "unsupported": 1
+  },
+  "qfbv_backend": {
+    "passed": 14
+  },
+  "schema": "symcc-f461-verification-summary-v1",
+  "static_checks": {
+    "git_diff_check": "passed",
+    "py_compile": "passed",
+    "ruff": "passed"
+  }
+}

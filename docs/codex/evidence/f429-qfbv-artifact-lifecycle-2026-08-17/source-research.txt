@@ -1,0 +1,17 @@
+schema=symcc-f429-source-research-v1
+retrieved=2026-08-17
+source=https://nix.dev/manual/nix/2.35/command-ref/nix-store/gc.html
+use=root reachability and deletion of the unreachable complement
+boundary=F429 roots are leased solver jobs and grace observations, not Nix symlink roots
+source=https://github.com/buildbarn
+use=content-addressed artifact identity separated from lifecycle metadata
+boundary=F429 does not implement remote-execution CAS replication or regional consistency
+source=https://research.google/pubs/makalu-fast-recoverable-allocation-of-non-volatile-memory/
+use=crash recovery and reclamation of unreachable objects as a design principle
+boundary=F429 uses SQLite WAL and retryable filesystem deletion, not Makalu allocation
+source=https://arxiv.org/abs/2207.13577
+use=proof-producing knowledge sharing motivates independent content validation
+boundary=F429 manages already-verified QF_BV artifacts; it does not reproduce Gimsatul
+source=https://arxiv.org/abs/2205.06590
+use=distributed SAT sharing motivates separate correctness and lifecycle planes
+boundary=F429 does not transport solver heaps, watch lists, or arbitrary clauses

@@ -1,0 +1,177 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1400" viewBox="0 0 1900 1400">
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#102a43" flood-opacity="0.13"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#2166ac"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#18794e"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#b42318"/>
+    </marker>
+    <style>
+      .title { font: 700 36px "DejaVu Sans", sans-serif; fill: #102a43; }
+      .subtitle { font: 400 18px "DejaVu Sans", sans-serif; fill: #52667a; }
+      .panel-title { font: 700 23px "DejaVu Sans", sans-serif; fill: #102a43; }
+      .heading { font: 700 18px "DejaVu Sans", sans-serif; fill: #17324d; }
+      .body { font: 400 16px "DejaVu Sans", sans-serif; fill: #324a5f; }
+      .small { font: 400 14px "DejaVu Sans", sans-serif; fill: #52667a; }
+      .mono { font: 600 15px "DejaVu Sans Mono", monospace; fill: #17324d; }
+      .white { fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect width="1900" height="1400" fill="#f4f7fa"/>
+  <rect x="0" y="0" width="1900" height="112" fill="#ffffff"/>
+  <rect x="0" y="108" width="1900" height="4" fill="#2166ac"/>
+  <text x="70" y="61" class="title">F334: Durable Completed-Epoch Cleanup and Finalize Gate</text>
+  <text x="72" y="94" class="subtitle">Extend compute completion into acknowledged state retirement: ACK -> barriers -> remove -> parent fsync -> Finalize</text>
+
+  <g filter="url(#shadow)">
+    <rect x="55" y="145" width="560" height="400" rx="10" fill="#ffffff" stroke="#d7e0e8" stroke-width="2"/>
+  </g>
+  <rect x="55" y="145" width="560" height="58" rx="10" fill="#fff1f0"/>
+  <rect x="55" y="193" width="560" height="10" fill="#fff1f0"/>
+  <text x="83" y="183" class="panel-title">Before F334: false-success cleanup</text>
+
+  <rect x="92" y="235" width="190" height="66" rx="7" fill="#e9f2fb" stroke="#6aa4d8"/>
+  <text x="187" y="264" text-anchor="middle" class="heading">Workers ACKed</text>
+  <text x="187" y="287" text-anchor="middle" class="small">compute plane quiescent</text>
+  <line x1="282" y1="268" x2="352" y2="268" stroke="#2166ac" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <rect x="365" y="225" width="205" height="86" rx="7" fill="#fff1f0" stroke="#d92d20" stroke-width="2"/>
+  <text x="468" y="256" text-anchor="middle" class="mono">rmtree(...)</text>
+  <text x="468" y="281" text-anchor="middle" class="mono">ignore_errors=True</text>
+  <text x="468" y="302" text-anchor="middle" class="small">errors discarded</text>
+
+  <line x1="187" y1="301" x2="187" y2="355" stroke="#b42318" stroke-width="3" marker-end="url(#arrow-red)"/>
+  <rect x="92" y="366" width="478" height="130" rx="7" fill="#fff8e6" stroke="#d99a00" stroke-width="2"/>
+  <text x="116" y="401" class="heading">Observable consequences</text>
+  <text x="116" y="432" class="body">- work-state removal may fail or stay uncommitted</text>
+  <text x="116" y="461" class="body">- processes still call MPI_Finalize and return 0</text>
+  <text x="116" y="490" class="body">- same-epoch restart may recover completed state</text>
+
+  <g filter="url(#shadow)">
+    <rect x="645" y="145" width="1200" height="720" rx="10" fill="#ffffff" stroke="#d7e0e8" stroke-width="2"/>
+  </g>
+  <rect x="645" y="145" width="1200" height="58" rx="10" fill="#eaf7f0"/>
+  <rect x="645" y="193" width="1200" height="10" fill="#eaf7f0"/>
+  <text x="675" y="183" class="panel-title">F334: two-phase, bounded, fail-closed retirement</text>
+
+  <text x="690" y="246" class="heading">Execution order</text>
+  <line x1="760" y1="280" x2="1760" y2="280" stroke="#b9c6d2" stroke-width="3"/>
+
+  <g>
+    <circle cx="785" cy="280" r="20" fill="#2166ac"/>
+    <text x="785" y="287" text-anchor="middle" class="white" font-size="18" font-weight="700">1</text>
+    <rect x="700" y="320" width="170" height="120" rx="7" fill="#e9f2fb" stroke="#6aa4d8"/>
+    <text x="785" y="352" text-anchor="middle" class="heading">Quiesce</text>
+    <text x="785" y="381" text-anchor="middle" class="small">STOP / exact ACK</text>
+    <text x="785" y="408" text-anchor="middle" class="small">master rendezvous</text>
+  </g>
+  <g>
+    <circle cx="1015" cy="280" r="20" fill="#2166ac"/>
+    <text x="1015" y="287" text-anchor="middle" class="white" font-size="18" font-weight="700">2</text>
+    <rect x="920" y="320" width="190" height="120" rx="7" fill="#e9f2fb" stroke="#6aa4d8"/>
+    <text x="1015" y="352" text-anchor="middle" class="heading">Pre-cleanup</text>
+    <text x="1015" y="381" text-anchor="middle" class="small">global bounded</text>
+    <text x="1015" y="408" text-anchor="middle" class="small">Ibarrier</text>
+  </g>
+  <g>
+    <circle cx="1260" cy="280" r="20" fill="#18794e"/>
+    <text x="1260" y="287" text-anchor="middle" class="white" font-size="18" font-weight="700">3</text>
+    <rect x="1160" y="320" width="200" height="120" rx="7" fill="#eaf7f0" stroke="#45a879"/>
+    <text x="1260" y="352" text-anchor="middle" class="heading">Rank 0 cleanup</text>
+    <text x="1260" y="381" text-anchor="middle" class="mono">durable_rmtree</text>
+    <text x="1260" y="408" text-anchor="middle" class="small">rmtree + parent fsync</text>
+  </g>
+  <g>
+    <circle cx="1500" cy="280" r="20" fill="#18794e"/>
+    <text x="1500" y="287" text-anchor="middle" class="white" font-size="18" font-weight="700">4</text>
+    <rect x="1405" y="320" width="190" height="120" rx="7" fill="#eaf7f0" stroke="#45a879"/>
+    <text x="1500" y="352" text-anchor="middle" class="heading">Post-cleanup</text>
+    <text x="1500" y="381" text-anchor="middle" class="small">non-root waits for</text>
+    <text x="1500" y="408" text-anchor="middle" class="small">root durability result</text>
+  </g>
+  <g>
+    <circle cx="1725" cy="280" r="20" fill="#18794e"/>
+    <text x="1725" y="287" text-anchor="middle" class="white" font-size="18" font-weight="700">5</text>
+    <rect x="1640" y="320" width="170" height="120" rx="7" fill="#eaf7f0" stroke="#45a879"/>
+    <text x="1725" y="352" text-anchor="middle" class="heading">Finalize</text>
+    <text x="1725" y="381" text-anchor="middle" class="small">success path only</text>
+    <text x="1725" y="408" text-anchor="middle" class="small">all ranks return 0</text>
+  </g>
+
+  <line x1="870" y1="380" x2="910" y2="380" stroke="#2166ac" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <line x1="1110" y1="380" x2="1150" y2="380" stroke="#18794e" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <line x1="1360" y1="380" x2="1395" y2="380" stroke="#18794e" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <line x1="1595" y1="380" x2="1630" y2="380" stroke="#18794e" stroke-width="3" marker-end="url(#arrow-green)"/>
+
+  <rect x="700" y="490" width="350" height="300" rx="8" fill="#f8fafc" stroke="#b9c6d2"/>
+  <text x="728" y="530" class="heading">Success invariants</text>
+  <text x="728" y="567" class="body">I1  every worker exact-ACKed</text>
+  <text x="728" y="601" class="body">I2  every rank stopped using epoch</text>
+  <text x="728" y="635" class="body">I3  exact 64-hex epoch removed</text>
+  <text x="728" y="669" class="body">I4  shared-root directory fsynced</text>
+  <text x="728" y="703" class="body">I5  post-cleanup barrier complete</text>
+  <rect x="728" y="731" width="290" height="38" rx="5" fill="#18794e"/>
+  <text x="873" y="757" text-anchor="middle" class="white" font-size="14" font-weight="700">All five invariants -> exit 0</text>
+
+  <rect x="1085" y="490" width="705" height="300" rx="8" fill="#fff8e6" stroke="#d99a00"/>
+  <text x="1115" y="530" class="heading">Failure classes and dedicated exit codes</text>
+  <rect x="1115" y="558" width="200" height="62" rx="6" fill="#fff1f0" stroke="#d92d20"/>
+  <text x="1215" y="585" text-anchor="middle" class="mono">Abort(71)</text>
+  <text x="1215" y="608" text-anchor="middle" class="small">pre-cleanup timeout</text>
+  <rect x="1335" y="558" width="200" height="62" rx="6" fill="#fff1f0" stroke="#d92d20"/>
+  <text x="1435" y="585" text-anchor="middle" class="mono">Abort(72)</text>
+  <text x="1435" y="608" text-anchor="middle" class="small">remove / fsync failure</text>
+  <rect x="1555" y="558" width="200" height="62" rx="6" fill="#fff1f0" stroke="#d92d20"/>
+  <text x="1655" y="585" text-anchor="middle" class="mono">Abort(73)</text>
+  <text x="1655" y="608" text-anchor="middle" class="small">post-cleanup timeout</text>
+  <text x="1115" y="666" class="body">Pre-remove failure: active epoch remains recoverable.</text>
+  <text x="1115" y="701" class="body">Post-remove fsync failure: visibility changed, crash durability unknown.</text>
+  <text x="1115" y="736" class="body">On root failure, MPI_Abort terminates ranks waiting in Ibarrier.</text>
+  <text x="1115" y="771" class="body">Identity mismatch: reject before any filesystem mutation.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="55" y="900" width="1790" height="430" rx="10" fill="#ffffff" stroke="#d7e0e8" stroke-width="2"/>
+  </g>
+  <text x="85" y="946" class="panel-title">Validation results and evidence boundary</text>
+
+  <rect x="85" y="980" width="530" height="285" rx="8" fill="#f8fafc" stroke="#b9c6d2"/>
+  <text x="115" y="1022" class="heading">Real Open MPI failure -> recovery</text>
+  <text x="115" y="1062" class="mono">7 ranks / 2 masters / 5 workers</text>
+  <rect x="115" y="1090" width="190" height="70" rx="6" fill="#fff1f0" stroke="#d92d20"/>
+  <text x="210" y="1118" text-anchor="middle" class="heading" style="font-size:16px">Pre-remove I/O fail</text>
+  <text x="210" y="1147" text-anchor="middle" class="mono">ACK -> exit 72</text>
+  <line x1="305" y1="1125" x2="376" y2="1125" stroke="#2166ac" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <rect x="390" y="1090" width="190" height="70" rx="6" fill="#eaf7f0" stroke="#45a879"/>
+  <text x="485" y="1118" text-anchor="middle" class="heading" style="font-size:16px">Same-epoch recovery</text>
+  <text x="485" y="1147" text-anchor="middle" class="mono">cleanup -> exit 0</text>
+  <text x="115" y="1200" class="body">After failure: state.json + fenced record remain</text>
+  <text x="115" y="1232" class="body">After recovery: active work-state is absent</text>
+
+  <rect x="645" y="980" width="560" height="285" rx="8" fill="#f8fafc" stroke="#b9c6d2"/>
+  <text x="675" y="1022" class="heading">Local mechanism cost (100 + 100 raw samples)</text>
+  <text x="675" y="1064" class="body">unacknowledged rmtree</text>
+  <rect x="895" y="1042" width="78" height="30" rx="4" fill="#9fbad0"/>
+  <text x="990" y="1064" class="mono">70.0455 us</text>
+  <text x="675" y="1114" class="body">durable rmtree</text>
+  <rect x="895" y="1092" width="260" height="30" rx="4" fill="#45a879"/>
+  <text x="1025" y="1160" text-anchor="middle" class="mono">2756.892 us</text>
+  <text x="675" y="1205" class="body">median added: 2686.8465 us (39.3586x)</text>
+  <text x="675" y="1237" class="small">one completion-boundary cost, not DSE uplift</text>
+
+  <rect x="1235" y="980" width="580" height="285" rx="8" fill="#fff8e6" stroke="#d99a00"/>
+  <text x="1265" y="1022" class="heading">Proof scope</text>
+  <text x="1265" y="1061" class="body">[OK] 704 passed + 52 subtests</text>
+  <text x="1265" y="1097" class="body">[OK] actual MPI, real same-host topology</text>
+  <text x="1265" y="1133" class="body">[OK] ACK order, Abort(72), recovery, cleanup</text>
+  <text x="1265" y="1178" class="body">[OUT] remote power loss / ULFM</text>
+  <text x="1265" y="1214" class="body">[OUT] MPI barrier scale benchmark</text>
+  <text x="1265" y="1250" class="body">[OUT] coverage, solver, or LAVA-M uplift</text>
+
+  <text x="55" y="1370" class="small">F334 evidence: docs/codex/evidence/f334-durable-epoch-cleanup-2026-08-07/</text>
+</svg>

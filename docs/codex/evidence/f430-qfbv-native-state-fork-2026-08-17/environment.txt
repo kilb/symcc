@@ -1,0 +1,16 @@
+Date: 2026-08-17
+Host kernel: Linux 7.0.0-28-generic x86_64
+LLVM 17 compiler: Ubuntu clang 17.0.6 (9ubuntu1)
+LLVM 18 compiler: Ubuntu clang 18.1.3 (1ubuntu1)
+Python: 3.12.3
+pytest: 9.1.1
+Z3: Z3 version 5.0.0 - 64 bit
+Z3 root: /opt/z3-5.0.0
+Z3 official release asset: z3-5.0.0-x64-glibc-2.39.zip
+Z3 official release asset SHA-256: d4922cebc9f0a55629231ec0c62f0bbedf8006eddaed4e68199ad19626b697f6
+Helper SHA-256: 59dae3a1f02e22cfcb165b5f111afac3158fecf91a371da75f5a52ba8e7808ca
+Z3 executable SHA-256: e15df59f37c9d939af8370cf57cadb4928551e349e10b14eeb5d4859bdc663c3
+Z3 shared library SHA-256: 8b86c4a7a7cffd81f7b75e07cf6a136bbcb3de0efb923eebbd28920bc99dac
+Helper linkage: /opt/z3-5.0.0/bin/libz3.so
+Python node-ID digest: 6ab2c6c27b58878608b232156464a7a7f36356c1602567351d779fbf15746cb1
+Python manifest file SHA-256: cff0029dd8d8acb5b7d5194f9c4ea08c83425a256338c52d5b545b47d606d0cc

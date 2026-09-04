@@ -1,0 +1,28 @@
+Research verification date: 2026-08-16 UTC
+
+LLVM MemorySSA official documentation
+https://llvm.org/docs/MemorySSA.html
+Verified facts: MemoryUse, MemoryDef, and MemoryPhi roles; MemoryPhi merges
+may-reach definitions; liveOnEntry is the function-entry memory definition;
+the default walker consults the active alias-analysis stack. LLVM MemorySSA is
+intraprocedural.
+
+LLVM Alias Analysis Infrastructure official documentation
+https://llvm.org/docs/AliasAnalysis.html
+Verified facts: NoAlias, MayAlias, PartialAlias, and MustAlias categories;
+ModRef queries are conservative. F408 skips a store only for a static-disjoint
+proof or NoAlias and skips a supported call only when ModRef has no Mod bit.
+
+LLVM MemorySSA API reference
+https://llvm.org/docs/doxygen/classllvm_1_1MemorySSA.html
+Verified fact: MemorySSA maps LLVM instructions to MemoryAccess objects and
+exposes the live-on-entry definition used by the fail-closed boundary.
+
+POSE: Path-optimal symbolic execution of heap-manipulating programs
+https://arxiv.org/abs/2407.16827
+Verified fact: path-optimal heap reasoning aims not to fork on alias choices
+that are not program control-flow choices. F408 adopts only this direction.
+
+Boundary: F408 does not claim a general clobber walker serialization, loop or
+interprocedural completeness, full POSE, or performance results from the cited
+systems.

@@ -1,0 +1,36 @@
+{
+  "all_passed": true,
+  "focused_python": {
+    "passed": 31,
+    "subtests_passed": 0
+  },
+  "llvm17": {
+    "discovered": 325,
+    "failures": 0,
+    "unresolved": 0,
+    "unsupported": 2
+  },
+  "llvm18": {
+    "discovered": 325,
+    "failures": 0,
+    "unresolved": 0,
+    "unsupported": 1
+  },
+  "oracle": {
+    "adaptive_backpressure": 0,
+    "adaptive_delivered": 8,
+    "delivery_gain": 6,
+    "queue_capacity": 2,
+    "records": 8,
+    "repetitions": 6,
+    "static_backpressure": 6,
+    "static_delivered": 2
+  },
+  "python": {
+    "nodeids_sha256": "f526a59f3a6241569d64e0ba6cfcdb01e79670dd5ef50c9c3ee55edbdd87e9be",
+    "passed": 1267,
+    "subtests_passed": 291
+  },
+  "schema": "symcc-f435-full-suite-summary-v1",
+  "shim_sha256": "fb1d08ed0c3039ddf4e5ed4ddb3d89c8ea09423b4fceb100c10fd5bc39325ba9"
+}

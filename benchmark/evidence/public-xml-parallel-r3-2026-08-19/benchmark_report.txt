@@ -1,0 +1,52 @@
+================================================================================
+  SymCC MPI Parallelization Benchmark Report
+  Generated: 2026-08-19 15:40:35
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+  Target: gfts-xml_read_fuzzer
+────────────────────────────────────────────────────────────────────────────────
+
+  Mode         NP       Time   SymCCGen    AFLExec   Unique  ShowmapCov          Edges      AFL/s
+  ────────── ──── ────────── ────────── ────────── ──────── ─────────── ────────────── ──────────
+  mpi           2      45.8s       2664          0     1889       6.11%     3110/50880          0
+  mpi           4      39.6s       3101          0     2201       6.21%     3161/50880          0
+  mpi           8      41.0s       3527          0     2497       6.31%     3212/50880          0
+  mpi          16      48.7s       5669          0     4041       6.76%     3441/50880          0
+  seed          0       0.0s          0          0       20       4.54%     2310/50880          0
+
+  Edge Coverage Chart (afl-showmap):
+          mpi np=2 |████████████████████████████████████░░░░| 6.11%
+          mpi np=4 |████████████████████████████████████░░░░| 6.21%
+          mpi np=8 |█████████████████████████████████████░░░| 6.31%
+         mpi np=16 |████████████████████████████████████████| 6.76%
+              seed |██████████████████████████░░░░░░░░░░░░░░| 4.54%
+
+  Coverage Gain over Seed Baseline:
+    Seed baseline: 4.54% (2310 edges)
+            mpi np=2: 6.11% (+1.57pp, +34.7% relative)
+            mpi np=4: 6.21% (+1.67pp, +36.8% relative)
+            mpi np=8: 6.31% (+1.77pp, +39.1% relative)
+           mpi np=16: 6.76% (+2.22pp, +49.0% relative)
+
+  Like-for-like Throughput Speedup vs Serial:
+    mpi np=  2 |                  N/A                   | different unit: symcc-candidates-per-second
+    mpi np=  4 |                  N/A                   | different unit: symcc-candidates-per-second
+    mpi np=  8 |                  N/A                   | different unit: symcc-candidates-per-second
+    mpi np= 16 |                  N/A                   | different unit: symcc-candidates-per-second
+    seed np=  0 |                  N/A                   | different unit: not-applicable
+
+
+================================================================================
+  OVERALL SUMMARY
+================================================================================
+
+  gfts-xml_read_fuzzer: best = mpi np=16 (48.7s, 4041 retained unique, 5669 SymCC candidates, 0 AFL executions, edge_cov=6.76%)
+
+  Report files:
+    Text:  /home/ubuntu/code/symcc/benchmark/evidence/public-xml-parallel-r3-2026-08-19/benchmark_report.txt
+    CSV:   /home/ubuntu/code/symcc/benchmark/evidence/public-xml-parallel-r3-2026-08-19/benchmark_data.csv
+    JSON:  /home/ubuntu/code/symcc/benchmark/evidence/public-xml-parallel-r3-2026-08-19/benchmark_data.json
+
+================================================================================

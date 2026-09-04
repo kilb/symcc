@@ -1,0 +1,47 @@
+F440 multi-round review findings
+Date: 2026-08-18
+
+Round 1 - Official topology and execution contract
+Finding: the pinned README says ceil(sqrt(N)) redistribute processes, while
+test/test_full_run.c and scripts/pal/pal.sh execute a square w*w communicator.
+Resolution: follow the executable integration contract, expose matrix_width and
+matrix_tasks, and prove 12/16/12 task conservation with the official fixture.
+Result: passed; no README shorthand is silently promoted into code.
+
+Round 2 - Input and executable immutability
+Finding: official launchers may clean generated files and the original proof;
+path-only tool checks would also leave a check/exec replacement interval.
+Resolution: snapshot formula and fragments through anchored no-follow file
+descriptors, verify pre/post identity, execute private copies of pinned tool
+bytes, and apply per-file plus aggregate budgets. Reject an empty formula while
+continuing to permit official empty worker fragments.
+Result: source proof remains unchanged; symlink, bound and replacement tests pass.
+
+Round 3 - Process lifetime and parallel failure convergence
+Finding: exit-code checks alone miss stderr diagnostics, output floods and
+timeouts; an exception in one future could leave all queued tasks scheduled.
+Resolution: use bounded nonblocking stdout/stderr, process-group termination,
+deadline enforcement, exit-0/empty-stderr gates, and cancel not-yet-started
+futures on the first phase error. Add nonzero, stderr, timeout and flood faults.
+Result: all injected failures close without a global receipt.
+
+Round 4 - Global authorization and receipt invariants
+Finding: verify accepted a zero-byte formula although validate_receipt rejected
+one; offline validation also accepted a valid but noncanonical witness ordering.
+Resolution: reject an empty formula before local checks, require every official
+fragment hash to be exactly 16 bytes, require sorted unique witness ranks,
+enforce exact marker paths, N/w*w/N rank counts, nested strict fields,
+fragment/stage byte conservation and default full independent recheck.
+Result: positive receipt rechecks; missing/extra marker, empty witness, reordered
+witness, 15-byte hash and nested conservation mutations fail closed.
+
+Round 5 - Documentation, evidence and visual review
+Finding: the first PNG render had overlapping receipt-field descriptions; prose
+also had to distinguish fragment syntax, global checker mechanism and native
+proof generation as three separate maturity levels.
+Resolution: redraw the receipt as fixed-width columns with controlled two-line
+labels; visually inspect the 2700x1650 render; synchronize archive, compendium,
+history, roadmap, configuration, testing, benchmark and research indexes; seal
+full Python and serial LLVM 17/18 gates.
+Result: figure is legible, F00-F440 is continuous, and all documents state that
+native generation, cross-node recovery and performance/coverage evidence remain open.

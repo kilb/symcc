@@ -1,0 +1,7 @@
+PASS ruff check util/schedule_exploration.py util/native_condpor_campaign.py util/symcc_native_condpor.py benchmark/check_native_condpor_c11_oracles.py test/test_schedule_exploration.py test/test_native_condpor_campaign.py
+PASS python3 -m py_compile on the same Python implementation/test set
+PASS cc -std=c11 -Wall -Wextra -Werror -shared -fPIC -pthread util/symcc_schedule_rt.c -ldl
+PASS ninja SymCC symcc_schedule_rt SymCCRuntime in LLVM 17 and LLVM 18 builds
+PASS git diff --check
+PASS SVG 1600x960 parses and PNG renders at 2000x1200 RGB
+PASS explicit resource caps: trace 131072 rows; modeled events 512; memory events 64; relation candidates 65536; campaign trace 256 MiB hard maximum

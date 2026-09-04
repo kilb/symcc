@@ -1,0 +1,11 @@
+command=python3 benchmark/check_agolic_bse_runner_oracles.py --output <file>
+run_1_sha256=76ac6084f9936b91791483ab25cbf65af89037a82274cfde63e20daa14588eb4
+run_2_sha256=76ac6084f9936b91791483ab25cbf65af89037a82274cfde63e20daa14588eb4
+byte_identical=true
+configurations=8
+released_configurations=4
+unreleased_configurations=4
+candidates=8
+source_replay_equivalences=8
+planner_outcomes=8
+mutation_rejections=6

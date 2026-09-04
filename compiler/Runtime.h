@@ -51,6 +51,7 @@ struct Runtime {
   SymFnT buildBoolXor{};
   SymFnT buildBoolToBit{};
   SymFnT buildBitToBool{};
+  SymFnT buildIte{};
   SymFnT buildAddOverflow{};
   SymFnT buildSubOverflow{};
   SymFnT buildMulOverflow{};
@@ -63,6 +64,10 @@ struct Runtime {
   SymFnT buildFshl{};
   SymFnT buildFshr{};
   SymFnT buildAbs{};
+  SymFnT buildSignedMin{};
+  SymFnT buildSignedMax{};
+  SymFnT buildUnsignedMin{};
+  SymFnT buildUnsignedMax{};
   SymFnT buildConcat{};
   SymFnT pushPathConstraint{};
   SymFnT getParameterExpression{};
@@ -80,6 +85,19 @@ struct Runtime {
   SymFnT notifyCall{};
   SymFnT notifyRet{};
   SymFnT notifyBasicBlock{};
+  SymFnT notifyDataCompare{};
+  SymFnT notifyValueProfile{};
+  SymFnT notifyDataLoad{};
+  SymFnT notifyDataCompareExtended{};
+  SymFnT notifyDataSwitch{};
+  SymFnT notifyScheduleRead{};
+  SymFnT notifyScheduleWrite{};
+  SymFnT notifyScheduleBlock{};
+  SymFnT notifyScheduleBranch{};
+  SymFnT notifyScheduleAtomic{};
+  SymFnT notifyScheduleAtomicResult{};
+  SymFnT notifyScheduleAtomicValue{};
+  SymFnT notifyScheduleAtomicCommit{};
 
   /// Mapping from icmp predicates to the functions that build the corresponding
   /// symbolic expressions.

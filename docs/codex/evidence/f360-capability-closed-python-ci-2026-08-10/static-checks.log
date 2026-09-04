@@ -1,0 +1,8 @@
+$ python3 -m ruff check util/python_test_gate.py test/test_python_test_gate.py
+All checks passed!
+$ python3 -m py_compile util/python_test_gate.py test/test_python_test_gate.py
+py_compile: PASS
+$ go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 .github/workflows/run_tests.yml
+actionlint: PASS
+$ git diff --check -- F360 implementation files
+git diff --check: PASS

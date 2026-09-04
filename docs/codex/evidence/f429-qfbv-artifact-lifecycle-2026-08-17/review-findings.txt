@@ -1,0 +1,8 @@
+schema=symcc-f429-review-findings-v1
+round1=graph closure: expanded validation to edge source/target and job-reference job/artifact endpoints; incomplete graphs invoke zero deleters
+round2=proof inventory: required bidirectional result_receipts/receipts mapping and every receipt-to-proof target
+round3=fencing authorization: fixed wrong-owner release deleting current roots despite returning false; regression preserves one active reference
+round4=resource bounds: retained job rows for monotonic generations and added persistent max_jobs quota with configuration-drift rejection
+round5=numeric and timeout semantics: rejected bool/NaN/Inf wall times and documented time budget as lock/selection rather than admitted-deletion deadline
+round6=claim discipline: compared oracle stable fields separately from elapsed_us and prohibited solver/coverage/benchmark speedup inference
+verification=22 focused; 52 related plus 20 subtests; Python 1197 plus 273 subtests; LLVM17 311+2/313; LLVM18 312+1/313

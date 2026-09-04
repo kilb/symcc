@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="720" viewBox="0 0 1320 720">
+<rect width="100%" height="100%" fill="#f8fafc"/>
+<style>text{font-family:Inter,Arial,sans-serif;fill:#172033}.title{font-size:26px;font-weight:700}.sub{font-size:14px;fill:#526078}.axis{stroke:#526078;stroke-width:1.5}.grid{stroke:#dbe4ee;stroke-width:1}.label{font-size:13px}.legend{font-size:12px}</style>
+<text x="66" y="40" class="title">Hybrid parallel profile: worker cost and master serialization</text>
+<text x="66" y="65" class="sub">Means of repeated 90 s runs; worker bars use accounted worker time, master bars use campaign wall time</text>
+<line x1="94" y1="608.0" x2="1224" y2="608.0" class="grid"/>
+<text x="82" y="612.0" text-anchor="end" class="label">0%</text>
+<line x1="94" y1="505.2" x2="1224" y2="505.2" class="grid"/>
+<text x="82" y="509.2" text-anchor="end" class="label">20%</text>
+<line x1="94" y1="402.4" x2="1224" y2="402.4" class="grid"/>
+<text x="82" y="406.4" text-anchor="end" class="label">40%</text>
+<line x1="94" y1="299.6" x2="1224" y2="299.6" class="grid"/>
+<text x="82" y="303.6" text-anchor="end" class="label">60%</text>
+<line x1="94" y1="196.8" x2="1224" y2="196.8" class="grid"/>
+<text x="82" y="200.8" text-anchor="end" class="label">80%</text>
+<line x1="94" y1="94.0" x2="1224" y2="94.0" class="grid"/>
+<text x="82" y="98.0" text-anchor="end" class="label">100%</text>
+<line x1="94" y1="608" x2="1224" y2="608" class="axis"/>
+<line x1="94" y1="94" x2="94" y2="608" class="axis"/>
+<rect x="579.0" y="315.9" width="72" height="292.1" fill="#006d77"/>
+<rect x="579.0" y="287.9" width="72" height="28.0" fill="#e76f51"/>
+<rect x="579.0" y="152.6" width="72" height="135.2" fill="#e9c46a"/>
+<rect x="579.0" y="94.0" width="72" height="58.6" fill="#94a3b8"/>
+<rect x="667.0" y="536.0" width="72" height="72.0" fill="#1d4ed8"/>
+<rect x="667.0" y="343.1" width="72" height="192.9" fill="#7c3aed"/>
+<rect x="667.0" y="-34.5" width="72" height="377.6" fill="#64748b"/>
+<text x="615.0" y="630" text-anchor="middle" class="label">worker</text>
+<text x="703.0" y="630" text-anchor="middle" class="label">master</text>
+<text x="659.0" y="656" text-anchor="middle" class="label">np=16; W=7</text>
+<rect x="82.0" y="682" width="14" height="14" fill="#006d77"/>
+<text x="102.0" y="694" class="legend">worker target+SymCC execution</text>
+<rect x="276.0" y="682" width="14" height="14" fill="#e76f51"/>
+<text x="296.0" y="694" class="legend">worker coverage/dedup</text>
+<rect x="470.0" y="682" width="14" height="14" fill="#e9c46a"/>
+<text x="490.0" y="694" class="legend">worker wait</text>
+<rect x="664.0" y="682" width="14" height="14" fill="#1d4ed8"/>
+<text x="684.0" y="694" class="legend">master queue scan</text>
+<rect x="858.0" y="682" width="14" height="14" fill="#7c3aed"/>
+<text x="878.0" y="694" class="legend">master result triage</text>
+<rect x="1052.0" y="682" width="14" height="14" fill="#64748b"/>
+<text x="1072.0" y="694" class="legend">master dispatch/recv/idle</text>
+</svg>

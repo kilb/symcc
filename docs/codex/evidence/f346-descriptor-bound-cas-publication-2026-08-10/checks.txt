@@ -1,0 +1,51 @@
+F346 descriptor-bound CAS publication closure
+Date: 2026-08-10 UTC
+Repository base commit: 146e01b2d6f8e02fd2526764d46ea0d80a4bb6f6 (dirty research worktree)
+Host: Linux 7.0.0-28-generic x86_64 GNU/Linux
+Python: 3.12.3
+Evidence filesystem: overlay
+
+Implementation
+- keep the temporary writer descriptor open across durable_replace
+- sample descriptor identity before and after rename
+- require dev/inode/size/mtime stability across rename
+- compare full post-rename descriptor identity, including ctime, with the no-follow public path
+- do not require pre/post ctime equality because POSIX rename may update ctime
+- common path caches the exact published inode without a second payload hash
+- identity mismatch removes prior positive knowledge and invokes stable no-follow digest arbitration
+- accept a different regular inode only when its stable SHA-256 equals the object id
+- reject modified, wrong-digest, symlinked, disappearing, or unstable competitors
+- leave failed publications out of the positive identity cache
+- clean the writer temporary name on every exit
+
+Directed regression
+- 206 passed + 58 subtests, warnings as errors, 16.91 s
+
+Related regression
+- 350 passed + 74 subtests, warnings as errors, 18.33 s
+
+Full Python regression
+- 743 passed + 94 subtests, warnings as errors, 103.65 s
+
+Local production-primitive integration
+- 8/8 exact checks true
+- object id: 1589759a7aaffb44bed4c4f0389fcb8d7ffa1ad44cab4b8647cb4f77e49be3cd
+- uncontended publication: 0 fallback hashes
+- same-inode wrong-content mutation: 1 fallback hash, rejected
+- wrong-content replacement inode: 1 fallback hash, rejected
+- exact-content replacement inode: 1 fallback hash, accepted and cached
+- symlink replacement: 0 fallback hashes, rejected without following target
+- failed positive identity caches: empty
+- temporary residue: empty
+
+Complexity
+- uncontended common path: O(1) metadata and no payload reread
+- detected regular-file competition: one O(object_bytes) stable digest arbitration
+- no performance-uplift claim is made from metadata operation counts
+
+Claim boundary
+- deterministic local mechanism fault injection on real regular files
+- no real MPI transport, target, afl-showmap, or symbolic solver invocation
+- no fuzzing campaign or multi-host/NFS/Lustre race-frequency measurement
+- no throughput, coverage, bug-discovery, or LAVA-M uplift claim
+- final-component no-follow and trusted metadata are not Byzantine storage proof

@@ -1,0 +1,3 @@
+(?<=ffooar*+
+do|bar*+|bar*+
+oo@)\w+

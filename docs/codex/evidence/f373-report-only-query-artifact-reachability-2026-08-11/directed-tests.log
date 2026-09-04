@@ -1,0 +1,3 @@
+$ PYTHONDONTWRITEBYTECODE=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q -p no:cacheprovider test/test_query_store.py::QueryStoreTest::test_content_addressing_and_prefix_trie
+.                                                                    [100%]
+1 passed, 4 subtests passed in 0.86s

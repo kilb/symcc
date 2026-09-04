@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">F452 原生 checker 子句压缩执行流程</title>
+  <desc id="desc">证明检查后的子句经规范映射、排序、差分和变长编码进入压缩队列，再由 CaDiCaL 回调流式解码；统计经 Python 适配器进入 QueryStore。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
+    </marker>
+    <style>
+      .title { font: 700 28px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif; fill: #172033; }
+      .subtitle { font: 400 15px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif; fill: #536072; }
+      .head { font: 700 18px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif; fill: #172033; }
+      .body { font: 400 14px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif; fill: #334155; }
+      .mono { font: 600 13px monospace; fill: #253047; }
+      .tag { font: 700 12px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif; fill: #ffffff; }
+      .arrow { fill: none; stroke: #334155; stroke-width: 2.2; marker-end: url(#arrow); }
+      .dash { fill: none; stroke: #64748b; stroke-width: 1.8; stroke-dasharray: 7 6; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1200" height="700" fill="#f7f9fc"/>
+  <text x="60" y="54" class="title">F452：可信子句从完整整数向量到原生压缩热路径</text>
+  <text x="60" y="82" class="subtitle">压缩只改变 checker 内部表示；证明授权、SAT 语义和 QueryStore 裁决保持不变</text>
+
+  <rect x="55" y="125" width="245" height="205" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="55" y="125" width="245" height="42" rx="8" fill="#2563eb"/>
+  <text x="75" y="152" class="tag">1  独立证明授权</text>
+  <text x="75" y="198" class="head">IncrementalProofChecker</text>
+  <text x="75" y="228" class="body">验证 formula / assumptions</text>
+  <text x="75" y="252" class="body">重放 RUP/LRUP 证明闭包</text>
+  <text x="75" y="276" class="body">生成有界导入 token</text>
+  <rect x="75" y="293" width="202" height="24" rx="4" fill="#dbeafe"/>
+  <text x="88" y="310" class="mono">checked literals: int32[]</text>
+
+  <rect x="345" y="125" width="245" height="205" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="345" y="125" width="245" height="42" rx="8" fill="#0f766e"/>
+  <text x="365" y="152" class="tag">2  规范压缩</text>
+  <text x="365" y="198" class="head">CompressedClause::encode</text>
+  <text x="365" y="228" class="body">有符号 literal → 无符号序号</text>
+  <text x="365" y="252" class="body">排序 → 差分 → canonical varint</text>
+  <text x="365" y="276" class="body">拒绝重复、重言式、溢出</text>
+  <rect x="365" y="293" width="202" height="24" rx="4" fill="#ccfbf1"/>
+  <text x="380" y="310" class="mono">≤7 B inline | heap</text>
+
+  <rect x="635" y="125" width="245" height="205" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="635" y="125" width="245" height="42" rx="8" fill="#b45309"/>
+  <text x="655" y="152" class="tag">3  有界并发队列</text>
+  <text x="655" y="198" class="head">Native import queue</text>
+  <text x="655" y="228" class="body">token 去重与 literal 总量门</text>
+  <text x="655" y="252" class="body">压缩字节与内联对象计数</text>
+  <text x="655" y="276" class="body">mutex 下 move-only 所有权</text>
+  <rect x="655" y="293" width="202" height="24" rx="4" fill="#fef3c7"/>
+  <text x="671" y="310" class="mono">queued encoded bytes</text>
+
+  <rect x="925" y="125" width="220" height="205" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="925" y="125" width="220" height="42" rx="8" fill="#7c3aed"/>
+  <text x="945" y="152" class="tag">4  求解器内消费</text>
+  <text x="945" y="198" class="head">CaDiCaL 3.0 callback</text>
+  <text x="945" y="228" class="body">Cursor 逐 literal 解码</text>
+  <text x="945" y="252" class="body">0 终止当前外部子句</text>
+  <text x="945" y="276" class="body">消费完成后生成 ACK</text>
+  <rect x="945" y="293" width="177" height="24" rx="4" fill="#ede9fe"/>
+  <text x="961" y="310" class="mono">SAT / UNSAT / UNKNOWN</text>
+
+  <path d="M300 227 H338" class="arrow"/>
+  <path d="M590 227 H628" class="arrow"/>
+  <path d="M880 227 H918" class="arrow"/>
+
+  <rect x="55" y="390" width="825" height="235" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+  <text x="78" y="425" class="head">规范编码示例</text>
+  <text x="78" y="458" class="mono">输入 clause       [ 3, -1, 2 ]</text>
+  <text x="78" y="488" class="mono">unsigned 映射     [ 5,  0, 3 ]</text>
+  <text x="78" y="518" class="mono">排序              [ 0,  3, 5 ]</text>
+  <text x="78" y="548" class="mono">差分              [ 0,  3, 2 ]</text>
+  <text x="78" y="578" class="mono">长度前缀 + varint  04 00 03 02</text>
+  <rect x="495" y="438" width="350" height="155" rx="6" fill="#f1f5f9"/>
+  <text x="520" y="470" class="head">失败关闭边界</text>
+  <text x="520" y="501" class="body">非规范 varint / 截断 / 长度不符</text>
+  <text x="520" y="529" class="body">int32 溢出 / 资源上限 / 重复 literal</text>
+  <text x="520" y="557" class="body">任何错误：终止本次导入，不产生 ACK</text>
+
+  <rect x="925" y="390" width="220" height="235" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+  <text x="947" y="425" class="head">证据与遥测</text>
+  <text x="947" y="460" class="body">原始 / 压缩字节</text>
+  <text x="947" y="488" class="body">inline / heap 子句数</text>
+  <text x="947" y="516" class="body">队列编码字节</text>
+  <text x="947" y="544" class="body">解码 literal 数</text>
+  <text x="947" y="572" class="body">压缩失败数 = 0</text>
+  <rect x="947" y="587" width="176" height="24" rx="4" fill="#e2e8f0"/>
+  <text x="967" y="604" class="mono">QueryStore verified</text>
+  <path d="M1035 330 V382" class="dash"/>
+
+  <text x="60" y="672" class="subtitle">实线：子句数据路径；虚线：可审计遥测路径。排序不改变析取语义，解码后仍由原求解器消费。</text>
+</svg>

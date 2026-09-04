@@ -1,0 +1,8 @@
+Command:
+
+PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q -W error test/test_mpi_filesystem_qualification.py -k 'completion_boundary_contains_rank_exceptions'
+
+Result:
+
+.                                                                        [100%]
+1 passed, 33 deselected in 0.42s

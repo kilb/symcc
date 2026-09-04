@@ -1,0 +1,64 @@
+{
+  "actual_mpi_transport": true,
+  "actual_multi_host": false,
+  "all_checks_passed": true,
+  "checks": {
+    "all_workers_acknowledge_before_cleanup_failure": true,
+    "both_runs_are_bounded": true,
+    "failed_cleanup_retains_recoverable_epoch": true,
+    "injected_cleanup_uncertainty_aborts_with_72": true,
+    "matching_restart_completes_and_removes_epoch": true,
+    "real_multi_master_frontend_exercised": true
+  },
+  "cleanup_failure_injected": true,
+  "command": [
+    "mpirun",
+    "--oversubscribe",
+    "-np",
+    "7",
+    "python3",
+    "/tmp/symcc-f334-cleanup-mpi-s60rai52/durable_cleanup_wrapper.py",
+    "-i",
+    "/tmp/symcc-f334-cleanup-mpi-s60rai52/input",
+    "-o",
+    "/tmp/symcc-f334-cleanup-mpi-s60rai52/output",
+    "-t",
+    "1",
+    "--max-idle",
+    "1",
+    "--wall-timeout",
+    "3",
+    "--workers-per-master",
+    "3",
+    "--simulate",
+    "--",
+    "/bin/true"
+  ],
+  "configuration": {
+    "masters": 2,
+    "ranks": 7,
+    "work_epoch": "f334f334f334f334f334f334f334f334f334f334f334f334f334f334f334f334",
+    "workers": 5
+  },
+  "deployment_evidence": false,
+  "injected": {
+    "elapsed": 3.6131719609256834,
+    "returncode": 72
+  },
+  "proof_boundary": "One physical host and a test-only rank-0 durable_rmtree fault prove production Abort(72) wiring, ACK-before-cleanup ordering, state retention, and matching recovery. This does not prove remote-filesystem crash persistence, rank repair, DSE throughput, coverage, solver, or LAVA-M uplift.",
+  "recovered": {
+    "elapsed": 3.670549025060609,
+    "returncode": 0
+  },
+  "schema": "symcc-f334-durable-epoch-cleanup-mpi-v1",
+  "state_observations": {
+    "state_exists_after_failed_cleanup": true,
+    "state_exists_after_matching_recovery": false,
+    "state_files_after_failed_cleanup": [
+      "016/559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd.json",
+      "016/559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd.json.lock",
+      "state.json"
+    ]
+  },
+  "synthetic_topology": false
+}

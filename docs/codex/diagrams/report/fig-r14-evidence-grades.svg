@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="882"
+     viewBox="0 0 1600 882" role="img" aria-labelledby="title desc">
+  <title id="title">图 R-14　证据等级制度与本报告的数据构成</title>
+  <desc id="desc">规则来自 docs/README.md 与 New_Implementation_Archive.md 的强制记录模板</desc>
+  <rect width="1600" height="882" fill="white"/>
+  <text x="48" y="54" font-family="WenQuanYi Zen Hei" font-size="28" font-weight="700" fill="#17212B" text-anchor="start">图 R-14　证据等级制度与本报告的数据构成</text>
+  <text x="48" y="86" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="400" fill="#64748B" text-anchor="start">规则来自 docs/README.md 与 New_Implementation_Archive.md 的强制记录模板</text>
+  <rect x="270.0" y="152" width="560" height="100" rx="10" fill="#FEE2E2" stroke="#B91C1C" stroke-width="2"/>
+  <text x="294.0" y="190" font-family="WenQuanYi Zen Hei" font-size="20" font-weight="700" fill="#B91C1C" text-anchor="start">R 级　确认性结论</text>
+  <text x="294.0" y="218" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">sealed 随机区组 + 等 CPU-second + 每格 ≥20 轮 + 消融</text>
+  <text x="1104" y="182" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="start">本报告对应内容</text>
+  <text x="1104" y="208" font-family="WenQuanYi Zen Hei" font-size="14.5" font-weight="700" fill="#B91C1C" text-anchor="start">本项目尚无</text>
+  <rect x="210.0" y="274" width="680" height="100" rx="10" fill="#DCFCE7" stroke="#15803D" stroke-width="2"/>
+  <text x="234.0" y="312" font-family="WenQuanYi Zen Hei" font-size="20" font-weight="700" fill="#15803D" text-anchor="start">A 级　工程统计</text>
+  <text x="234.0" y="340" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">同二进制与初始语料、每组 n=20 独立样本 + bootstrap CI + label permutation + Holm</text>
+  <text x="1104" y="304" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="start">本报告对应内容</text>
+  <text x="1104" y="330" font-family="WenQuanYi Zen Hei" font-size="14.5" font-weight="700" fill="#15803D" text-anchor="start">20 轮组合配置比较</text>
+  <text x="1104" y="352" font-family="WenQuanYi Zen Hei" font-size="14.5" font-weight="700" fill="#15803D" text-anchor="start">（§4.2）</text>
+  <rect x="150.0" y="396" width="800" height="100" rx="10" fill="#CCFBF1" stroke="#0F766E" stroke-width="2"/>
+  <text x="174.0" y="434" font-family="WenQuanYi Zen Hei" font-size="20" font-weight="700" fill="#0F766E" text-anchor="start">B 级　多轮描述</text>
+  <text x="174.0" y="462" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">同一配置重复运行，报告多轮均值 + 全距；未做等 CPU 与随机化</text>
+  <text x="1104" y="426" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="start">本报告对应内容</text>
+  <text x="1104" y="452" font-family="WenQuanYi Zen Hei" font-size="14.5" font-weight="700" fill="#0F766E" text-anchor="start">SymSan 六目标（§4.3）</text>
+  <rect x="90.0" y="518" width="920" height="100" rx="10" fill="#FFEDD5" stroke="#C2410C" stroke-width="2"/>
+  <text x="114.0" y="556" font-family="WenQuanYi Zen Hei" font-size="20" font-weight="700" fill="#C2410C" text-anchor="start">C 级　机制描述</text>
+  <text x="114.0" y="584" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">单次或不同 seed 的有界测量，用于解释机制与量级，不提供重复运行推断</text>
+  <text x="1104" y="548" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="start">本报告对应内容</text>
+  <text x="1104" y="574" font-family="WenQuanYi Zen Hei" font-size="14.5" font-weight="700" fill="#C2410C" text-anchor="start">LAVA 求解消融（§4.4）· 漏斗 / 策略占比</text>
+  <text x="1104" y="596" font-family="WenQuanYi Zen Hei" font-size="14.5" font-weight="700" fill="#C2410C" text-anchor="start">求解开关 / 种子长度 / 持久模式 / 扩展性</text>
+  <rect x="30.0" y="640" width="1040" height="100" rx="10" fill="#F1F5F9" stroke="#94A3B8" stroke-width="2"/>
+  <text x="54.0" y="678" font-family="WenQuanYi Zen Hei" font-size="20" font-weight="700" fill="#94A3B8" text-anchor="start">D 级　历史阶段数据</text>
+  <text x="54.0" y="706" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">旧工作树单轮结果，只能追溯量级</text>
+  <text x="1104" y="670" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="start">本报告对应内容</text>
+  <text x="1104" y="696" font-family="WenQuanYi Zen Hei" font-size="14.5" font-weight="700" fill="#94A3B8" text-anchor="start">300 s 历史三组数据</text>
+  <rect x="40" y="770" width="1520" height="84" rx="10" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.5"/>
+  <text x="64" y="800" font-family="WenQuanYi Zen Hei" font-size="17" font-weight="700" fill="#6D28D9" text-anchor="start">这套分级本身是成果的一部分。</text>
+  <text x="64" y="826" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">项目要求每个新功能在合入前必须登记方案、代码、测试证据、结果等级和已知局限；等级不足的数字不允许写成结论。</text>
+  <text x="64" y="848" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#64748B" text-anchor="start">本报告全部数据按上表标注来源，C 级以下不参与「有效 / 更优」这类判断。</text>
+</svg>

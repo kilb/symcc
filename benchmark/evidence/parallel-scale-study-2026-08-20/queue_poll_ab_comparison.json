@@ -1,0 +1,68 @@
+{
+  "edges_found": {
+    "baseline": 5533.666666666667,
+    "optimized": 5553.333333333333,
+    "delta": 19.66666666666606,
+    "relative_pct": 0.3554002770917305
+  },
+  "coverage_auc": {
+    "baseline": 5089.499031,
+    "optimized": 5093.019495666666,
+    "delta": 3.5204646666661574,
+    "relative_pct": 0.06917114327408459
+  },
+  "afl_execs_per_sec": {
+    "baseline": 295091.0633333333,
+    "optimized": 284399.6966666667,
+    "delta": -10691.366666666581,
+    "relative_pct": -3.623073686440199
+  },
+  "master_scan_s": {
+    "baseline": 30.186666666666667,
+    "optimized": 19.473333333333333,
+    "delta": -10.713333333333335,
+    "relative_pct": -35.49028268551237
+  },
+  "master_dispatch_s": {
+    "baseline": 2.566666666666667,
+    "optimized": 1.03,
+    "delta": -1.5366666666666668,
+    "relative_pct": -59.87012987012987
+  },
+  "master_recv_s": {
+    "baseline": 0.15,
+    "optimized": 0.09999999999999999,
+    "delta": -0.05,
+    "relative_pct": -33.333333333333336
+  },
+  "master_triage_s": {
+    "baseline": 8.003333333333332,
+    "optimized": 3.3699999999999997,
+    "delta": -4.633333333333333,
+    "relative_pct": -57.892544773011245
+  },
+  "worker_busy_pct": {
+    "baseline": 85.85597032561782,
+    "optimized": 87.54176658642415,
+    "delta": 1.6857962608063275,
+    "relative_pct": 1.963516636539972
+  },
+  "accepted_pct": {
+    "baseline": 6.60826093290853,
+    "optimized": 5.845642425299304,
+    "delta": -0.7626185076092256,
+    "relative_pct": -11.540381279611037
+  },
+  "worker_internal_redundancy_pct": {
+    "baseline": 87.37890705736133,
+    "optimized": 85.98654593318736,
+    "delta": -1.3923611241739735,
+    "relative_pct": -1.5934750972107432
+  },
+  "cross_worker_redundancy_pct": {
+    "baseline": 6.012832009730142,
+    "optimized": 8.167811641513328,
+    "delta": 2.1549796317831857,
+    "relative_pct": 35.839678013553915
+  }
+}

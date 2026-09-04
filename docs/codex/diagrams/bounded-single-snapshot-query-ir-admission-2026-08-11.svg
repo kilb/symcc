@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080">
+  <defs>
+    <style>
+      .title{font:700 43px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#16384b}
+      .subtitle{font:400 22px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#557082}
+      .section{font:700 25px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#16384b}
+      .head{font:700 21px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#fff}
+      .body{font:400 17px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#385a6d}
+      .strong{font:700 19px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#16384b}
+      .mono{font:600 16px 'DejaVu Sans Mono',monospace;fill:#173b4f}
+      .small{font:400 15px 'WenQuanYi Zen Hei','Noto Sans CJK SC',sans-serif;fill:#587486}
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#2c8192"/>
+    </marker>
+    <marker id="reject" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#c85c46"/>
+    </marker>
+  </defs>
+  <rect width="1600" height="1080" fill="#f5f8fa"/>
+  <rect width="1600" height="14" fill="#2b8091"/>
+
+  <text x="80" y="76" class="title">F363 · Bounded Single-Snapshot Query IR Admission</text>
+  <text x="82" y="116" class="subtitle">让异步求解输入在进入 prefix trie 与 SQLite 之前只有一个有界、无歧义的解释</text>
+
+  <text x="80" y="166" class="section">旧边界：证明与消费不是同一对象</text>
+  <g transform="translate(80 190)">
+    <rect width="690" height="178" rx="7" fill="#fff1ed" stroke="#d56d51" stroke-width="2"/>
+    <rect width="690" height="45" rx="7" fill="#b9573f"/>
+    <rect y="38" width="690" height="7" fill="#b9573f"/>
+    <text x="24" y="30" class="head">路径观测分裂</text>
+    <text x="25" y="82" class="mono">stat(path) → size(A) ≤ 256 MiB</text>
+    <text x="25" y="117" class="mono">open(path) → json.load(bytes(B))</text>
+    <text x="25" y="151" class="body">A 与 B 可不同；第二次读取不再受第一次大小证明约束</text>
+  </g>
+  <g transform="translate(830 190)">
+    <rect width="690" height="178" rx="7" fill="#fff8e8" stroke="#cf922f" stroke-width="2"/>
+    <rect width="690" height="45" rx="7" fill="#ad7424"/>
+    <rect y="38" width="690" height="7" fill="#ad7424"/>
+    <text x="24" y="30" class="head">宽松 JSON 解释</text>
+    <text x="25" y="82" class="mono">"schema": v1, "schema": v2  → last wins</text>
+    <text x="25" y="117" class="mono">"priority": NaN                 → accepted</text>
+    <text x="25" y="151" class="body">同一文本可产生解释歧义，也偏离严格 JSON 互操作语义</text>
+  </g>
+
+  <text x="80" y="422" class="section">F363 生产准入流水线</text>
+  <g transform="translate(80 446)">
+    <rect width="1440" height="300" rx="7" fill="#173b4f"/>
+    <text x="28" y="43" class="head">spool/incoming/*.json → QueryStore → solver queue</text>
+    <line x1="28" y1="62" x2="1412" y2="62" stroke="#7fa4b6" stroke-width="1.5"/>
+
+    <g transform="translate(28 88)">
+      <rect width="224" height="166" rx="6" fill="#f8fbfc"/>
+      <rect width="224" height="43" rx="6" fill="#2e7e91"/>
+      <rect y="37" width="224" height="6" fill="#2e7e91"/>
+      <text x="17" y="29" class="head">1 · Open once</text>
+      <text x="17" y="79" class="mono">open(path, "rb")</text>
+      <text x="17" y="115" class="body">一个描述符</text>
+      <text x="17" y="143" class="body">不做预读 path stat</text>
+    </g>
+    <path d="M260 171 H300" stroke="#70bdc8" stroke-width="5" marker-end="url(#arrow)"/>
+    <g transform="translate(310 88)">
+      <rect width="224" height="166" rx="6" fill="#f8fbfc"/>
+      <rect width="224" height="43" rx="6" fill="#b87a28"/>
+      <rect y="37" width="224" height="6" fill="#b87a28"/>
+      <text x="17" y="29" class="head">2 · Bound bytes</text>
+      <text x="17" y="79" class="mono">read(MAX + 1)</text>
+      <text x="17" y="115" class="body">MAX 默认 256 MiB</text>
+      <text x="17" y="143" class="body">超限时解析前失败</text>
+    </g>
+    <path d="M542 171 H582" stroke="#70bdc8" stroke-width="5" marker-end="url(#arrow)"/>
+    <g transform="translate(592 88)">
+      <rect width="244" height="166" rx="6" fill="#f8fbfc"/>
+      <rect width="244" height="43" rx="6" fill="#705896"/>
+      <rect y="37" width="244" height="6" fill="#705896"/>
+      <text x="17" y="29" class="head">3 · Strict JSON</text>
+      <text x="17" y="79" class="mono">UTF-8 → pairs hook</text>
+      <text x="17" y="115" class="body">重复 member 拒绝</text>
+      <text x="17" y="143" class="body">NaN / ±Infinity 拒绝</text>
+    </g>
+    <path d="M844 171 H884" stroke="#70bdc8" stroke-width="5" marker-end="url(#arrow)"/>
+    <g transform="translate(894 88)">
+      <rect width="244" height="166" rx="6" fill="#f8fbfc"/>
+      <rect width="244" height="43" rx="6" fill="#347d68"/>
+      <rect y="37" width="244" height="6" fill="#347d68"/>
+      <text x="17" y="29" class="head">4 · Validate IR</text>
+      <text x="17" y="79" class="body">schema · DAG · bit width</text>
+      <text x="17" y="111" class="body">SMT-LIB · witness</text>
+      <text x="17" y="143" class="body">timeout · metadata</text>
+    </g>
+    <path d="M1146 171 H1186" stroke="#70bdc8" stroke-width="5" marker-end="url(#arrow)"/>
+    <g transform="translate(1196 88)">
+      <rect width="216" height="166" rx="6" fill="#e8f5f1"/>
+      <rect width="216" height="43" rx="6" fill="#28725f"/>
+      <rect y="37" width="216" height="6" fill="#28725f"/>
+      <text x="17" y="29" class="head">5 · Commit</text>
+      <text x="17" y="79" class="body">content-addressed objects</text>
+      <text x="17" y="111" class="body">prefix trie · SQLite</text>
+      <text x="17" y="143" class="body">独立 solver workers</text>
+    </g>
+  </g>
+
+  <path d="M790 746 V790" stroke="#c85c46" stroke-width="4" marker-end="url(#reject)"/>
+  <rect x="610" y="798" width="360" height="54" rx="6" fill="#fff0ec" stroke="#d1644c" stroke-width="2"/>
+  <text x="638" y="832" class="strong">任何准入错误 → rejected + .error</text>
+
+  <text x="80" y="902" class="section">可执行证据</text>
+  <g transform="translate(80 925)">
+    <rect width="440" height="105" rx="7" fill="#edf7f5" stroke="#3f9a84" stroke-width="2"/>
+    <text x="22" y="33" class="strong">精确字节边界</text>
+    <text x="22" y="65" class="body">845 / 845 B：接受 · query id = 64 hex</text>
+    <text x="22" y="91" class="body">845 / 64 B：0 stat calls · 拒绝</text>
+  </g>
+  <g transform="translate(580 925)">
+    <rect width="440" height="105" rx="7" fill="#fff4ec" stroke="#cf7b43" stroke-width="2"/>
+    <text x="22" y="33" class="strong">严格 spool 隔离</text>
+    <text x="22" y="65" class="body">good / duplicate / NaN → imported 1 / failed 2</text>
+    <text x="22" y="91" class="body">SQLite queries = 1 · witnesses = 1</text>
+  </g>
+  <g transform="translate(1080 925)">
+    <rect width="440" height="105" rx="7" fill="#eef4fa" stroke="#5284a6" stroke-width="2"/>
+    <text x="22" y="33" class="strong">完整回归闭环</text>
+    <text x="22" y="65" class="body">20 directed · 124 affected · 16 capabilities</text>
+    <text x="22" y="91" class="body">787 tests + 125 subtests · zero drift</text>
+  </g>
+
+  <text x="82" y="1062" class="small">边界：约束原始字节而非完整 RSS；尚未提供 no-follow、原地写事务隔离、多消费者 spool claim 或性能提升证据。</text>
+</svg>

@@ -1,0 +1,77 @@
+{
+  "contexts": [
+    "24f41b4c173183ded0d6d9905a274fcbabb9cbbb3656c88876b5a79f773b9cf5"
+  ],
+  "input_records": 1,
+  "limited_domain_count": 1,
+  "max_distinct_values": 2,
+  "min_observations": 1,
+  "policy": "empirical-sat-accept-unsat-full-formula-fallback-v1",
+  "profile_count": 2,
+  "profile_sha256": "68086af2d107ba4aa2dccad2076e28dce620696b4144e0170f39a28f96757117",
+  "profiles": [
+    {
+      "bits": 32,
+      "context_sha256": "24f41b4c173183ded0d6d9905a274fcbabb9cbbb3656c88876b5a79f773b9cf5",
+      "distinct_values": 8,
+      "entropy_bits": null,
+      "limited_domain": false,
+      "observations": 9,
+      "runs": 1,
+      "saturated": true,
+      "site": 984935023607356203,
+      "values": [
+        {
+          "count": 1,
+          "value": 1
+        },
+        {
+          "count": 1,
+          "value": 2
+        },
+        {
+          "count": 1,
+          "value": 3
+        },
+        {
+          "count": 1,
+          "value": 4
+        },
+        {
+          "count": 1,
+          "value": 5
+        },
+        {
+          "count": 1,
+          "value": 6
+        },
+        {
+          "count": 1,
+          "value": 7
+        },
+        {
+          "count": 1,
+          "value": 8
+        }
+      ]
+    },
+    {
+      "bits": 32,
+      "context_sha256": "24f41b4c173183ded0d6d9905a274fcbabb9cbbb3656c88876b5a79f773b9cf5",
+      "distinct_values": 1,
+      "entropy_bits": 0.0,
+      "limited_domain": true,
+      "observations": 8,
+      "runs": 1,
+      "saturated": false,
+      "site": 2961891267538854883,
+      "values": [
+        {
+          "count": 8,
+          "value": 1
+        }
+      ]
+    }
+  ],
+  "schema": "symcc-empirical-value-profile-v1"
+}

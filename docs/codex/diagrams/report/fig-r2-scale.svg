@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="700"
+     viewBox="0 0 1600 700" role="img" aria-labelledby="title desc">
+  <title id="title">图 R-2　工程规模速览</title>
+  <desc id="desc">统计口径写在图内；因工作树仍在变动，这些数字以重新渲染时为准</desc>
+  <rect width="1600" height="700" fill="white"/>
+  <text x="48" y="54" font-family="WenQuanYi Zen Hei" font-size="28" font-weight="700" fill="#17212B" text-anchor="start">图 R-2　工程规模速览</text>
+  <text x="48" y="86" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="400" fill="#64748B" text-anchor="start">统计口径写在图内；因工作树仍在变动，这些数字以重新渲染时为准</text>
+  <rect x="48" y="140" width="356" height="226" rx="14" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.8"/>
+  <text x="76" y="232" font-family="WenQuanYi Zen Hei" font-size="58" font-weight="700" fill="#2563EB" text-anchor="start">578</text>
+  <text x="76" y="272" font-family="WenQuanYi Zen Hei" font-size="19" font-weight="700" fill="#17212B" text-anchor="start">git 提交</text>
+  <text x="76" y="306" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">自 fork 上游 SymCC 起</text>
+  <rect x="428" y="140" width="356" height="226" rx="14" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.8"/>
+  <text x="456" y="232" font-family="WenQuanYi Zen Hei" font-size="58" font-weight="700" fill="#6D28D9" text-anchor="start">297</text>
+  <text x="456" y="272" font-family="WenQuanYi Zen Hei" font-size="19" font-weight="700" fill="#17212B" text-anchor="start">功能条目 F00–F296</text>
+  <text x="456" y="306" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">每条含方案 / 代码 / 测试</text>
+  <text x="456" y="330" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">证据等级 / 已知局限</text>
+  <rect x="808" y="140" width="356" height="226" rx="14" fill="#DCFCE7" stroke="#15803D" stroke-width="1.8"/>
+  <text x="836" y="232" font-family="WenQuanYi Zen Hei" font-size="58" font-weight="700" fill="#15803D" text-anchor="start">231</text>
+  <text x="836" y="272" font-family="WenQuanYi Zen Hei" font-size="19" font-weight="700" fill="#17212B" text-anchor="start">test/ 一级目录文件</text>
+  <text x="836" y="306" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">102 .ll + 54 .c</text>
+  <text x="836" y="330" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">52 .py + 17 .test32 等</text>
+  <rect x="1188" y="140" width="356" height="226" rx="14" fill="#FFEDD5" stroke="#C2410C" stroke-width="1.8"/>
+  <text x="1216" y="232" font-family="WenQuanYi Zen Hei" font-size="58" font-weight="700" fill="#C2410C" text-anchor="start">375</text>
+  <text x="1216" y="272" font-family="WenQuanYi Zen Hei" font-size="19" font-weight="700" fill="#17212B" text-anchor="start">已登记 SYMCC_* 名称</text>
+  <text x="1216" y="306" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">取自 docs/Configuration.txt</text>
+  <text x="1216" y="330" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">去重计数</text>
+  <rect x="48" y="390" width="356" height="226" rx="14" fill="#CCFBF1" stroke="#0F766E" stroke-width="1.8"/>
+  <text x="76" y="482" font-family="WenQuanYi Zen Hei" font-size="58" font-weight="700" fill="#0F766E" text-anchor="start">36.6k</text>
+  <text x="76" y="522" font-family="WenQuanYi Zen Hei" font-size="19" font-weight="700" fill="#17212B" text-anchor="start">行 C++（compiler/）</text>
+  <text x="76" y="556" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">25 个源文件</text>
+  <text x="76" y="580" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">含 8 个新增 LLVM pass</text>
+  <rect x="428" y="390" width="356" height="226" rx="14" fill="#FEE2E2" stroke="#B91C1C" stroke-width="1.8"/>
+  <text x="456" y="482" font-family="WenQuanYi Zen Hei" font-size="58" font-weight="700" fill="#B91C1C" text-anchor="start">95.1k</text>
+  <text x="456" y="522" font-family="WenQuanYi Zen Hei" font-size="19" font-weight="700" fill="#17212B" text-anchor="start">行 Python（util/）</text>
+  <text x="456" y="556" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">64 个模块</text>
+  <text x="456" y="580" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">runtime/src 另有 5.7k 行 C++</text>
+  <rect x="808" y="390" width="356" height="226" rx="14" fill="#F8FAFC" stroke="#17212B" stroke-width="1.8"/>
+  <text x="836" y="482" font-family="WenQuanYi Zen Hei" font-size="58" font-weight="700" fill="#17212B" text-anchor="start">43.8k</text>
+  <text x="836" y="522" font-family="WenQuanYi Zen Hei" font-size="19" font-weight="700" fill="#17212B" text-anchor="start">行文档（docs/ 顶层）</text>
+  <text x="836" y="556" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">含权威档案、SOTA 审计</text>
+  <text x="836" y="580" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">与逐项证据清单</text>
+  <rect x="1188" y="390" width="356" height="226" rx="14" fill="#F1F5F9" stroke="#64748B" stroke-width="1.8"/>
+  <text x="1216" y="482" font-family="WenQuanYi Zen Hei" font-size="58" font-weight="700" fill="#64748B" text-anchor="start">21</text>
+  <text x="1216" y="522" font-family="WenQuanYi Zen Hei" font-size="19" font-weight="700" fill="#17212B" text-anchor="start">张本报告配图</text>
+  <text x="1216" y="556" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">全部由 render_project_report.py</text>
+  <text x="1216" y="580" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">一条命令重出</text>
+  <text x="48" y="668" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">以上数字在渲染时当场统计，不写死：git rev-list --count HEAD；New_Implementation_Archive.md 中去重的 F 编号；test/ 一级目录普通文件；Configuration.txt 中去重的 SYMCC_* 名称；各目录源文件行数。</text>
+</svg>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="800"
+     viewBox="0 0 1600 800" role="img" aria-labelledby="title desc">
+  <title id="title">图 R-13　四个补充技术族的原理速览</title>
+  <desc id="desc">它们共同的定位：都是候选来源，正确性一律由独立验证与真实重放守住（见图 R-7）</desc>
+  <rect width="1600" height="800" fill="white"/>
+  <text x="48" y="54" font-family="WenQuanYi Zen Hei" font-size="28" font-weight="700" fill="#17212B" text-anchor="start">图 R-13　四个补充技术族的原理速览</text>
+  <text x="48" y="86" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="400" fill="#64748B" text-anchor="start">它们共同的定位：都是候选来源，正确性一律由独立验证与真实重放守住（见图 R-7）</text>
+  <rect x="48" y="128" width="740" height="304" rx="12" fill="#FFFFFF" stroke="#6D28D9" stroke-width="2"/>
+  <rect x="48" y="128" width="740" height="52" rx="12" fill="#EDE9FE" stroke="#6D28D9" stroke-width="2"/>
+  <text x="72" y="161" font-family="WenQuanYi Zen Hei" font-size="18" font-weight="700" fill="#6D28D9" text-anchor="start">结构化输入：在线语法与解析森林</text>
+  <text x="764" y="161" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="end">F36 · F187 · F190–F235</text>
+  <text x="72" y="212" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">卡住探索的往往不是分支，而是「输入不合法、解析器早早退出」。</text>
+  <text x="72" y="242" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">① 从已接纳语料在线学 token grammar，把「某处该是什么」表达成 grammar hole；</text>
+  <text x="72" y="272" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">② 用 SPPF 保存全部可能解析，PCFG 后验给候选排序；</text>
+  <text x="72" y="302" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">③ 同时跑 Tree-sitter / Earley / GLR 多个解析器互为 oracle，分歧本身是证据。</text>
+  <rect x="68" y="328" width="700" height="84" rx="8" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.2"/>
+  <text x="84" y="354" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="700" fill="#6D28D9" text-anchor="start">边界</text>
+  <text x="84" y="378" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#17212B" text-anchor="start">grammar hole 的补全必须经 Query IR 验证——语法只提结构上</text>
+  <text x="84" y="400" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#17212B" text-anchor="start">合理的候选，无权断言它满足路径约束。</text>
+  <rect x="812" y="128" width="740" height="304" rx="12" fill="#FFFFFF" stroke="#0F766E" stroke-width="2"/>
+  <rect x="812" y="128" width="740" height="52" rx="12" fill="#CCFBF1" stroke="#0F766E" stroke-width="2"/>
+  <text x="836" y="161" font-family="WenQuanYi Zen Hei" font-size="18" font-weight="700" fill="#0F766E" text-anchor="start">并发状态空间：输入 × 调度联合探索</text>
+  <text x="1528" y="161" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="end">F13 · F39–F65 · F221</text>
+  <text x="836" y="212" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">同一份输入配不同线程交错会走不同路径，于是把 schedule 提升为并列维度。</text>
+  <text x="836" y="242" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">① 运行时记录内存读写与线程事件，构造 happens-before 与 lockset；</text>
+  <text x="836" y="272" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">② bounded Source-DPOR / Optimal-DPOR 只枚举本质不同的交错；</text>
+  <text x="836" y="302" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">③ schedule 导出为 artifact，可与 Query IR 联合重放校验。</text>
+  <rect x="832" y="328" width="700" height="84" rx="8" fill="#CCFBF1" stroke="#0F766E" stroke-width="1.2"/>
+  <text x="848" y="354" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="700" fill="#0F766E" text-anchor="start">边界</text>
+  <text x="848" y="378" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#17212B" text-anchor="start">这是 bounded exploration，不声称完备性证明——ConDPOR</text>
+  <text x="848" y="400" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#17212B" text-anchor="start">原论文的完备性结论不能直接套用。</text>
+  <rect x="48" y="460" width="740" height="304" rx="12" fill="#FFFFFF" stroke="#C2410C" stroke-width="2"/>
+  <rect x="48" y="460" width="740" height="52" rx="12" fill="#FFEDD5" stroke="#C2410C" stroke-width="2"/>
+  <text x="72" y="493" font-family="WenQuanYi Zen Hei" font-size="18" font-weight="700" fill="#C2410C" text-anchor="start">Under-Constrained 执行：函数级 harness</text>
+  <text x="764" y="493" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="end">F11 · compiler/UCSan.*</text>
+  <text x="72" y="544" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">深层缺陷可能需要几十层前置条件才能从 main 走到。</text>
+  <text x="72" y="574" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">① 直接从目标函数开始执行；</text>
+  <text x="72" y="604" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">② 把参数与可达对象图当作符号的、未约束的输入；</text>
+  <text x="72" y="634" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">③ 编译期自动构造 harness 与 shadow pointer。</text>
+  <rect x="68" y="660" width="700" height="84" rx="8" fill="#FFEDD5" stroke="#C2410C" stroke-width="1.2"/>
+  <text x="84" y="686" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="700" fill="#C2410C" text-anchor="start">边界</text>
+  <text x="84" y="710" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#17212B" text-anchor="start">代价是会产生真实调用环境下不可能出现的输入。</text>
+  <text x="84" y="732" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#17212B" text-anchor="start">定位为候选来源，结果仍需真实调用环境验证。</text>
+  <rect x="812" y="460" width="740" height="304" rx="12" fill="#FFFFFF" stroke="#15803D" stroke-width="2"/>
+  <rect x="812" y="460" width="740" height="52" rx="12" fill="#DCFCE7" stroke="#15803D" stroke-width="2"/>
+  <text x="836" y="493" font-family="WenQuanYi Zen Hei" font-size="18" font-weight="700" fill="#15803D" text-anchor="start">字符串与位向量双表示</text>
+  <text x="1528" y="493" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="end">F30 · F33 · F193–F200</text>
+  <text x="836" y="544" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">strlen / strcmp / atoi 在纯位向量视角下会展开成极长的约束链。</text>
+  <text x="836" y="574" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">① 同一个值维护 BV 与 String 两套表示；</text>
+  <text x="836" y="604" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">② 运行时包装 libc 字符串操作，产出可归档 artifact；</text>
+  <text x="836" y="634" font-family="WenQuanYi Zen Hei" font-size="13.5" font-weight="400" fill="#17212B" text-anchor="start">③ atoi / strtol / strtoul 做溢出证明的宽度界定。</text>
+  <rect x="832" y="660" width="700" height="84" rx="8" fill="#DCFCE7" stroke="#15803D" stroke-width="1.2"/>
+  <text x="848" y="686" font-family="WenQuanYi Zen Hei" font-size="12.5" font-weight="700" fill="#15803D" text-anchor="start">边界</text>
+  <text x="848" y="710" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#17212B" text-anchor="start">Z3 与 cvc5 之间做 String 一致性对拍；</text>
+  <text x="848" y="732" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#17212B" text-anchor="start">并行 portfolio 的结果必须先验证再采纳。</text>
+</svg>

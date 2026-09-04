@@ -1,0 +1,8 @@
+-- Testing: 1 of 271 tests, 1 workers --
+PASS: compiler :: live_symbolic_length_byte_lane_cover.ll (1 of 1)
+
+Testing Time: 52.29s
+
+Total Discovered Tests: 271
+  Excluded: 270 (99.63%)
+  Passed  :   1 (0.37%)

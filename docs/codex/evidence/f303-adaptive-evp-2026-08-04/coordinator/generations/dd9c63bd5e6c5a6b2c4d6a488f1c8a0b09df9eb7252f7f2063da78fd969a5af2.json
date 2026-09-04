@@ -1,0 +1,64 @@
+{
+  "contexts": [
+    "9da36117c2b0bafbc55836a484e34d8d609e7dc7fa1ea1363b4de4eb5d3b1a03"
+  ],
+  "input_records": 2,
+  "limited_domain_count": 2,
+  "max_distinct_values": 2,
+  "min_observations": 2,
+  "online_admission": {
+    "min_solver_queries": 2,
+    "min_validated_ratio_ppm": 125000,
+    "schema": "symcc-empirical-domain-admission-v1",
+    "suppressed": []
+  },
+  "policy": "empirical-sat-accept-unsat-full-formula-fallback-v1",
+  "profile_count": 2,
+  "profile_sha256": "dd9c63bd5e6c5a6b2c4d6a488f1c8a0b09df9eb7252f7f2063da78fd969a5af2",
+  "profiles": [
+    {
+      "bits": 32,
+      "context_sha256": "9da36117c2b0bafbc55836a484e34d8d609e7dc7fa1ea1363b4de4eb5d3b1a03",
+      "distinct_values": 2,
+      "entropy_bits": 1.0,
+      "limited_domain": true,
+      "observations": 2,
+      "runs": 2,
+      "saturated": false,
+      "site": 3562788607769723438,
+      "values": [
+        {
+          "count": 1,
+          "value": 1
+        },
+        {
+          "count": 1,
+          "value": 2
+        }
+      ]
+    },
+    {
+      "bits": 32,
+      "context_sha256": "9da36117c2b0bafbc55836a484e34d8d609e7dc7fa1ea1363b4de4eb5d3b1a03",
+      "distinct_values": 2,
+      "entropy_bits": 1.0,
+      "limited_domain": true,
+      "observations": 2,
+      "runs": 2,
+      "saturated": false,
+      "site": 14781603083283379018,
+      "values": [
+        {
+          "count": 1,
+          "value": 0
+        },
+        {
+          "count": 1,
+          "value": 1
+        }
+      ]
+    }
+  ],
+  "runtime_domain_count": 2,
+  "schema": "symcc-empirical-value-profile-v2"
+}

@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">F403 Concrete Constraint Guided Scheduling</title>
+  <desc id="desc">A four-stage schematic showing conservative dependency admission, concrete runtime observations, durable target state, and two-level FIFO scheduling.</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#10232a" flood-opacity="0.13"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#52666d"/>
+    </marker>
+    <style>
+      .title { font: 700 40px 'DejaVu Sans', sans-serif; fill: #fff; }
+      .subtitle { font: 400 19px 'DejaVu Sans', sans-serif; fill: #d8e5e8; }
+      .step { font: 700 20px 'DejaVu Sans', sans-serif; fill: #fff; }
+      .head { font: 700 25px 'DejaVu Sans', sans-serif; fill: #18343c; }
+      .body { font: 400 18px 'DejaVu Sans', sans-serif; fill: #385159; }
+      .small { font: 400 15px 'DejaVu Sans Mono', monospace; fill: #385159; }
+      .mono { font: 600 16px 'DejaVu Sans Mono', monospace; fill: #203c43; }
+      .metric { font: 700 27px 'DejaVu Sans', sans-serif; fill: #fff; }
+      .metriclabel { font: 400 15px 'DejaVu Sans', sans-serif; fill: #c9d9dc; }
+      .tag { font: 700 14px 'DejaVu Sans', sans-serif; letter-spacing: 0; }
+    </style>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#f4f7f6"/>
+  <rect width="1920" height="128" fill="#173a43"/>
+  <rect x="80" y="31" width="58" height="58" rx="6" fill="#f2a65a"/>
+  <text x="109" y="69" text-anchor="middle" class="step">403</text>
+  <text x="164" y="62" class="title">Concrete Constraint Guided Scheduling</text>
+  <text x="164" y="94" class="subtitle">ICSE 2024 mechanism adapted to content-addressed continuations and a lease-fenced persistent frontier</text>
+
+  <path d="M 450 404 L 500 404" stroke="#52666d" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M 920 404 L 970 404" stroke="#52666d" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M 1390 404 L 1440 404" stroke="#52666d" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="70" y="178" width="380" height="500" rx="8" fill="#fff" stroke="#d7e1df" stroke-width="2"/>
+    <rect x="70" y="178" width="380" height="66" rx="8" fill="#237985"/>
+    <rect x="70" y="232" width="380" height="12" fill="#237985"/>
+  </g>
+  <circle cx="110" cy="211" r="19" fill="#fff" opacity="0.22"/>
+  <text x="110" y="218" text-anchor="middle" class="step">1</text>
+  <text x="142" y="219" class="step">Conservative admission</text>
+  <text x="99" y="282" class="head">Exact local dependency</text>
+  <rect x="100" y="311" width="320" height="52" rx="5" fill="#e8f4f3" stroke="#6aa9aa"/>
+  <text x="117" y="343" class="mono">store v  -&gt;  [0x40]</text>
+  <path d="M 260 363 L 260 387" stroke="#6a7f85" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="100" y="394" width="320" height="52" rx="5" fill="#eef1f6" stroke="#8597b1"/>
+  <text x="117" y="426" class="mono">x = load [0x40]</text>
+  <path d="M 260 446 L 260 470" stroke="#6a7f85" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="100" y="477" width="320" height="52" rx="5" fill="#fff1e3" stroke="#d68a45"/>
+  <text x="117" y="509" class="mono">branch (x &gt;u 2)</text>
+  <text x="99" y="570" class="body">Identity chain + one AND/OR mask</text>
+  <text x="99" y="600" class="body">Width matched; stable 64-bit store token</text>
+  <rect x="100" y="625" width="150" height="28" rx="4" fill="#dff1e7"/>
+  <text x="175" y="645" text-anchor="middle" class="tag" fill="#256348">NO PATH PRUNING</text>
+
+  <g filter="url(#shadow)">
+    <rect x="500" y="178" width="420" height="500" rx="8" fill="#fff" stroke="#d7e1df" stroke-width="2"/>
+    <rect x="500" y="178" width="420" height="66" rx="8" fill="#d87938"/>
+    <rect x="500" y="232" width="420" height="12" fill="#d87938"/>
+  </g>
+  <circle cx="540" cy="211" r="19" fill="#fff" opacity="0.22"/>
+  <text x="540" y="218" text-anchor="middle" class="step">2</text>
+  <text x="572" y="219" class="step">Concrete observations</text>
+  <text x="530" y="282" class="head">Interpreter event stream</text>
+  <rect x="530" y="313" width="360" height="72" rx="6" fill="#fff6ed" stroke="#e5b07c"/>
+  <text x="552" y="343" class="mono">branch #300 : FALSE</text>
+  <text x="552" y="369" class="small">uncovered outcome = TRUE</text>
+  <rect x="530" y="405" width="360" height="72" rx="6" fill="#edf6f5" stroke="#81b8b7"/>
+  <text x="552" y="435" class="mono">store #9ab1 : value 4</text>
+  <text x="552" y="461" class="small">evaluate (4 &gt;u 2) = TRUE</text>
+  <rect x="530" y="497" width="360" height="72" rx="6" fill="#eef1f6" stroke="#9ba9bd"/>
+  <text x="552" y="527" class="mono">instructions : +N</text>
+  <text x="552" y="553" class="small">deterministic target rotation clock</text>
+  <text x="530" y="610" class="body">Symbolic value invalidates latest marker</text>
+  <text x="530" y="640" class="body">Events are replayed only after lease admission</text>
+
+  <g filter="url(#shadow)">
+    <rect x="970" y="178" width="420" height="500" rx="8" fill="#fff" stroke="#d7e1df" stroke-width="2"/>
+    <rect x="970" y="178" width="420" height="66" rx="8" fill="#526c96"/>
+    <rect x="970" y="232" width="420" height="12" fill="#526c96"/>
+  </g>
+  <circle cx="1010" cy="211" r="19" fill="#fff" opacity="0.22"/>
+  <text x="1010" y="218" text-anchor="middle" class="step">3</text>
+  <text x="1042" y="219" class="step">Durable target ledger</text>
+  <text x="1000" y="282" class="head">Search snapshot v5</text>
+  <rect x="1000" y="311" width="360" height="178" rx="6" fill="#f1f3f8" stroke="#a6b0c2"/>
+  <text x="1022" y="343" class="mono">outcomes[300] = 01b</text>
+  <text x="1022" y="374" class="mono">partial_order = [300, ...]</text>
+  <text x="1022" y="405" class="mono">target_window = 10</text>
+  <text x="1022" y="436" class="mono">rotation = 1,000,000 inst</text>
+  <text x="1022" y="467" class="mono">observations / dropped</text>
+  <rect x="1000" y="514" width="360" height="64" rx="6" fill="#e5f3e9" stroke="#7bac8b"/>
+  <text x="1022" y="542" class="mono">CAS generation + lease token</text>
+  <text x="1022" y="565" class="small">conflict -&gt; rebase and exact replay</text>
+  <text x="1000" y="620" class="body">Worker environment drift cannot change</text>
+  <text x="1000" y="648" class="body">strategy, bounds, window, or event order</text>
+
+  <g filter="url(#shadow)">
+    <rect x="1440" y="178" width="410" height="500" rx="8" fill="#fff" stroke="#d7e1df" stroke-width="2"/>
+    <rect x="1440" y="178" width="410" height="66" rx="8" fill="#318064"/>
+    <rect x="1440" y="232" width="410" height="12" fill="#318064"/>
+  </g>
+  <circle cx="1480" cy="211" r="19" fill="#fff" opacity="0.22"/>
+  <text x="1480" y="218" text-anchor="middle" class="step">4</text>
+  <text x="1512" y="219" class="step">Two-level FIFO selection</text>
+  <text x="1470" y="282" class="head">Target queue first</text>
+  <rect x="1470" y="312" width="350" height="100" rx="6" fill="#e7f4ec" stroke="#62a07f" stroke-width="2"/>
+  <text x="1492" y="342" class="tag" fill="#256348">SATISFY UNCOVERED SIDE</text>
+  <rect x="1492" y="359" width="82" height="34" rx="4" fill="#318064"/>
+  <rect x="1586" y="359" width="82" height="34" rx="4" fill="#5d9b82"/>
+  <rect x="1680" y="359" width="82" height="34" rx="4" fill="#89b7a3"/>
+  <text x="1533" y="382" text-anchor="middle" class="tag" fill="#fff">STATE A</text>
+  <text x="1627" y="382" text-anchor="middle" class="tag" fill="#fff">STATE B</text>
+  <text x="1721" y="382" text-anchor="middle" class="tag" fill="#fff">STATE C</text>
+  <text x="1470" y="452" class="head">Ordinary queue</text>
+  <rect x="1470" y="481" width="350" height="100" rx="6" fill="#f3f5f5" stroke="#a9b5b7"/>
+  <text x="1492" y="511" class="tag" fill="#52666d">FAIL-OPEN / OTHER STATES</text>
+  <rect x="1492" y="528" width="82" height="34" rx="4" fill="#75878b"/>
+  <rect x="1586" y="528" width="82" height="34" rx="4" fill="#8d9b9e"/>
+  <rect x="1680" y="528" width="82" height="34" rx="4" fill="#a7b1b3"/>
+  <text x="1533" y="551" text-anchor="middle" class="tag" fill="#fff">STATE X</text>
+  <text x="1627" y="551" text-anchor="middle" class="tag" fill="#fff">STATE Y</text>
+  <text x="1721" y="551" text-anchor="middle" class="tag" fill="#fff">STATE Z</text>
+  <text x="1470" y="621" class="body">Coverage of the target side removes its tag</text>
+  <text x="1470" y="649" class="body">Terminal set remains unchanged</text>
+
+  <rect x="70" y="724" width="1780" height="130" rx="8" fill="#fff" stroke="#d5dfdd" stroke-width="2"/>
+  <rect x="70" y="724" width="16" height="130" rx="6" fill="#c85c52"/>
+  <text x="112" y="763" class="head">Conservative fail-open boundary</text>
+  <text x="112" y="797" class="body">symbolic address/value  |  guarded or overlapping store  |  memory-affecting call  |  ambiguous SSA/site/token  |  analysis budget</text>
+  <text x="112" y="829" class="body">Result: keep the state in ordinary FIFO. CGS never proves SAT/UNSAT, never deletes a checkpoint, and never changes branch coverage admission.</text>
+
+  <rect x="70" y="890" width="1780" height="130" rx="8" fill="#173a43"/>
+  <g transform="translate(108 914)">
+    <text x="0" y="27" class="metric" fill="#fff">10,200</text>
+    <text x="0" y="55" class="metriclabel" fill="#c9d9dc">independent predicate evaluations</text>
+    <text x="0" y="82" class="metriclabel" fill="#c9d9dc">1-8 bit x 10 comparisons</text>
+  </g>
+  <line x1="425" y1="914" x2="425" y2="996" stroke="#42626a" stroke-width="2"/>
+  <g transform="translate(475 914)">
+    <text x="0" y="27" class="metric" fill="#fff">519 -&gt; 18</text>
+    <text x="0" y="55" class="metriclabel" fill="#c9d9dc">minimum target instruction budget</text>
+    <text x="0" y="82" class="metriclabel" fill="#c9d9dc">96.53% synthetic latency reduction</text>
+  </g>
+  <line x1="825" y1="914" x2="825" y2="996" stroke="#42626a" stroke-width="2"/>
+  <g transform="translate(875 914)">
+    <text x="0" y="27" class="metric" fill="#fff">1,025 + 243</text>
+    <text x="0" y="55" class="metriclabel" fill="#c9d9dc">Python tests + subtests</text>
+    <text x="0" y="82" class="metriclabel" fill="#c9d9dc">zero skip / xfail / deselection</text>
+  </g>
+  <line x1="1260" y1="914" x2="1260" y2="996" stroke="#42626a" stroke-width="2"/>
+  <g transform="translate(1310 914)">
+    <text x="0" y="27" class="metric" fill="#fff">261 / 263</text>
+    <text x="0" y="55" class="metriclabel" fill="#c9d9dc">LLVM 17 lit passed / discovered</text>
+    <text x="0" y="82" class="metriclabel" fill="#c9d9dc">2 existing unsupported</text>
+  </g>
+  <text x="1815" y="1048" text-anchor="end" class="small" fill="#6f8084">Synthetic mechanism evidence only - no public-campaign or solver-speedup claim</text>
+</svg>

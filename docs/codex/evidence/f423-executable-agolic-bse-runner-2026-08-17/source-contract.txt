@@ -1,0 +1,35 @@
+F423 implementation and evidence contract
+
+Production implementation:
+- util/agolic_bse_runner.py
+- util/live_continuation.py
+- util/agolic_planning.py (existing F374 plan/controller contract)
+
+Tests and independent oracle:
+- test/test_agolic_bse_runner.py
+- benchmark/check_agolic_bse_runner_oracles.py
+- test/pytest-nodeids.json
+
+Documentation:
+- docs/Configuration.txt
+- benchmark/README.md
+- docs/codex/research-progress/Executable_Agolic_Witness_Guided_BSE_Runner_F423_2026-08-17.md
+- docs/codex/diagrams/agolic/f423_executable_bse_runner.svg
+- docs/codex/diagrams/agolic/f423_executable_bse_runner.png
+- docs/codex/New_Implementation_Archive.md
+- docs/codex/Current_Technology_Compendium.md
+- docs/codex/Development_History_Traceability.md
+- docs/codex/SOTA_Implementation_Roadmap_2026-08-14.md
+
+Required invariants:
+- plan fingerprint, plan ID, program hash, target function/op, reviewed witness,
+  release boundary, and resource profile are admitted before execution;
+- witness bytes are hash-checked again at execution time;
+- witness-guided pre-release execution has one state, zero solver queries, and
+  zero forks, while retaining route assertions and symbolic state;
+- checkpoint recovery is bound to mode and release-configuration identity;
+- an outstanding frontier always reports a bounded execution;
+- candidates bind a real terminal checkpoint and remain plan-private;
+- controller prior coverage equals concrete replay of the current corpus;
+- only concrete-only, zero-fork, zero-solver, terminal replay publishes corpus
+  bytes and cumulative branch/function coverage.

@@ -1,0 +1,65 @@
+digraph MPISequence {
+  graph [
+    rankdir=TB,
+    bgcolor="#f8fafc",
+    pad="0.35",
+    nodesep="0.34",
+    ranksep="0.42",
+    fontname="Noto Sans CJK SC",
+    label="一项并行符号执行任务的有序协议",
+    labelloc=t,
+    fontsize=22,
+    fontcolor="#172033"
+  ];
+  node [fontname="Noto Sans CJK SC", fontsize=11, fontcolor="#172033"];
+  edge [fontname="Noto Sans CJK SC", fontsize=10, color="#64748b", fontcolor="#475569", arrowsize=0.72, penwidth=1.5];
+
+  headers [shape=plain, label=<
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="10" COLOR="#94a3b8">
+      <TR>
+        <TD BGCOLOR="#dbeafe"><B>AFL / corpus</B></TD>
+        <TD BGCOLOR="#ffedd5"><B>MPI master</B></TD>
+        <TD BGCOLOR="#d1fae5"><B>Worker rank r</B></TD>
+        <TD BGCOLOR="#ede9fe"><B>Coverage / CAS</B></TD>
+      </TR>
+    </TABLE>
+  >];
+
+  s1 [shape=plain, label=<
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8" COLOR="#cbd5e1">
+      <TR><TD WIDTH="250">queue 尾部出现稳定文件</TD><TD WIDTH="250">扫描、SHA 去重、评分</TD><TD WIDTH="250">READY{generation, bitmap_version}</TD><TD WIDTH="250">当前 bitmap version v</TD></TR>
+    </TABLE>
+  >];
+  s2 [shape=plain, label=<
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8" COLOR="#cbd5e1">
+      <TR><TD WIDTH="250"> </TD><TD WIDTH="250" BGCOLOR="#fff7ed">领取 fenced lease；构造 WORK</TD><TD WIDTH="250" BGCOLOR="#ecfdf5">接收 input + policy + bitmap full/Δ</TD><TD WIDTH="250">验证 CAS descriptor / 合并 bitmap</TD></TR>
+    </TABLE>
+  >];
+  s3 [shape=plain, label=<
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8" COLOR="#cbd5e1">
+      <TR><TD WIDTH="250"> </TD><TD WIDTH="250">worker 标记为 busy</TD><TD WIDTH="250" BGCOLOR="#ecfdf5">执行目标 → 记录约束 → 求解 → 生成候选</TD><TD WIDTH="250">本地内容/coverage 去重</TD></TR>
+    </TABLE>
+  >];
+  s4 [shape=plain, label=<
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8" COLOR="#cbd5e1">
+      <TR><TD WIDTH="250"> </TD><TD WIDTH="250" BGCOLOR="#fff7ed">RESULT 与 READY 按 generation join</TD><TD WIDTH="250">RESULT{token, candidates, sparse bitmaps, metrics}</TD><TD WIDTH="250">拒绝过期 token / 超预算载荷</TD></TR>
+    </TABLE>
+  >];
+  s5 [shape=plain, label=<
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8" COLOR="#cbd5e1">
+      <TR><TD WIDTH="250">symcc01/queue 原生 peer 发布</TD><TD WIDTH="250">批量 triage；反馈入队；更新 v+1</TD><TD WIDTH="250">等待下一项 WORK</TD><TD WIDTH="250" BGCOLOR="#f5f3ff">claim coverage；原子 corpus commit</TD></TR>
+    </TABLE>
+  >];
+  s6 [shape=plain, label=<
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8" COLOR="#cbd5e1">
+      <TR><TD WIDTH="250">AFL 下轮 native sync 消费</TD><TD WIDTH="250">STOP{generation}，有界等待 ACK</TD><TD WIDTH="250">flush profile；STOP_ACK</TD><TD WIDTH="250">manifest / lease 完成边界</TD></TR>
+    </TABLE>
+  >];
+
+  headers -> s1 [style=invis];
+  s1 -> s2 [label="  TAG_WORK  ", color="#0f766e"];
+  s2 -> s3 [label="执行", color="#0f766e"];
+  s3 -> s4 [label="  TAG_RESULT + TAG_READY  ", color="#c2410c"];
+  s4 -> s5 [label="准入 / commit", color="#7c3aed"];
+  s5 -> s6 [label="campaign quiescence", color="#475569"];
+}

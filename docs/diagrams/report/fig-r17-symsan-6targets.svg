@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="866"
+     viewBox="0 0 1600 866" role="img" aria-labelledby="title desc">
+  <title id="title">图 R-17　SymSan 引擎六目标 hybrid 基准（3 轮独立 20 s 均值）</title>
+  <desc id="desc">--engine symsan，--np-list 8（3 AFL 实例 + 2 concolic worker），afl-showmap -C 测边覆盖</desc>
+  <rect width="1600" height="866" fill="white"/>
+  <text x="48" y="54" font-family="WenQuanYi Zen Hei" font-size="28" font-weight="700" fill="#17212B" text-anchor="start">图 R-17　SymSan 引擎六目标 hybrid 基准（3 轮独立 20 s 均值）</text>
+  <text x="48" y="86" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="400" fill="#64748B" text-anchor="start">--engine symsan，--np-list 8（3 AFL 实例 + 2 concolic worker），afl-showmap -C 测边覆盖</text>
+  <rect x="48" y="120" width="1504" height="620" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+  <text x="470" y="162" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="700" fill="#0F766E" text-anchor="start">concolic interesting（3 轮均值，横条为 3 轮全距）</text>
+  <text x="1200" y="162" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="700" fill="#2563EB" text-anchor="start">边覆盖</text>
+  <text x="72" y="202" font-family="WenQuanYi Zen Hei" font-size="19" font-weight="700" fill="#17212B" text-anchor="start">pcre2</text>
+  <text x="72" y="224" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">正则引擎</text>
+  <rect x="470" y="184" width="464.1333333333333" height="34" rx="6" fill="#CCFBF1" stroke="#0F766E" stroke-width="1.5"/>
+  <line x1="859.4" y1="201" x2="1036.4" y2="201" stroke="#0F766E" stroke-width="2"/>
+  <line x1="859.4" y1="193" x2="859.4" y2="209" stroke="#0F766E" stroke-width="2"/>
+  <line x1="1036.4" y1="193" x2="1036.4" y2="209" stroke="#0F766E" stroke-width="2"/>
+  <text x="1052.4" y="208" font-family="WenQuanYi Zen Hei" font-size="18" font-weight="700" fill="#0F766E" text-anchor="start">118</text>
+  <text x="1098.4" y="208" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="start">[99–144]</text>
+  <rect x="1200" y="186" width="210" height="30" rx="6" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+  <rect x="1200" y="186" width="177.54545454545453" height="30" rx="6" fill="#2563EB" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="1425" y="207" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#2563EB" text-anchor="start">46.5%</text>
+  <text x="1470" y="207" font-family="WenQuanYi Zen Hei" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">4520/9728</text>
+  <text x="72" y="294" font-family="WenQuanYi Zen Hei" font-size="19" font-weight="700" fill="#17212B" text-anchor="start">xml</text>
+  <text x="72" y="316" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">libxml2 解析器</text>
+  <rect x="470" y="276" width="350.06666666666666" height="34" rx="6" fill="#CCFBF1" stroke="#0F766E" stroke-width="1.5"/>
+  <line x1="470.0" y1="293" x2="1016.7333333333333" y2="293" stroke="#0F766E" stroke-width="2"/>
+  <line x1="470.0" y1="285" x2="470.0" y2="301" stroke="#0F766E" stroke-width="2"/>
+  <line x1="1016.7333333333333" y1="285" x2="1016.7333333333333" y2="301" stroke="#0F766E" stroke-width="2"/>
+  <text x="1032.7333333333333" y="300" font-family="WenQuanYi Zen Hei" font-size="18" font-weight="700" fill="#0F766E" text-anchor="start">89</text>
+  <text x="1078.7333333333333" y="300" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="start">[0–139]</text>
+  <rect x="1200" y="278" width="210" height="30" rx="6" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+  <rect x="1200" y="278" width="37.8" height="30" rx="6" fill="#2563EB" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="1425" y="299" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#2563EB" text-anchor="start">9.9%</text>
+  <text x="1470" y="299" font-family="WenQuanYi Zen Hei" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">5019/50880</text>
+  <text x="72" y="386" font-family="WenQuanYi Zen Hei" font-size="19" font-weight="700" fill="#17212B" text-anchor="start">sqlite</text>
+  <text x="72" y="408" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">数据库引擎</text>
+  <rect x="470" y="368" width="338.26666666666665" height="34" rx="6" fill="#CCFBF1" stroke="#0F766E" stroke-width="1.5"/>
+  <line x1="796.4666666666667" y1="385" x2="820.0666666666666" y2="385" stroke="#0F766E" stroke-width="2"/>
+  <line x1="796.4666666666667" y1="377" x2="796.4666666666667" y2="393" stroke="#0F766E" stroke-width="2"/>
+  <line x1="820.0666666666666" y1="377" x2="820.0666666666666" y2="393" stroke="#0F766E" stroke-width="2"/>
+  <text x="836.0666666666666" y="392" font-family="WenQuanYi Zen Hei" font-size="18" font-weight="700" fill="#0F766E" text-anchor="start">86</text>
+  <text x="882.0666666666666" y="392" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="start">[83–89]</text>
+  <rect x="1200" y="370" width="210" height="30" rx="6" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+  <rect x="1200" y="370" width="78.27272727272727" height="30" rx="6" fill="#2563EB" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="1425" y="391" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#2563EB" text-anchor="start">20.5%</text>
+  <text x="1470" y="391" font-family="WenQuanYi Zen Hei" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">6480/31552</text>
+  <text x="72" y="478" font-family="WenQuanYi Zen Hei" font-size="19" font-weight="700" fill="#17212B" text-anchor="start">png</text>
+  <text x="72" y="500" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">libpng 解析器</text>
+  <rect x="470" y="460" width="145.53333333333333" height="34" rx="6" fill="#CCFBF1" stroke="#0F766E" stroke-width="1.5"/>
+  <line x1="564.4" y1="477" x2="643.0666666666666" y2="477" stroke="#0F766E" stroke-width="2"/>
+  <line x1="564.4" y1="469" x2="564.4" y2="485" stroke="#0F766E" stroke-width="2"/>
+  <line x1="643.0666666666666" y1="469" x2="643.0666666666666" y2="485" stroke="#0F766E" stroke-width="2"/>
+  <text x="659.0666666666666" y="484" font-family="WenQuanYi Zen Hei" font-size="18" font-weight="700" fill="#0F766E" text-anchor="start">37</text>
+  <text x="705.0666666666666" y="484" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="start">[24–44]</text>
+  <rect x="1200" y="462" width="210" height="30" rx="6" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+  <rect x="1200" y="462" width="82.85454545454546" height="30" rx="6" fill="#2563EB" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="1425" y="483" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#2563EB" text-anchor="start">21.7%</text>
+  <text x="1470" y="483" font-family="WenQuanYi Zen Hei" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">665/3072</text>
+  <text x="72" y="570" font-family="WenQuanYi Zen Hei" font-size="19" font-weight="700" fill="#17212B" text-anchor="start">base64</text>
+  <text x="72" y="592" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">LAVA-M 编解码</text>
+  <rect x="470" y="552" width="110.13333333333334" height="34" rx="6" fill="#CCFBF1" stroke="#0F766E" stroke-width="1.5"/>
+  <line x1="560.4666666666667" y1="569" x2="599.8" y2="569" stroke="#0F766E" stroke-width="2"/>
+  <line x1="560.4666666666667" y1="561" x2="560.4666666666667" y2="577" stroke="#0F766E" stroke-width="2"/>
+  <line x1="599.8" y1="561" x2="599.8" y2="577" stroke="#0F766E" stroke-width="2"/>
+  <text x="615.8" y="576" font-family="WenQuanYi Zen Hei" font-size="18" font-weight="700" fill="#0F766E" text-anchor="start">28</text>
+  <text x="661.8" y="576" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="start">[23–33]</text>
+  <rect x="1200" y="554" width="210" height="30" rx="6" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+  <rect x="1200" y="554" width="192.8181818181818" height="30" rx="6" fill="#2563EB" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="1425" y="575" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#2563EB" text-anchor="start">50.5%</text>
+  <text x="1470" y="575" font-family="WenQuanYi Zen Hei" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">97/192</text>
+  <text x="72" y="662" font-family="WenQuanYi Zen Hei" font-size="19" font-weight="700" fill="#17212B" text-anchor="start">uniq</text>
+  <text x="72" y="684" font-family="WenQuanYi Zen Hei" font-size="13" font-weight="400" fill="#64748B" text-anchor="start">LAVA-M coreutils</text>
+  <rect x="470" y="644" width="31.466666666666665" height="34" rx="6" fill="#CCFBF1" stroke="#0F766E" stroke-width="1.5"/>
+  <line x1="501.46666666666664" y1="661" x2="501.46666666666664" y2="661" stroke="#0F766E" stroke-width="2"/>
+  <line x1="501.46666666666664" y1="653" x2="501.46666666666664" y2="669" stroke="#0F766E" stroke-width="2"/>
+  <line x1="501.46666666666664" y1="653" x2="501.46666666666664" y2="669" stroke="#0F766E" stroke-width="2"/>
+  <text x="517.4666666666667" y="668" font-family="WenQuanYi Zen Hei" font-size="18" font-weight="700" fill="#0F766E" text-anchor="start">8</text>
+  <text x="563.4666666666667" y="668" font-family="WenQuanYi Zen Hei" font-size="12" font-weight="400" fill="#64748B" text-anchor="start">[8–8]</text>
+  <rect x="1200" y="646" width="210" height="30" rx="6" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
+  <rect x="1200" y="646" width="42.0" height="30" rx="6" fill="#2563EB" stroke="#2563EB" stroke-width="1.5"/>
+  <text x="1425" y="667" font-family="WenQuanYi Zen Hei" font-size="15" font-weight="700" fill="#2563EB" text-anchor="start">11.0%</text>
+  <text x="1470" y="667" font-family="WenQuanYi Zen Hei" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">134/1216</text>
+  <rect x="48" y="756" width="1504" height="82" rx="8" fill="#FFEDD5" stroke="#C2410C" stroke-width="1.5"/>
+  <text x="72" y="782" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#17212B" text-anchor="start">该看 concolic 列而不是 edge%：hybrid 里 AFL 每轮产出上千用例、主导原始边覆盖，SymSan 的价值是解出 AFL 猜不到的魔数、校验和与结构键。</text>
+  <text x="72" y="806" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#64748B" text-anchor="start">xml 三轮为 139 / 128 / 0——有一轮 concolic worker 在 20 s 内超时未贡献。这正是必须跑多轮并给出全距的原因，单轮数字不可引用。</text>
+  <text x="72" y="828" font-family="WenQuanYi Zen Hei" font-size="14" font-weight="400" fill="#64748B" text-anchor="start">uniq 稳定为 8（三轮一致）：它需要一处真实的 SymSan runtime 修复（taint_getc 每次 getc 丢污点）加一处构建 flag 修复后才可解。</text>
+</svg>

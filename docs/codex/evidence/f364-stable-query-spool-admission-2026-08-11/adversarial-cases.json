@@ -1,0 +1,75 @@
+{
+  "crash_released_lock": {
+    "accepted_after_recovery": true,
+    "blocked_result": [
+      0,
+      0
+    ],
+    "blocked_store_calls": 0,
+    "holder_returncode": -9,
+    "input_preserved_while_locked": true,
+    "recovered_result": [
+      1,
+      0
+    ],
+    "stored_queries": 1,
+    "stored_witnesses": 1
+  },
+  "legacy_double_consumer": {
+    "accepted_files": [
+      "query.json"
+    ],
+    "ingest_calls": 2,
+    "misleading_error_files": [
+      "query.json.error"
+    ],
+    "successful_results": [
+      [
+        1,
+        0
+      ]
+    ],
+    "uncaught_errors": [
+      "FileNotFoundError"
+    ]
+  },
+  "lock_object_admission": {
+    "fifo": {
+      "external_unchanged": true,
+      "input_preserved": true,
+      "rejected": true,
+      "store_calls": 0
+    },
+    "symlink": {
+      "external_unchanged": true,
+      "input_preserved": true,
+      "rejected": true,
+      "store_calls": 0
+    }
+  },
+  "path_identity_closure": {
+    "rejected": true,
+    "stored_queries": 0
+  },
+  "schema": "symcc-f364-stable-query-spool-check-v1",
+  "stable_regular_inputs": {
+    "accepted_files": [
+      "good.json"
+    ],
+    "completed_under_one_second": true,
+    "fifo_preserved": true,
+    "fifo_rejected": true,
+    "rejected_files": [
+      "fifo.json",
+      "symlink.json"
+    ],
+    "result": [
+      1,
+      2
+    ],
+    "stored_queries": 1,
+    "stored_witnesses": 1,
+    "symlink_preserved": true,
+    "symlink_rejected": true
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "__version__": [
+    18,
+    1,
+    8
+  ],
+  "elapsed": 3.3500311374664307,
+  "tests": [
+    {
+      "code": "PASS",
+      "elapsed": 3.3424441814422607,
+      "name": "compiler :: test_qfbv_lemma_exchange.py",
+      "output": "Exit Code: 0\n\nCommand Output (stdout):\n--\n# RUN: at line 2\npython3 /home/ubuntu/code/symcc/test/test_qfbv_lemma_exchange.py\n# executed command: python3 /home/ubuntu/code/symcc/test/test_qfbv_lemma_exchange.py\n# .---command stderr------------\n# | .......\n# | ----------------------------------------------------------------------\n# | Ran 7 tests in 3.280s\n# | \n# | OK\n# `-----------------------------\n\n--\n"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+<?xl version="1.0"?>%rml version="1.0"?><!DOCTYPE note [<!ELEMENT note (to,from,bodá)><!ELEMENT to (#PCDATA)><!ELEMENT from (;PCDATAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA)><!ELEMENT body (#PCDATA)>]><note><to>A</to><from>B</from><sion="1.0" encoding="Ubody>C</body></note>

@@ -1,0 +1,59 @@
+F330 runtime lock qualification renewal checks
+Date: 2026-08-07 UTC
+Host: cuda-ke
+Kernel: Linux 7.0.0-28-generic x86_64
+Python: 3.12.3
+MPI: Open MPI 4.1.6 / mpi4py MPI 3.1
+
+Static and syntax checks
+- ruff touched production/test/evidence Python: pass
+- AST parse 5 touched Python files: pass
+- git diff --check: pass
+- evidence-directory __pycache__ residue: none
+
+Tests
+- directed protocol/fault tests: 13 passed in 1.22 s
+- related MPI/distributed/hybrid tests: 292 passed, 21 subtests in 16.34 s
+- full warnings-as-errors Python regression: 688 passed, 41 subtests in 95.24 s
+
+Real MPI transport with synthetic topology
+- MPI ranks: 7
+- standalone masters/workers: 2/5
+- processor identity source: test wrapper injection
+- actual MPI communicator and worker lifecycle: true
+- actual remote filesystem clients: false
+- successful run return code: 0
+- successful runtime generations per master: 3/3
+- injected exclusion-semantic drift generation: 2
+- failure metrics per master: attempts=2 successes=1 failures=1
+- injected-drift run return code: 70
+- all JSON checks: pass
+
+Synthetic protocol microbenchmark
+- topology: same-host Python threads + fake MPI bus + overlayfs flock
+- warm-ups/repetitions: 2/20 per topology and mode
+- ordering: baseline/renewal interleaved and alternated
+- local 9-operation filesystem probe timed: false
+- pre-renewal work-lease heartbeat timed: false
+- 2 masters: baseline median 13.210 ms, renewal 13.218 ms, +0.008 ms (+0.062%)
+- 3 masters: baseline median 18.764 ms, renewal 18.811 ms, +0.048 ms (+0.254%)
+- 4 masters: baseline median 24.319 ms, renewal 24.317 ms, -0.002 ms (-0.008%, noise)
+- exact proof cardinalities: 2/2/2, 3/6/3, 4/12/4
+- measured failures: 0
+
+Strict evidence boundaries
+- synthetic_topology=true
+- deployment_evidence=false
+- actual_multi_host=false
+- real_shared_storage_backend_tested=false
+- server_failover_tested=false
+- network_partition_tested=false
+- mpi_rank_failure_recovery_tested=false
+- physical_power_cut_tested=false
+- dse_throughput_benchmarked=false
+- solver_or_coverage_uplift_measured=false
+- lava_m_campaign_run=false
+
+Repository inventory after F330
+- documented SYMCC configuration names: 409
+- top-level Python test files: 49

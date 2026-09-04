@@ -1,0 +1,10 @@
+build LLVM 18 SymCC: PASS
+build LLVM 17 SymCC: PASS
+ruff check: PASS
+py_compile: PASS
+git diff --check: PASS
+technology index: PASS
+diagram render and structural inspection: PASS
+15 RUN commands across 2 focused fixtures: PASS
+real big-endian byte binding: PASS
+non-byte integer fail-closed boundary: PASS

@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">F311 cross-coordinator target-group fencing protocol</title>
+  <desc id="desc">Two MPI coordinators perform local transactional admission, atomically claim overlapping branch target groups in a shared fenced table, dispatch only accepted work, heartbeat active tokens, and release targets after fenced result triage.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#344054"/>
+    </marker>
+    <marker id="okArrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#12805c"/>
+    </marker>
+    <marker id="rejectArrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#c4382b"/>
+    </marker>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="7" flood-color="#1d2939" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .title { font-family: Inter, "Noto Sans SC", sans-serif; font-size: 34px; font-weight: 700; fill: #101828; }
+      .subtitle { font-family: Inter, "Noto Sans SC", sans-serif; font-size: 17px; font-weight: 400; fill: #475467; }
+      .section { font-family: Inter, "Noto Sans SC", sans-serif; font-size: 19px; font-weight: 700; fill: #101828; }
+      .label { font-family: Inter, "Noto Sans SC", sans-serif; font-size: 16px; font-weight: 600; fill: #101828; }
+      .body { font-family: Inter, "Noto Sans SC", sans-serif; font-size: 14px; font-weight: 400; fill: #344054; }
+      .small { font-family: Inter, "Noto Sans SC", sans-serif; font-size: 13px; font-weight: 500; fill: #475467; }
+      .mono { font-family: "JetBrains Mono", monospace; font-size: 14px; font-weight: 600; fill: #1d2939; }
+      .white { fill: #ffffff; }
+      .line { fill: none; stroke: #344054; stroke-width: 2.2; marker-end: url(#arrow); }
+      .ok { fill: none; stroke: #12805c; stroke-width: 3; marker-end: url(#okArrow); }
+      .reject { fill: none; stroke: #c4382b; stroke-width: 3; marker-end: url(#rejectArrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <rect x="0" y="0" width="1600" height="92" fill="#ffffff"/>
+  <rect x="0" y="90" width="1600" height="2" fill="#d0d5dd"/>
+  <text x="64" y="48" class="title">F311  跨协调器 Target-Group Fencing</text>
+  <text x="64" y="76" class="subtitle">不同 seed 的相同分支目标也共享一个原子、可过期、不可被陈旧 owner 释放的资源租约</text>
+
+  <text x="60" y="132" class="section">1  本地 proposal 与无副作用准入</text>
+  <g filter="url(#shadow)">
+    <rect x="55" y="155" width="430" height="205" rx="8" fill="#ffffff" stroke="#98a2b3"/>
+    <rect x="55" y="155" width="430" height="42" rx="8" fill="#175cd3"/>
+    <rect x="55" y="188" width="430" height="9" fill="#175cd3"/>
+    <text x="78" y="183" class="label white">MPI Coordinator A</text>
+    <text x="78" y="226" class="body">Prefix DAG proposal: seed-A</text>
+    <rect x="78" y="242" width="182" height="35" rx="6" fill="#eaf2ff" stroke="#84adff"/>
+    <text x="91" y="265" class="mono">group {77, 88}</text>
+    <text x="78" y="305" class="body">① local reserve   ② shared admission</text>
+    <text x="78" y="331" class="small">attempt / cooldown / cursor 尚未提交</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="55" y="390" width="430" height="205" rx="8" fill="#ffffff" stroke="#98a2b3"/>
+    <rect x="55" y="390" width="430" height="42" rx="8" fill="#7a5af8"/>
+    <rect x="55" y="423" width="430" height="9" fill="#7a5af8"/>
+    <text x="78" y="418" class="label white">MPI Coordinator B</text>
+    <text x="78" y="461" class="body">CSTG proposal: seed-B</text>
+    <rect x="78" y="477" width="182" height="35" rx="6" fill="#f2efff" stroke="#bdb4fe"/>
+    <text x="91" y="500" class="mono">group {88, 99}</text>
+    <text x="78" y="540" class="body">重叠成员 88 使整个 group 冲突</text>
+    <text x="78" y="566" class="small">拒绝后释放本地 lease，继续扫描 proposal</text>
+  </g>
+
+  <text x="590" y="132" class="section">2  共享 fencing 表：按 target 原子检查</text>
+  <g filter="url(#shadow)">
+    <rect x="565" y="155" width="480" height="440" rx="8" fill="#ffffff" stroke="#667085" stroke-width="1.5"/>
+    <rect x="565" y="155" width="480" height="50" rx="8" fill="#344054"/>
+    <rect x="565" y="195" width="480" height="10" fill="#344054"/>
+    <text x="590" y="187" class="label white">.target_lease_table / deterministic shards</text>
+
+    <rect x="592" y="230" width="426" height="62" rx="6" fill="#ecfdf3" stroke="#32d583"/>
+    <text x="612" y="254" class="mono">target 77  →  token A:...:1042</text>
+    <text x="612" y="278" class="small">status=leased · updated=t · group={77,88}</text>
+    <rect x="592" y="310" width="426" height="62" rx="6" fill="#ecfdf3" stroke="#32d583"/>
+    <text x="612" y="334" class="mono">target 88  →  token A:...:1042</text>
+    <text x="612" y="358" class="small">同一 group token，按 digest 顺序持锁</text>
+    <rect x="592" y="390" width="426" height="62" rx="6" fill="#fff4ed" stroke="#f79009"/>
+    <text x="612" y="414" class="mono">target 99  →  no record</text>
+    <text x="612" y="438" class="small">冲突检查在任何写入前完成，不发布半个新 group</text>
+
+    <rect x="592" y="477" width="426" height="88" rx="6" fill="#f2f4f7" stroke="#98a2b3"/>
+    <text x="612" y="502" class="label">原子顺序</text>
+    <text x="612" y="528" class="body">sort(target SHA-256) → mkdir locks → check all</text>
+    <text x="612" y="550" class="body">→ publish same token → unlock in reverse order</text>
+  </g>
+
+  <path d="M485 255 C520 255, 525 255, 565 255" class="ok"/>
+  <text x="502" y="242" class="small" fill="#12805c">claim</text>
+  <path d="M565 474 C530 474, 526 490, 485 490" class="reject"/>
+  <text x="500" y="463" class="small" fill="#c4382b">conflict</text>
+
+  <text x="1140" y="132" class="section">3  派发、心跳与 fenced 释放</text>
+  <g filter="url(#shadow)">
+    <rect x="1120" y="155" width="420" height="205" rx="8" fill="#ffffff" stroke="#98a2b3"/>
+    <rect x="1145" y="180" width="160" height="52" rx="7" fill="#eaf2ff" stroke="#84adff"/>
+    <text x="1175" y="212" class="label">pending token</text>
+    <path d="M1305 206 L1350 206" class="line"/>
+    <rect x="1350" y="180" width="160" height="52" rx="7" fill="#ecfdf3" stroke="#32d583"/>
+    <text x="1382" y="212" class="label">worker active</text>
+    <text x="1145" y="267" class="body">派发前 heartbeat 验证 token；hint 不得改写</text>
+    <text x="1145" y="293" class="body">已准入的 target/actions 契约。完整 work lease</text>
+    <text x="1145" y="319" class="body">冲突则回滚 target 与本地调度租约。</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1120" y="390" width="420" height="205" rx="8" fill="#ffffff" stroke="#98a2b3"/>
+    <circle cx="1170" cy="442" r="23" fill="#175cd3"/>
+    <text x="1162" y="449" class="label white">H</text>
+    <text x="1210" y="437" class="label">pending + active heartbeat</text>
+    <text x="1210" y="461" class="small">interval ≤ min(work TTL, target TTL) / 3</text>
+    <circle cx="1170" cy="510" r="23" fill="#12805c"/>
+    <text x="1163" y="517" class="label white">R</text>
+    <text x="1210" y="505" class="label">result → work fence → triage</text>
+    <text x="1210" y="529" class="small">release only records matching this token</text>
+    <text x="1145" y="570" class="body">陈旧 coordinator 的 release 不会删除新 owner 租约。</text>
+  </g>
+  <path d="M1045 267 C1080 267, 1084 255, 1120 255" class="ok"/>
+
+  <rect x="55" y="640" width="1485" height="205" rx="8" fill="#101828"/>
+  <text x="82" y="679" class="section white">端到端不变量与失败语义</text>
+  <line x1="420" y1="700" x2="420" y2="818" stroke="#475467"/>
+  <line x1="795" y1="700" x2="795" y2="818" stroke="#475467"/>
+  <line x1="1170" y1="700" x2="1170" y2="818" stroke="#475467"/>
+
+  <text x="82" y="726" class="label white">Overlap safety</text>
+  <text x="82" y="754" class="body white">任意两个含共同 target 的 group</text>
+  <text x="82" y="778" class="body white">在同一时刻至多一个有效 token。</text>
+  <text x="82" y="802" class="small" fill="#d0d5dd">不同 seed 也不能绕过。</text>
+
+  <text x="447" y="726" class="label white">Transactional admission</text>
+  <text x="447" y="754" class="body white">共享 claim 成功后才提交 attempt、</text>
+  <text x="447" y="778" class="body white">cooldown、queue epoch 与 cursor。</text>
+  <text x="447" y="802" class="small" fill="#d0d5dd">冲突候选继续回填 worker 配额。</text>
+
+  <text x="822" y="726" class="label white">Crash availability</text>
+  <text x="822" y="754" class="body white">进程崩溃可留下保守租约，TTL 后</text>
+  <text x="822" y="778" class="body white">自动可窃取；不承诺多文件线性化。</text>
+  <text x="822" y="802" class="small" fill="#d0d5dd">安全优先，短时损失可用性。</text>
+
+  <text x="1197" y="726" class="label white">Evidence boundary</text>
+  <text x="1197" y="754" class="body white">单元/故障测试证明协议状态机；</text>
+  <text x="1197" y="778" class="body white">公开 target 的覆盖收益需等 CPU</text>
+  <text x="1197" y="802" class="small" fill="#d0d5dd">多轮消融，不能由回归测试推导。</text>
+
+  <text x="55" y="878" class="small">F311 · SymCC parallel hybrid symbolic execution · 2026-08-07</text>
+</svg>

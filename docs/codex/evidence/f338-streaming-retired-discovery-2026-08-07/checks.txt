@@ -1,0 +1,53 @@
+F338 reproducibility and evidence boundary
+Date: 2026-08-07 UTC
+Platform: Linux 7.0.0-28-generic x86_64, glibc 2.39
+Python: 3.12.3
+Filesystem under test: local overlayfs
+
+Production mechanism:
+- complete reserved-namespace prevalidation before deletion
+- one-pass os.scandir context manager
+- reverse lexical min-heap retaining at most root_limit names
+- deterministic lexical smallest-L selection
+- O(N log L) selection work and O(min(N,L)) retained candidate state
+- scan, candidate, and selected counts in startup telemetry
+- malformed reserved names and non-directories still fail before mutation
+
+Automated tests:
+- directed: 205 passed, 43 subtests passed, 16.56 s
+- related six-module integration: 322 passed, 51 subtests passed, 16.70 s
+- full warnings-as-errors Python: 718 passed, 71 subtests passed, 96.07 s
+- Ruff: passed
+- in-memory compile: passed
+- git diff --check: passed
+
+Actual MPI transport:
+- Open MPI, 7 ranks, 2 masters, 5 workers
+- one physical host; actual_multi_host=false; synthetic_topology=false
+- 19 shared-root entries scanned, 17 retired candidates, 4 selected
+- lexical smallest four fixture roots reclaimed
+- 13 unselected fixture roots plus one current retired epoch remain
+- worker shutdown ACKs: 3/3 and 2/2
+- returncode=0; elapsed=3.7090240519028157 s
+- all_checks_passed=true
+
+Mechanism benchmark:
+- candidate counts: 128, 1024, 4096; 16 unrelated entries per namespace
+- selection limit: 8
+- 3 warmups per mechanism and size
+- 30 interleaved/alternating timing samples per mechanism and size (180 total)
+- 10 interleaved/alternating tracemalloc samples per mechanism and size (60 total)
+- materialized median traced peaks: 66130, 502762, 1995370 bytes
+- streaming median traced peaks: 3586, 3652, 3652 bytes
+- materialized/streaming memory ratios: 18.441160, 137.667579, 546.377327
+- materialized median times: 299.475, 2195.427, 9245.0845 us
+- streaming median times: 318.804, 2284.486, 9356.0305 us
+- streaming/materialized time ratios: 1.064543, 1.040566, 1.012001
+
+Strict boundary:
+- Full top-level namespace enumeration and type validation remain O(N).
+- No hard wall-clock scan or single-syscall latency bound is claimed.
+- Tracemalloc is not process RSS, kernel memory, or remote-server memory.
+- Lexical order is deterministic but not arrival-time fairness.
+- No real multi-host, remote-filesystem failover, or power-loss evidence exists.
+- No DSE throughput, solver, coverage, bug-discovery, or LAVA-M uplift is claimed.

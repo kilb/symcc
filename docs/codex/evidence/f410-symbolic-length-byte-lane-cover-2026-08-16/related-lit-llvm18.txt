@@ -1,0 +1,12 @@
+-- Testing: 5 of 271 tests, 5 workers --
+PASS: compiler :: live_collective_heap_union_initialization.ll (1 of 5)
+PASS: compiler :: live_guarded_heap_union_initialization.ll (2 of 5)
+PASS: compiler :: live_memoryssa_aa_heap_initialization.ll (3 of 5)
+PASS: compiler :: live_symbolic_length_byte_lane_cover.ll (4 of 5)
+PASS: compiler :: live_interprocedural_heap_effect_summary.ll (5 of 5)
+
+Testing Time: 221.46s
+
+Total Discovered Tests: 271
+  Excluded: 266 (98.15%)
+  Passed  :   5 (1.85%)

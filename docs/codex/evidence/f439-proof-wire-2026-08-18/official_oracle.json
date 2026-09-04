@@ -1,0 +1,29 @@
+{
+  "elapsed_us": 169760,
+  "lidrup": {
+    "artifact_sha256": "29dee2f10f19b16f414d0776d38a72a74c084f28bce0aff829b81897ab81d2fc",
+    "checker_mode": "strict",
+    "checker_sha256": "a7ebaae543dd6b82dedda956d7ab03b24eb105ac8b2533c88481f96c7b072e08",
+    "checker_source_commit": "3ae8c23cd978c313ee14472327bf0f9560601015",
+    "checker_version": "0.0.7",
+    "flattened_learned_clauses": 2,
+    "interaction_bytes": 64,
+    "proof_bytes": 110,
+    "receipt_sha256": "859eec03e3b5399b70693cf9a4989e0928e5399f97b2ad26a305f3daf62bc53c",
+    "recursive_imports": 1,
+    "round_trip_record_sha256": "6775300e8ad42dd3541b9f5d2268c689879a5d48b49ae5324c44d79dd98bea66"
+  },
+  "palrup": {
+    "checker_source_commit": "d9382fb4b0acf094034ee91e2ed0a22b1b479c1d",
+    "converted_text_sha256": "9c869df5dc59d467ae53d2aac1b3efe2aa471908599608be7b9b5674ed884fd9",
+    "converter_sha256": "4c85cf05b53d0f52380e1992605ad7d69fe3c8d806130c932749de7b17ac5394",
+    "directive_count": 3,
+    "fragment_bytes": 16,
+    "fragment_sha256": "1c10c832560aeeff6a61ea6226edd10ff95a8b5329a3542e9b732b02a90f7299",
+    "receipt_sha256": "8724b25c28095a4d3708e28febe291b0b76198cf9e046509f5381cd699937e08",
+    "scope": "fragment-syntax-interoperability-not-global-unsat"
+  },
+  "result_sha256": "5ce430de1084dcca3663991b95be68e75021e56820b1e2393532537d0b136570",
+  "schema": "symcc-qfbv-proof-wire-official-oracle-v1",
+  "status": "passed"
+}

@@ -1,0 +1,123 @@
+{
+  "claim_boundary": "In-process graph-construction and policy-overhead microbenchmark; no target, solver, AFL map, coverage, throughput, or bug-yield claim.",
+  "platform": "Linux-7.0.0-28-generic-x86_64-with-glibc2.39",
+  "python": "3.12.3",
+  "results": [
+    {
+      "build_disabled": {
+        "maximum_ms": 0.140622,
+        "median_ms": 0.123486,
+        "minimum_ms": 0.122534,
+        "p95_ms": 0.129495
+      },
+      "build_enabled": {
+        "maximum_ms": 1.254858,
+        "median_ms": 0.607284,
+        "minimum_ms": 0.598491,
+        "p95_ms": 0.712412
+      },
+      "candidate_count": 32,
+      "candidate_guidance_batch": {
+        "maximum_ms": 0.107712,
+        "median_ms": 0.076585,
+        "minimum_ms": 0.076335,
+        "p95_ms": 0.081262
+      },
+      "cfg_edges": 64,
+      "cfg_nodes": 49,
+      "coverage_context": {
+        "maximum_ms": 0.045719,
+        "median_ms": 0.028523,
+        "minimum_ms": 0.028302,
+        "p95_ms": 0.034592
+      },
+      "covers": 8,
+      "diamonds": 16,
+      "policy_selection": {
+        "maximum_ms": 0.053361,
+        "median_ms": 0.008713,
+        "minimum_ms": 0.008383,
+        "p95_ms": 0.019048
+      },
+      "selected_identity": "state-00000009"
+    },
+    {
+      "build_disabled": {
+        "maximum_ms": 0.526042,
+        "median_ms": 0.482736,
+        "minimum_ms": 0.479071,
+        "p95_ms": 0.505631
+      },
+      "build_enabled": {
+        "maximum_ms": 3.569902,
+        "median_ms": 2.8981,
+        "minimum_ms": 2.872372,
+        "p95_ms": 2.956589
+      },
+      "candidate_count": 128,
+      "candidate_guidance_batch": {
+        "maximum_ms": 0.374443,
+        "median_ms": 0.318219,
+        "minimum_ms": 0.317467,
+        "p95_ms": 0.342746
+      },
+      "cfg_edges": 256,
+      "cfg_nodes": 193,
+      "coverage_context": {
+        "maximum_ms": 0.149595,
+        "median_ms": 0.115284,
+        "minimum_ms": 0.114453,
+        "p95_ms": 0.129064
+      },
+      "covers": 8,
+      "diamonds": 64,
+      "policy_selection": {
+        "maximum_ms": 0.036324,
+        "median_ms": 0.023215,
+        "minimum_ms": 0.022915,
+        "p95_ms": 0.02652
+      },
+      "selected_identity": "state-00000069"
+    },
+    {
+      "build_disabled": {
+        "maximum_ms": 2.915998,
+        "median_ms": 1.889273,
+        "minimum_ms": 1.875142,
+        "p95_ms": 1.958186
+      },
+      "build_enabled": {
+        "maximum_ms": 18.623444,
+        "median_ms": 14.99249,
+        "minimum_ms": 14.696244,
+        "p95_ms": 17.842859
+      },
+      "candidate_count": 512,
+      "candidate_guidance_batch": {
+        "maximum_ms": 1.267157,
+        "median_ms": 1.221638,
+        "minimum_ms": 1.217472,
+        "p95_ms": 1.264433
+      },
+      "cfg_edges": 1024,
+      "cfg_nodes": 769,
+      "coverage_context": {
+        "maximum_ms": 0.541154,
+        "median_ms": 0.454554,
+        "minimum_ms": 0.450398,
+        "p95_ms": 0.476628
+      },
+      "covers": 8,
+      "diamonds": 256,
+      "policy_selection": {
+        "maximum_ms": 0.102414,
+        "median_ms": 0.075273,
+        "minimum_ms": 0.074883,
+        "p95_ms": 0.07993
+      },
+      "selected_identity": "state-00000069"
+    }
+  ],
+  "samples": 31,
+  "schema": "symcc-live-path-cover-benchmark-v1"
+}

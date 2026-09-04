@@ -1,0 +1,176 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1400" viewBox="0 0 1900 1400" role="img" aria-labelledby="title desc">
+  <title id="title">F329 MPI cross-host shared-lock qualification</title>
+  <desc id="desc">Architecture, five-phase host rotation, proof cardinality, measured synthetic protocol cost, and strict evidence boundary.</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#16253a" flood-opacity="0.13"/>
+    </filter>
+    <marker id="arrowBlue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#2867b2"/>
+    </marker>
+    <marker id="arrowAmber" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#c47b12"/>
+    </marker>
+    <style>
+      text { font-family: "WenQuanYi Zen Hei", "Microsoft YaHei", Arial, sans-serif; fill: #17263a; letter-spacing: 0; }
+      .title { font-size: 42px; font-weight: 750; }
+      .subtitle { font-size: 20px; fill: #536476; }
+      .bandTitle { font-size: 25px; font-weight: 750; }
+      .cardTitle { font-size: 21px; font-weight: 700; }
+      .body { font-size: 18px; }
+      .small { font-size: 15px; fill: #5d6d7e; }
+      .tiny { font-size: 13px; fill: #657587; }
+      .mono { font-family: "WenQuanYi Zen Hei Mono", "JetBrains Mono", monospace; font-size: 16px; }
+      .white { fill: #ffffff; }
+      .muted { fill: #607286; }
+      .line { stroke: #cbd5df; stroke-width: 2; }
+      .dash { stroke-dasharray: 8 7; }
+    </style>
+  </defs>
+
+  <rect width="1900" height="1400" fill="#f5f7fa"/>
+  <rect x="0" y="0" width="1900" height="116" fill="#17263a"/>
+  <rect x="0" y="108" width="1900" height="8" fill="#2a9d8f"/>
+  <text x="70" y="60" class="title white">F329  MPI 跨主机共享锁资格协议</text>
+  <text x="72" y="91" class="subtitle" fill="#cbd7e5">独立控制面 · 真实 processor identity · 排他与释放双向反事实 · 失败关闭</text>
+
+  <!-- Architecture band -->
+  <text x="70" y="162" class="bandTitle">01  启动架构：数据面与资格控制面分离</text>
+  <rect x="70" y="184" width="1760" height="242" rx="8" fill="#ffffff" stroke="#d3dce6" filter="url(#shadow)"/>
+  <text x="96" y="216" class="small">MPI.COMM_WORLD  /  epoch 与共享路径由 rank 0 广播</text>
+
+  <rect x="100" y="238" width="470" height="145" rx="8" fill="#eaf2fb" stroke="#8fb5de"/>
+  <text x="124" y="271" class="cardTitle" fill="#23568e">group_comm A</text>
+  <rect x="124" y="292" width="120" height="62" rx="7" fill="#2867b2"/>
+  <text x="184" y="329" text-anchor="middle" class="body white">Master 0</text>
+  <rect x="266" y="292" width="276" height="62" rx="7" fill="#dce9f6" stroke="#8fb5de"/>
+  <text x="404" y="319" text-anchor="middle" class="body">Worker 2 · 4 · 6</text>
+  <text x="404" y="342" text-anchor="middle" class="small">WORK / RESULT / STOP / ACK</text>
+
+  <rect x="1330" y="238" width="470" height="145" rx="8" fill="#edf7f4" stroke="#83c8bb"/>
+  <text x="1354" y="271" class="cardTitle" fill="#217a70">group_comm B</text>
+  <rect x="1354" y="292" width="120" height="62" rx="7" fill="#2a9d8f"/>
+  <text x="1414" y="329" text-anchor="middle" class="body white">Master 1</text>
+  <rect x="1496" y="292" width="276" height="62" rx="7" fill="#dcefe9" stroke="#83c8bb"/>
+  <text x="1634" y="319" text-anchor="middle" class="body">Worker 3 · 5</text>
+  <text x="1634" y="342" text-anchor="middle" class="small">WORK / RESULT / STOP / ACK</text>
+
+  <rect x="650" y="230" width="600" height="162" rx="8" fill="#fff6e5" stroke="#e3b760" stroke-width="2"/>
+  <text x="950" y="265" text-anchor="middle" class="cardTitle" fill="#9b620f">master_comm 资格控制面</text>
+  <text x="950" y="298" text-anchor="middle" class="body">只有 master 加入；worker 使用 MPI_UNDEFINED</text>
+  <text x="950" y="329" text-anchor="middle" class="body">phase / token / source 严格绑定，有界对象交换</text>
+  <rect x="755" y="347" width="390" height="28" rx="7" fill="#f2d390"/>
+  <text x="950" y="367" text-anchor="middle" class="small" fill="#704608">不使用被测文件系统 marker 协调</text>
+  <path d="M570 310 C610 310 610 310 650 310" fill="none" stroke="#2867b2" stroke-width="3" marker-end="url(#arrowBlue)"/>
+  <path d="M1330 310 C1290 310 1290 310 1250 310" fill="none" stroke="#2a9d8f" stroke-width="3" marker-end="url(#arrowBlue)"/>
+
+  <!-- Timeline band -->
+  <text x="70" y="474" class="bandTitle">02  每个 processor 的五阶段轮转</text>
+  <rect x="70" y="496" width="1760" height="520" rx="8" fill="#ffffff" stroke="#d3dce6" filter="url(#shadow)"/>
+  <rect x="70" y="496" width="1760" height="54" rx="8" fill="#edf1f5"/>
+  <text x="155" y="531" text-anchor="middle" class="cardTitle">阶段</text>
+  <text x="525" y="531" text-anchor="middle" class="cardTitle">Host A · holder</text>
+  <text x="905" y="531" text-anchor="middle" class="cardTitle">Host B · contender</text>
+  <text x="1285" y="531" text-anchor="middle" class="cardTitle">Host C · contender</text>
+  <text x="1640" y="531" text-anchor="middle" class="cardTitle">共识证据</text>
+
+  <line x1="270" y1="496" x2="270" y2="1016" class="line"/>
+  <line x1="715" y1="496" x2="715" y2="1016" class="line"/>
+  <line x1="1095" y1="496" x2="1095" y2="1016" class="line"/>
+  <line x1="1475" y1="496" x2="1475" y2="1016" class="line"/>
+  <line x1="70" y1="630" x2="1830" y2="630" class="line"/>
+  <line x1="70" y1="718" x2="1830" y2="718" class="line"/>
+  <line x1="70" y1="806" x2="1830" y2="806" class="line"/>
+  <line x1="70" y1="894" x2="1830" y2="894" class="line"/>
+
+  <text x="155" y="590" text-anchor="middle" class="cardTitle" fill="#5c6d7e">OPEN</text>
+  <text x="155" y="616" text-anchor="middle" class="tiny">先验证同一稳定对象</text>
+  <g fill="#eaf2fb" stroke="#8fb5de">
+    <rect x="338" y="570" width="374" height="42" rx="7"/>
+    <rect x="718" y="570" width="374" height="42" rx="7"/>
+    <rect x="1098" y="570" width="374" height="42" rx="7"/>
+  </g>
+  <text x="525" y="597" text-anchor="middle" class="mono">O_RDWR · regular · token</text>
+  <text x="905" y="597" text-anchor="middle" class="mono">O_RDWR · regular · token</text>
+  <text x="1285" y="597" text-anchor="middle" class="mono">O_RDWR · regular · token</text>
+  <text x="1640" y="585" text-anchor="middle" class="body" fill="#217a70">3 / 3 ready</text>
+  <text x="1640" y="610" text-anchor="middle" class="small">内容代次与路径一致</text>
+
+  <text x="155" y="677" text-anchor="middle" class="cardTitle" fill="#9b620f">HELD</text>
+  <rect x="388" y="650" width="274" height="50" rx="7" fill="#c47b12"/>
+  <text x="525" y="681" text-anchor="middle" class="body white">LOCK_EX | LOCK_NB</text>
+  <path d="M662 675 L860 675" fill="none" stroke="#c47b12" stroke-width="3" marker-end="url(#arrowAmber)"/>
+  <path d="M662 685 C840 710 1080 710 1220 685" fill="none" stroke="#c47b12" stroke-width="3" marker-end="url(#arrowAmber)"/>
+  <text x="1640" y="670" text-anchor="middle" class="body" fill="#9b620f">holder acquired</text>
+  <text x="1640" y="697" text-anchor="middle" class="small">MPI happens-before</text>
+
+  <text x="155" y="765" text-anchor="middle" class="cardTitle" fill="#b84b48">EXCLUDED</text>
+  <rect x="760" y="738" width="290" height="50" rx="7" fill="#f9e3df" stroke="#dc8f84"/>
+  <rect x="1140" y="738" width="290" height="50" rx="7" fill="#f9e3df" stroke="#dc8f84"/>
+  <text x="905" y="769" text-anchor="middle" class="mono" fill="#a33d3a">EACCES / EAGAIN</text>
+  <text x="1285" y="769" text-anchor="middle" class="mono" fill="#a33d3a">EACCES / EAGAIN</text>
+  <text x="1640" y="758" text-anchor="middle" class="body" fill="#217a70">M - 1 blocked</text>
+  <text x="1640" y="785" text-anchor="middle" class="small">任何 acquire 立即失败</text>
+
+  <text x="155" y="853" text-anchor="middle" class="cardTitle" fill="#5c6d7e">RELEASED</text>
+  <rect x="388" y="826" width="274" height="50" rx="7" fill="#e8edf2" stroke="#aebdca"/>
+  <text x="525" y="857" text-anchor="middle" class="mono">close(descriptor)</text>
+  <rect x="760" y="826" width="290" height="50" rx="7" fill="#e8edf2" stroke="#aebdca"/>
+  <rect x="1140" y="826" width="290" height="50" rx="7" fill="#e8edf2" stroke="#aebdca"/>
+  <text x="905" y="857" text-anchor="middle" class="body">descriptor closed</text>
+  <text x="1285" y="857" text-anchor="middle" class="body">descriptor closed</text>
+  <text x="1640" y="846" text-anchor="middle" class="body" fill="#217a70">3 / 3 released</text>
+  <text x="1640" y="873" text-anchor="middle" class="small">再进入远端接管</text>
+
+  <text x="155" y="946" text-anchor="middle" class="cardTitle" fill="#217a70">REACQUIRED</text>
+  <text x="155" y="972" text-anchor="middle" class="tiny">下一不同host代表</text>
+  <rect x="760" y="920" width="290" height="58" rx="7" fill="#2a9d8f"/>
+  <text x="905" y="946" text-anchor="middle" class="body white">remote acquire PASS</text>
+  <text x="905" y="968" text-anchor="middle" class="small white">then close</text>
+  <path d="M662 949 L750 949" fill="none" stroke="#2a9d8f" stroke-width="3" marker-end="url(#arrowBlue)"/>
+  <text x="1640" y="941" text-anchor="middle" class="body" fill="#217a70">release verified</text>
+  <text x="1640" y="968" text-anchor="middle" class="small">轮转：B → C → A</text>
+
+  <!-- Evidence band -->
+  <text x="70" y="1065" class="bandTitle">03  证据基数、实测成本与严格边界</text>
+  <rect x="70" y="1088" width="520" height="248" rx="8" fill="#17263a" filter="url(#shadow)"/>
+  <text x="100" y="1127" class="cardTitle white">完整证据方程</text>
+  <text x="100" y="1171" class="mono white">holder rounds     = H</text>
+  <text x="100" y="1207" class="mono white">contention checks = H * (M - 1)</text>
+  <text x="100" y="1243" class="mono white">remote release    = H</text>
+  <line x1="100" y1="1264" x2="560" y2="1264" stroke="#53677e" stroke-width="2"/>
+  <text x="100" y="1295" class="body" fill="#7ee0ca">全部满足 → cross-host-mpi-lock-v1</text>
+  <text x="100" y="1320" class="small" fill="#c4d0dd">任一缺失 / 冲突 / 超时 → Abort(65)</text>
+
+  <rect x="620" y="1088" width="590" height="248" rx="8" fill="#ffffff" stroke="#d3dce6" filter="url(#shadow)"/>
+  <text x="650" y="1127" class="cardTitle">合成状态机中位成本 · 20次</text>
+  <text x="650" y="1154" class="small">固定10 ms轮询 → 0.5 ms起步指数退避</text>
+  <text x="650" y="1193" class="body">2 master</text>
+  <rect x="755" y="1176" width="390" height="18" rx="6" fill="#e2e8ee"/>
+  <rect x="755" y="1176" width="42" height="18" rx="6" fill="#2a9d8f"/>
+  <text x="1155" y="1193" text-anchor="end" class="small">123.25 → 13.21 ms</text>
+  <text x="650" y="1238" class="body">3 master</text>
+  <rect x="755" y="1221" width="390" height="18" rx="6" fill="#e2e8ee"/>
+  <rect x="755" y="1221" width="42" height="18" rx="6" fill="#2a9d8f"/>
+  <text x="1155" y="1238" text-anchor="end" class="small">174.82 → 18.66 ms</text>
+  <text x="650" y="1283" class="body">4 master</text>
+  <rect x="755" y="1266" width="390" height="18" rx="6" fill="#e2e8ee"/>
+  <rect x="755" y="1266" width="42" height="18" rx="6" fill="#2a9d8f"/>
+  <text x="1155" y="1283" text-anchor="end" class="small">225.94 → 24.27 ms</text>
+  <text x="650" y="1316" class="small" fill="#9b620f">synthetic_topology=true · deployment_evidence=false</text>
+
+  <rect x="1240" y="1088" width="590" height="248" rx="8" fill="#fff8ed" stroke="#e3b760" filter="url(#shadow)"/>
+  <text x="1270" y="1127" class="cardTitle" fill="#9b620f">证明边界</text>
+  <circle cx="1280" cy="1165" r="7" fill="#2a9d8f"/>
+  <text x="1300" y="1171" class="body">可证明：当前MPI client共享锁域</text>
+  <circle cx="1280" cy="1203" r="7" fill="#2a9d8f"/>
+  <text x="1300" y="1209" class="body">可证明：held排他 + close后远端接管</text>
+  <circle cx="1280" cy="1241" r="7" fill="#d45b52"/>
+  <text x="1300" y="1247" class="body">不证明：cache coherence / rename visibility</text>
+  <circle cx="1280" cy="1279" r="7" fill="#d45b52"/>
+  <text x="1300" y="1285" class="body">不证明：failover / partition / power loss</text>
+  <rect x="1270" y="1303" width="530" height="22" rx="6" fill="#f2d390"/>
+  <text x="1535" y="1319" text-anchor="middle" class="tiny" fill="#704608">同机真实MPI：2 masters → false，绝不伪造跨机成功</text>
+
+  <text x="70" y="1372" class="small">F329 · 2026-08-07 · I/T/E-mechanism · 真实多client后端验证仍是下一阶段实验</text>
+</svg>

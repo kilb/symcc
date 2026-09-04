@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1120" viewBox="0 0 1800 1120" role="img" aria-labelledby="title desc">
+  <title id="title">F322 持久结果 manifest 与幂等 corpus 重放协议</title>
+  <desc id="desc">上半部分展示正常提交，下半部分展示进程崩溃后的并发恢复、future lease 接管和 fail-closed 分支。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 z" fill="#334155"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 z" fill="#15803d"/>
+    </marker>
+    <marker id="arrowRed" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 z" fill="#b91c1c"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .title{font:700 34px "WenQuanYi Zen Hei","Noto Sans CJK SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,sans-serif;fill:#0f172a}
+      .subtitle{font:400 18px "WenQuanYi Zen Hei","Noto Sans CJK SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,sans-serif;fill:#475569}
+      .lane{font:700 22px "WenQuanYi Zen Hei","Noto Sans CJK SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,sans-serif;fill:#fff}
+      .head{font:700 19px "WenQuanYi Zen Hei","Noto Sans CJK SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,sans-serif;fill:#0f172a}
+      .body{font:400 16px "WenQuanYi Zen Hei","Noto Sans CJK SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,sans-serif;fill:#334155}
+      .small{font:400 14px ui-monospace,SFMono-Regular,Consolas,monospace;fill:#475569}
+      .badge{font:700 14px "WenQuanYi Zen Hei","Noto Sans CJK SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,sans-serif}
+      .footerBody{font:400 16px "WenQuanYi Zen Hei","Noto Sans CJK SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,sans-serif;fill:#e2e8f0}
+      .footerSmall{font:400 14px ui-monospace,SFMono-Regular,Consolas,monospace;fill:#94a3b8}
+      .box{rx:7;ry:7;stroke-width:2;filter:url(#shadow)}
+      .arrow{fill:none;stroke:#334155;stroke-width:2.5;marker-end:url(#arrow)}
+      .greenArrow{fill:none;stroke:#15803d;stroke-width:3;marker-end:url(#arrowGreen)}
+      .redArrow{fill:none;stroke:#b91c1c;stroke-width:3;marker-end:url(#arrowRed)}
+      .dash{stroke-dasharray:9 7}
+    </style>
+  </defs>
+
+  <rect width="1800" height="1120" fill="#f8fafc"/>
+  <rect x="0" y="0" width="1800" height="112" fill="#ffffff"/>
+  <rect x="0" y="108" width="1800" height="4" fill="#2563eb"/>
+  <text x="70" y="52" class="title">F322  持久结果提交与幂等 Corpus Redo</text>
+  <text x="70" y="85" class="subtitle">canonical manifest + fencing token + content identity + complete-once accounting</text>
+  <rect x="1465" y="35" width="265" height="44" rx="6" fill="#ecfdf5" stroke="#15803d" stroke-width="2"/>
+  <text x="1598" y="62" text-anchor="middle" class="badge" fill="#166534">I / T / E-mechanism</text>
+
+  <rect x="46" y="145" width="1708" height="390" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <rect x="46" y="145" width="210" height="390" rx="8" fill="#1d4ed8"/>
+  <text x="151" y="195" text-anchor="middle" class="lane">正常提交</text>
+  <text x="151" y="226" text-anchor="middle" class="lane" font-size="16">Normal commit</text>
+
+  <rect class="box" x="292" y="194" width="230" height="122" fill="#eff6ff" stroke="#2563eb"/>
+  <text x="407" y="226" text-anchor="middle" class="head">1  Worker 隐藏暂存</text>
+  <text x="407" y="256" text-anchor="middle" class="body">child 只写 job-private stage</text>
+  <text x="407" y="285" text-anchor="middle" class="small">rank / staging_id / SHA-256</text>
+
+  <path class="arrow" d="M522 255 H574"/>
+  <rect class="box" x="576" y="194" width="230" height="122" fill="#fefce8" stroke="#ca8a04"/>
+  <text x="691" y="226" text-anchor="middle" class="head">2  严格验证</text>
+  <text x="691" y="256" text-anchor="middle" class="body">声明集合 = stage inventory</text>
+  <text x="691" y="285" text-anchor="middle" class="small">逐对象 digest 回验</text>
+
+  <path class="arrow" d="M806 255 H858"/>
+  <rect class="box" x="860" y="180" width="250" height="150" fill="#fff7ed" stroke="#ea580c"/>
+  <text x="985" y="214" text-anchor="middle" class="head">3  Durable decision</text>
+  <text x="985" y="244" text-anchor="middle" class="body">leased(T) → committing(T)</text>
+  <text x="985" y="273" text-anchor="middle" class="small">manifest = worker + stage</text>
+  <text x="985" y="298" text-anchor="middle" class="small">sorted hashes + generated</text>
+
+  <path class="greenArrow" d="M1110 255 H1162"/>
+  <rect class="box" x="1164" y="194" width="230" height="122" fill="#ecfdf5" stroke="#16a34a"/>
+  <text x="1279" y="226" text-anchor="middle" class="head">4  幂等公开</text>
+  <text x="1279" y="256" text-anchor="middle" class="body">stage → public corpus</text>
+  <text x="1279" y="285" text-anchor="middle" class="small">existing == hash 才接受</text>
+
+  <path class="greenArrow" d="M1394 255 H1446"/>
+  <rect class="box" x="1448" y="180" width="260" height="150" fill="#f0fdf4" stroke="#15803d"/>
+  <text x="1578" y="214" text-anchor="middle" class="head">5  唯一完成记账</text>
+  <text x="1578" y="244" text-anchor="middle" class="body">complete_once(T)</text>
+  <text x="1578" y="273" text-anchor="middle" class="small">completed → account + claim</text>
+  <text x="1578" y="298" text-anchor="middle" class="small">already → no duplicate stats</text>
+
+  <rect x="292" y="363" width="1416" height="125" rx="7" fill="#f1f5f9" stroke="#94a3b8"/>
+  <text x="320" y="398" class="head">线性化边界</text>
+  <circle cx="493" cy="423" r="10" fill="#2563eb"/><text x="512" y="429" class="body">未授权：child不可见</text>
+  <line x1="680" y1="423" x2="807" y2="423" stroke="#64748b" stroke-width="3"/>
+  <circle cx="827" cy="423" r="13" fill="#ea580c"/><text x="849" y="429" class="body">manifest落盘：决定不可逆、可redo</text>
+  <line x1="1145" y1="423" x2="1272" y2="423" stroke="#64748b" stroke-width="3"/>
+  <circle cx="1292" cy="423" r="10" fill="#16a34a"/><text x="1311" y="429" class="body">done：结果已提交</text>
+  <text x="320" y="463" class="small">安全顺序：persist decision  &lt;  publish objects  &lt;  complete/account</text>
+
+  <rect x="46" y="565" width="1708" height="395" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <rect x="46" y="565" width="210" height="395" rx="8" fill="#0f766e"/>
+  <text x="151" y="615" text-anchor="middle" class="lane">显式恢复</text>
+  <text x="151" y="646" text-anchor="middle" class="lane" font-size="16">Epoch recovery</text>
+
+  <rect class="box" x="292" y="608" width="250" height="132" fill="#f0fdfa" stroke="#0f766e"/>
+  <text x="417" y="640" text-anchor="middle" class="head">A  打开固定 Epoch</text>
+  <text x="417" y="670" text-anchor="middle" class="body">校验 state.json 与 shards</text>
+  <text x="417" y="700" text-anchor="middle" class="small">operator: old job stopped</text>
+
+  <path class="arrow" d="M542 674 H594"/>
+  <rect class="box" x="596" y="594" width="270" height="160" fill="#fff7ed" stroke="#ea580c"/>
+  <text x="731" y="627" text-anchor="middle" class="head">B  Commit-first 扫描</text>
+  <text x="731" y="658" text-anchor="middle" class="body">验证 record / payload / token</text>
+  <text x="731" y="688" text-anchor="middle" class="body">验证 canonical manifest</text>
+  <text x="731" y="718" text-anchor="middle" class="small">损坏或缺失 → fail closed</text>
+
+  <path class="greenArrow" d="M866 674 H918"/>
+  <rect class="box" x="920" y="594" width="275" height="160" fill="#ecfdf5" stroke="#16a34a"/>
+  <text x="1058" y="627" text-anchor="middle" class="head">C  验证联合状态并 Redo</text>
+  <text x="1058" y="658" text-anchor="middle" class="body">expected = stage ∪ public</text>
+  <text x="1058" y="688" text-anchor="middle" class="body">仅补齐缺失content对象</text>
+  <text x="1058" y="718" text-anchor="middle" class="small">并发source消失 → 验证dest</text>
+
+  <path class="greenArrow" d="M1195 674 H1247"/>
+  <rect class="box" x="1249" y="594" width="235" height="160" fill="#f0fdf4" stroke="#15803d"/>
+  <text x="1367" y="627" text-anchor="middle" class="head">D  Complete-once</text>
+  <text x="1367" y="658" text-anchor="middle" class="body">一个helper: completed</text>
+  <text x="1367" y="688" text-anchor="middle" class="body">其他helper: already</text>
+  <text x="1367" y="718" text-anchor="middle" class="small">唯一account / child claim</text>
+
+  <path class="arrow" d="M1484 674 H1536"/>
+  <rect class="box" x="1538" y="608" width="170" height="132" fill="#eff6ff" stroke="#2563eb"/>
+  <text x="1623" y="640" text-anchor="middle" class="head">E  接管租约</text>
+  <text x="1623" y="670" text-anchor="middle" class="body">scan TTL = 0</text>
+  <text x="1623" y="700" text-anchor="middle" class="body">claim TTL = 0</text>
+
+  <path class="redArrow dash" d="M731 754 V812 H510"/>
+  <rect x="292" y="810" width="435" height="105" rx="7" fill="#fef2f2" stroke="#b91c1c" stroke-width="2"/>
+  <text x="510" y="843" text-anchor="middle" class="head" fill="#991b1b">不可恢复：保留状态 + Abort(70)</text>
+  <text x="510" y="874" text-anchor="middle" class="body">缺manifest、损坏record、摘要不一致</text>
+  <text x="510" y="900" text-anchor="middle" class="small">不误报静止，不删除epoch证据</text>
+
+  <rect x="780" y="810" width="928" height="105" rx="7" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+  <text x="812" y="843" class="head">明确边界</text>
+  <text x="812" y="874" class="body">可保证：进程重启、部分publish幂等redo、恢复竞争中唯一记账、future-clock pre-commit接管</text>
+  <text x="812" y="900" class="body">不保证：全局exactly-once execution、原子多文件可见性、机器掉电、网络分区、同epoch并发作业</text>
+
+  <rect x="46" y="990" width="1708" height="82" rx="7" fill="#0f172a"/>
+  <text x="80" y="1023" class="lane" font-size="18">实测闭环</text>
+  <text x="240" y="1023" class="footerBody">622 tests + 38 subtests</text>
+  <text x="520" y="1023" class="footerBody">future lease: recovered=1</text>
+  <text x="835" y="1023" class="footerBody">partial commit: replayed=1</text>
+  <text x="1165" y="1023" class="footerBody">single/multi: 2/2 + 6/6 ACK</text>
+  <text x="1510" y="1023" class="footerBody" fill="#fecaca">bad manifest: exit 70</text>
+  <text x="80" y="1052" class="footerSmall">Evidence level E-mechanism: correctness and recovery semantics, not coverage or throughput improvement.</text>
+</svg>

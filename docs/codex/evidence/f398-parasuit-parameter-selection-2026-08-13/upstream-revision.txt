@@ -1,0 +1,11 @@
+schema=symcc-f398-upstream-provenance-v1
+project=ParaSuit
+paper=Enhancing Symbolic Execution with Self-Configuring Parameters
+venue=ICSE 2026 Research Track
+repository=https://github.com/skkusal/ParaSuit
+revision=e991924b827db80b117e1f5389fe07820bad13f0
+audited_files=parasuit/result_analyze.py,parasuit/select_param.py,parasuit/value_sample.py
+paper_score=sum(1/frequency(branch))
+source_divergence=result_analyze.py computes freq_score but accumulates branch_count
+local_decision=follow the paper inverse-frequency formula and preserve a differential counterexample
+claim_boundary=Upstream coverage and bug results are not local SymCC results; this evidence is mechanism-only.

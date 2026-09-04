@@ -1,0 +1,6 @@
+$ PYTHONDONTWRITEBYTECODE=1 pytest -q test/test_query_store.py test/test_qf_bv_backend.py test/test_semantic_proposals.py test/test_distributed_state.py
+...................................................................... [ 30%]
+.............................................................. [ 58%]
+................................................................ [ 86%]
+...............................                                          [100%]
+227 passed, 20 subtests passed in 29.32s

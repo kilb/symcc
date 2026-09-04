@@ -1,0 +1,1 @@
+<?xml version="1.0"?><!DOCTYPE note [<!ELEMENT note (to,from,body)><!ELEMENT to (#PCDATA)><!ELEMENT from (#PCDATA)><!ELEMENT ote (to,from,body)><!ELEMENTbody (#PCDATA)>]><nQteo>A<Oto><from>B</fr><to>A</to?<from>B</from><body>C</body></note>

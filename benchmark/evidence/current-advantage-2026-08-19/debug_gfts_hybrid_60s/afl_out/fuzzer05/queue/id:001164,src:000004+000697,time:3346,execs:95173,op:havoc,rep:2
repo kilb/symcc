@@ -1,0 +1,1 @@
+<?xm::rsion="1.0"?><root><item>tote [<!ELEMENT note (to,from,body)<note><to>A</to><from>B</from><><!ELEMENT to (#PCDATA)><!ELEMENT from (#PCDATA)><!ELEMENT body (#PCDATA)>]><note><to>A</to><from>B</from><body>C</body></note>

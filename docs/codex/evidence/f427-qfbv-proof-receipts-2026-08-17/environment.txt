@@ -1,0 +1,13 @@
+capture_utc=2026-08-17T09:38:43Z
+host=cuda-ke
+kernel=Linux 7.0.0-28-generic x86_64
+python=3.12.3
+pytest=9.1.1
+llvm17=17.0.6
+llvm18=18.1.3
+repository_head=146e01b2d6f8e02fd2526764d46ea0d80a4bb6f6
+cvc5=cvc5 1.3.4 [git f3b21c4 on branch HEAD]
+cvc5_sha256=7562a8b0b835e3eaad5f1a7b4616cd762350cf567b6be03d7e8ee24fa5ced5ee
+ethos_sha256=7f73a7e8a584cabb9b50c3a57d6f222661f184cc323fb661a3ec78092c201c5d
+cpc_signature_files=51
+

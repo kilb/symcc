@@ -1,0 +1,3 @@
+2144297 renameat2(AT_FDCWD, "/tmp/symcc-f336-trace-q0162094/active", AT_FDCWD, "/tmp/symcc-f336-trace-q0162094/retired", RENAME_NOREPLACE) = 0
+2144297 fsync(3)                        = 0
+2144297 renameat2(AT_FDCWD, "/tmp/symcc-f336-trace-q0162094/active-collision", AT_FDCWD, "/tmp/symcc-f336-trace-q0162094/retired", RENAME_NOREPLACE) = -1 EEXIST (File exists)

@@ -1,0 +1,16 @@
+schema=symcc-f382-evidence-v1
+feature=F382
+capability=bounded-exception-object-fields
+handwritten_results=7,47
+source_llvm18_results=7,47
+source_llvm17_results=7,47
+field_offsets=0,4,8
+field_values=5,19,23
+throw_requires_base=true
+dynamic_catch_gep_rejected=true
+dynamic_throw_store_rejected=true
+oob_throw_store_rejected=true
+source_pipeline=clang-O0-disable-optnone+opt-sroa-mem2reg-instcombine+explicit-export
+branch_preservation_fixture=0,66
+full_abi=false
+benchmark_claim=false

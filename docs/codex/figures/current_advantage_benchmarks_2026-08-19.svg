@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="720" viewBox="0 0 1100 720">
+  <defs>
+    <style>
+      .title { font: 700 24px Arial, sans-serif; fill: #172033; }
+      .subtitle { font: 14px Arial, sans-serif; fill: #536075; }
+      .axis { stroke: #8a93a6; stroke-width: 1; }
+      .grid { stroke: #d9dee8; stroke-width: 1; }
+      .label { font: 13px Arial, sans-serif; fill: #2b3445; }
+      .small { font: 12px Arial, sans-serif; fill: #536075; }
+      .value { font: 700 13px Arial, sans-serif; fill: #172033; }
+      .panel { fill: #ffffff; stroke: #d7deea; stroke-width: 1; rx: 8; }
+    </style>
+  </defs>
+
+  <rect width="1100" height="720" fill="#f6f8fb"/>
+  <text x="40" y="45" class="title">Current Parallel/SOTA Testcase Results</text>
+  <text x="40" y="70" class="subtitle">Measured on 2026-08-19, edge coverage by afl-showmap, 45s pcre2 / 20s synthetic campaign budgets.</text>
+
+  <rect x="40" y="105" width="1020" height="255" class="panel"/>
+  <text x="65" y="138" class="title" font-size="20">Synthetic parallel scaling: MPI symbolic workers</text>
+  <text x="65" y="160" class="subtitle">Mean of 3 rounds. Coverage rises from 128 to 163 edges as np grows from 2 to 16.</text>
+
+  <line x1="120" y1="315" x2="1010" y2="315" class="axis"/>
+  <line x1="120" y1="190" x2="120" y2="315" class="axis"/>
+  <line x1="120" y1="260" x2="1010" y2="260" class="grid"/>
+  <line x1="120" y1="205" x2="1010" y2="205" class="grid"/>
+  <text x="77" y="319" class="small">0%</text>
+  <text x="72" y="264" class="small">10%</text>
+  <text x="72" y="209" class="small">20%</text>
+
+  <rect x="185" y="223.3" width="105" height="91.7" fill="#4d7cff"/>
+  <rect x="375" y="218.3" width="105" height="96.7" fill="#4d7cff"/>
+  <rect x="565" y="205.7" width="105" height="109.3" fill="#4d7cff"/>
+  <rect x="755" y="198.5" width="105" height="116.5" fill="#4d7cff"/>
+  <text x="196" y="214" class="value">16.67%</text>
+  <text x="386" y="209" class="value">17.58%</text>
+  <text x="576" y="197" class="value">19.88%</text>
+  <text x="766" y="190" class="value">21.18%</text>
+  <text x="205" y="338" class="label">np=2</text>
+  <text x="395" y="338" class="label">np=4</text>
+  <text x="585" y="338" class="label">np=8</text>
+  <text x="772" y="338" class="label">np=16</text>
+
+  <rect x="40" y="395" width="1020" height="285" class="panel"/>
+  <text x="65" y="428" class="title" font-size="20">pcre2: SOTA orchestration tuning and baselines</text>
+  <text x="65" y="450" class="subtitle">Mean of 3 rounds except the explicit single-round data-coverage ablation note in the document.</text>
+
+  <line x1="120" y1="635" x2="1010" y2="635" class="axis"/>
+  <line x1="120" y1="485" x2="120" y2="635" class="axis"/>
+  <line x1="120" y1="575" x2="1010" y2="575" class="grid"/>
+  <line x1="120" y1="515" x2="1010" y2="515" class="grid"/>
+  <text x="77" y="639" class="small">0%</text>
+  <text x="72" y="579" class="small">25%</text>
+  <text x="72" y="519" class="small">50%</text>
+
+  <rect x="170" y="531.4" width="115" height="103.6" fill="#ef7b45"/>
+  <rect x="365" y="493.9" width="115" height="141.1" fill="#7c8da6"/>
+  <rect x="560" y="484.4" width="115" height="150.6" fill="#2aa876"/>
+  <rect x="755" y="483.3" width="115" height="151.7" fill="#4d7cff"/>
+  <text x="178" y="522" class="value">34.52%</text>
+  <text x="373" y="485" class="value">47.01%</text>
+  <text x="568" y="476" class="value">50.20%</text>
+  <text x="763" y="475" class="value">50.56%</text>
+  <text x="146" y="658" class="label">old adaptive</text>
+  <text x="361" y="658" class="label">legacy hybrid</text>
+  <text x="546" y="658" class="label">tuned adaptive</text>
+  <text x="756" y="658" class="label">AFL-only</text>
+  <text x="146" y="674" class="small">data map forced</text>
+  <text x="351" y="674" class="small">1 AFL + 14 SymCC</text>
+  <text x="529" y="674" class="small">7 AFL + 8 SymCC</text>
+  <text x="750" y="674" class="small">16 AFL instances</text>
+</svg>

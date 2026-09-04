@@ -1,0 +1,79 @@
+{
+  "all_checks_passed": true,
+  "capability": {
+    "advisory_lock_exclusion": true,
+    "advisory_lock_release": true,
+    "cluster_lock_contention_checks": 0,
+    "cluster_lock_members": [
+      {
+        "processor": "cuda-ke",
+        "rank": 0
+      },
+      {
+        "processor": "cuda-ke",
+        "rank": 1
+      }
+    ],
+    "cluster_lock_release_checks": 0,
+    "cluster_lock_representatives": [
+      0
+    ],
+    "cluster_lock_rounds": 0,
+    "cluster_lock_verified": false,
+    "cross_directory_replace": true,
+    "device": 92,
+    "directory_fsync": true,
+    "distributed_filesystem": false,
+    "durable_unlink": true,
+    "file_fsync": true,
+    "filesystem_id": 18395215968828387670,
+    "filesystem_type": "overlay",
+    "hard_link": true,
+    "mount_point": "/",
+    "mount_source": "overlay",
+    "probe_scope": "same-host-subprocess-v1",
+    "publication_device": 92,
+    "publication_filesystem_id": 18395215968828387670,
+    "publication_replace": true,
+    "publication_root": "/tmp/symcc-f329-mpi-4xofc58c/out",
+    "root": "/tmp/symcc-f329-mpi-4xofc58c/out/.standalone-work-15cb38dd23ed228bf65257c28e7c4329df62c84c56608292a6aa63318caa37ae",
+    "same_directory_replace": true,
+    "schema": "symcc-shared-filesystem-capabilities-v1"
+  },
+  "checks": {
+    "all_workers_acknowledged": true,
+    "cluster_not_claimed": true,
+    "epoch_state_cleaned": true,
+    "exit_zero": true,
+    "membership_observed": true,
+    "same_host_scope": true,
+    "seed_published": true,
+    "two_masters": true,
+    "zero_cross_host_rounds": true
+  },
+  "command": [
+    "mpirun",
+    "--oversubscribe",
+    "-np",
+    "7",
+    "python3",
+    "/home/ubuntu/code/symcc/util/mpi_concolic_execution.py",
+    "-i",
+    "/tmp/symcc-f329-mpi-4xofc58c/in",
+    "-o",
+    "/tmp/symcc-f329-mpi-4xofc58c/out",
+    "-t",
+    "1",
+    "--max-idle",
+    "1",
+    "--wall-timeout",
+    "4",
+    "--workers-per-master",
+    "3",
+    "--simulate",
+    "--",
+    "/bin/true"
+  ],
+  "returncode": 0,
+  "schema": "symcc-f329-same-host-mpi-v1"
+}

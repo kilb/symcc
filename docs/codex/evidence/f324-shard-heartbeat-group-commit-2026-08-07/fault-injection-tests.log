@@ -1,0 +1,17 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /home/ubuntu/venv/symcc/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/ubuntu/code/symcc
+collecting ... collected 9 items
+
+test/test_distributed_state.py::DurableFilesystemTests::test_directory_sync_batch_rejects_cross_directory_replace PASSED [ 11%]
+test/test_distributed_state.py::FencedWorkLeaseTableTests::test_heartbeat_many_syncs_each_affected_shard_once PASSED [ 22%]
+test/test_distributed_state.py::FencedWorkLeaseTableTests::test_heartbeat_many_flushes_published_prefix_after_later_failure PASSED [ 33%]
+test/test_distributed_state.py::FencedWorkLeaseTableTests::test_heartbeat_many_directory_failure_is_not_acknowledged PASSED [ 44%]
+test/test_distributed_state.py::FencedWorkLeaseTableTests::test_heartbeat_many_classifies_stale_tokens_without_extra_sync PASSED [ 55%]
+test/test_distributed_state.py::FencedTargetLeaseTableTests::test_target_group_heartbeat_syncs_each_affected_shard_once PASSED [ 66%]
+test/test_distributed_state.py::FencedTargetLeaseTableTests::test_target_group_rejects_nonfinite_time_and_corrupt_state PASSED [ 77%]
+test/test_mpi_lifecycle.py::MpiLifecycleTests::test_shared_work_coordinator_batches_heartbeats_and_tracks_failures PASSED [ 88%]
+test/test_afl_profile_orchestration.py::AflProfileOrchestrationTests::test_shared_heartbeat_uses_one_work_lease_batch PASSED [100%]
+
+============================== 9 passed in 0.67s ===============================

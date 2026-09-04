@@ -1,0 +1,10 @@
+F436 final static and structural checks (2026-08-18)
+
+python3 -m py_compile on all F436-touched Python modules/tests/oracles: passed
+python3 -m ruff check on all F436-touched Python modules/tests/oracles: passed
+clang++ -std=c++17 -Wall -Wextra -Werror -fsyntax-only util/qfbv_cadical_realtime.cpp: passed
+bash -n benchmark/install_cadical_3_0_1.sh: passed
+docs/generate_current_technology_index.py --check: passed
+SVG XML parse and PNG 1600x980 dimension check: passed
+git diff --check: passed
+ASan/UBSan 32-case native oracle: passed with no sanitizer diagnostic

@@ -1,0 +1,26 @@
+F420 primary-source positioning, 2026-08-17
+
+LLVM Language Reference:
+  https://llvm.org/docs/LangRef.html
+  Relevance: exact icmp/select semantics and nuw/nsw poison behavior.
+  Boundary: F420 accepts only six equality/unsigned scalar predicates and
+  ordinary modular add/mul; it is not a general LLVM expression normalizer.
+
+Automatic Partial Loop Summarization in Dynamic Test Generation:
+  https://www.microsoft.com/en-us/research/publication/automatic-partial-loop-summarization-in-dynamic-test-generation/
+  Relevance: derives useful partial summaries from loop guards and induction.
+  Boundary: F420 uses a statically finite two-level instance domain and does
+  not reproduce SAGE's dynamic hypothesis-and-validation algorithm.
+
+LoopSCC:
+  https://arxiv.org/abs/2411.02863
+  Relevance: inside-out composition of summaries for complex loops.
+  Boundary: F420 handles one direct select at a writer, not general SCC,
+  oscillatory-interval, or multi-branch loop interpretation.
+
+Verified Multi-Abstraction Summaries:
+  https://arxiv.org/abs/2506.09550
+  Relevance: separates summary generation from validation.
+  Boundary: F420 is bounded structural reconstruction with an independent
+  consumer, not a reproduction of the complete formally verified system.
+

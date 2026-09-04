@@ -1,0 +1,17 @@
+date_utc=2026-08-15T15:51:49Z
+kernel=Linux 7.0.0-28-generic x86_64
+python=3.12.3
+cpu=AMD Ryzen Threadripper PRO 9995WX 96-Cores
+logical_cpus=192
+llvm17=17.0.6
+llvm18=18.1.3
+pytest=pytest 9.1.1
+z3=4.8.12
+paper_title=Path-optimal symbolic execution of heap-manipulating programs
+authors=Pietro Braione; Giovanni Denaro; Luca Guglielmo
+venue=SANER 2026 Research Track
+arxiv=https://arxiv.org/abs/2407.16827
+llvm_langref=https://llvm.org/docs/LangRef.html
+llvm_memoryssa=https://llvm.org/docs/MemorySSA.html
+implementation_scope=finite ordinary C heap alternatives collectively initialized by dominating scalar stores
+claim_boundary=mechanism only; no complete POSE/MemorySSA, public coverage, solver-throughput, bug-yield, or end-to-end speedup claim

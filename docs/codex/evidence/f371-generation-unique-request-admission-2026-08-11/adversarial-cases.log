@@ -1,0 +1,27 @@
+$ PYTHONDONTWRITEBYTECODE=1 python3 docs/codex/evidence/f371-generation-unique-request-admission-2026-08-11/run_same_id_retry_checks.py
+{
+  "all_checks_passed": true,
+  "bounded_history_rotates_generation": true,
+  "compatibility": {
+    "distinct_ids_reuse_generation": true,
+    "preflight_does_not_admit_or_rotate": true
+  },
+  "counterfactual_without_f371": {
+    "first_assignment": 11,
+    "same_generation": true,
+    "second_assignment": 22,
+    "stale_duplicate_accepted": true,
+    "startup_count": 1
+  },
+  "production_f371": {
+    "first_assignment": 11,
+    "fresh_response_admitted": true,
+    "generation_rotated": true,
+    "second_assignment": 11,
+    "startup_count": 2
+  },
+  "schema": "symcc-f371-generation-unique-request-admission-evidence-v1"
+}
+f371-generation-admission: PASS
+consecutive_byte_identical=true
+2bdd7cb0b3975b2e1bc51358255c9797bce3c156d826bb505d0d49ec934d4cb8  docs/codex/evidence/f371-generation-unique-request-admission-2026-08-11/adversarial-cases.json

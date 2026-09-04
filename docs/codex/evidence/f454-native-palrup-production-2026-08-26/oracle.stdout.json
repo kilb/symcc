@@ -1,0 +1,354 @@
+{
+  "checker_source_commit": "d9382fb4b0acf094034ee91e2ed0a22b1b479c1d",
+  "checker_tool_sha256": {
+    "palrup_confirm": "4a7501b3cde76d2e40cfe9e417275dd3f1e8f9d9b78f87e8575a755ac889cc72",
+    "palrup_local_check": "5359913eb4b8430a766ce383e0da1cb69238aa9f1c36de15afc6b3a616c182ee",
+    "palrup_redistribute": "9005b1290069681b50d4fd4564239a1a799287b01d199162ba67c3147a2d4494"
+  },
+  "claim_boundary": "native clause-sharing production and official global-confirmation mechanism oracle; not a SAT speedup, fuzzing coverage, or multi-node scaling claim",
+  "elapsed_us": 62816676,
+  "formula": {
+    "clauses": 549,
+    "name": "pigeonhole-9-8",
+    "sha256": "0f3f045f85edcacc00e39a0b146a7b2d8b1b8aacb95d660204ee60e56215630e",
+    "variables": 72
+  },
+  "helper_sha256": "f48f12e9000a8ad49db19ddee71d0dda95ece56eae31bb4332a382195fcf0e55",
+  "maximum_shared_clause_length": 32,
+  "producer_library_sha256": "ddb4e80dff4fe3532d7a745c566cd9d7b5b1165ad39e82579255bd2c4ee99aad",
+  "producer_source_commit": "be7a0f84190b3216c589696b2010e8cbf8a8252e",
+  "queue_capacity_clauses": 65536,
+  "result_sha256": "f1192d934003e2af0463eb7f28c7a7cf1b42b820f9f9d6e3767a751196992896",
+  "rounds": 3,
+  "samples": [
+    {
+      "clause_sharing_active": false,
+      "conflicts": 34150,
+      "delivered": 0,
+      "dropped": 0,
+      "empty_clauses": 1,
+      "exported": 37909,
+      "fragment_bytes": 2286908,
+      "fragment_directives": 52986,
+      "imported": 0,
+      "native_worker_elapsed_us": [
+        241370
+      ],
+      "official_phase_elapsed_us": {
+        "confirm": 9667,
+        "local_check": 22479,
+        "redistribute": 1351
+      },
+      "official_receipt_sha256": "e03fbc7edc148bddff196b44ca80c005a534f7199332f478e25207e3f10adad5",
+      "pending": 0,
+      "pool_elapsed_us": 264280,
+      "receipt_sha256": "9935aaa811b78b62f073e315df9545b34cdb0fb79c10b5624563b45e8ca5f059",
+      "solver_count": 1,
+      "trial": 0,
+      "unsat_witness_ranks": [
+        0
+      ],
+      "wall_elapsed_us": 3189597
+    },
+    {
+      "clause_sharing_active": false,
+      "conflicts": 34150,
+      "delivered": 0,
+      "dropped": 0,
+      "empty_clauses": 1,
+      "exported": 37909,
+      "fragment_bytes": 2286908,
+      "fragment_directives": 52986,
+      "imported": 0,
+      "native_worker_elapsed_us": [
+        233487
+      ],
+      "official_phase_elapsed_us": {
+        "confirm": 8844,
+        "local_check": 20336,
+        "redistribute": 1223
+      },
+      "official_receipt_sha256": "06e944e7ad453b90462190003b88f1d9226482d4f301db76f7fe870ec1939b5c",
+      "pending": 0,
+      "pool_elapsed_us": 255505,
+      "receipt_sha256": "d20d42d8cd3c45d76f9e3d04baa9206beffb8f883ef8511bf0eb627ccc44c27a",
+      "solver_count": 1,
+      "trial": 1,
+      "unsat_witness_ranks": [
+        0
+      ],
+      "wall_elapsed_us": 3218315
+    },
+    {
+      "clause_sharing_active": false,
+      "conflicts": 34150,
+      "delivered": 0,
+      "dropped": 0,
+      "empty_clauses": 1,
+      "exported": 37909,
+      "fragment_bytes": 2286908,
+      "fragment_directives": 52986,
+      "imported": 0,
+      "native_worker_elapsed_us": [
+        241017
+      ],
+      "official_phase_elapsed_us": {
+        "confirm": 8966,
+        "local_check": 22078,
+        "redistribute": 1467
+      },
+      "official_receipt_sha256": "28f3fa080272d3c436f6259533dbe2632308ee7860b3293733607eb1ee26e444",
+      "pending": 0,
+      "pool_elapsed_us": 267405,
+      "receipt_sha256": "5472e3ec9afb71a360b864c45c3c5f4c5a0bb1d78dc1f3664c96075e541cf473",
+      "solver_count": 1,
+      "trial": 2,
+      "unsat_witness_ranks": [
+        0
+      ],
+      "wall_elapsed_us": 3238409
+    },
+    {
+      "clause_sharing_active": true,
+      "conflicts": 35973,
+      "delivered": 62074,
+      "dropped": 0,
+      "empty_clauses": 2,
+      "exported": 62074,
+      "fragment_bytes": 4446286,
+      "fragment_directives": 153097,
+      "imported": 53695,
+      "native_worker_elapsed_us": [
+        198658,
+        196785
+      ],
+      "official_phase_elapsed_us": {
+        "confirm": 23505,
+        "local_check": 47759,
+        "redistribute": 11439
+      },
+      "official_receipt_sha256": "7a9eb67d6d061480d58a678304aa78a6b5c630872c881347ef6b498f15d0168f",
+      "pending": 1002,
+      "pool_elapsed_us": 222240,
+      "receipt_sha256": "85cb5a579bb297b17601a8854c7861a2dbc6a00a2d9ecd02944201fb3cf4a1a2",
+      "solver_count": 2,
+      "trial": 0,
+      "unsat_witness_ranks": [
+        1
+      ],
+      "wall_elapsed_us": 6974065
+    },
+    {
+      "clause_sharing_active": true,
+      "conflicts": 35497,
+      "delivered": 60048,
+      "dropped": 0,
+      "empty_clauses": 2,
+      "exported": 60048,
+      "fragment_bytes": 4380202,
+      "fragment_directives": 152650,
+      "imported": 56838,
+      "native_worker_elapsed_us": [
+        200494,
+        200054
+      ],
+      "official_phase_elapsed_us": {
+        "confirm": 22335,
+        "local_check": 39687,
+        "redistribute": 9609
+      },
+      "official_receipt_sha256": "42c12bc10c49e77952afbc5f97ea2246ebeb749b19e76be6a13ab9cc4acaf84b",
+      "pending": 245,
+      "pool_elapsed_us": 223966,
+      "receipt_sha256": "70aeadba1123b0b2451a801d1e24320264b9405756d299cf2d05e6a9132211d8",
+      "solver_count": 2,
+      "trial": 1,
+      "unsat_witness_ranks": [
+        0
+      ],
+      "wall_elapsed_us": 6833514
+    },
+    {
+      "clause_sharing_active": true,
+      "conflicts": 38128,
+      "delivered": 65114,
+      "dropped": 0,
+      "empty_clauses": 2,
+      "exported": 65114,
+      "fragment_bytes": 4616876,
+      "fragment_directives": 156945,
+      "imported": 52936,
+      "native_worker_elapsed_us": [
+        259841,
+        242871
+      ],
+      "official_phase_elapsed_us": {
+        "confirm": 23652,
+        "local_check": 40767,
+        "redistribute": 10606
+      },
+      "official_receipt_sha256": "5a9ec462e990febc442ee412482a1cde8aa19e139f0b5db1e27c497ddf92ab91",
+      "pending": 5958,
+      "pool_elapsed_us": 283253,
+      "receipt_sha256": "5f823c8985872b3d0a558fdac3a5bef2b499d1ccd3e38addef113e4f89ff273f",
+      "solver_count": 2,
+      "trial": 2,
+      "unsat_witness_ranks": [
+        1
+      ],
+      "wall_elapsed_us": 7047453
+    },
+    {
+      "clause_sharing_active": true,
+      "conflicts": 56423,
+      "delivered": 222684,
+      "dropped": 0,
+      "empty_clauses": 4,
+      "exported": 74228,
+      "fragment_bytes": 6807837,
+      "fragment_directives": 244638,
+      "imported": 135504,
+      "native_worker_elapsed_us": [
+        247624,
+        232082,
+        231127,
+        239526
+      ],
+      "official_phase_elapsed_us": {
+        "confirm": 31958,
+        "local_check": 66204,
+        "redistribute": 10652
+      },
+      "official_receipt_sha256": "4c6817455ea4a099102d890b85193fde88c62613a620801604bcf9374153c577",
+      "pending": 10192,
+      "pool_elapsed_us": 273198,
+      "receipt_sha256": "140c43c0e18f4ffa99812e882b914f92c4ded0d655cd438cc09f5778881360f5",
+      "solver_count": 4,
+      "trial": 0,
+      "unsat_witness_ranks": [
+        0
+      ],
+      "wall_elapsed_us": 9720894
+    },
+    {
+      "clause_sharing_active": true,
+      "conflicts": 60155,
+      "delivered": 277938,
+      "dropped": 0,
+      "empty_clauses": 4,
+      "exported": 92646,
+      "fragment_bytes": 9103337,
+      "fragment_directives": 339473,
+      "imported": 196376,
+      "native_worker_elapsed_us": [
+        243923,
+        243886,
+        249307,
+        257682
+      ],
+      "official_phase_elapsed_us": {
+        "confirm": 43238,
+        "local_check": 83089,
+        "redistribute": 13849
+      },
+      "official_receipt_sha256": "17d6b6ed25f85dfe3be7170d76978cc2068e9bb52adb08cf137e9a486ec5b205",
+      "pending": 10441,
+      "pool_elapsed_us": 286273,
+      "receipt_sha256": "d8f41eea64b8115caa4313b8216bf41269663fda7b1aa34c6379c94d7163d58f",
+      "solver_count": 4,
+      "trial": 1,
+      "unsat_witness_ranks": [
+        0
+      ],
+      "wall_elapsed_us": 12793147
+    },
+    {
+      "clause_sharing_active": true,
+      "conflicts": 62724,
+      "delivered": 244935,
+      "dropped": 0,
+      "empty_clauses": 4,
+      "exported": 81645,
+      "fragment_bytes": 7035132,
+      "fragment_directives": 244195,
+      "imported": 125168,
+      "native_worker_elapsed_us": [
+        239784,
+        236552,
+        236110,
+        236946
+      ],
+      "official_phase_elapsed_us": {
+        "confirm": 34675,
+        "local_check": 69348,
+        "redistribute": 11087
+      },
+      "official_receipt_sha256": "d63092d1eb529674a878f4c045e26f4b106297cb96907c2955a54971a3bcb864",
+      "pending": 1405,
+      "pool_elapsed_us": 266407,
+      "receipt_sha256": "746e5218ae99616685732b8cf41fbb3e6d1a566d45096d80f0048233fe1e4e8a",
+      "solver_count": 4,
+      "trial": 2,
+      "unsat_witness_ranks": [
+        3
+      ],
+      "wall_elapsed_us": 9760464
+    }
+  ],
+  "sat_negative": {
+    "diagnostic": "native PalRUP pool did not prove UNSAT",
+    "proof_root_absent": true,
+    "rejected": true
+  },
+  "schema": "symcc-f454-native-palrup-official-oracle-v1",
+  "solver_counts": [
+    1,
+    2,
+    4
+  ],
+  "status": "passed",
+  "summaries": {
+    "1": {
+      "all_clause_sharing_active": false,
+      "all_dropped_zero": true,
+      "all_fanout_conserved": true,
+      "all_officially_rechecked": true,
+      "maximum_pending": 0,
+      "median_exported": 37909,
+      "median_fragment_bytes": 2286908,
+      "median_imported": 0,
+      "median_pending": 0,
+      "median_pool_elapsed_us": 264280,
+      "median_wall_elapsed_us": 3218315,
+      "samples": 3
+    },
+    "2": {
+      "all_clause_sharing_active": true,
+      "all_dropped_zero": true,
+      "all_fanout_conserved": true,
+      "all_officially_rechecked": true,
+      "maximum_pending": 5958,
+      "median_exported": 62074,
+      "median_fragment_bytes": 4446286,
+      "median_imported": 53695,
+      "median_pending": 1002,
+      "median_pool_elapsed_us": 223966,
+      "median_wall_elapsed_us": 6974065,
+      "samples": 3
+    },
+    "4": {
+      "all_clause_sharing_active": true,
+      "all_dropped_zero": true,
+      "all_fanout_conserved": true,
+      "all_officially_rechecked": true,
+      "maximum_pending": 10441,
+      "median_exported": 81645,
+      "median_fragment_bytes": 7035132,
+      "median_imported": 135504,
+      "median_pending": 10192,
+      "median_pool_elapsed_us": 273198,
+      "median_wall_elapsed_us": 9760464,
+      "samples": 3
+    }
+  }
+}

@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#14213d" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M0,0 L11,5.5 L0,11 Z" fill="#344966"/>
+    </marker>
+    <marker id="greenArrow" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M0,0 L11,5.5 L0,11 Z" fill="#14866d"/>
+    </marker>
+    <style>
+      .title { font: 700 40px 'WenQuanYi Zen Hei', 'Noto Sans CJK SC', sans-serif; fill: #14213d; }
+      .subtitle { font: 400 20px 'WenQuanYi Zen Hei', 'Noto Sans CJK SC', sans-serif; fill: #52637a; }
+      .section { font: 700 23px 'WenQuanYi Zen Hei', 'Noto Sans CJK SC', sans-serif; fill: #14213d; }
+      .nodeTitle { font: 700 19px 'WenQuanYi Zen Hei', 'Noto Sans CJK SC', sans-serif; fill: #14213d; }
+      .body { font: 400 16px 'WenQuanYi Zen Hei', 'Noto Sans CJK SC', sans-serif; fill: #405168; }
+      .small { font: 400 14px 'WenQuanYi Zen Hei', 'Noto Sans CJK SC', sans-serif; fill: #52637a; }
+      .chip { font: 700 14px 'WenQuanYi Zen Hei', 'Noto Sans CJK SC', sans-serif; fill: #ffffff; }
+      .metric { font: 700 21px 'WenQuanYi Zen Hei', 'Noto Sans CJK SC', sans-serif; fill: #ffffff; }
+      .light { fill: #ffffff; }
+      .line { stroke: #344966; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .proof { stroke: #14866d; stroke-width: 4; fill: none; stroke-dasharray: 10 8; marker-end: url(#greenArrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1000" fill="#f5f7fb"/>
+  <rect x="0" y="0" width="1600" height="104" fill="#ffffff"/>
+  <rect x="0" y="101" width="1600" height="3" fill="#14866d"/>
+  <text x="70" y="55" class="title">F388  条件循环逐字节写者证明图</text>
+  <text x="72" y="86" class="subtitle">将多前驱 join 拆成可重放的 leaf / edge 分区，证明每个 lane 的真实 last-writer</text>
+
+  <text x="70" y="150" class="section">1  执行骨架与叶分区</text>
+  <rect x="55" y="170" width="930" height="470" rx="8" fill="#ffffff" filter="url(#shadow)"/>
+
+  <rect x="105" y="214" width="165" height="74" rx="7" fill="#e9eef5" stroke="#bdc8d8"/>
+  <text x="188" y="244" class="nodeTitle" text-anchor="middle">merge load</text>
+  <text x="188" y="269" class="small" text-anchor="middle">2-byte lane state</text>
+
+  <rect x="360" y="214" width="165" height="74" rx="7" fill="#fff4d9" stroke="#d89b22"/>
+  <text x="442" y="244" class="nodeTitle" text-anchor="middle">branch</text>
+  <text x="442" y="269" class="small" text-anchor="middle">write guard</text>
+
+  <rect x="615" y="190" width="205" height="100" rx="7" fill="#e5f5ef" stroke="#14866d" stroke-width="2"/>
+  <text x="718" y="224" class="nodeTitle" text-anchor="middle">store leaf</text>
+  <text x="718" y="250" class="body" text-anchor="middle">lane 0 = store S</text>
+  <text x="718" y="274" class="body" text-anchor="middle">lane 1 = carry</text>
+
+  <rect x="615" y="342" width="205" height="100" rx="7" fill="#fff0ea" stroke="#d96645" stroke-width="2"/>
+  <text x="718" y="376" class="nodeTitle" text-anchor="middle">carry leaf</text>
+  <text x="718" y="402" class="body" text-anchor="middle">lane 0 = carry</text>
+  <text x="718" y="426" class="body" text-anchor="middle">lane 1 = carry</text>
+
+  <rect x="850" y="265" width="90" height="100" rx="7" fill="#e9eef5" stroke="#7c8da5"/>
+  <text x="895" y="305" class="nodeTitle" text-anchor="middle">join</text>
+  <text x="895" y="331" class="small" text-anchor="middle">2 preds</text>
+
+  <path d="M270 251 L360 251" class="line"/>
+  <path d="M525 243 C565 230 580 230 615 237" class="line"/>
+  <path d="M525 260 C570 310 575 370 615 391" class="line"/>
+  <path d="M820 240 C840 250 845 275 850 294" class="line"/>
+  <path d="M820 392 C842 374 847 350 850 337" class="line"/>
+  <path d="M940 315 C970 315 970 500 895 520 C690 570 285 560 188 288" class="line"/>
+
+  <rect x="98" y="482" width="792" height="108" rx="7" fill="#14213d"/>
+  <rect x="120" y="502" width="92" height="28" rx="14" fill="#14866d"/>
+  <text x="166" y="521" class="chip" text-anchor="middle">核心变化</text>
+  <text x="120" y="553" class="body light">不再从 backedge 穿越多前驱 join 猜测写者；每个叶路径拥有独立的重放起点、停止边界和 lane 分区。</text>
+  <text x="120" y="578" class="body light">forwarded corridor 作为叶路径的一部分逐 block 回溯，而不是假设 branch 与 store 相邻。</text>
+
+  <text x="1040" y="150" class="section">2  三段证明组合</text>
+  <rect x="1025" y="170" width="520" height="470" rx="8" fill="#ffffff" filter="url(#shadow)"/>
+
+  <circle cx="1080" cy="236" r="25" fill="#14866d"/>
+  <text x="1080" y="244" class="metric" text-anchor="middle">A</text>
+  <text x="1122" y="226" class="nodeTitle">seed endpoint → root</text>
+  <text x="1122" y="253" class="body">首个覆盖写必须匹配 store ID / offset / width</text>
+  <line x1="1080" y1="265" x2="1080" y2="320" stroke="#c5ceda" stroke-width="3"/>
+
+  <circle cx="1080" cy="350" r="25" fill="#d89b22"/>
+  <text x="1080" y="358" class="metric" text-anchor="middle">B</text>
+  <text x="1122" y="340" class="nodeTitle">merge edge → join</text>
+  <text x="1122" y="367" class="body">到达 join 前不得出现覆盖 carry lane 的 store</text>
+  <line x1="1080" y1="379" x2="1080" y2="434" stroke="#c5ceda" stroke-width="3"/>
+
+  <circle cx="1080" cy="464" r="25" fill="#d96645"/>
+  <text x="1080" y="472" class="metric" text-anchor="middle">C</text>
+  <text x="1122" y="454" class="nodeTitle">leaf edge → branch</text>
+  <text x="1122" y="481" class="body">store / carry 两叶分别逆向，禁止跨叶借用写者</text>
+
+  <path d="M1490 525 C1410 575 1190 585 1085 495" class="proof"/>
+  <rect x="1070" y="545" width="420" height="58" rx="7" fill="#e5f5ef"/>
+  <text x="1280" y="570" class="nodeTitle" text-anchor="middle">组合不变量</text>
+  <text x="1280" y="593" class="small" text-anchor="middle">A ∧ B ∧ C ⇒ 每个条件路径的 lane writer 可重放</text>
+
+  <text x="70" y="700" class="section">3  Fail-closed 准入条件</text>
+  <rect x="55" y="720" width="1490" height="205" rx="8" fill="#ffffff" filter="url(#shadow)"/>
+
+  <rect x="88" y="758" width="330" height="125" rx="7" fill="#eef2f7"/>
+  <rect x="88" y="758" width="8" height="125" fill="#344966"/>
+  <text x="120" y="793" class="nodeTitle">地址闭包</text>
+  <text x="120" y="822" class="body">常量 load/store 地址</text>
+  <text x="120" y="848" class="body">逐 lane 首个覆盖关系</text>
+  <text x="120" y="874" class="small">符号地址或宽度漂移立即拒绝</text>
+
+  <rect x="448" y="758" width="330" height="125" rx="7" fill="#e5f5ef"/>
+  <rect x="448" y="758" width="8" height="125" fill="#14866d"/>
+  <text x="480" y="793" class="nodeTitle">CFG 闭包</text>
+  <text x="480" y="822" class="body">每段 ≤ 64 block</text>
+  <text x="480" y="848" class="body">内部节点唯一前驱</text>
+  <text x="480" y="874" class="small">循环、共享 corridor、多前驱均拒绝</text>
+
+  <rect x="808" y="758" width="330" height="125" rx="7" fill="#fff4d9"/>
+  <rect x="808" y="758" width="8" height="125" fill="#d89b22"/>
+  <text x="840" y="793" class="nodeTitle">能力闭包</text>
+  <text x="840" y="822" class="body">capability ⇔ writer_graph</text>
+  <text x="840" y="848" class="body">direct / forwarded 同一合同</text>
+  <text x="840" y="874" class="small">缺失或越权 marker 均拒绝</text>
+
+  <rect x="1168" y="758" width="340" height="125" rx="7" fill="#fff0ea"/>
+  <rect x="1168" y="758" width="8" height="125" fill="#d96645"/>
+  <text x="1200" y="793" class="nodeTitle">Poison 闭包</text>
+  <text x="1200" y="822" class="body">仅图引用 store 可带 source</text>
+  <text x="1200" y="848" class="body">identity sidecar 精确同源</text>
+  <text x="1200" y="874" class="small">跨 store / 跨函数身份漂移均拒绝</text>
+
+  <text x="70" y="967" class="small">研究边界：F388 覆盖 direct 与 forwarded 二叶条件循环；multi-arm、recursive tree、符号地址与通用 MemorySSA 仍需独立证明合同。</text>
+</svg>

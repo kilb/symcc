@@ -1,0 +1,25 @@
+<?xmlsversion="1.0" encoding="UTF-8"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[<!ENTITY f "bar">]><root a="v"><c>&f;</c></root>

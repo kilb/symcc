@@ -1,0 +1,18 @@
+Primary source audit, 2026-08-26 UTC
+
+Path-Optimal Symbolic Execution of Heap-Manipulating Programs
+Pietro Braione, Giovanni Denaro, Luca Guglielmo
+arXiv:2407.16827v2 [cs.SE], 2026-01-14
+https://arxiv.org/abs/2407.16827
+PDF pages=18
+PDF sha256=5a4137d0b06ad021ef08c653ee43339d158b44d197093f7766f626aa4ca3c9a7
+
+Source facts used by the local oracle:
+- path optimality forks analysis traces only at program decision points;
+- alias/fresh effects are represented by ITE expressions rather than heap-choice traces;
+- motivating examples report lazy-initialization trace counts 21 (swap),
+  23 (sum), and 78 (bounded list with max=10).
+
+Boundary: F456 is a bounded C-layout adaptation. The paper artifact and its
+reported Java-bytecode performance are not local results. The sealed local
+oracle checks concrete finite-domain equivalence and CFG path counts only.

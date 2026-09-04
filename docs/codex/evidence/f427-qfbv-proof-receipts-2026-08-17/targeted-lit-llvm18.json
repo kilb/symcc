@@ -1,0 +1,16 @@
+{
+  "__version__": [
+    18,
+    1,
+    8
+  ],
+  "elapsed": 6.992041826248169,
+  "tests": [
+    {
+      "code": "PASS",
+      "elapsed": 6.983030557632446,
+      "name": "compiler :: test_qfbv_proof_receipt.py",
+      "output": "Exit Code: 0\n\nCommand Output (stdout):\n--\n# RUN: at line 2\npython3 /home/ubuntu/code/symcc/test/test_qfbv_proof_receipt.py\n# executed command: python3 /home/ubuntu/code/symcc/test/test_qfbv_proof_receipt.py\n# .---command stderr------------\n# | ..............\n# | ----------------------------------------------------------------------\n# | Ran 14 tests in 6.906s\n# | \n# | OK\n# `-----------------------------\n\n--\n"
+    }
+  ]
+}

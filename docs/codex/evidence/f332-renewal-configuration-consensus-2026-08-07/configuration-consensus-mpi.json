@@ -1,0 +1,163 @@
+{
+  "actual_mpi_transport": true,
+  "actual_multi_host": false,
+  "all_checks_passed": true,
+  "checks": {
+    "drift_detected_on_both_masters": true,
+    "drift_detection_is_bounded": true,
+    "drift_exits_fail_closed": true,
+    "drift_never_attempts_renewal": true,
+    "drift_never_reaches_consensus": true,
+    "drift_workers_acknowledge_before_abort": true,
+    "healthy_exact_consensus_fingerprint": true,
+    "healthy_exit_zero": true,
+    "healthy_runtime_renewal_progresses": true,
+    "healthy_workers_acknowledge": true
+  },
+  "configuration": {
+    "injected_peer_jitter_fraction": 0.25,
+    "interval": 0.12,
+    "masters": 2,
+    "ranks": 7,
+    "root_jitter_fraction": 0.1,
+    "work_epoch": "f332f332f332f332f332f332f332f332f332f332f332f332f332f332f332f332",
+    "workers": 5
+  },
+  "deployment_evidence": false,
+  "drift": {
+    "command": [
+      "mpirun",
+      "--oversubscribe",
+      "-np",
+      "7",
+      "python3",
+      "/tmp/symcc-f332-config-mpi-p36yefz2/configuration_consensus_wrapper.py",
+      "-i",
+      "/tmp/symcc-f332-config-mpi-p36yefz2/drift-input",
+      "-o",
+      "/tmp/symcc-f332-config-mpi-p36yefz2/drift-output",
+      "-t",
+      "1",
+      "--max-idle",
+      "10",
+      "--wall-timeout",
+      "3",
+      "--workers-per-master",
+      "3",
+      "--simulate",
+      "--",
+      "/bin/true"
+    ],
+    "consensus_fingerprints": [],
+    "elapsed": 0.9124025641940534,
+    "mismatch_summaries": [
+      "cluster lock renewal configuration mismatch (0:776bc9da6db7,1:3e11b750f0d7)",
+      "cluster lock renewal configuration mismatch (0:776bc9da6db7,1:3e11b750f0d7)",
+      "cluster lock renewal configuration mismatch (0:776bc9da6db7,1:3e11b750f0d7)",
+      "cluster lock renewal configuration mismatch (0:776bc9da6db7,1:3e11b750f0d7)"
+    ],
+    "renewal_metrics": [
+      {
+        "attempts": 0,
+        "failures": 0,
+        "generation": 0,
+        "in_flight_generation": 0,
+        "interval": 0.12,
+        "jitter_fraction": 0.1,
+        "last_elapsed": 0.0,
+        "last_scheduled_interval": 0.0,
+        "maximum_interval": 0.132,
+        "next_scheduled_interval": 0.12869066615001992,
+        "schema": "symcc-cluster-lock-renewal-metrics-v2",
+        "successes": 0,
+        "timeout": 0.4,
+        "total_elapsed": 0.0
+      },
+      {
+        "attempts": 0,
+        "failures": 0,
+        "generation": 0,
+        "in_flight_generation": 0,
+        "interval": 0.12,
+        "jitter_fraction": 0.25,
+        "last_elapsed": 0.0,
+        "last_scheduled_interval": 0.0,
+        "maximum_interval": 0.15,
+        "next_scheduled_interval": 0.14172666537504985,
+        "schema": "symcc-cluster-lock-renewal-metrics-v2",
+        "successes": 0,
+        "timeout": 0.4,
+        "total_elapsed": 0.0
+      }
+    ],
+    "returncode": 70
+  },
+  "healthy": {
+    "command": [
+      "mpirun",
+      "--oversubscribe",
+      "-np",
+      "7",
+      "python3",
+      "/tmp/symcc-f332-config-mpi-p36yefz2/configuration_consensus_wrapper.py",
+      "-i",
+      "/tmp/symcc-f332-config-mpi-p36yefz2/healthy-input",
+      "-o",
+      "/tmp/symcc-f332-config-mpi-p36yefz2/healthy-output",
+      "-t",
+      "1",
+      "--max-idle",
+      "10",
+      "--wall-timeout",
+      "3",
+      "--workers-per-master",
+      "3",
+      "--simulate",
+      "--",
+      "/bin/true"
+    ],
+    "consensus_fingerprints": [
+      "776bc9da6db7e0bc761c601280a75eee31c1bc3ee392aa759e2b9b4288ac9a94"
+    ],
+    "elapsed": 3.9781698149163276,
+    "mismatch_summaries": [],
+    "renewal_metrics": [
+      {
+        "attempts": 3,
+        "failures": 0,
+        "generation": 3,
+        "in_flight_generation": 0,
+        "interval": 0.12,
+        "jitter_fraction": 0.1,
+        "last_elapsed": 0.365988943958655,
+        "last_scheduled_interval": 0.12776521347694228,
+        "maximum_interval": 0.132,
+        "next_scheduled_interval": 0.12225121000883078,
+        "schema": "symcc-cluster-lock-renewal-metrics-v2",
+        "successes": 3,
+        "timeout": 0.4,
+        "total_elapsed": 1.0483600471634418
+      },
+      {
+        "attempts": 3,
+        "failures": 0,
+        "generation": 3,
+        "in_flight_generation": 0,
+        "interval": 0.12,
+        "jitter_fraction": 0.1,
+        "last_elapsed": 0.35435845400206745,
+        "last_scheduled_interval": 0.12776521347694228,
+        "maximum_interval": 0.132,
+        "next_scheduled_interval": 0.12225121000883078,
+        "schema": "symcc-cluster-lock-renewal-metrics-v2",
+        "successes": 3,
+        "timeout": 0.4,
+        "total_elapsed": 1.0324589170049876
+      }
+    ],
+    "returncode": 0
+  },
+  "proof_boundary": "One physical host with test-only processor/configuration injection proves production MPI protocol wiring and fail-closed drift detection, not remote filesystem semantics.",
+  "schema": "symcc-f332-renewal-configuration-consensus-mpi-v1",
+  "synthetic_topology": true
+}

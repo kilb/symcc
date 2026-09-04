@@ -1,0 +1,34 @@
+{
+  "all_checks_passed": true,
+  "checks": {
+    "cached_corruption_is_repaired": true,
+    "continuation_graph_round_trip_exact": true,
+    "exact_competing_writer_converges": true,
+    "exact_symlink_read_is_rejected_without_follow": true,
+    "json_layout_is_compatible_and_regular": true,
+    "path_replacement_during_read_is_rejected": true,
+    "preexisting_exact_symlink_is_replaced_not_followed": true,
+    "temporary_publication_names_are_cleaned": true
+  },
+  "configuration": {
+    "object_suffix": ".json",
+    "page_size": 64,
+    "source": "real regular files and symlinks with deterministic publication/read fault injection"
+  },
+  "observations": {
+    "checkpoint_id": "5327e28fa296a5b70d5bba1e88531854a4121dc0b50a80e76061780f46dc3e3c",
+    "competitor_fallback_hashes": 1,
+    "failed_read_identity_caches": {
+      "path_replacement": [],
+      "symlink": []
+    },
+    "graph_object_count": 6,
+    "graph_object_suffixes": [
+      ".json"
+    ],
+    "repair_fallback_hashes": 1,
+    "temporary_residue": []
+  },
+  "proof_boundary": "This local mechanism integration exercises production live-state and CAS primitives. It does not execute MPI, a target, afl-showmap, a symbolic solver, or a fuzzing campaign, and makes no throughput, coverage, bug-discovery, or LAVA-M uplift claim.",
+  "schema": "symcc-f347-unified-live-state-cas-v1"
+}

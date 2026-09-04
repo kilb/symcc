@@ -1,0 +1,36 @@
+Research verification date: 2026-08-16 UTC
+
+Compositional Dynamic Test Generation / SMART, POPL 2007
+https://patricegodefroid.github.io/public_psfiles/popl2007.pdf
+Verified direction: reusable function summaries encode path behavior and are
+composed at callers. F409 adopts only the callsite-instantiated effect principle.
+
+Demand-Driven Compositional Symbolic Execution, MSR-TR-2007-138
+https://www.microsoft.com/en-us/research/publication/demand-driven-compositional-symbolic-execution/
+Verified direction: interprocedural symbolic reasoning can compose only the
+function paths required by a target instead of eagerly inlining all paths.
+
+LLVM MemorySSA official documentation
+https://llvm.org/docs/MemorySSA.html
+Verified facts: MemorySSA is intraprocedural; MemoryUse/MemoryDef represent
+memory accesses and the defining-access chain is interpreted with alias analysis.
+
+LLVM Alias Analysis Infrastructure official documentation
+https://llvm.org/docs/AliasAnalysis.html
+Verified facts: alias and ModRef results are conservative. F409 skips a store
+only for a static-disjoint proof or NoAlias, and skips a supported call only
+when ModRef has no Mod bit.
+
+LLVM Language Reference: function memory effects
+https://llvm.org/docs/LangRef.html#function-attributes
+Verified fact: LLVM exposes memory-effect attributes used by the active
+analysis stack; F409 does not trust source-level purity guesses.
+
+POSE: Path-optimal symbolic execution of heap-manipulating programs
+https://arxiv.org/abs/2407.16827
+Verified direction: avoid alias-choice forks that are not control-flow choices.
+F409 adopts only this direction for a finite direct-call heap interval.
+
+Boundary: F409 does not claim complete SMART, general compositional symbolic
+execution, interprocedural MemorySSA, recursion/fixed points, full POSE, or
+performance results from any cited system.

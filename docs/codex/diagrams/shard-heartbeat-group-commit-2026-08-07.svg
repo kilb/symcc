@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1180" viewBox="0 0 1900 1180" role="img" aria-labelledby="title desc">
+  <title id="title">F324 shard-level durable heartbeat group commit</title>
+  <desc id="desc">Active lease records retain individual file fsync and rename, while directory barriers are de-duplicated once per affected shard with failure-closed completion.</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#102a43" flood-opacity="0.16"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#16835b"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#c2413a"/>
+    </marker>
+    <style>
+      text { font-family: "WenQuanYi Zen Hei", "Unifont", Arial, sans-serif; fill: #172b3a; letter-spacing: 0; }
+      .title { font-size: 38px; font-weight: 700; }
+      .subtitle { font-size: 20px; fill: #526575; }
+      .band { font-size: 22px; font-weight: 700; }
+      .head { font-size: 21px; font-weight: 700; }
+      .body { font-size: 18px; }
+      .small { font-size: 16px; fill: #526575; }
+      .metric { font-size: 25px; font-weight: 700; }
+      .mono { font-family: "DejaVu Sans Mono", monospace; font-size: 17px; }
+      .light { fill: #ffffff; }
+      .light-muted { fill: #dbe7ef; }
+      .light-accent { fill: #9bd8bc; }
+    </style>
+  </defs>
+
+  <rect width="1900" height="1180" fill="#f5f8fa"/>
+  <rect x="0" y="0" width="1900" height="112" fill="#17324d"/>
+  <text x="70" y="58" class="title light">F324 分片级租约心跳 Group Commit</text>
+  <text x="70" y="91" class="subtitle light-muted">逐 record 内容持久化不变，目录屏障由 N 次降为实际命中的 K 个 shard</text>
+
+  <rect x="55" y="142" width="440" height="835" rx="8" fill="#ffffff" stroke="#c7d4dd" filter="url(#shadow)"/>
+  <rect x="55" y="142" width="440" height="58" rx="8" fill="#e7f0ff"/>
+  <rect x="55" y="192" width="440" height="8" fill="#e7f0ff"/>
+  <text x="83" y="179" class="band">1  自然 Heartbeat 批次</text>
+
+  <rect x="88" y="232" width="374" height="82" rx="7" fill="#f8fbfd" stroke="#8ba6b9"/>
+  <text x="112" y="264" class="head">Master token 快照</text>
+  <text x="112" y="293" class="mono">{ work_hash : fence_token }</text>
+  <line x1="275" y1="314" x2="275" y2="354" stroke="#2563eb" stroke-width="4" marker-end="url(#arrow-blue)"/>
+
+  <rect x="88" y="362" width="374" height="100" rx="7" fill="#fff8e8" stroke="#d79b22"/>
+  <text x="112" y="395" class="head">校验并确定性排序</text>
+  <text x="112" y="426" class="body">valid ID/token</text>
+  <text x="112" y="450" class="mono">sort(shard, work_id)</text>
+
+  <text x="88" y="510" class="head">活动记录（示例 N = 8）</text>
+  <g transform="translate(88,535)">
+    <rect x="0" y="0" width="176" height="62" rx="6" fill="#e7f0ff" stroke="#4d7bb8"/>
+    <text x="18" y="27" class="body">r1  → shard A</text><text x="18" y="50" class="small">current token</text>
+    <rect x="198" y="0" width="176" height="62" rx="6" fill="#e7f0ff" stroke="#4d7bb8"/>
+    <text x="216" y="27" class="body">r2  → shard A</text><text x="216" y="50" class="small">current token</text>
+    <rect x="0" y="82" width="176" height="62" rx="6" fill="#e7f0ff" stroke="#4d7bb8"/>
+    <text x="18" y="109" class="body">r3  → shard B</text><text x="18" y="132" class="small">current token</text>
+    <rect x="198" y="82" width="176" height="62" rx="6" fill="#fbe9e7" stroke="#c2413a"/>
+    <text x="216" y="109" class="body">r4  → lost</text><text x="216" y="132" class="small">stale token</text>
+    <rect x="0" y="164" width="176" height="62" rx="6" fill="#e7f0ff" stroke="#4d7bb8"/>
+    <text x="18" y="191" class="body">r5  → shard A</text><text x="18" y="214" class="small">current token</text>
+    <rect x="198" y="164" width="176" height="62" rx="6" fill="#e7f0ff" stroke="#4d7bb8"/>
+    <text x="216" y="191" class="body">r6  → shard C</text><text x="216" y="214" class="small">current token</text>
+    <rect x="0" y="246" width="176" height="62" rx="6" fill="#e7f0ff" stroke="#4d7bb8"/>
+    <text x="18" y="273" class="body">r7  → shard B</text><text x="18" y="296" class="small">current token</text>
+    <rect x="198" y="246" width="176" height="62" rx="6" fill="#e7f0ff" stroke="#4d7bb8"/>
+    <text x="216" y="273" class="body">r8  → shard C</text><text x="216" y="296" class="small">current token</text>
+  </g>
+  <rect x="88" y="878" width="374" height="64" rx="7" fill="#eef7f2" stroke="#16835b"/>
+  <text x="112" y="906" class="body">不增加等待窗口</text>
+  <text x="112" y="931" class="small">直接复用调度器已有 heartbeat snapshot</text>
+
+  <line x1="495" y1="555" x2="555" y2="555" stroke="#2563eb" stroke-width="5" marker-end="url(#arrow-blue)"/>
+
+  <rect x="563" y="142" width="735" height="835" rx="8" fill="#ffffff" stroke="#c7d4dd" filter="url(#shadow)"/>
+  <rect x="563" y="142" width="735" height="58" rx="8" fill="#eaf6f0"/>
+  <rect x="563" y="192" width="735" height="8" fill="#eaf6f0"/>
+  <text x="591" y="179" class="band">2  每条 Record 独立提交，目录屏障按 Shard 合并</text>
+
+  <g transform="translate(602,236)">
+    <rect x="0" y="0" width="260" height="165" rx="8" fill="#f8fbfd" stroke="#4d7bb8"/>
+    <text x="22" y="34" class="head">Record r1 / r2 / r5</text>
+    <text x="22" y="68" class="body">① exact-record lock</text>
+    <text x="22" y="97" class="body">② schema + token 验证</text>
+    <text x="22" y="126" class="body">③ write + file fsync</text>
+    <text x="22" y="155" class="body">④ same-dir rename</text>
+    <line x1="260" y1="83" x2="325" y2="83" stroke="#16835b" stroke-width="4" marker-end="url(#arrow-green)"/>
+    <rect x="333" y="0" width="322" height="165" rx="8" fill="#eaf6f0" stroke="#16835b"/>
+    <text x="357" y="37" class="head">Shard A pending set</text>
+    <text x="357" y="77" class="mono">{ parent_dir_A }</text>
+    <text x="357" y="117" class="body">3 次 rename</text>
+    <text x="357" y="147" class="metric" fill="#16835b">1 × fsync(dir A)</text>
+  </g>
+
+  <g transform="translate(602,430)">
+    <rect x="0" y="0" width="260" height="134" rx="8" fill="#f8fbfd" stroke="#4d7bb8"/>
+    <text x="22" y="34" class="head">Record r3 / r7</text>
+    <text x="22" y="71" class="body">各自 file fsync</text>
+    <text x="22" y="104" class="body">各自 atomic rename</text>
+    <line x1="260" y1="67" x2="325" y2="67" stroke="#16835b" stroke-width="4" marker-end="url(#arrow-green)"/>
+    <rect x="333" y="0" width="322" height="134" rx="8" fill="#eaf6f0" stroke="#16835b"/>
+    <text x="357" y="37" class="head">Shard B pending set</text>
+    <text x="357" y="76" class="body">2 次 rename</text>
+    <text x="357" y="109" class="metric" fill="#16835b">1 × fsync(dir B)</text>
+  </g>
+
+  <g transform="translate(602,592)">
+    <rect x="0" y="0" width="260" height="134" rx="8" fill="#f8fbfd" stroke="#4d7bb8"/>
+    <text x="22" y="34" class="head">Record r6 / r8</text>
+    <text x="22" y="71" class="body">各自 file fsync</text>
+    <text x="22" y="104" class="body">各自 atomic rename</text>
+    <line x1="260" y1="67" x2="325" y2="67" stroke="#16835b" stroke-width="4" marker-end="url(#arrow-green)"/>
+    <rect x="333" y="0" width="322" height="134" rx="8" fill="#eaf6f0" stroke="#16835b"/>
+    <text x="357" y="37" class="head">Shard C pending set</text>
+    <text x="357" y="76" class="body">2 次 rename</text>
+    <text x="357" y="109" class="metric" fill="#16835b">1 × fsync(dir C)</text>
+  </g>
+
+  <rect x="602" y="762" width="657" height="91" rx="8" fill="#fff8e8" stroke="#d79b22"/>
+  <text x="627" y="796" class="head">同目录类型边界</text>
+  <text x="627" y="828" class="body">batch 只接受 temp → final 同 parent；stage → public 继续严格 dst-first</text>
+  <rect x="602" y="877" width="657" height="65" rx="8" fill="#eef7f2" stroke="#16835b"/>
+  <text x="627" y="906" class="body">成功条件：所有 pending shard directory fsync 均返回成功</text>
+  <text x="627" y="931" class="small">示例：7 个 current records，K = 3，因此 7 次目录同步降为 3 次</text>
+
+  <line x1="1298" y1="555" x2="1358" y2="555" stroke="#16835b" stroke-width="5" marker-end="url(#arrow-green)"/>
+
+  <rect x="1366" y="142" width="479" height="835" rx="8" fill="#ffffff" stroke="#c7d4dd" filter="url(#shadow)"/>
+  <rect x="1366" y="142" width="479" height="58" rx="8" fill="#fbe9e7"/>
+  <rect x="1366" y="192" width="479" height="8" fill="#fbe9e7"/>
+  <text x="1394" y="179" class="band">3  失败关闭与可观测结果</text>
+
+  <rect x="1400" y="233" width="411" height="105" rx="8" fill="#eef7f2" stroke="#16835b"/>
+  <text x="1425" y="268" class="head">全部屏障成功</text>
+  <text x="1425" y="301" class="mono">renewed, lost, directory_syncs</text>
+  <text x="1425" y="326" class="small">协调器此时才确认 batch</text>
+
+  <rect x="1400" y="370" width="411" height="145" rx="8" fill="#fff8e8" stroke="#d79b22"/>
+  <text x="1425" y="405" class="head">第 i 条写入失败</text>
+  <text x="1425" y="440" class="body">finally 刷新已 rename 前缀</text>
+  <line x1="1425" y1="461" x2="1765" y2="461" stroke="#d79b22" stroke-width="3"/>
+  <text x="1425" y="493" class="body">随后重新抛出原始错误</text>
+
+  <rect x="1400" y="547" width="411" height="164" rx="8" fill="#fbe9e7" stroke="#c2413a"/>
+  <text x="1425" y="582" class="head">Directory fsync 失败</text>
+  <text x="1425" y="617" class="body">不返回部分成功</text>
+  <text x="1425" y="649" class="body">standalone → control failure</text>
+  <text x="1425" y="681" class="body">hybrid → 全批保守失败统计</text>
+  <line x1="1605" y1="711" x2="1605" y2="751" stroke="#c2413a" stroke-width="4" marker-end="url(#arrow-red)"/>
+
+  <rect x="1400" y="759" width="411" height="183" rx="8" fill="#f8fbfd" stroke="#8ba6b9"/>
+  <text x="1425" y="795" class="head">可恢复中间态</text>
+  <text x="1425" y="830" class="body">旧/新 timestamp 均保持：</text>
+  <text x="1425" y="862" class="mono">same id + status + token</text>
+  <text x="1425" y="895" class="body">最多提前重复执行</text>
+  <text x="1425" y="925" class="small">stale fence 仍不能提交新 owner 状态</text>
+
+  <rect x="55" y="1015" width="1790" height="116" rx="8" fill="#17324d"/>
+  <text x="84" y="1052" class="head light">实测证据</text>
+  <text x="84" y="1087" class="metric light-accent">64 records / 1 shard：64 → 1 directory sync，339.717 → 174.842 ms，1.943×</text>
+  <text x="84" y="1117" class="body light-muted">真实双 master：17 batches，67 renewals，41 syncs，避免 26 次；13/13 observations，6/6 ACK，failures=0</text>
+  <text x="1810" y="1157" text-anchor="end" class="small">I/T/E-mechanism · 不外推 coverage 或 solver 性能</text>
+</svg>

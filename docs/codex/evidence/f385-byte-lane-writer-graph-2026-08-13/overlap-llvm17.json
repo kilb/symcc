@@ -1,0 +1,436 @@
+{
+  "endianness": "little",
+  "entry": "freeze_memory_byte_lane_overwrite_composition",
+  "functions": {
+    "freeze_memory_byte_lane_overwrite_composition": {
+      "blocks": {
+        "bb0": [
+          {
+            "bits": 16,
+            "dst": "v0",
+            "left": {
+              "bits": 16,
+              "const": 32767
+            },
+            "op": "binary",
+            "operator": "add",
+            "right": {
+              "bits": 16,
+              "const": 1
+            }
+          },
+          {
+            "bits": 16,
+            "dst": "llvm_signed_left_4",
+            "left": {
+              "bits": 16,
+              "const": 32767
+            },
+            "op": "binary",
+            "operator": "lshr",
+            "right": {
+              "bits": 16,
+              "const": 15
+            }
+          },
+          {
+            "bits": 16,
+            "dst": "llvm_signed_right_5",
+            "left": {
+              "bits": 16,
+              "const": 1
+            },
+            "op": "binary",
+            "operator": "lshr",
+            "right": {
+              "bits": 16,
+              "const": 15
+            }
+          },
+          {
+            "bits": 16,
+            "dst": "llvm_signed_result_6",
+            "left": {
+              "var": "v0"
+            },
+            "op": "binary",
+            "operator": "lshr",
+            "right": {
+              "bits": 16,
+              "const": 15
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "llvm_signed_risky_7",
+            "left": {
+              "var": "llvm_signed_left_4"
+            },
+            "op": "binary",
+            "operator": "eq",
+            "right": {
+              "var": "llvm_signed_right_5"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "llvm_signed_result_same_8",
+            "left": {
+              "var": "llvm_signed_result_6"
+            },
+            "op": "binary",
+            "operator": "eq",
+            "right": {
+              "var": "llvm_signed_left_4"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "llvm_signed_not_risky_9",
+            "op": "unary",
+            "operator": "not",
+            "value": {
+              "var": "llvm_signed_risky_7"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "llvm_signed_defined_10",
+            "left": {
+              "var": "llvm_signed_not_risky_9"
+            },
+            "op": "binary",
+            "operator": "or",
+            "right": {
+              "var": "llvm_signed_result_same_8"
+            }
+          },
+          {
+            "bits": 64,
+            "dst": "v1",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "bits": 64,
+              "const": 64
+            }
+          },
+          {
+            "address": {
+              "bits": 64,
+              "const": 64
+            },
+            "bits": 16,
+            "byte_lane_defined": "byte_lane_store_defined_1",
+            "byte_lane_poison_source": "llvm_signed_defined_10",
+            "byte_lane_store": "byte_lane_store_0",
+            "bytes": 2,
+            "op": "store",
+            "value": {
+              "var": "v0"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "byte_lane_store_defined_1",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "llvm_signed_defined_10"
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "v2",
+            "left": {
+              "bits": 8,
+              "const": 1
+            },
+            "op": "binary",
+            "operator": "add",
+            "right": {
+              "bits": 8,
+              "const": 1
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "llvm_signed_left_11",
+            "left": {
+              "bits": 8,
+              "const": 1
+            },
+            "op": "binary",
+            "operator": "lshr",
+            "right": {
+              "bits": 8,
+              "const": 7
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "llvm_signed_right_12",
+            "left": {
+              "bits": 8,
+              "const": 1
+            },
+            "op": "binary",
+            "operator": "lshr",
+            "right": {
+              "bits": 8,
+              "const": 7
+            }
+          },
+          {
+            "bits": 8,
+            "dst": "llvm_signed_result_13",
+            "left": {
+              "var": "v2"
+            },
+            "op": "binary",
+            "operator": "lshr",
+            "right": {
+              "bits": 8,
+              "const": 7
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "llvm_signed_risky_14",
+            "left": {
+              "var": "llvm_signed_left_11"
+            },
+            "op": "binary",
+            "operator": "eq",
+            "right": {
+              "var": "llvm_signed_right_12"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "llvm_signed_result_same_15",
+            "left": {
+              "var": "llvm_signed_result_13"
+            },
+            "op": "binary",
+            "operator": "eq",
+            "right": {
+              "var": "llvm_signed_left_11"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "llvm_signed_not_risky_16",
+            "op": "unary",
+            "operator": "not",
+            "value": {
+              "var": "llvm_signed_risky_14"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "llvm_signed_defined_17",
+            "left": {
+              "var": "llvm_signed_not_risky_16"
+            },
+            "op": "binary",
+            "operator": "or",
+            "right": {
+              "var": "llvm_signed_result_same_15"
+            }
+          },
+          {
+            "bits": 64,
+            "dst": "v3",
+            "left": {
+              "bits": 64,
+              "const": 64
+            },
+            "op": "binary",
+            "operator": "add",
+            "right": {
+              "bits": 64,
+              "const": 1
+            }
+          },
+          {
+            "address": {
+              "bits": 64,
+              "const": 65
+            },
+            "bits": 8,
+            "byte_lane_defined": "byte_lane_store_defined_3",
+            "byte_lane_poison_source": "llvm_signed_defined_17",
+            "byte_lane_store": "byte_lane_store_2",
+            "bytes": 1,
+            "op": "store",
+            "value": {
+              "var": "v2"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "byte_lane_store_defined_3",
+            "op": "unary",
+            "operator": "identity",
+            "value": {
+              "var": "llvm_signed_defined_17"
+            }
+          },
+          {
+            "address": {
+              "bits": 64,
+              "const": 64
+            },
+            "bits": 16,
+            "bytes": 2,
+            "dst": "v4",
+            "op": "load"
+          },
+          {
+            "bits": 1,
+            "dst": "v4__byte_defined",
+            "left": {
+              "var": "byte_lane_store_defined_1"
+            },
+            "op": "binary",
+            "operator": "and",
+            "right": {
+              "var": "byte_lane_store_defined_3"
+            }
+          },
+          {
+            "bits": 16,
+            "dst": "deferred_poison_choice_18",
+            "op": "nondet",
+            "site": "1783152452970206910"
+          },
+          {
+            "bits": 16,
+            "condition": {
+              "var": "v4__byte_defined"
+            },
+            "dst": "v5",
+            "false": {
+              "var": "deferred_poison_choice_18"
+            },
+            "op": "select",
+            "true": {
+              "var": "v4"
+            }
+          },
+          {
+            "bits": 1,
+            "dst": "v6",
+            "left": {
+              "var": "v5"
+            },
+            "op": "binary",
+            "operator": "eq",
+            "right": {
+              "bits": 16,
+              "const": 42
+            }
+          },
+          {
+            "condition": {
+              "var": "v6"
+            },
+            "false": "bb2",
+            "op": "branch",
+            "site": "16658839789649558929",
+            "true": "bb1"
+          }
+        ],
+        "bb1": [
+          {
+            "op": "return",
+            "value": {
+              "bits": 8,
+              "const": 1
+            }
+          }
+        ],
+        "bb2": [
+          {
+            "op": "return",
+            "value": {
+              "bits": 8,
+              "const": 2
+            }
+          }
+        ]
+      },
+      "byte_lane_memory_definedness": [
+        {
+          "block": "bb0",
+          "bytes": 2,
+          "defined": "v4__byte_defined",
+          "lanes": [
+            {
+              "defined": "byte_lane_store_defined_1",
+              "lane": 0,
+              "source": "store",
+              "store": "byte_lane_store_0",
+              "store_byte": 0,
+              "store_bytes": 2
+            },
+            {
+              "defined": "byte_lane_store_defined_3",
+              "lane": 1,
+              "source": "store",
+              "store": "byte_lane_store_2",
+              "store_byte": 0,
+              "store_bytes": 1
+            }
+          ],
+          "load": "v4",
+          "writer_graph": true
+        }
+      ],
+      "entry": "bb0",
+      "param_bits": [],
+      "params": [],
+      "return_bits": 8
+    }
+  },
+  "input_size": 0,
+  "lowering": {
+    "capabilities": [
+      "integer-ssa",
+      "scalar-mem2reg",
+      "phi-edge-copies",
+      "switch-chain",
+      "direct-internal-calls",
+      "bounded-bitvectors",
+      "static-global-memory",
+      "constant-gep",
+      "multi-byte-memory",
+      "stable-nondeterministic-freeze",
+      "bounded-deferred-poison-freeze",
+      "bounded-transitive-deferred-poison",
+      "bounded-memory-deferred-poison",
+      "canonical-address-memory-deferred-poison",
+      "bounded-byte-lane-memory-definedness",
+      "bounded-byte-lane-writer-graph"
+    ],
+    "entry": "freeze_memory_byte_lane_overwrite_composition",
+    "input_abi": "integer-arguments-little-endian",
+    "llvm_version": "17.0.6",
+    "schema": "symcc-llvm-continuation-lowering-v1",
+    "source_module": "/home/ubuntu/code/symcc/test/live_continuation_lowering.ll",
+    "status": "lowered"
+  },
+  "memory_hex": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  "memory_objects": [
+    {
+      "address": 64,
+      "kind": "static",
+      "name": "poison_memory_array",
+      "read_only": false,
+      "size": 4
+    }
+  ],
+  "memory_size": 68,
+  "schema": "symcc-live-program-v1"
+}

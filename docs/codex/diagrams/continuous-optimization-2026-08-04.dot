@@ -1,0 +1,98 @@
+digraph evp_pipeline {
+  graph [
+    rankdir=TB,
+    bgcolor="#f8fafc",
+    pad="0.35",
+    nodesep="0.42",
+    ranksep="0.65",
+    fontname="DejaVu Sans",
+    labelloc="t",
+    label="SymCC F300-F304: executable-bound profiles, online delivery and cost-aware domain admission"
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#334155",
+    fillcolor="#ffffff",
+    fontcolor="#0f172a",
+    fontname="DejaVu Sans",
+    fontsize=11,
+    margin="0.16,0.11",
+    penwidth=1.2
+  ];
+  edge [
+    color="#475569",
+    fontcolor="#334155",
+    fontname="DejaVu Sans",
+    fontsize=9,
+    penwidth=1.25,
+    arrowsize=0.72
+  ];
+
+  cmp [label="Instrumented compare / switch\n(path site, width, concrete value)", fillcolor="#e0f2fe", color="#0369a1"];
+  runtime [label="Bounded per-run profile\n512 sites x 8 distinct values\n9th value => saturated", fillcolor="#ecfeff", color="#0e7490"];
+  telemetry [label="Atomic solver telemetry\nobservations + value counts", fillcolor="#f0fdfa", color="#0f766e"];
+  coordinator [label="MPI master rolling window\nbounded canonical records\ncontext-isolated aggregation", fillcolor="#ede9fe", color="#6d28d9"];
+  aggregate [label="Deterministic aggregator\nmerge, normalize, entropy, admission", fillcolor="#ecfdf5", color="#15803d"];
+  feedback_gate [label="Cost-aware exact-domain gate\nqueries >= qmin, validated/query < tau\nand solver check time >= cost floor", fillcolor="#ffedd5", color="#c2410c"];
+  seal [label="Verified v3 profile artifact\ncanonical SHA-256 + admission-v2 proof", fillcolor="#f7fee7", color="#4d7c0f"];
+  sidecar [label="Content-addressed generation\nstrict runtime sidecar + artifact", fillcolor="#fef9c3", color="#a16207"];
+  transport [label="Version-aware MPI delivery\nsend bytes only on cache miss", fillcolor="#fae8ff", color="#a21caf"];
+  worker_cache [label="Worker-local atomic install\nSHA-256 verified / no shared FS", fillcolor="#fce7f3", color="#be185d"];
+  withdraw [label="Domain no longer limited\npublish profile_count 0 tombstone", fillcolor="#fee2e2", color="#b91c1c"];
+
+  { rank=same; cmp; runtime; telemetry; }
+  { rank=same; coordinator; aggregate; }
+  { rank=same; feedback_gate; seal; }
+  { rank=same; withdraw; sidecar; }
+  { rank=same; transport; worker_cache; }
+
+  cmp -> runtime [label="observe"];
+  runtime -> telemetry [label="emit at exit"];
+  telemetry -> coordinator [label="TAG_RESULT"];
+  coordinator -> aggregate [label="publish interval"];
+  aggregate -> feedback_gate [label="join exact key\n(context,site,bits,values)"];
+  feedback_gate -> seal [label="admit or suppress"];
+  seal -> sidecar [label="verify then materialize"];
+  aggregate -> withdraw [label="admission revoked", color="#b91c1c", fontcolor="#991b1b"];
+  withdraw -> sidecar [label="empty generation", color="#b91c1c", fontcolor="#991b1b"];
+  sidecar -> transport [label="semantic change only"];
+  transport -> worker_cache [label="version + optional bytes"];
+
+  subgraph cluster_solver {
+    label="Implemented QSYM consumption path";
+    color="#94a3b8";
+    style="rounded";
+    fontname="DejaVu Sans";
+    fontcolor="#475569";
+    profile_solve [label="Optimistic solve with\nempirical domain assumptions", fillcolor="#fff7ed", color="#c2410c"];
+    sat [label="SAT candidate", fillcolor="#fffbeb", color="#b45309"];
+    validate [label="Validate against complete\nrelevant prefix formula", fillcolor="#fefce8", color="#a16207"];
+    accept [label="Accept only validated SAT", fillcolor="#dcfce7", color="#15803d"];
+    fallback [label="UNSAT / unknown\nretry complete formula", fillcolor="#fee2e2", color="#b91c1c", penwidth=1.8];
+    feedback [shape=note, label="Per exact domain: attempts = prefilter + queries\nqueries = SAT + UNSAT + UNKNOWN\nSAT = validated + validation failures\nplus cumulative Z3 check time (us)", fillcolor="#ede9fe", color="#6d28d9", fontsize=9];
+    { rank=same; profile_solve; sat; validate; }
+    { rank=same; fallback; accept; feedback; }
+    profile_solve -> sat [label="SAT"];
+    sat -> validate;
+    validate -> accept [label="valid"];
+    validate -> fallback [label="invalid"];
+    profile_solve -> fallback [label="UNSAT / unknown", color="#b91c1c", fontcolor="#991b1b", penwidth=1.8];
+    accept -> feedback [style=dashed, color="#6d28d9"];
+    fallback -> feedback [style=dashed, color="#6d28d9"];
+  }
+
+  worker_cache -> profile_solve [color="#c2410c", fontcolor="#9a3412", label="exact executable context"];
+  feedback -> coordinator [label="rolling TAG_RESULT", color="#6d28d9", fontcolor="#6d28d9", constraint=false];
+  feedback_gate -> coordinator [label="old failures age out:\nbounded re-exploration", color="#0f766e", fontcolor="#0f766e", style=dashed, constraint=false];
+
+  boundary [
+    shape=note,
+    label="Current claim boundary\nImplemented: online collection, cost-aware proof, verified suppression, re-exploration and full fallback\nNot claimed: benchmark-wide solver-time or coverage improvement",
+    fillcolor="#f1f5f9",
+    color="#64748b",
+    fontsize=10
+  ];
+  accept -> boundary [style=dotted, arrowhead=none, color="#64748b"];
+  fallback -> boundary [style=dotted, arrowhead=none, color="#64748b"];
+}

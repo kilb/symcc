@@ -1,0 +1,12 @@
+schema=symcc-f429-static-checks-v1
+date=2026-08-17
+ruff_scope=lifecycle,three stores,service,four tests,oracle,index generator,delivery verifier
+ruff_result=passed
+py_compile_scope=lifecycle,three stores,service,four tests,oracle,index generator,delivery verifier
+py_compile_result=passed
+index_command=python3 docs/generate_current_technology_index.py --check
+index_result=passed; continuous F00-F429 inventory
+diff_check_scope=F429 implementation,test,oracle,report,index,diagram,configuration paths
+diff_check_result=passed
+focused_regression=22 passed in 3.08s
+related_regression=52 passed, 20 subtests passed in 13.27s

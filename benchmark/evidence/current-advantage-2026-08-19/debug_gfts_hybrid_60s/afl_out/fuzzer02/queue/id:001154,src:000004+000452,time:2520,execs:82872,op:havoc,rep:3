@@ -1,0 +1,1 @@
+<?xml <root a="v"><c>&q;</c></version="1.0"?><!DOCTYPE note [<!ELEMENT note (to,from,body)><!ELEMENT to (#PCDATA)><!ELEMENT from (#PCDATA)><!ELEMENT body (#PCDATA)>]><Mote><to>A</to><from>B</from><bodx>C</body></note>

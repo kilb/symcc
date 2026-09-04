@@ -1,0 +1,95 @@
+digraph ParallelFramework {
+  graph [
+    rankdir=LR,
+    bgcolor="#f8fafc",
+    pad="0.35",
+    nodesep="0.42",
+    ranksep="0.68",
+    fontname="Noto Sans CJK SC",
+    label="SymCC 并行混合符号执行：控制面、数据面与覆盖闭环",
+    labelloc=t,
+    fontsize=22,
+    fontcolor="#172033"
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    fontname="Noto Sans CJK SC",
+    fontsize=12,
+    margin="0.13,0.09",
+    color="#94a3b8",
+    fontcolor="#172033"
+  ];
+  edge [
+    fontname="Noto Sans CJK SC",
+    fontsize=10,
+    color="#64748b",
+    fontcolor="#475569",
+    arrowsize=0.75,
+    penwidth=1.5
+  ];
+
+  launcher [label="Benchmark / Campaign Orchestrator\n预算、进程配比、CPU 亲和性、观测", fillcolor="#e2e8f0"];
+
+  subgraph cluster_fuzz {
+    label="并行模糊测试层";
+    color="#8ecae6";
+    style="rounded,filled";
+    fillcolor="#eff8ff";
+    afl_m [label="AFL++ master\n-fuzzer01", fillcolor="#dbeafe"];
+    afl_s [label="AFL++ secondaries\n差异化 power schedules", fillcolor="#dbeafe"];
+    afl_q [label="AFL sync corpus\nqueue + fuzzer_stats", shape=cylinder, fillcolor="#ffffff"];
+    afl_m -> afl_q [label="发布 / native sync"];
+    afl_s -> afl_q [label="发布 / native sync"];
+    afl_q -> afl_m [label="导入"];
+    afl_q -> afl_s [label="导入"];
+  }
+
+  subgraph cluster_master {
+    label="MPI 协调与调度层（rank 0）";
+    color="#f4a261";
+    style="rounded,filled";
+    fillcolor="#fff7ed";
+    intake [label="Task Intake\nAFL queue / feedback / live-state", fillcolor="#ffedd5"];
+    scheduler [label="Target-aware Scheduler\n评分、租约、代次、停泊", fillcolor="#fed7aa"];
+    cov [label="Coverage Authority\nAFL edge bitmap + delta journal", fillcolor="#fef3c7"];
+    triage [label="Admission & Triage\n稳定读取、全局去重、原子发布", fillcolor="#ffedd5"];
+    intake -> scheduler [label="候选任务"];
+    triage -> scheduler [label="新反馈任务"];
+    triage -> cov [label="claim / OR merge"];
+    cov -> scheduler [label="full snapshot 或 delta"];
+  }
+
+  subgraph cluster_workers {
+    label="MPI 数据面（rank 1..W）";
+    color="#2a9d8f";
+    style="rounded,filled";
+    fillcolor="#ecfdf5";
+    w1 [label="Worker 1\n策略 + focus-byte shard", fillcolor="#d1fae5"];
+    wn [label="Worker W\n策略 + focus-byte shard", fillcolor="#d1fae5"];
+    runtime [label="Instrumented Target + Runtime\n约束记录、fast solve、Z3/cache", fillcolor="#ccfbf1"];
+    localcov [label="Worker-local coverage\n内容哈希 + bitmap 副本", fillcolor="#ffffff"];
+    w1 -> runtime;
+    wn -> runtime;
+    runtime -> localcov [label="候选验证"];
+  }
+
+  corpus [label="Durable Corpus / CAS\ncontent SHA-256、manifest、fenced lease", shape=cylinder, fillcolor="#ede9fe", color="#8b5cf6"];
+  telemetry [label="Evidence\nCSV / JSON / profile / time series", shape=note, fillcolor="#fce7f3", color="#db2777"];
+
+  launcher -> afl_m [label="启动与预算"];
+  launcher -> afl_s [label="启动与预算"];
+  launcher -> scheduler [label="mpirun / policy"];
+  afl_q -> intake [label="稳定扫描：未分析输入"];
+  scheduler -> w1 [label="WORK\n任务 + lease + bitmap Δ", color="#0f766e"];
+  scheduler -> wn [label="WORK\n任务 + lease + bitmap Δ", color="#0f766e"];
+  w1 -> triage [label="RESULT\n候选 + sparse bitmap + telemetry", color="#c2410c"];
+  wn -> triage [label="RESULT\n候选 + sparse bitmap + telemetry", color="#c2410c"];
+  triage -> corpus [label="原子 commit"];
+  corpus -> afl_q [label="symcc01 peer queue", color="#7c3aed"];
+  corpus -> intake [label="反馈 / 恢复"];
+  launcher -> telemetry;
+  scheduler -> telemetry [label="master profile"];
+  w1 -> telemetry [label="worker profile"];
+  wn -> telemetry [label="worker profile"];
+}

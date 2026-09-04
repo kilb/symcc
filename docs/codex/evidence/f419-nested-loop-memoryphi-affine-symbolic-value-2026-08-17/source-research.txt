@@ -1,0 +1,33 @@
+F419 primary-source positioning, 2026-08-17
+
+LLVM ScalarEvolution AddRec:
+  https://llvm.org/doxygen/classllvm_1_1SCEVAddRecExpr.html
+  Relevance: affine A+B*x recurrence representation and evaluation.
+  Boundary: F419 does not claim general SCEV normalization.
+
+LLVM Language Reference:
+  https://llvm.org/docs/LangRef.html
+  Relevance: plain integer add/mul are fixed-width bit-vector operations;
+  nuw/nsw overflow has poison semantics and is rejected by F419.
+
+LLVM Undefined Behavior Manual:
+  https://llvm.org/docs/UndefinedBehavior.html
+  Relevance: poison and undefined-behavior boundaries must not be replaced by
+  ordinary modulo arithmetic.
+
+Automatic Partial Loop Summarization:
+  https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/paper-63.pdf
+  Relevance: symbolic loop summaries over inputs and memory.
+  Boundary: F419 is a finite, two-level, byte-lane specialization.
+
+LoopSCC:
+  https://arxiv.org/abs/2411.02863
+  Relevance: inside-out loop-summary composition with consistency checking.
+  Boundary: F416--F419 are not a general LoopSCC implementation.
+
+Verified Multi-Abstraction Summaries:
+  https://arxiv.org/abs/2506.09550
+  Relevance: summary generation and independent validation boundaries.
+  Boundary: F419 is a project-specific proof-carrying specialization, not a
+  reproduction of the complete verified-summary system.
+

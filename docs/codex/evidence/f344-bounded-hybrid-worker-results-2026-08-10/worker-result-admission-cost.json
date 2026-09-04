@@ -1,0 +1,554 @@
+{
+  "all_checks_passed": true,
+  "checks": {
+    "all_cardinalities_and_bytes_exact": true,
+    "all_output_vectors_equivalent": true,
+    "sample_counts_exact": true
+  },
+  "configuration": {
+    "filesystem_type": "overlay",
+    "object_bytes": 1048576,
+    "objects_per_scale": [
+      32,
+      128
+    ],
+    "process_model": "one fresh Python subprocess per sample",
+    "random_seed": 62276,
+    "samples_per_mechanism_per_scale": 10,
+    "schedule": "deterministically interleaved by retained round",
+    "source": "sparse regular worker output files",
+    "warmups_per_mechanism_per_scale": 2
+  },
+  "correctness": {
+    "128": {
+      "exact_cardinalities_and_bytes": true,
+      "exact_vector_equivalence": true,
+      "vectors": {
+        "bounded": [
+          "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406"
+        ],
+        "legacy": [
+          "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406"
+        ]
+      }
+    },
+    "32": {
+      "exact_cardinalities_and_bytes": true,
+      "exact_vector_equivalence": true,
+      "vectors": {
+        "bounded": [
+          "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f"
+        ],
+        "legacy": [
+          "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f"
+        ]
+      }
+    }
+  },
+  "proof_boundary": "This fresh-process mechanism benchmark compares the former list(scandir)+read-all retained-content collector with F344's production preflight and stable two-pass per-object primitives. All outputs are regular sparse files and modeled as coverage redundant after the second read. It does not invoke MPI transport, afl-showmap, a symbolic solver, or a fuzzing campaign, and makes no coverage, throughput, bug-discovery, or LAVA-M uplift claim.",
+  "ratios": {
+    "128": {
+      "elapsed_new_over_old": 1.6490890215026064,
+      "max_rss_old_over_new": 3.4756797870317553,
+      "traced_peak_old_over_new": 115.3130815239093
+    },
+    "32": {
+      "elapsed_new_over_old": 1.5827894294400893,
+      "max_rss_old_over_new": 1.5941161058502078,
+      "traced_peak_old_over_new": 30.787134945882077
+    }
+  },
+  "raw_samples": {
+    "128": {
+      "bounded": [
+        {
+          "elapsed_us": 212976.889,
+          "max_rss_kib": 53988,
+          "mechanism": "bounded",
+          "object_bytes": 1048576,
+          "objects": 128,
+          "output_bytes": 134217728,
+          "output_vector_sha256": "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406",
+          "retained_objects": 128,
+          "traced_peak_bytes": 1164505
+        },
+        {
+          "elapsed_us": 217147.068,
+          "max_rss_kib": 55636,
+          "mechanism": "bounded",
+          "object_bytes": 1048576,
+          "objects": 128,
+          "output_bytes": 134217728,
+          "output_vector_sha256": "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406",
+          "retained_objects": 128,
+          "traced_peak_bytes": 1164505
+        },
+        {
+          "elapsed_us": 216185.617,
+          "max_rss_kib": 52544,
+          "mechanism": "bounded",
+          "object_bytes": 1048576,
+          "objects": 128,
+          "output_bytes": 134217728,
+          "output_vector_sha256": "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406",
+          "retained_objects": 128,
+          "traced_peak_bytes": 1164505
+        },
+        {
+          "elapsed_us": 212631.846,
+          "max_rss_kib": 52544,
+          "mechanism": "bounded",
+          "object_bytes": 1048576,
+          "objects": 128,
+          "output_bytes": 134217728,
+          "output_vector_sha256": "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406",
+          "retained_objects": 128,
+          "traced_peak_bytes": 1164505
+        },
+        {
+          "elapsed_us": 211663.843,
+          "max_rss_kib": 52544,
+          "mechanism": "bounded",
+          "object_bytes": 1048576,
+          "objects": 128,
+          "output_bytes": 134217728,
+          "output_vector_sha256": "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406",
+          "retained_objects": 128,
+          "traced_peak_bytes": 1164505
+        },
+        {
+          "elapsed_us": 211624.823,
+          "max_rss_kib": 52636,
+          "mechanism": "bounded",
+          "object_bytes": 1048576,
+          "objects": 128,
+          "output_bytes": 134217728,
+          "output_vector_sha256": "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406",
+          "retained_objects": 128,
+          "traced_peak_bytes": 1164505
+        },
+        {
+          "elapsed_us": 212731.461,
+          "max_rss_kib": 54168,
+          "mechanism": "bounded",
+          "object_bytes": 1048576,
+          "objects": 128,
+          "output_bytes": 134217728,
+          "output_vector_sha256": "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406",
+          "retained_objects": 128,
+          "traced_peak_bytes": 1164505
+        },
+        {
+          "elapsed_us": 224667.192,
+          "max_rss_kib": 52544,
+          "mechanism": "bounded",
+          "object_bytes": 1048576,
+          "objects": 128,
+          "output_bytes": 134217728,
+          "output_vector_sha256": "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406",
+          "retained_objects": 128,
+          "traced_peak_bytes": 1164505
+        },
+        {
+          "elapsed_us": 212248.529,
+          "max_rss_kib": 52544,
+          "mechanism": "bounded",
+          "object_bytes": 1048576,
+          "objects": 128,
+          "output_bytes": 134217728,
+          "output_vector_sha256": "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406",
+          "retained_objects": 128,
+          "traced_peak_bytes": 1164505
+        },
+        {
+          "elapsed_us": 213172.923,
+          "max_rss_kib": 53908,
+          "mechanism": "bounded",
+          "object_bytes": 1048576,
+          "objects": 128,
+          "output_bytes": 134217728,
+          "output_vector_sha256": "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406",
+          "retained_objects": 128,
+          "traced_peak_bytes": 1164505
+        }
+      ],
+      "legacy": [
+        {
+          "elapsed_us": 131171.256,
+          "max_rss_kib": 181172,
+          "mechanism": "legacy",
+          "object_bytes": 1048576,
+          "objects": 128,
+          "output_bytes": 134217728,
+          "output_vector_sha256": "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406",
+          "retained_objects": 128,
+          "traced_peak_bytes": 134282660
+        },
+        {
+          "elapsed_us": 128149.808,
+          "max_rss_kib": 181628,
+          "mechanism": "legacy",
+          "object_bytes": 1048576,
+          "objects": 128,
+          "output_bytes": 134217728,
+          "output_vector_sha256": "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406",
+          "retained_objects": 128,
+          "traced_peak_bytes": 134282660
+        },
+        {
+          "elapsed_us": 128867.899,
+          "max_rss_kib": 185820,
+          "mechanism": "legacy",
+          "object_bytes": 1048576,
+          "objects": 128,
+          "output_bytes": 134217728,
+          "output_vector_sha256": "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406",
+          "retained_objects": 128,
+          "traced_peak_bytes": 134282660
+        },
+        {
+          "elapsed_us": 128780.216,
+          "max_rss_kib": 182840,
+          "mechanism": "legacy",
+          "object_bytes": 1048576,
+          "objects": 128,
+          "output_bytes": 134217728,
+          "output_vector_sha256": "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406",
+          "retained_objects": 128,
+          "traced_peak_bytes": 134282660
+        },
+        {
+          "elapsed_us": 129065.687,
+          "max_rss_kib": 184396,
+          "mechanism": "legacy",
+          "object_bytes": 1048576,
+          "objects": 128,
+          "output_bytes": 134217728,
+          "output_vector_sha256": "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406",
+          "retained_objects": 128,
+          "traced_peak_bytes": 134282660
+        },
+        {
+          "elapsed_us": 128797.691,
+          "max_rss_kib": 181356,
+          "mechanism": "legacy",
+          "object_bytes": 1048576,
+          "objects": 128,
+          "output_bytes": 134217728,
+          "output_vector_sha256": "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406",
+          "retained_objects": 128,
+          "traced_peak_bytes": 134282660
+        },
+        {
+          "elapsed_us": 129081.899,
+          "max_rss_kib": 184384,
+          "mechanism": "legacy",
+          "object_bytes": 1048576,
+          "objects": 128,
+          "output_bytes": 134217728,
+          "output_vector_sha256": "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406",
+          "retained_objects": 128,
+          "traced_peak_bytes": 134282660
+        },
+        {
+          "elapsed_us": 129448.201,
+          "max_rss_kib": 184440,
+          "mechanism": "legacy",
+          "object_bytes": 1048576,
+          "objects": 128,
+          "output_bytes": 134217728,
+          "output_vector_sha256": "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406",
+          "retained_objects": 128,
+          "traced_peak_bytes": 134282660
+        },
+        {
+          "elapsed_us": 129818.258,
+          "max_rss_kib": 181424,
+          "mechanism": "legacy",
+          "object_bytes": 1048576,
+          "objects": 128,
+          "output_bytes": 134217728,
+          "output_vector_sha256": "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406",
+          "retained_objects": 128,
+          "traced_peak_bytes": 134282660
+        },
+        {
+          "elapsed_us": 131230.157,
+          "max_rss_kib": 182732,
+          "mechanism": "legacy",
+          "object_bytes": 1048576,
+          "objects": 128,
+          "output_bytes": 134217728,
+          "output_vector_sha256": "6286998f42c5398134e64e2ef0ae4fb3dea4e66a81ee6d1180dde10277576406",
+          "retained_objects": 128,
+          "traced_peak_bytes": 134282660
+        }
+      ]
+    },
+    "32": {
+      "bounded": [
+        {
+          "elapsed_us": 53169.463,
+          "max_rss_kib": 55672,
+          "mechanism": "bounded",
+          "object_bytes": 1048576,
+          "objects": 32,
+          "output_bytes": 33554432,
+          "output_vector_sha256": "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f",
+          "retained_objects": 32,
+          "traced_peak_bytes": 1090489
+        },
+        {
+          "elapsed_us": 53122.261,
+          "max_rss_kib": 52556,
+          "mechanism": "bounded",
+          "object_bytes": 1048576,
+          "objects": 32,
+          "output_bytes": 33554432,
+          "output_vector_sha256": "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f",
+          "retained_objects": 32,
+          "traced_peak_bytes": 1090489
+        },
+        {
+          "elapsed_us": 53075.391,
+          "max_rss_kib": 52544,
+          "mechanism": "bounded",
+          "object_bytes": 1048576,
+          "objects": 32,
+          "output_bytes": 33554432,
+          "output_vector_sha256": "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f",
+          "retained_objects": 32,
+          "traced_peak_bytes": 1090489
+        },
+        {
+          "elapsed_us": 53291.566,
+          "max_rss_kib": 52544,
+          "mechanism": "bounded",
+          "object_bytes": 1048576,
+          "objects": 32,
+          "output_bytes": 33554432,
+          "output_vector_sha256": "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f",
+          "retained_objects": 32,
+          "traced_peak_bytes": 1090489
+        },
+        {
+          "elapsed_us": 54754.002,
+          "max_rss_kib": 52628,
+          "mechanism": "bounded",
+          "object_bytes": 1048576,
+          "objects": 32,
+          "output_bytes": 33554432,
+          "output_vector_sha256": "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f",
+          "retained_objects": 32,
+          "traced_peak_bytes": 1090489
+        },
+        {
+          "elapsed_us": 55531.996,
+          "max_rss_kib": 55780,
+          "mechanism": "bounded",
+          "object_bytes": 1048576,
+          "objects": 32,
+          "output_bytes": 33554432,
+          "output_vector_sha256": "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f",
+          "retained_objects": 32,
+          "traced_peak_bytes": 1090489
+        },
+        {
+          "elapsed_us": 54931.149,
+          "max_rss_kib": 55624,
+          "mechanism": "bounded",
+          "object_bytes": 1048576,
+          "objects": 32,
+          "output_bytes": 33554432,
+          "output_vector_sha256": "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f",
+          "retained_objects": 32,
+          "traced_peak_bytes": 1090489
+        },
+        {
+          "elapsed_us": 61071.641,
+          "max_rss_kib": 55724,
+          "mechanism": "bounded",
+          "object_bytes": 1048576,
+          "objects": 32,
+          "output_bytes": 33554432,
+          "output_vector_sha256": "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f",
+          "retained_objects": 32,
+          "traced_peak_bytes": 1090489
+        },
+        {
+          "elapsed_us": 53614.342,
+          "max_rss_kib": 54240,
+          "mechanism": "bounded",
+          "object_bytes": 1048576,
+          "objects": 32,
+          "output_bytes": 33554432,
+          "output_vector_sha256": "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f",
+          "retained_objects": 32,
+          "traced_peak_bytes": 1090489
+        },
+        {
+          "elapsed_us": 53288.49,
+          "max_rss_kib": 52544,
+          "mechanism": "bounded",
+          "object_bytes": 1048576,
+          "objects": 32,
+          "output_bytes": 33554432,
+          "output_vector_sha256": "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f",
+          "retained_objects": 32,
+          "traced_peak_bytes": 1090489
+        }
+      ],
+      "legacy": [
+        {
+          "elapsed_us": 33602.548,
+          "max_rss_kib": 81288,
+          "mechanism": "legacy",
+          "object_bytes": 1048576,
+          "objects": 32,
+          "output_bytes": 33554432,
+          "output_vector_sha256": "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f",
+          "retained_objects": 32,
+          "traced_peak_bytes": 33573032
+        },
+        {
+          "elapsed_us": 33825.664,
+          "max_rss_kib": 86212,
+          "mechanism": "legacy",
+          "object_bytes": 1048576,
+          "objects": 32,
+          "output_bytes": 33554432,
+          "output_vector_sha256": "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f",
+          "retained_objects": 32,
+          "traced_peak_bytes": 33573032
+        },
+        {
+          "elapsed_us": 33433.913,
+          "max_rss_kib": 86112,
+          "mechanism": "legacy",
+          "object_bytes": 1048576,
+          "objects": 32,
+          "output_bytes": 33554432,
+          "output_vector_sha256": "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f",
+          "retained_objects": 32,
+          "traced_peak_bytes": 33573032
+        },
+        {
+          "elapsed_us": 33832.584,
+          "max_rss_kib": 87684,
+          "mechanism": "legacy",
+          "object_bytes": 1048576,
+          "objects": 32,
+          "output_bytes": 33554432,
+          "output_vector_sha256": "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f",
+          "retained_objects": 32,
+          "traced_peak_bytes": 33573032
+        },
+        {
+          "elapsed_us": 33470.668,
+          "max_rss_kib": 83044,
+          "mechanism": "legacy",
+          "object_bytes": 1048576,
+          "objects": 32,
+          "output_bytes": 33554432,
+          "output_vector_sha256": "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f",
+          "retained_objects": 32,
+          "traced_peak_bytes": 33573032
+        },
+        {
+          "elapsed_us": 33717.059,
+          "max_rss_kib": 82940,
+          "mechanism": "legacy",
+          "object_bytes": 1048576,
+          "objects": 32,
+          "output_bytes": 33554432,
+          "output_vector_sha256": "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f",
+          "retained_objects": 32,
+          "traced_peak_bytes": 33573032
+        },
+        {
+          "elapsed_us": 33420.372,
+          "max_rss_kib": 82860,
+          "mechanism": "legacy",
+          "object_bytes": 1048576,
+          "objects": 32,
+          "output_bytes": 33554432,
+          "output_vector_sha256": "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f",
+          "retained_objects": 32,
+          "traced_peak_bytes": 33573032
+        },
+        {
+          "elapsed_us": 34199.186,
+          "max_rss_kib": 84388,
+          "mechanism": "legacy",
+          "object_bytes": 1048576,
+          "objects": 32,
+          "output_bytes": 33554432,
+          "output_vector_sha256": "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f",
+          "retained_objects": 32,
+          "traced_peak_bytes": 33573032
+        },
+        {
+          "elapsed_us": 34290.434,
+          "max_rss_kib": 86024,
+          "mechanism": "legacy",
+          "object_bytes": 1048576,
+          "objects": 32,
+          "output_bytes": 33554432,
+          "output_vector_sha256": "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f",
+          "retained_objects": 32,
+          "traced_peak_bytes": 33573032
+        },
+        {
+          "elapsed_us": 33970.661,
+          "max_rss_kib": 85972,
+          "mechanism": "legacy",
+          "object_bytes": 1048576,
+          "objects": 32,
+          "output_bytes": 33554432,
+          "output_vector_sha256": "3cc19e974e300c939076f781a1bc8ae946fea73cac050e62a0bd8a68ec1b249f",
+          "retained_objects": 32,
+          "traced_peak_bytes": 33573032
+        }
+      ]
+    }
+  },
+  "schema": "symcc-f344-bounded-hybrid-worker-result-cost-v1",
+  "summaries": {
+    "128": {
+      "bounded": {
+        "elapsed_us_median": 212854.175,
+        "elapsed_us_p95": 224667.192,
+        "max_rss_kib_median": 52590.0,
+        "max_rss_kib_p95": 55636.0,
+        "traced_peak_bytes_median": 1164505.0,
+        "traced_peak_bytes_p95": 1164505.0
+      },
+      "legacy": {
+        "elapsed_us_median": 129073.793,
+        "elapsed_us_p95": 131230.157,
+        "max_rss_kib_median": 182786.0,
+        "max_rss_kib_p95": 185820.0,
+        "traced_peak_bytes_median": 134282660.0,
+        "traced_peak_bytes_p95": 134282660.0
+      }
+    },
+    "32": {
+      "bounded": {
+        "elapsed_us_median": 53452.954,
+        "elapsed_us_p95": 61071.641,
+        "max_rss_kib_median": 53434.0,
+        "max_rss_kib_p95": 55780.0,
+        "traced_peak_bytes_median": 1090489.0,
+        "traced_peak_bytes_p95": 1090489.0
+      },
+      "legacy": {
+        "elapsed_us_median": 33771.3615,
+        "elapsed_us_p95": 34290.434,
+        "max_rss_kib_median": 85180.0,
+        "max_rss_kib_p95": 87684.0,
+        "traced_peak_bytes_median": 33573032.0,
+        "traced_peak_bytes_p95": 33573032.0
+      }
+    }
+  }
+}

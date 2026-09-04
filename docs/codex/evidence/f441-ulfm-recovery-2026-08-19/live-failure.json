@@ -1,0 +1,18 @@
+{
+  "claim_boundary": "physical local MPI process exit followed by survivor communicator repair and identical sealed state commit",
+  "failed_endpoints": [
+    "endpoint-003"
+  ],
+  "failed_rank": 3,
+  "post_state_sha256": "1a642bc52df63ce497ae4b1c0bbce047b958eecd73bb371c123528a177922ab2",
+  "protocol": "symcc-generation-fenced-ulfm-recovery-v1",
+  "receipt_sha256": "451a6b2a60783919cc008ad469581eb5b99caba8eb1c7ea2a2841913a36211e8",
+  "repair_attempts": 1,
+  "result_sha256": "c787b0f2e4a5f824514b0190edea54ec6f7d80351757e7cb4f520462f10eb70e",
+  "schema": "symcc-f441-live-process-failure-oracle-v1",
+  "survivor_receipts_identical": true,
+  "trigger_error": "MPI_ERR_REVOKED: Communication Object Revoked",
+  "trigger_error_class": 77,
+  "world_size_after": 3,
+  "world_size_before": 4
+}

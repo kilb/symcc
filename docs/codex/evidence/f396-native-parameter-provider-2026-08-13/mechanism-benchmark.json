@@ -1,0 +1,40 @@
+{
+  "baseline": {
+    "discovery_us": 444.241,
+    "parameters": 40,
+    "providers": 1,
+    "scope_counts": {
+      "coordinator-campaign": 2,
+      "query-service": 10,
+      "task": 28
+    }
+  },
+  "iterations": 100,
+  "native": {
+    "added_parameters": 13,
+    "maximum_us": 2518.865,
+    "median_us": 1887.812,
+    "p95_us": 2331.673,
+    "parameters": 53,
+    "providers": 2,
+    "scope_counts": {
+      "coordinator-campaign": 2,
+      "query-service": 23,
+      "task": 28
+    }
+  },
+  "provider": "symcc-query-solver",
+  "schema": "symcc-f396-native-parameter-provider-benchmark-v1",
+  "verification": {
+    "conflicts": [],
+    "errors": [],
+    "provider_digests": [
+      "7ae3c197a3d3af05acafb0576736c9ee6a3f8fa7fb9c9c0ec411f9051e4bf6da"
+    ],
+    "registry_schema_hashes": [
+      "069b483d647e8096edf3a02a753b9257f3fe13d0f5e44e902776cfa2a376a92d"
+    ],
+    "successful_iterations": 100
+  },
+  "warmup": 10
+}

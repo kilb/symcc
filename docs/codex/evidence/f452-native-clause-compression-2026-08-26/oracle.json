@@ -1,0 +1,141 @@
+{
+  "artifact_sha256": "445d395e3f7dd44a02b7fd3df8e1f0d66f4717e63ae5abccb089744040128713",
+  "cases": 20000,
+  "claim_boundary": "checker storage/codec mechanism only",
+  "properties": {
+    "canonical_roundtrips": 20000,
+    "corrupt_encodings_rejected": 7,
+    "partial_writes_observed": 0
+  },
+  "protocol": "symcc-qfbv-native-clause-compression-v1",
+  "real_cadical": {
+    "acks": [
+      [
+        101,
+        1,
+        1
+      ],
+      [
+        102,
+        1,
+        2
+      ]
+    ],
+    "compressed_literals_decoded": 38,
+    "compression_failures": 0,
+    "import_compressed_bytes": 40,
+    "import_heap_clauses": 1,
+    "import_inline_clauses": 1,
+    "import_uncompressed_bytes": 152,
+    "imports_delivered": 2,
+    "imports_enqueued": 2,
+    "queued_import_encoded_bytes": 0,
+    "signature": "symcc-qfbv-realtime-v1|cadical-3.0.1-c607304",
+    "solve_result": 10
+  },
+  "schema": "symcc-f452-native-clause-compression-oracle-v1",
+  "seed": 62546,
+  "status": "pass",
+  "upstream_commit": "b5f37b21385ee802ce015103b23aff62f92b1734",
+  "workloads": [
+    {
+      "clauses": 512,
+      "compressed_bytes": 2281,
+      "decode_median_ns_per_clause": 2037,
+      "encode_median_ns_per_clause": 2723,
+      "inline_clauses": 512,
+      "literal_count": 1,
+      "name": "mixed-dense-sparse-1",
+      "original_literal_payload_bytes": 2048,
+      "payload_reduction_permille": -114
+    },
+    {
+      "clauses": 512,
+      "compressed_bytes": 4648,
+      "decode_median_ns_per_clause": 2163,
+      "encode_median_ns_per_clause": 2886,
+      "inline_clauses": 256,
+      "literal_count": 3,
+      "name": "mixed-dense-sparse-3",
+      "original_literal_payload_bytes": 6144,
+      "payload_reduction_permille": 243
+    },
+    {
+      "clauses": 512,
+      "compressed_bytes": 7953,
+      "decode_median_ns_per_clause": 2364,
+      "encode_median_ns_per_clause": 3132,
+      "inline_clauses": 0,
+      "literal_count": 6,
+      "name": "mixed-dense-sparse-6",
+      "original_literal_payload_bytes": 12288,
+      "payload_reduction_permille": 352
+    },
+    {
+      "clauses": 512,
+      "compressed_bytes": 8997,
+      "decode_median_ns_per_clause": 2433,
+      "encode_median_ns_per_clause": 3225,
+      "inline_clauses": 0,
+      "literal_count": 7,
+      "name": "mixed-dense-sparse-7",
+      "original_literal_payload_bytes": 14336,
+      "payload_reduction_permille": 372
+    },
+    {
+      "clauses": 512,
+      "compressed_bytes": 10052,
+      "decode_median_ns_per_clause": 2807,
+      "encode_median_ns_per_clause": 3745,
+      "inline_clauses": 0,
+      "literal_count": 8,
+      "name": "mixed-dense-sparse-8",
+      "original_literal_payload_bytes": 16384,
+      "payload_reduction_permille": 386
+    },
+    {
+      "clauses": 512,
+      "compressed_bytes": 18025,
+      "decode_median_ns_per_clause": 3329,
+      "encode_median_ns_per_clause": 4323,
+      "inline_clauses": 0,
+      "literal_count": 16,
+      "name": "mixed-dense-sparse-16",
+      "original_literal_payload_bytes": 32768,
+      "payload_reduction_permille": 449
+    },
+    {
+      "clauses": 512,
+      "compressed_bytes": 33785,
+      "decode_median_ns_per_clause": 3737,
+      "encode_median_ns_per_clause": 5019,
+      "inline_clauses": 0,
+      "literal_count": 32,
+      "name": "mixed-dense-sparse-32",
+      "original_literal_payload_bytes": 65536,
+      "payload_reduction_permille": 484
+    },
+    {
+      "clauses": 512,
+      "compressed_bytes": 65965,
+      "decode_median_ns_per_clause": 5403,
+      "encode_median_ns_per_clause": 7399,
+      "inline_clauses": 0,
+      "literal_count": 64,
+      "name": "mixed-dense-sparse-64",
+      "original_literal_payload_bytes": 131072,
+      "payload_reduction_permille": 496
+    },
+    {
+      "clauses": 512,
+      "compressed_bytes": 251073,
+      "decode_median_ns_per_clause": 15708,
+      "encode_median_ns_per_clause": 22346,
+      "inline_clauses": 0,
+      "literal_count": 256,
+      "name": "mixed-dense-sparse-256",
+      "original_literal_payload_bytes": 524288,
+      "payload_reduction_permille": 521
+    }
+  ]
+}

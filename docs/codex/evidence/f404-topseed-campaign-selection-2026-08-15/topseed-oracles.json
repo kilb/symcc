@@ -1,0 +1,1 @@
+{"all_passed":true,"bitmap_bit_evaluations":2048,"cluster_score_evaluations":1121,"group_policy_evaluations":3840,"oracle_independence":"reference formulas do not call selector scoring, rarity, clustering, or snapshot-transition helpers","rarity_feature_evaluations":4344,"restart_evaluations":64,"schema":"symcc-topseed-independent-oracles-v1","seed":404,"total_evaluations":11417}

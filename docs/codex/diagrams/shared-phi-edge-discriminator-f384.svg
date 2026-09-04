@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1100" viewBox="0 0 1800 1100">
+  <defs>
+    <style>
+      .title { font: 700 42px 'DejaVu Sans', sans-serif; fill: #17212b; }
+      .sub { font: 400 23px 'DejaVu Sans', sans-serif; fill: #52606d; }
+      .head { font: 700 27px 'DejaVu Sans', sans-serif; fill: #17212b; }
+      .body { font: 400 22px 'DejaVu Sans Mono', monospace; fill: #293845; }
+      .small { font: 400 19px 'DejaVu Sans', sans-serif; fill: #52606d; }
+      .chip { font: 700 19px 'DejaVu Sans', sans-serif; fill: #fff; }
+      .box { stroke-width: 2.5; rx: 8; }
+      .flow { stroke: #566573; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .good { stroke: #14866d; stroke-width: 5; fill: none; }
+      .bad { stroke: #c23b3b; stroke-width: 4; fill: none; stroke-dasharray: 11 8; }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#566573"/>
+    </marker>
+  </defs>
+  <rect width="1800" height="1100" fill="#f7f9fb"/>
+  <text x="78" y="76" class="title">F384: Shared PHI Edge Discriminator</text>
+  <text x="78" y="114" class="sub">Encode joint predecessor reachability once; replay it as a bounded alias relation</text>
+
+  <rect x="80" y="160" width="500" height="310" class="box" fill="#fff" stroke="#c23b3b"/>
+  <rect x="80" y="160" width="500" height="58" rx="8" fill="#c23b3b"/>
+  <text x="110" y="199" class="chip">Before: independent PHI tags</text>
+  <text x="115" y="270" class="body">A@65 : v1_tag = 1</text>
+  <text x="115" y="320" class="body">B@65 : v2_tag = 0</text>
+  <text x="115" y="378" class="small">Different operands look compatible.</text>
+  <text x="115" y="416" class="small">Runtime cannot replay the joint edge relation.</text>
+
+  <path d="M580 315 L665 315" class="flow"/>
+
+  <rect x="670" y="160" width="500" height="310" class="box" fill="#fff" stroke="#2878a8"/>
+  <rect x="670" y="160" width="500" height="58" rx="8" fill="#2878a8"/>
+  <text x="700" y="199" class="chip">Compiler: one tag per PHI block</text>
+  <text x="705" y="270" class="body">edge left  -> tag = blockId(left)</text>
+  <text x="705" y="320" class="body">edge right -> tag = blockId(right)</text>
+  <text x="705" y="378" class="small">All pointer PHIs observe the same event.</text>
+  <text x="705" y="416" class="small">Assignment is emitted once on each edge.</text>
+
+  <path d="M1170 315 L1255 315" class="flow"/>
+
+  <rect x="1260" y="160" width="460" height="310" class="box" fill="#fff" stroke="#7656a7"/>
+  <rect x="1260" y="160" width="460" height="58" rx="8" fill="#7656a7"/>
+  <text x="1290" y="199" class="chip">Runtime: exact contract closure</text>
+  <text x="1295" y="270" class="body">edge set == incoming jumps</text>
+  <text x="1295" y="320" class="body">one const(tag,value) / edge</text>
+  <text x="1295" y="370" class="body">no out-of-edge definitions</text>
+  <text x="1295" y="420" class="small">Reconstruct before checkpoint execution.</text>
+
+  <rect x="80" y="530" width="770" height="400" class="box" fill="#fff" stroke="#14866d"/>
+  <text x="115" y="582" class="head">Reordered incoming lists remain correct</text>
+  <text x="120" y="650" class="body">pointer A: left -> 64, right -> 65</text>
+  <text x="120" y="700" class="body">pointer B: right -> 66, left  -> 65</text>
+  <rect x="145" y="755" width="245" height="80" rx="6" fill="#dcecf6" stroke="#2878a8" stroke-width="3"/>
+  <rect x="535" y="755" width="245" height="80" rx="6" fill="#d9f0e8" stroke="#14866d" stroke-width="3"/>
+  <text x="180" y="805" class="body">A@65: tag=right</text>
+  <text x="570" y="805" class="body">B@65: tag=left</text>
+  <path d="M390 795 L535 795" class="good"/>
+  <text x="130" y="885" class="small">Same operand, different predecessor IDs: overlap is unreachable.</text>
+
+  <rect x="930" y="530" width="790" height="400" class="box" fill="#fff" stroke="#c23b3b"/>
+  <text x="965" y="582" class="head">Admission rejects incomplete relations</text>
+  <text x="975" y="655" class="body">capability without contract</text>
+  <text x="975" y="710" class="body">endpoint value != edge const</text>
+  <text x="975" y="765" class="body">missing incoming jump edge</text>
+  <text x="975" y="820" class="body">tag redefined outside edge set</text>
+  <text x="975" y="875" class="body">PHI alias cell uses unregistered tag</text>
+  <path d="M975 898 L1665 898" class="bad"/>
+
+  <rect x="80" y="975" width="1640" height="70" rx="8" fill="#17212b"/>
+  <text x="110" y="1018" class="chip">Boundary: bounded same-block predecessor relations only; no general path-relation or points-to analysis claim.</text>
+</svg>

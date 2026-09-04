@@ -1,0 +1,27 @@
+F428 review record, 2026-08-17
+
+R1 response parser and service surface
+- Finding: the extractor could search past the first status and accept a later diagnostic or extra list.
+- Fix: require exactly two top-level forms, `sat` followed by one learned-literal list; reject unknown, unsat, success, errors, diagnostics, extra forms, and malformed terms.
+- Fix: include qfbv_lemma_store statistics in the service --once summary.
+- Recheck: focused response-shape and service tests pass.
+
+R2 commit authorization boundary
+- Finding: QueryStore independently rechecked active injected records but originally trusted backend counters for newly published records.
+- Fix: reconstruct the full Query IR context at commit, load every claimed new CAS record, verify policy and source identity, then rerun Ethos under the shared commit deadline.
+- Recheck: forged source identity, missing record, count mismatch, and proof failures fail closed.
+
+R3 external process lifecycle
+- Finding: extractor timeout needed a real process-reaping assertion, not only a mocked deadline path.
+- Fix: register the one-shot cvc5 process by query ID, terminate its process group on timeout/cancellation, bound stdout/stderr, and clear the active-process table.
+- Recheck: a 10 ms slow-extractor test completes below one second and leaves no active process.
+
+R4 full-suite concurrency regression
+- Finding: the capability-closed gate hung in the historical F426 concurrent publisher test. Four simultaneous constructors could race at PRAGMA journal_mode=WAL; one raised database-is-locked while the remaining threads blocked forever at an unbounded barrier.
+- Fix: serialize context-store schema/metadata initialization with a stable no-follow regular-file flock and a 30 s deadline; set busy_timeout before journal mode; bound and abort the test barrier on peer failure.
+- Recheck: the pre-fix reproducer failed at run 9/200; the fixed implementation passes 200/200, and the full Python gate completes.
+
+R5 claim and artifact boundary
+- Finding: learned-literal sharing could be mistaken for native clause-database reuse or measured speedup; shared-root and CAS-orphan limits needed explicit treatment.
+- Fix: separate candidate discovery, local proof authorization, and final-result authority; state the qualified-root trust requirement, possible pre-index orphan, and absence of public-target performance evidence.
+- Recheck: report, README, claim boundary, source contract, diagrams, configuration, testing, benchmark, roadmap, archive, history, and generated compendium agree.

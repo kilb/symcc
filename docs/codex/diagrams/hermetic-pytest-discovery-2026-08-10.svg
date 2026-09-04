@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080" role="img" aria-labelledby="title desc">
+  <title id="title">F359 hermetic pytest discovery boundary</title>
+  <desc id="desc">Default root pytest discovers SymCC project tests only, while explicit QSYM paths remain available after their independent prerequisites are built.</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#17324d" flood-opacity="0.13"/>
+    </filter>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#176b87"/>
+    </marker>
+    <marker id="arrowOrange" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#b85c2f"/>
+    </marker>
+    <style>
+      .title { font: 700 44px Arial, sans-serif; fill: #17324d; }
+      .subtitle { font: 400 22px Arial, sans-serif; fill: #496274; }
+      .lane { font: 700 25px Arial, sans-serif; fill: #17324d; }
+      .heading { font: 700 25px Arial, sans-serif; fill: #17324d; }
+      .body { font: 400 20px Arial, sans-serif; fill: #294758; }
+      .small { font: 400 17px Arial, sans-serif; fill: #496274; }
+      .mono { font: 700 19px 'DejaVu Sans Mono', monospace; fill: #17324d; }
+      .metric { font: 700 25px Arial, sans-serif; fill: #ffffff; }
+    </style>
+  </defs>
+  <rect width="1600" height="1080" fill="#f7fafb"/>
+  <rect x="0" y="0" width="1600" height="14" fill="#176b87"/>
+
+  <text x="92" y="80" class="title">F359 · Hermetic Pytest Discovery Boundary</text>
+  <text x="92" y="119" class="subtitle">默认入口隔离项目测试；显式入口保留 vendored QSYM 的独立验证能力</text>
+
+  <rect x="90" y="170" width="1420" height="124" rx="8" fill="#ffffff" stroke="#b9c9d2" stroke-width="2" filter="url(#shadow)"/>
+  <circle cx="158" cy="232" r="34" fill="#17324d"/>
+  <path d="M143 232 h30 M158 217 v30" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+  <text x="216" y="222" class="heading">仓库根入口</text>
+  <text x="216" y="257" class="mono">python3 -m pytest</text>
+  <rect x="1045" y="198" width="402" height="68" rx="6" fill="#e6f2f4" stroke="#68a6b7"/>
+  <text x="1080" y="225" class="small">pytest.ini</text>
+  <text x="1080" y="251" class="mono">testpaths = test</text>
+
+  <path d="M590 294 C590 342 450 348 450 394" fill="none" stroke="#176b87" stroke-width="5" marker-end="url(#arrowBlue)"/>
+  <path d="M1010 294 C1010 342 1150 348 1150 394" fill="none" stroke="#b85c2f" stroke-width="5" stroke-dasharray="12 9" marker-end="url(#arrowOrange)"/>
+
+  <text x="155" y="365" class="lane">默认发现路径</text>
+  <text x="905" y="365" class="lane">显式独立路径</text>
+
+  <rect x="90" y="405" width="680" height="360" rx="8" fill="#ffffff" stroke="#68a6b7" stroke-width="3" filter="url(#shadow)"/>
+  <rect x="90" y="405" width="680" height="64" rx="8" fill="#176b87"/>
+  <rect x="90" y="455" width="680" height="14" fill="#176b87"/>
+  <text x="130" y="447" class="metric">SymCC-Parallel 项目测试</text>
+  <text x="130" y="516" class="mono">test/test_*.py</text>
+  <text x="130" y="558" class="body">• Python 单元、集成与故障注入测试</text>
+  <text x="130" y="596" class="body">• 默认根命令完整发现</text>
+  <text x="130" y="634" class="body">• warnings-as-errors 全量回归</text>
+  <rect x="130" y="670" width="560" height="58" rx="6" fill="#e6f2f4"/>
+  <text x="166" y="707" class="heading">结果：退出码 0 · 无 QSYM 路径</text>
+
+  <rect x="830" y="405" width="680" height="360" rx="8" fill="#ffffff" stroke="#d79a75" stroke-width="3" filter="url(#shadow)"/>
+  <rect x="830" y="405" width="680" height="64" rx="8" fill="#b85c2f"/>
+  <rect x="830" y="455" width="680" height="14" fill="#b85c2f"/>
+  <text x="870" y="447" class="metric">Vendored QSYM 原生测试</text>
+  <text x="870" y="516" class="mono">runtime/.../qsym/tests</text>
+  <text x="870" y="558" class="body">• 先执行 build.py 并构建 PIN/QSYM</text>
+  <text x="870" y="596" class="body">• 调用者显式指定测试目录</text>
+  <text x="870" y="634" class="body">• 未被 norecursedirs 或 --ignore 屏蔽</text>
+  <rect x="870" y="670" width="560" height="58" rx="6" fill="#fbede5"/>
+  <text x="905" y="707" class="heading">当前环境：前置依赖透明缺失</text>
+
+  <rect x="90" y="820" width="1420" height="174" rx="8" fill="#17324d"/>
+  <text x="132" y="864" class="metric">隔离契约</text>
+  <line x1="132" y1="884" x2="1468" y2="884" stroke="#6f8a9d" stroke-width="2"/>
+  <circle cx="160" cy="928" r="13" fill="#56c5b8"/>
+  <text x="190" y="936" class="body" style="fill:#ffffff">无位置参数：只发现根项目 test/，避免环境耦合的收集失败</text>
+  <circle cx="825" cy="928" r="13" fill="#f0a45d"/>
+  <text x="855" y="936" class="body" style="fill:#ffffff">有显式路径：pytest 仍进入 QSYM，不隐藏后端测试债务</text>
+  <text x="132" y="975" class="small" style="fill:#c9d8df">边界只改变默认发现范围；不跳过测试、不模拟依赖、不声称 QSYM 后端已通过。</text>
+
+  <text x="92" y="1040" class="small">Evidence: default collection · counterfactual testpaths override · explicit QSYM path · explicit project path</text>
+</svg>

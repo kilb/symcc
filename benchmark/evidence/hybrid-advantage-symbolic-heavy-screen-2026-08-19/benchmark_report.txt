@@ -1,0 +1,137 @@
+================================================================================
+  SymCC MPI Parallelization Benchmark Report
+  Generated: 2026-08-19 16:18:26
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+  Target: gfts-xml_read_fuzzer
+────────────────────────────────────────────────────────────────────────────────
+
+  Mode         NP       Time   SymCCGen    AFLExec   Unique  ShowmapCov          Edges  FstatsCov         FEdges      AFL/s
+  ────────── ──── ────────── ────────── ────────── ──────── ─────────── ────────────── ────────── ────────────── ──────────
+  afl-only      8     1m2.0s          0   18093450    28403      10.83%     5512/50880     10.27%     5225/50870     297475
+  hybrid        8     1m1.4s       1616    2045154     5298      10.06%     5116/50880     10.08%     5128/50870      33480
+  seed          0       0.0s          0          0       20       4.55%     2314/50880        N/A            N/A          0
+
+  Online SymCC -> AFL Native Peer Sync:
+    hybrid np=8: published=68.0, scanned=0.0, imported=0.0, not-retained=0.0, complete-runs=0/1
+
+  Edge Coverage Chart (afl-showmap):
+     afl-only np=8 |████████████████████████████████████████| 10.83%
+       hybrid np=8 |█████████████████████████████████████░░░| 10.06%
+              seed |████████████████░░░░░░░░░░░░░░░░░░░░░░░░| 4.55%
+
+  Coverage Gain over Seed Baseline:
+    Seed baseline: 4.55% (2314 edges)
+       afl-only np=8: 10.83% (+6.28pp, +138.0% relative)
+         hybrid np=8: 10.06% (+5.51pp, +121.1% relative)
+
+  Like-for-like Throughput Speedup vs Serial:
+    afl-only np=  8 |                  N/A                   | different unit: afl-executions-per-second
+    hybrid np=  8 |                  N/A                   | different unit: afl-executions-plus-symcc-candidates-per-second
+    seed np=  0 |                  N/A                   | different unit: not-applicable
+
+
+────────────────────────────────────────────────────────────────────────────────
+  Target: lava-base64
+────────────────────────────────────────────────────────────────────────────────
+
+  Mode         NP       Time   SymCCGen    AFLExec   Unique  ShowmapCov          Edges  FstatsCov         FEdges      AFL/s
+  ────────── ──── ────────── ────────── ────────── ──────── ─────────── ────────────── ────────── ────────────── ──────────
+  afl-only      8     1m0.1s          0    2074405      558      14.06%       153/1088     14.74%       153/1038      34577
+  hybrid        8     1m1.1s        695     379978      784      20.68%       225/1088     14.74%       153/1038       6220
+  seed          0       0.0s          0          0       13      11.58%       126/1088        N/A            N/A          0
+
+  Online SymCC -> AFL Native Peer Sync:
+    hybrid np=8: published=4.0, scanned=3.0, imported=0.0, not-retained=3.0, complete-runs=0/1
+
+  Edge Coverage Chart (afl-showmap):
+     afl-only np=8 |███████████████████████████░░░░░░░░░░░░░| 14.06%
+       hybrid np=8 |████████████████████████████████████████| 20.68%
+              seed |██████████████████████░░░░░░░░░░░░░░░░░░| 11.58%
+
+  Coverage Gain over Seed Baseline:
+    Seed baseline: 11.58% (126 edges)
+       afl-only np=8: 14.06% (+2.48pp, +21.4% relative)
+         hybrid np=8: 20.68% (+9.10pp, +78.6% relative)
+
+  Like-for-like Throughput Speedup vs Serial:
+    afl-only np=  8 |                  N/A                   | different unit: afl-executions-per-second
+    hybrid np=  8 |                  N/A                   | different unit: afl-executions-plus-symcc-candidates-per-second
+    seed np=  0 |                  N/A                   | different unit: not-applicable
+
+
+────────────────────────────────────────────────────────────────────────────────
+  Target: lava-base64_harness
+────────────────────────────────────────────────────────────────────────────────
+
+  Mode         NP       Time   SymCCGen    AFLExec   Unique  ShowmapCov          Edges  FstatsCov         FEdges      AFL/s
+  ────────── ──── ────────── ────────── ────────── ──────── ─────────── ────────────── ────────── ────────────── ──────────
+  afl-only      8     1m0.1s          0    4632337      622      47.92%         92/192     55.09%         92/167      77202
+  hybrid        8     1m3.5s        317     874531      421      51.04%         98/192     55.09%         92/167      13772
+  seed          0       0.0s          0          0       13      38.02%         73/192        N/A            N/A          0
+
+  Online SymCC -> AFL Native Peer Sync:
+    hybrid np=8: published=2.0, scanned=2.0, imported=0.0, not-retained=2.0, complete-runs=1/1
+
+  Edge Coverage Chart (afl-showmap):
+     afl-only np=8 |█████████████████████████████████████░░░| 47.92%
+       hybrid np=8 |████████████████████████████████████████| 51.04%
+              seed |█████████████████████████████░░░░░░░░░░░| 38.02%
+
+  Coverage Gain over Seed Baseline:
+    Seed baseline: 38.02% (73 edges)
+       afl-only np=8: 47.92% (+9.90pp, +26.0% relative)
+         hybrid np=8: 51.04% (+13.02pp, +34.2% relative)
+
+  Like-for-like Throughput Speedup vs Serial:
+    afl-only np=  8 |                  N/A                   | different unit: afl-executions-per-second
+    hybrid np=  8 |                  N/A                   | different unit: afl-executions-plus-symcc-candidates-per-second
+    seed np=  0 |                  N/A                   | different unit: not-applicable
+
+
+────────────────────────────────────────────────────────────────────────────────
+  Target: synthetic-parallel_scaling
+────────────────────────────────────────────────────────────────────────────────
+
+  Mode         NP       Time   SymCCGen    AFLExec   Unique  ShowmapCov          Edges  FstatsCov         FEdges      AFL/s
+  ────────── ──── ────────── ────────── ────────── ──────── ─────────── ────────────── ────────── ────────────── ──────────
+  afl-only      8     1m0.1s          0    4934169      701      18.23%        140/768     19.58%        140/715      82208
+  hybrid        8     1m1.1s         62     930617      191      17.32%        133/768     18.32%        131/715      15230
+  seed          0       0.0s          0          0        1       0.26%          2/768        N/A            N/A          0
+
+  Online SymCC -> AFL Native Peer Sync:
+    hybrid np=8: published=2.0, scanned=0.0, imported=0.0, not-retained=0.0, complete-runs=0/1
+
+  Edge Coverage Chart (afl-showmap):
+     afl-only np=8 |████████████████████████████████████████| 18.23%
+       hybrid np=8 |██████████████████████████████████████░░| 17.32%
+              seed |░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░| 0.26%
+
+  Coverage Gain over Seed Baseline:
+    Seed baseline: 0.26% (2 edges)
+       afl-only np=8: 18.23% (+17.97pp, +6911.5% relative)
+         hybrid np=8: 17.32% (+17.06pp, +6561.5% relative)
+
+  Like-for-like Throughput Speedup vs Serial:
+    afl-only np=  8 |                  N/A                   | different unit: afl-executions-per-second
+    hybrid np=  8 |                  N/A                   | different unit: afl-executions-plus-symcc-candidates-per-second
+    seed np=  0 |                  N/A                   | different unit: not-applicable
+
+
+================================================================================
+  OVERALL SUMMARY
+================================================================================
+
+  gfts-xml_read_fuzzer: best = afl-only np=8 (1m2.0s, 28403 retained unique, 0 SymCC candidates, 18093450 AFL executions, edge_cov=10.83%)
+  lava-base64: best = hybrid np=8 (1m1.1s, 784 retained unique, 695 SymCC candidates, 379978 AFL executions, edge_cov=20.68%)
+  lava-base64_harness: best = hybrid np=8 (1m3.5s, 421 retained unique, 317 SymCC candidates, 874531 AFL executions, edge_cov=51.04%)
+  synthetic-parallel_scaling: best = afl-only np=8 (1m0.1s, 701 retained unique, 0 SymCC candidates, 4934169 AFL executions, edge_cov=18.23%)
+
+  Report files:
+    Text:  /home/ubuntu/code/symcc/benchmark/evidence/hybrid-advantage-symbolic-heavy-screen-2026-08-19/benchmark_report.txt
+    CSV:   /home/ubuntu/code/symcc/benchmark/evidence/hybrid-advantage-symbolic-heavy-screen-2026-08-19/benchmark_data.csv
+    JSON:  /home/ubuntu/code/symcc/benchmark/evidence/hybrid-advantage-symbolic-heavy-screen-2026-08-19/benchmark_data.json
+
+================================================================================

@@ -1,0 +1,2 @@
+(foo|ba((rr)+oo|bar)+
+foo|bar)+foo|ba((rr)+o+r)

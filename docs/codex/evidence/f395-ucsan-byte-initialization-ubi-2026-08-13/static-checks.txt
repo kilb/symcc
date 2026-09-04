@@ -1,0 +1,20 @@
+$ python -m ruff check benchmark/benchmark_ucsan_uninitialized.py
+All checks passed!
+
+$ python -m ruff format --check benchmark/benchmark_ucsan_uninitialized.py
+1 file already formatted
+
+$ python -m py_compile benchmark/benchmark_ucsan_uninitialized.py
+exit=0
+
+$ git diff --check
+exit=0
+
+$ clang-format-18 --dry-run --Werror ...
+not-run: clang-format is not installed in this environment
+
+$ cmake --build build -j16
+exit=0 (LLVM 18)
+
+$ cmake --build build-llvm17 -j16
+exit=0 (LLVM 17)

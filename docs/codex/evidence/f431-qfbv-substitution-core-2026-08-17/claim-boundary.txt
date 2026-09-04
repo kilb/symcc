@@ -1,0 +1,13 @@
+F431 claim boundary
+
+The implementation establishes sound, bounded reuse of an independently
+checked UNSAT core when a complete mapping from source 8-bit Query IR input
+reads to target reads makes every substituted core root an exact target root.
+Bloom filters, structural footprints, extractor output, and backend telemetry
+never authorize UNSAT.
+
+The recorded timing compares fresh target CPC generation plus Ethos against
+one already verified source-core theorem plus exact per-target substitution.
+It is a mechanism amortization result. It is not an end-to-end fuzzing coverage,
+defect-discovery, solver-portfolio throughput, multi-node scalability, arbitrary
+SMT variable-substitution, or paper-result reproduction claim.

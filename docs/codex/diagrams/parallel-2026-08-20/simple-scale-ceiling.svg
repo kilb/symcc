@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="520" viewBox="0 0 1280 520" role="img" aria-label="并行规模上限模型示意图">
+  <defs>
+    <style>
+      .bg { fill: #f6f8fb; }
+      .card { fill: #ffffff; stroke: #d9e1ec; stroke-width: 2; rx: 12; }
+      .blue { fill: #eef5ff; stroke: #b9cff8; stroke-width: 2; rx: 12; }
+      .green { fill: #edf8f2; stroke: #b8dfc8; stroke-width: 2; rx: 12; }
+      .amber { fill: #fff7e8; stroke: #edd49d; stroke-width: 2; rx: 12; }
+      .red { fill: #fff1ec; stroke: #f1bba9; stroke-width: 2; rx: 12; }
+      .label { font: 700 24px -apple-system,BlinkMacSystemFont,"Noto Sans SC","Microsoft YaHei",Arial,sans-serif; fill: #17202a; }
+      .title { font: 700 20px -apple-system,BlinkMacSystemFont,"Noto Sans SC","Microsoft YaHei",Arial,sans-serif; fill: #17202a; }
+      .text { font: 500 15px -apple-system,BlinkMacSystemFont,"Noto Sans SC","Microsoft YaHei",Arial,sans-serif; fill: #5d6b7a; }
+      .formula { font: 800 27px -apple-system,BlinkMacSystemFont,"Noto Sans SC","Microsoft YaHei",Arial,sans-serif; fill: #17202a; }
+      .arrow { stroke: #496176; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#496176"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1280" height="520"/>
+  <text class="label" x="48" y="58">并行规模上限模型</text>
+  <text class="text" x="48" y="86">并行规模由资源、Master 服务能力、有效吞吐和新增覆盖收益共同约束，最终取其中最小可行值。</text>
+
+  <rect class="blue" x="65" y="135" width="245" height="145"/>
+  <text class="title" x="92" y="176">资源上限</text>
+  <text class="text" x="92" y="210">CPU、内存、solver 后端</text>
+  <text class="text" x="92" y="238">决定最多能开多少进程</text>
+
+  <rect class="green" x="370" y="135" width="245" height="145"/>
+  <text class="title" x="397" y="176">Master 上限</text>
+  <text class="text" x="397" y="210">扫描、派发、triage、提交</text>
+  <text class="text" x="397" y="238">决定协调器能否喂饱 worker</text>
+
+  <rect class="amber" x="675" y="135" width="245" height="145"/>
+  <text class="title" x="702" y="176">吞吐上限</text>
+  <text class="text" x="702" y="210">USL 估计并行争用</text>
+  <text class="text" x="702" y="238">判断翻倍后增益是否不足 10%</text>
+
+  <rect class="red" x="980" y="135" width="245" height="145"/>
+  <text class="title" x="1007" y="176">新覆盖上限</text>
+  <text class="text" x="1007" y="210">路径越探索越稀疏</text>
+  <text class="text" x="1007" y="238">决定更多 worker 是否还能涨覆盖</text>
+
+  <path class="arrow" d="M188 285 L188 330"/>
+  <path class="arrow" d="M492 285 L492 330"/>
+  <path class="arrow" d="M797 285 L797 330"/>
+  <path class="arrow" d="M1102 285 L1102 330"/>
+
+  <rect class="card" x="205" y="345" width="870" height="110"/>
+  <text class="formula" x="282" y="392">N* = min(资源上限, Master 上限, 吞吐上限, 新覆盖上限)</text>
+  <text class="text" x="282" y="428">当前判断：SymCC workers 保持约 8-12；total np 已验证到 32，下一步探针规模为 48/50。</text>
+  <text class="text" x="282" y="452">注意：48/50 是下一步测试点，不是已经证明的固定上限。</text>
+</svg>

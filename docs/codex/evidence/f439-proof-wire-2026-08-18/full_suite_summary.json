@@ -1,0 +1,36 @@
+{
+  "all_passed": true,
+  "associated_python": {
+    "passed": 56,
+    "subtests_passed": 50
+  },
+  "claim_boundary": "PalRUP fragment syntax interoperability, not global UNSAT",
+  "focused_python": {
+    "passed": 13,
+    "subtests_passed": 12
+  },
+  "llvm17": {
+    "discovered": 329,
+    "failed": 0,
+    "passed": 327,
+    "unresolved": 0,
+    "unsupported": 2
+  },
+  "llvm18": {
+    "discovered": 329,
+    "failed": 0,
+    "passed": 328,
+    "unresolved": 0,
+    "unsupported": 1
+  },
+  "official_oracle": {
+    "lidrup_artifact_sha256": "29dee2f10f19b16f414d0776d38a72a74c084f28bce0aff829b81897ab81d2fc",
+    "palrup_fragment_sha256": "1c10c832560aeeff6a61ea6226edd10ff95a8b5329a3542e9b732b02a90f7299"
+  },
+  "python": {
+    "inventory_sha256": "34d0215779fddb0692fe059f7a8dcade4a25957483226297152693156ee34f76",
+    "passed": 1320,
+    "subtests_passed": 303
+  },
+  "schema": "symcc-f439-full-suite-summary-v1"
+}

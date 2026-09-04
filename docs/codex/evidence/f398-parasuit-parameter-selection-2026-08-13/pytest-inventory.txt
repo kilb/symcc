@@ -1,0 +1,5 @@
+schema=symcc-f398-pytest-inventory-v1
+count=980
+nodeids_sha256=782be6b21572ad366f61de540685b0fccf8be280114a5db3ba8316f386cfc99a
+file_sha256=5fa9c864228cf9a2ccd31a02aa60b2612f79540aa0e041700ef0172a3468ee54
+status=PASS

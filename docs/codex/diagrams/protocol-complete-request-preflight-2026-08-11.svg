@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1100" viewBox="0 0 1600 1100" role="img" aria-labelledby="title desc">
+  <title id="title">F369 protocol-complete persistent solver request preflight</title>
+  <desc id="desc">A delayed same-ID path injection is closed by validating the exact six-field commit image before any helper, descriptor, or pipe side effect.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+    </marker>
+    <marker id="red-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#b91c1c"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.11"/>
+    </filter>
+    <style>
+      .title { font: 700 38px Arial, sans-serif; fill: #111827; }
+      .subtitle { font: 400 19px Arial, sans-serif; fill: #475569; }
+      .band { font: 700 18px Arial, sans-serif; fill: #334155; }
+      .node { font: 700 20px Arial, sans-serif; fill: #111827; }
+      .body { font: 400 16px Arial, sans-serif; fill: #334155; }
+      .small { font: 400 14px Arial, sans-serif; fill: #475569; }
+      .mono { font: 600 14px Consolas, monospace; fill: #1f2937; }
+      .pill { font: 700 13px Arial, sans-serif; letter-spacing: 0; }
+      .footer { font: 400 16px Arial, sans-serif; fill: #f8fafc; }
+      .footer-small { font: 400 14px Arial, sans-serif; fill: #cbd5e1; }
+      .line { fill: none; stroke: #334155; stroke-width: 3; marker-end: url(#arrow); }
+      .red-line { fill: none; stroke: #b91c1c; stroke-width: 3; marker-end: url(#red-arrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1100" fill="#f8fafc"/>
+  <rect x="0" y="0" width="1600" height="116" fill="#ffffff"/>
+  <rect x="0" y="113" width="1600" height="3" fill="#0f766e"/>
+  <text x="70" y="58" class="title">F369 | Protocol-Complete Request Preflight</text>
+  <text x="70" y="91" class="subtitle">Validate the exact commit image before helper, descriptor, or pipe side effects</text>
+  <rect x="1310" y="38" width="220" height="42" rx="5" fill="#dcfce7" stroke="#15803d"/>
+  <text x="1420" y="64" text-anchor="middle" class="pill" fill="#166534">DELAYED FRAME CLOSED</text>
+
+  <text x="70" y="152" class="band">COUNTEREXAMPLE | A PATH CREATES A FUTURE SAME-ID RESPONSE</text>
+  <rect x="70" y="170" width="1460" height="210" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="94" y="196" width="310" height="150" rx="5" fill="#ffffff" stroke="#fdba74"/>
+  <text x="118" y="228" class="node">1 | Unchecked pathname</text>
+  <text x="118" y="260" class="mono">safe&lt;LF&gt;victim&lt;TAB&gt;...</text>
+  <text x="118" y="291" class="body">One caller supplies two lines</text>
+  <text x="118" y="319" class="small">future ID is predictable</text>
+  <path d="M 404 271 L 466 271" class="line"/>
+
+  <rect x="466" y="196" width="300" height="150" rx="5" fill="#ffffff" stroke="#fdba74"/>
+  <text x="490" y="228" class="node">2 | Helper parses A + V</text>
+  <text x="490" y="260" class="mono">line A: attacker / safe</text>
+  <text x="490" y="288" class="mono">line V: victim / injected</text>
+  <text x="490" y="319" class="small">two valid response IDs</text>
+  <path d="M 766 271 L 828 271" class="red-line"/>
+
+  <rect x="828" y="196" width="310" height="150" rx="5" fill="#fee2e2" stroke="#dc2626"/>
+  <text x="852" y="228" class="node">3 | V response is delayed</text>
+  <text x="852" y="260" class="mono">read(A) returns alone</text>
+  <text x="852" y="288" class="mono">V waits in stdout queue</text>
+  <text x="852" y="319" class="small">same-read framing cannot see it</text>
+  <path d="M 1138 271 L 1200 271" class="red-line"/>
+
+  <rect x="1200" y="196" width="306" height="150" rx="5" fill="#fee2e2" stroke="#dc2626"/>
+  <text x="1224" y="228" class="node">4 | Real V accepts stale model</text>
+  <text x="1224" y="260" class="mono">expected key: legitimate</text>
+  <text x="1224" y="288" class="mono">observed key: injected</text>
+  <text x="1224" y="319" class="small">response ID still equals victim</text>
+
+  <text x="70" y="428" class="band">FIX | ONE VALIDATED SIX-FIELD COMMIT IMAGE</text>
+  <rect x="70" y="448" width="310" height="330" rx="7" fill="#ecfeff" stroke="#0891b2" stroke-width="2" filter="url(#shadow)"/>
+  <text x="94" y="484" class="node">Choose transport mode once</text>
+  <rect x="94" y="510" width="262" height="86" rx="5" fill="#ffffff" stroke="#67e8f9"/>
+  <text x="112" y="540" class="body">pathname mode</text>
+  <text x="112" y="570" class="mono">prefix path | target path</text>
+  <rect x="94" y="614" width="262" height="86" rx="5" fill="#ffffff" stroke="#67e8f9"/>
+  <text x="112" y="644" class="body">sealed descriptor mode</text>
+  <text x="112" y="674" class="mono">@fd:prefix | @fd:target</text>
+  <rect x="94" y="720" width="262" height="34" rx="4" fill="#cffafe"/>
+  <text x="225" y="742" text-anchor="middle" class="pill" fill="#155e75">NO HELPER SELECTED YET</text>
+
+  <path d="M 380 613 L 438 613" class="line"/>
+  <rect x="438" y="448" width="430" height="330" rx="7" fill="#ffffff" stroke="#2563eb" stroke-width="2" filter="url(#shadow)"/>
+  <text x="462" y="484" class="node">Exact request_field_preview</text>
+  <rect x="462" y="510" width="382" height="56" rx="5" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="653" y="544" text-anchor="middle" class="mono">ID | timeout | key | A0 | A1 | witness</text>
+  <text x="462" y="604" class="body">Every field: non-empty</text>
+  <text x="462" y="636" class="body">Every field: no NUL / TAB / CR / LF</text>
+  <text x="462" y="668" class="body">Descriptor ID: strict ASCII, length &lt;= 256 B</text>
+  <rect x="462" y="712" width="382" height="42" rx="4" fill="#dbeafe"/>
+  <text x="653" y="738" text-anchor="middle" class="pill" fill="#1e40af">VALIDATION AND COMMIT SHARE THIS TUPLE</text>
+
+  <path d="M 868 613 L 926 613" class="line"/>
+  <rect x="926" y="448" width="604" height="330" rx="7" fill="#f0fdf4" stroke="#16a34a" stroke-width="2" filter="url(#shadow)"/>
+  <text x="950" y="484" class="node">Only after V(preview) succeeds</text>
+  <rect x="950" y="510" width="260" height="94" rx="5" fill="#ffffff" stroke="#86efac"/>
+  <text x="974" y="540" class="body">1 | select generation G</text>
+  <text x="974" y="570" class="body">2 | send sealed fds if needed</text>
+  <rect x="1240" y="510" width="266" height="94" rx="5" fill="#ffffff" stroke="#86efac"/>
+  <text x="1264" y="540" class="body">3 | actual A0/A1 == preview</text>
+  <text x="1264" y="570" class="body">4 | write the preview tuple</text>
+  <rect x="950" y="630" width="556" height="62" rx="5" fill="#dcfce7"/>
+  <text x="1228" y="656" text-anchor="middle" class="body">pure rejection: G remains valid; prefix cache remains warm</text>
+  <text x="1228" y="680" text-anchor="middle" class="small">post-preflight uncertainty still retires G under F368</text>
+  <rect x="950" y="716" width="556" height="38" rx="4" fill="#bbf7d0"/>
+  <text x="1228" y="741" text-anchor="middle" class="pill" fill="#166534">NO EXTRA FRAME CAN ENTER THE PIPE</text>
+
+  <text x="70" y="830" class="band">MEASURED EVIDENCE AND CLAIM BOUNDARY</text>
+  <rect x="70" y="850" width="890" height="154" rx="7" fill="#ffffff" stroke="#64748b" filter="url(#shadow)"/>
+  <text x="94" y="884" class="node">Deterministic mechanism evidence</text>
+  <text x="94" y="918" class="body">legacy: victim accepted injected assignment 66 on the same helper generation</text>
+  <text x="94" y="950" class="body">production: 4 delimiter classes + 2 descriptor-ID classes rejected; valid path/fd requests pass</text>
+  <text x="94" y="982" class="body">20 + 8 directed | 227 + 26 affected | 10 lit | 787 + 133 full gate</text>
+
+  <rect x="1000" y="850" width="530" height="154" rx="7" fill="#fff7ed" stroke="#ea580c" filter="url(#shadow)"/>
+  <text x="1024" y="884" class="node">Boundary</text>
+  <text x="1024" y="918" class="body">local Linux protocol correctness only</text>
+  <text x="1024" y="950" class="body">no campaign, LAVA-M, coverage, or throughput claim</text>
+  <text x="1024" y="982" class="small">pathname content integrity still requires sealed mode</text>
+
+  <rect x="70" y="1032" width="1460" height="44" rx="6" fill="#111827"/>
+  <text x="96" y="1059" class="pill" fill="#5eead4">PROVEN INVARIANT</text>
+  <text x="250" y="1059" class="footer">the validated field set equals the committed field set; rejection has zero transport effects</text>
+</svg>

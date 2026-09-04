@@ -1,0 +1,9 @@
+paper=https://mboehme.github.io/paper/SP26-cottontail.pdf
+artifact=https://github.com/Cottontail-Proj/cottontail.git
+artifact_revision=4efa4dcf8225040feeef8fd7017d32aaa21c9340
+audited_files=cottontail-compiler/runtime/src/backends/qsym/qsym/qsym/pintool/GenericTree.h,cottontail-compiler/runtime/src/backends/qsym/qsym/qsym/pintool/solver.cpp
+audited_fact=ECT stores branch/call-context/taken/visit structure; constraint expressions are a separate path-constraints-expr channel
+audited_reduction=solver.cpp normalizes k!<digits> to k!X when checking same-key redundant constraint strings
+local_difference=F399 normalizes validated Query IR structure, preserves read aliases and joint prefix-target context, and uses the result only for scheduling
+excluded_claim=complete Cottontail reproduction, paper coverage uplift, LLM seed acquisition, or public-target effectiveness
+

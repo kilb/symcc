@@ -1,0 +1,11 @@
+capture_date=2026-08-17
+ruff_version=0.15.20
+ruff_check=PASS
+py_compile=PASS
+bash_n_installer=PASS
+generated_feature_index_check=PASS
+git_diff_check=PASS
+shellcheck=NOT_AVAILABLE_ON_HOST
+ruff_format_check=NOT_ENFORCED_EXISTING_REPOSITORY_STYLE_DIFFERS
+scope=util/qfbv_proof_receipt.py,util/qf_bv_backend.py,util/query_store.py,util/symcc_query_service.py,benchmark/check_qfbv_proof_receipt_oracles.py,test/test_qfbv_proof_receipt.py,docs/generate_current_technology_index.py,docs/codex/verify_delivery.py
+

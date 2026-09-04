@@ -1,0 +1,42 @@
+
+digraph G {
+  graph [
+    bgcolor="white", pad="0.28", nodesep="0.38", ranksep="0.58",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=26,
+    labelloc="t", labeljust="l"
+  ];
+  node [
+    shape=box, style="rounded,filled", margin="0.18,0.12",
+    fontname="WenQuanYi Zen Hei", fontcolor="#17212B", fontsize=13,
+    color="#CBD5E1", penwidth=1.3, fillcolor="#F8FAFC"
+  ];
+  edge [
+    fontname="WenQuanYi Zen Hei", fontcolor="#64748B", fontsize=11,
+    color="#64748B", penwidth=1.5, arrowsize=0.75
+  ];
+
+  label="图 4-1  一次动态符号执行只覆盖一条路径及其一步邻居";
+  rankdir=TB;
+
+  e [label="entry", shape=circle, fixedsize=true, width=0.62, fillcolor="#FEF3C7", color="#D97706"];
+  p1 [label="已走分支", fillcolor="#CCFBF1", color="#0F766E"];
+  n1 [label="一步邻居\n可由 negatePath 生成", fillcolor="#DBEAFE", color="#2563EB"];
+  p2 [label="已走分支", fillcolor="#CCFBF1", color="#0F766E"];
+  n2 [label="一步邻居", fillcolor="#DBEAFE", color="#2563EB"];
+  end [label="本次执行终点", fillcolor="#CCFBF1", color="#0F766E"];
+  deep1 [label="更深路径\n本次不可见", style="rounded,dashed,filled", fillcolor="#F1F5F9"];
+  deep2 [label="更深路径\n需新种子再执行", style="rounded,dashed,filled", fillcolor="#F1F5F9"];
+  loop [label="外层反馈循环\n候选 → 新种子 → 再执行\n逐代增加深度", fillcolor="#DCFCE7", color="#15803D"];
+
+  e -> p1 [color="#0F766E", penwidth=2.6];
+  e -> n1 [color="#2563EB"];
+  p1 -> p2 [color="#0F766E", penwidth=2.6];
+  p1 -> n2 [color="#2563EB"];
+  p2 -> end [color="#0F766E", penwidth=2.6];
+  end -> deep1 [style=dashed];
+  end -> deep2 [style=dashed];
+  n1 -> loop [style=dashed, color="#15803D"];
+  n2 -> loop [style=dashed, color="#15803D"];
+  loop -> e [constraint=false, style=dashed, color="#15803D"];
+
+}

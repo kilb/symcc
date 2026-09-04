@@ -1,0 +1,66 @@
+F339 reproducibility and evidence boundary
+Date: 2026-08-07 UTC
+Platform: Linux 7.0.0-28-generic x86_64, glibc 2.39
+Python: 3.12.3
+Filesystem under test: local overlayfs
+
+Production mechanism:
+- context-managed one-pass staged-directory verification
+- normalized entry name must belong to the expected manifest before metadata/content I/O
+- descriptor open requires O_NOFOLLOW and also uses O_NONBLOCK/O_CLOEXEC
+- fstat on the opened descriptor must identify a regular file
+- SHA-256 reads bytes from that same descriptor
+- missing O_NOFOLLOW, symlink, non-regular object, or I/O uncertainty fails closed
+- live results require staged == expected
+- replay permits expected objects across verified staging and verified public corpus
+- promotion existing/post-publish checks use the same no-follow digest
+
+Automated tests:
+- directed: 209 passed, 43 subtests passed, 18.06 s
+- related six-module integration: 326 passed, 51 subtests passed, 19.56 s
+- full warnings-as-errors Python: 722 passed, 71 subtests passed, 101.45 s
+- Ruff: passed
+- in-memory compile: passed
+- git diff --check: passed
+
+Actual MPI transport:
+- Open MPI, 4 ranks, 1 master, 3 workers
+- one physical host; actual_multi_host=false; synthetic_topology=false
+- deterministic synthetic output-contract target; no solver
+- one child generated and one new content-addressed object published
+- two of two public corpus objects are real regular files with exact name/content SHA-256
+- no staged file or symlink residue
+- worker shutdown ACKs: 3/3
+- returncode=0; elapsed=1.7731350138783455 s
+- all_checks_passed=true
+
+Valid-manifest mechanism benchmark:
+- object counts: 128, 1024, 4096
+- 3 warmups per mechanism and size
+- 30 interleaved/alternating timing samples per mechanism and size (180 total)
+- 10 interleaved/alternating tracemalloc samples per mechanism and size (60 total)
+- content hashing stubbed identically as digest=basename to isolate scan/control structures
+- materialized median traced peaks: 53216, 383328, 1532256 bytes
+- streaming median traced peaks: 22775, 141433, 562297 bytes
+- materialized/streaming memory ratios: 2.336597, 2.710315, 2.724994
+- materialized median times: 197.9225, 1569.5965, 6479.6865 us
+- streaming median times: 205.474, 1620.724, 6684.945 us
+- streaming/materialized time ratios: 1.038153, 1.032574, 1.031708
+
+Unexpected-object benchmark:
+- one 16777216-byte real regular object with valid name/content SHA-256
+- expected manifest contains a different absent valid hash
+- 3 warmups and 30 interleaved/alternating samples per mechanism
+- materialized: 30 digest calls, 503316480 content bytes requested, median 6597.1325 us
+- streaming expected-first: 0 digest calls, 0 content bytes requested, median 4.692 us
+- materialized/streaming median time ratio: 1406.038470
+
+Strict boundary:
+- Expected and observed manifest sets remain O(M); F339 is not an O(1)-memory verifier.
+- Every valid object still requires complete SHA-256 content reading.
+- The valid-manifest benchmark stubs content hashing and is not end-to-end corpus throughput.
+- The unexpected-object timing uses a page-cached local file and is fixture-dependent.
+- tracemalloc is not process RSS, kernel memory, page cache, or remote-server memory.
+- O_NOFOLLOW constrains the final path component; controlled parent roots and a non-Byzantine model remain assumptions.
+- No real multi-host, remote-filesystem failover, power-loss, or Byzantine-worker evidence exists.
+- No DSE throughput, solver, coverage, bug-discovery, or LAVA-M uplift is claimed.
