@@ -110,3 +110,5 @@ cache miss抵消并行收益，可进一步采用带滞回的steal threshold或�
 
 机器可读Python门禁结果保存在
 [`full-python-gate.json`](../evidence/f465-query-parallelism-bitvector-semantics-2026-09-04/full-python-gate.json)。
+当前源码交付门禁在clean `HEAD`上精确通过；旧单体文档验证器仍有15项历史快照/当前源码混合
+校验失败，具体范围和处理边界记录在证据目录，未通过重签历史artifact掩盖。

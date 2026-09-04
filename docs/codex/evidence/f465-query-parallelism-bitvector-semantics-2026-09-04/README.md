@@ -42,3 +42,12 @@ python3 /usr/lib/llvm-17/build/utils/lit/lit.py -sv \
 
 LLVM 17的provenance项读取工作树身份，因此与会产生临时产物的主套件隔离执行。第一次LLVM 18
 低并发试跑被主动终止，不计入冻结结果；表中只记录完整结束且退出码为0的运行。
+
+## 文档验证残余
+
+当前source-delivery gate在提交后的clean `HEAD`上通过：714个普通文件、1个runtime gitlink，
+tree SHA-256为`98b78af0290d9188f199c91c9945c10d8d6624bd36a45b870d30efb001114333`。
+单体`docs/codex/verify_delivery.py`中的链接、SVG和PNG检查通过，但总结果仍有15项失败：固定的
+Configuration变量数/test文件数/F360规则已过时，F400--F456的10个历史source contract仍拿
+冻结摘要比较当前演进源码，另有F456 source manifest和旧顶层交付包摘要不匹配。这里不重签历史
+证据，也不把该脚本报告成通过；后续应把“历史artifact自洽”与“当前HEAD源码一致”拆成两个门禁。
