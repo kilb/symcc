@@ -359,7 +359,17 @@ def build_afl_data_coverage_runtime(output_dir: str) -> str | None:
     if not cc:
         return None
     out = Path(output_dir) / "libafl_data_coverage_rt.so"
-    cmd = [cc, "-O2", "-shared", "-fPIC", str(src), "-o", str(out), "-ldl"]
+    cmd = [
+        cc,
+        "-O2",
+        "-shared",
+        "-fPIC",
+        str(src),
+        "-o",
+        str(out),
+        "-ldl",
+        "-pthread",
+    ]
     try:
         result = subprocess.run(
             cmd, capture_output=True, text=True, timeout=60)

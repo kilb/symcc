@@ -1597,6 +1597,33 @@ class AflProfileOrchestrationTests(unittest.TestCase):
         )
         self.assertEqual(bench.resolve_afl_profile_mode("off", True, True, True), "off")
 
+    def test_data_coverage_runtime_build_uses_thread_link_flags(self):
+        bench = importlib.import_module("benchmark.run_benchmark")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "source"
+            source = root / "util" / "afl_data_coverage_rt.c"
+            source.parent.mkdir(parents=True)
+            source.write_text("int data_coverage_runtime;\n", encoding="ascii")
+            output = Path(tmp) / "output"
+            output.mkdir()
+            library = output / "libafl_data_coverage_rt.so"
+            library.write_bytes(b"library")
+            completed = mock.Mock(returncode=0)
+
+            with (
+                mock.patch.object(bench, "SYMCC_ROOT", root),
+                mock.patch.dict(os.environ, {"CC": "/usr/bin/cc"}),
+                mock.patch.object(
+                    bench.subprocess, "run", return_value=completed
+                ) as run,
+            ):
+                built = bench.build_afl_data_coverage_runtime(str(output))
+
+            self.assertEqual(built, str(library))
+            command = run.call_args.args[0]
+            self.assertIn("-pthread", command)
+            self.assertLess(command.index("-ldl"), command.index("-pthread"))
+
     def test_showmap_parser_distinguishes_edge_universe_from_map_capacity(self):
         bench = importlib.import_module("benchmark.run_benchmark")
         complete = bench.parse_afl_showmap_coverage(

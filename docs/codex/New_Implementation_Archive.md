@@ -16071,3 +16071,25 @@ prefix continuation 调度 exact、tailored、sampling 与语义 proposal。所�
   LLVM18为348 passed加1 unsupported，LLVM17为347 passed加2 unsupported。没有新增公共目标长时
   coverage、solver speedup 或缺陷发现率结论。
 - **材料**：[`F464研究报告`](research-progress/Fourth_Deep_Review_Semantic_Transport_Scaling_F464_2026-09-03.md)。
+
+## 458. F465：求解并行度与位向量语义闭合（2026-09-04）
+
+- **查询调度**：保留`prefix_id % jobs`本地优先亲和性；本地没有可领取任务时，在同一
+  `BEGIN IMMEDIATE`事务内按原遍历顺序跨分片窃取。共同根前缀不再把全部查询固定到单个
+  persistent solver，更新仍由query ID、owner和递增lease token栅栏线性化。
+- **租约协议**：自动续租在取得SQLite写锁后重新取时钟，避免锁等待吞掉短租约的大部分有效期；
+  显式`now`仍保留确定性故障测试语义，完成时继续执行最终owner/token/deadline裁决。
+- **QF_BV语义**：本地候选复验按SMT-LIB定义处理零除数：`bvudiv`返回全1，`bvurem`和
+  `bvsrem`返回被除数，`bvsdiv`按被除数符号返回全1或1。该改动只修复独立model复验，
+  不放宽SAT候选必须满足完整Query IR的可信边界。
+- **运行时与构建**：饱和算术min/max常量不再执行`1ULL << 64`；1--64位使用有界常量，
+  更宽且运行时ABI可表示的位宽使用位向量not/shift构造。benchmark构建data coverage
+  interposer显式加入`-pthread`，与其`pthread_once`实现和单元构建口径一致。
+- **测试身份**：规范pytest清单从1597项重建为当前真实1671项；净增74项包含此前F464提交中
+  未同步的测试和本轮2项新增测试，不能把全部差额归因于F465。
+- **验证与边界**：聚焦3 passed加22 subtests；QueryStore 41 passed加50 subtests；AFL编排
+  77 passed加42 subtests；完整Python 1671 passed加638 subtests；LLVM18为349 passed加1
+  unsupported，LLVM17为348 passed加2 unsupported。上述结果证明语义、调度容量和生命周期
+  反例闭合，不证明公共目标coverage、solver speedup或defect yield提升。
+- **材料**：[`F465研究报告`](research-progress/Fifth_Deep_Review_Query_Parallelism_and_Bitvector_Semantics_F465_2026-09-04.md)和
+  [`证据目录`](evidence/f465-query-parallelism-bitvector-semantics-2026-09-04/README.md)。

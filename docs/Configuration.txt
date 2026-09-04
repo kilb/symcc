@@ -6847,8 +6847,13 @@ environment variables.
   the alpha-normalized contextual constraint class, then explicit query
   priority, prefix depth, creation time, and query identity. `dfs`, `bfs`, and
   `priority` retain their historical primary order and use the shape score only
-  as a tie-breaker. Prefix ownership remains deterministically sharded across
-  worker slots so repeated prefixes reach the same solver cache.
+  as a tie-breaker. Query claiming uses local-first prefix affinity: a worker
+  first selects the deterministic ``prefix_id % jobs`` shard so repeated
+  prefixes reach the same solver cache. If that shard has no eligible work, it
+  atomically steals the globally highest-ranked query while holding the same
+  SQLite write transaction. This fallback prevents a hot root prefix from
+  leaving all but one solver idle; correctness still comes from the ordinary
+  lease token and independent result validation, not from shard ownership.
 
 - SYMCC_QUERY_SHAPE_SELECTION=0|1 (default 1): Enable F399 contextual
   constraint-isomorphism ranking. QueryStore validates the bounded Query IR DAG

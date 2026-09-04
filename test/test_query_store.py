@@ -378,6 +378,87 @@ class QueryStoreTest(unittest.TestCase):
             QueryStore._evaluate_expression("a", cyclic, b"", {})
         )
 
+    def test_query_ir_evaluator_implements_bitvector_division_by_zero(self):
+        def evaluate(operation: str, lhs: int) -> int | None:
+            expressions = {
+                "lhs": {
+                    "op": "constant",
+                    "bits": 8,
+                    "children": [],
+                    "attrs": {"value_hex": f"{lhs:02x}"},
+                },
+                "zero": {
+                    "op": "constant",
+                    "bits": 8,
+                    "children": [],
+                    "attrs": {"value_hex": "00"},
+                },
+                "root": {
+                    "op": operation,
+                    "bits": 8,
+                    "children": ["lhs", "zero"],
+                    "attrs": {},
+                },
+            }
+            return QueryStore._evaluate_expression(
+                "root", expressions, b"", {}
+            )
+
+        for lhs in (0x00, 0x01, 0x7F, 0x80, 0xFF):
+            with self.subTest(operation="udiv", lhs=lhs):
+                self.assertEqual(evaluate("udiv", lhs), 0xFF)
+            with self.subTest(operation="urem", lhs=lhs):
+                self.assertEqual(evaluate("urem", lhs), lhs)
+            with self.subTest(operation="sdiv", lhs=lhs):
+                self.assertEqual(
+                    evaluate("sdiv", lhs),
+                    0x01 if lhs & 0x80 else 0xFF,
+                )
+            with self.subTest(operation="srem", lhs=lhs):
+                self.assertEqual(evaluate("srem", lhs), lhs)
+
+    def test_query_claim_steals_from_a_hot_prefix_after_local_miss(self):
+        for shape_selection in ("0", "1"):
+            with (
+                self.subTest(shape_selection=shape_selection),
+                mock.patch.dict(
+                    os.environ,
+                    {"SYMCC_QUERY_SHAPE_SELECTION": shape_selection},
+                ),
+                tempfile.TemporaryDirectory() as temporary,
+            ):
+                store = QueryStore(temporary)
+                for target_value in range(0x42, 0x46):
+                    _query_id, created = store.ingest(
+                        _envelope(target_value=target_value)
+                    )
+                    self.assertTrue(created)
+
+                with store._connect() as db:
+                    prefix_ids = {
+                        int(row[0])
+                        for row in db.execute(
+                            "SELECT DISTINCT prefix_id FROM queries"
+                        ).fetchall()
+                    }
+                self.assertEqual(len(prefix_ids), 1)
+
+                leases = []
+                try:
+                    for shard_index in range(4):
+                        lease = store.claim(
+                            f"worker-{shard_index}",
+                            shard_index=shard_index,
+                            shard_count=4,
+                        )
+                        self.assertIsNotNone(lease)
+                        assert lease is not None
+                        leases.append(lease)
+                    self.assertEqual(len({lease.query_id for lease in leases}), 4)
+                finally:
+                    for lease in leases:
+                        lease.close_artifacts()
+
     def test_content_addressing_and_prefix_trie(self):
         with tempfile.TemporaryDirectory() as temporary:
             store = QueryStore(temporary)

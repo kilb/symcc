@@ -3263,27 +3263,39 @@ class QueryStore:
         else:
             shape_order = f"{shape_score} DESC, " if shape_selection else ""
             order = f"{depth_order} q.priority DESC, {shape_order}"
+        select_query = (
+            "SELECT q.query_id, q.smt2_hash, q.prefix_hash, q.target_hash, "
+            "q.prefix_smt2_hash, q.target_smt2_hash, q.timeout_ms, "
+            "q.lease_token FROM queries q "
+            "JOIN prefix_nodes p ON p.id = q.prefix_id "
+            f"{shape_join}"
+            "WHERE (q.status = 'pending' "
+            "OR (q.status = 'leased' AND q.lease_until <= ?)) "
+        )
+        order_query = f"ORDER BY {order}q.created, q.query_id LIMIT 1"
         sealed_descriptors: dict[str, int] = {}
         with self._connect() as db:
             try:
                 db.execute("BEGIN IMMEDIATE")
                 row = db.execute(
-                    "SELECT q.query_id, q.smt2_hash, q.prefix_hash, q.target_hash, "
-                    "q.prefix_smt2_hash, q.target_smt2_hash, q.timeout_ms, "
-                    "q.lease_token FROM queries q "
-                    "JOIN prefix_nodes p ON p.id = q.prefix_id "
-                    f"{shape_join}"
-                    "WHERE (q.status = 'pending' "
-                    "OR (q.status = 'leased' AND q.lease_until <= ?)) "
-                    "AND (q.prefix_id % ?) = ? "
-                    f"ORDER BY {order}q.created, "
-                    "q.query_id LIMIT 1",
+                    select_query
+                    + "AND (q.prefix_id % ?) = ? "
+                    + order_query,
                     (
                         (now, shard_count, shard_index, now)
                         if shape_selection
                         else (now, shard_count, shard_index)
                     ),
                 ).fetchone()
+                # Prefix affinity keeps a persistent solver's context warm.
+                # Once that shard is empty, however, strict affinity can leave
+                # every other solver idle behind one hot (often root) prefix.
+                # The write transaction makes this fallback an atomic steal.
+                if row is None and shard_count > 1:
+                    row = db.execute(
+                        select_query + order_query,
+                        (now, now) if shape_selection else (now,),
+                    ).fetchone()
                 if row is None:
                     db.commit()
                     return None
@@ -3397,11 +3409,16 @@ class QueryStore:
             or not 0.1 <= duration <= 86_400.0
         ):
             raise ValueError("query lease renewal duration must be in [0.1, 86400]")
-        lease_until = timestamp + duration
-        if not math.isfinite(lease_until):
-            raise ValueError("query lease renewal deadline is not finite")
         with self._connect() as db:
             db.execute("BEGIN IMMEDIATE")
+            # A contended SQLite write lock can consume a substantial fraction
+            # of a short lease. Anchor automatic renewals after acquiring the
+            # lock so the committed lease retains the requested safety window.
+            if now is None:
+                timestamp = time.time()
+            lease_until = timestamp + duration
+            if not math.isfinite(lease_until):
+                raise ValueError("query lease renewal deadline is not finite")
             return db.execute(
                 "UPDATE queries SET lease_until=?,updated=? WHERE query_id=? "
                 "AND status='leased' AND lease_owner=? AND lease_token=? "
@@ -6977,9 +6994,19 @@ class QueryStore:
                     return None
                 result = operands[0] * operands[1]
             elif op in {"udiv", "urem", "sdiv", "srem"}:
-                if len(operands) != 2 or operands[1] == 0:
+                if len(operands) != 2:
                     return None
-                if op == "udiv":
+                if operands[1] == 0:
+                    if op == "udiv":
+                        result = mask
+                    elif op in {"urem", "srem"}:
+                        result = operands[0]
+                    else:
+                        width = child_bits(0)
+                        if width is None:
+                            return None
+                        result = 1 if operands[0] & (1 << (width - 1)) else mask
+                elif op == "udiv":
                     result = operands[0] // operands[1]
                 elif op == "urem":
                     result = operands[0] % operands[1]
@@ -6989,8 +7016,6 @@ class QueryStore:
                         return None
                     lhs = QueryStore._to_signed(operands[0], width)
                     rhs = QueryStore._to_signed(operands[1], width)
-                    if rhs == 0:
-                        return None
                     magnitude = abs(lhs) // abs(rhs)
                     if op == "sdiv":
                         result = -magnitude if (lhs < 0) ^ (rhs < 0) else magnitude
