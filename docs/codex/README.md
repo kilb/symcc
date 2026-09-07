@@ -20,6 +20,9 @@
 | 2026-08-20 至 2026-09-03 研究进展 | [`Latest_Two_Week_Research_Progress_2026-09-03.md`](research-progress/Latest_Two_Week_Research_Progress_2026-09-03.md) |
 | 并行/hybrid testcase 补充清单 | [`Expanded_Hybrid_Showcase_Case_Registry_2026-08-19.md`](Expanded_Hybrid_Showcase_Case_Registry_2026-08-19.md) |
 | 研究进展归档 | [`research-progress/`](research-progress/) |
+| F467 第七轮深度审查修复闭环 | [`Seventh_Deep_Review_Remediation_F467_2026-09-05.md`](research-progress/Seventh_Deep_Review_Remediation_F467_2026-09-05.md) |
+| F466 第六轮深度审查：运行时、并行扩展与实验有效性 | [`Sixth_Deep_Review_Runtime_Scaling_and_Experimental_Validity_F466_2026-09-04.md`](research-progress/Sixth_Deep_Review_Runtime_Scaling_and_Experimental_Validity_F466_2026-09-04.md) |
+| F465 第五轮深度审查与求解并行、位向量语义闭合 | [`Fifth_Deep_Review_Query_Parallelism_and_Bitvector_Semantics_F465_2026-09-04.md`](research-progress/Fifth_Deep_Review_Query_Parallelism_and_Bitvector_Semantics_F465_2026-09-04.md) |
 | F464 第四轮深度审查与语义、传输、缩放闭合 | [`Fourth_Deep_Review_Semantic_Transport_Scaling_F464_2026-09-03.md`](research-progress/Fourth_Deep_Review_Semantic_Transport_Scaling_F464_2026-09-03.md) |
 | F463 第三轮深度审查与失败原子性闭合 | [`Third_Deep_Review_and_Failure_Atomic_Closure_F463_2026-08-31.md`](research-progress/Third_Deep_Review_and_Failure_Atomic_Closure_F463_2026-08-31.md) |
 | F462 恢复路径、长跑编号与 outbox 语义闭合 | [`Second_Deep_Review_and_Recovery_Closure_F462_2026-08-30.md`](research-progress/Second_Deep_Review_and_Recovery_Closure_F462_2026-08-30.md) |

@@ -2432,7 +2432,7 @@ Instruction *Symbolizer::createValueExpression(Value *V, IRBuilder<> &IRB) {
       return IRB.CreateCall(runtime.buildInteger,
                             {IRB.CreateZExtOrBitCast(V, IRB.getInt64Ty()),
                              IRB.getInt8(valueType->getPrimitiveSizeInBits())});
-    } else {
+    } else if (bits <= 128) {
       // Anything up to the maximum supported 128 bits. Those integers are a bit
       // tricky because the symbolic backends don't support them per se. We have
       // a special function in the run-time library that handles them, usually
@@ -2442,6 +2442,13 @@ Instruction *Symbolizer::createValueExpression(Value *V, IRBuilder<> &IRB) {
           {IRB.CreateTrunc(IRB.CreateLShr(V, ConstantInt::get(valueType, 64)),
                            IRB.getInt64Ty()),
            IRB.CreateTrunc(V, IRB.getInt64Ty())});
+    } else {
+      auto *storage = IRB.CreateAlloca(valueType);
+      IRB.CreateStore(V, storage);
+      auto *rawStorage =
+          IRB.CreateBitCast(storage, IRB.getInt8Ty()->getPointerTo());
+      return IRB.CreateCall(runtime.buildIntegerFromBuffer,
+                            {rawStorage, IRB.getInt32(bits)});
     }
   }
 

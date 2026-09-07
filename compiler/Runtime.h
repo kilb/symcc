@@ -30,6 +30,7 @@ struct Runtime {
 
   SymFnT buildInteger{};
   SymFnT buildInteger128{};
+  SymFnT buildIntegerFromBuffer{};
   SymFnT buildFloat{};
   SymFnT buildNullPointer{};
   SymFnT buildTrue{};

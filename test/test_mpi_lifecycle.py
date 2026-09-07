@@ -405,6 +405,37 @@ class MpiLifecycleTests(unittest.TestCase):
         self.assertIsNone(gate.claim({}))
         self.assertEqual(gate.ready, (2,))
 
+    def test_symcc_cpu_affinity_gives_master_reserved_pool(self):
+        helper = importlib.import_module("mpi_fuzzing_helper")
+        assigned = []
+        with mock.patch.dict(os.environ, {"SYMCC_CPU_LIST": "8,9,10"}), \
+                mock.patch.object(
+                    helper.os,
+                    "sched_setaffinity",
+                    side_effect=lambda pid, cpus: assigned.append((pid, set(cpus))),
+                    create=True,
+                ):
+            helper._pin_self_to_reserved_core(0)
+            helper._pin_self_to_reserved_core(2)
+        self.assertEqual(assigned, [(0, {8, 9, 10}), (0, {10})])
+
+    def test_hybrid_returncode_classification_uses_fatal_signal_set(self):
+        helper = importlib.import_module("mpi_fuzzing_helper")
+
+        self.assertTrue(helper._returncode_indicates_crash(139))
+        self.assertTrue(
+            helper._returncode_indicates_crash(-helper.signal.SIGABRT)
+        )
+        self.assertFalse(helper._returncode_indicates_crash(143))
+        self.assertFalse(
+            helper._returncode_indicates_crash(-helper.signal.SIGTERM)
+        )
+        self.assertFalse(helper._returncode_indicates_crash(130))
+        self.assertFalse(helper._returncode_indicates_crash(137))
+        self.assertFalse(helper._returncode_indicates_crash(139, killed=True))
+        self.assertTrue(helper._returncode_indicates_timeout(124))
+        self.assertTrue(helper._returncode_indicates_timeout(137))
+
     def test_failed_assignment_is_requeued_under_the_exact_fence(self):
         runner = self.runner
         work_hash = hashlib.sha256(b"retry-exact-work").hexdigest()
@@ -1599,6 +1630,20 @@ class MpiLifecycleTests(unittest.TestCase):
             _afl_showmap = "/fake/afl-showmap"
             _target_cmd = ["/fake/target"]
 
+            @staticmethod
+            def get_result(content):
+                if content == b"terminal":
+                    return type("Result", (), {
+                        "status": "crash",
+                        "status_detail": 11,
+                        "edges": (),
+                    })()
+                return type("Result", (), {
+                    "status": "ok",
+                    "status_detail": 0,
+                    "edges": ((7, 1),),
+                })()
+
         def write_mixed(output):
             output.mkdir(exist_ok=True)
             (output / "case-normal").write_bytes(b"normal")
@@ -1624,6 +1669,49 @@ class MpiLifecycleTests(unittest.TestCase):
             )
         self.assertEqual(
             sorted((item["content"], item.get("terminal_status")) for item in mixed[0]),
+            [(b"normal", None), (b"terminal", "crash")],
+        )
+
+        class BatchMappedTerminalShowmap(TerminalShowmap):
+            _afl_showmap = "/fake/afl-showmap"
+            _target_cmd = ["/fake/target"]
+
+            @staticmethod
+            def get_result(content):
+                if content == b"terminal":
+                    return type("Result", (), {
+                        "status": "crash",
+                        "status_detail": 6,
+                        "edges": (),
+                    })()
+                return type("Result", (), {
+                    "status": "ok",
+                    "status_detail": 0,
+                    "edges": ((9, 1),),
+                })()
+
+        def full_batch(_showmap, _target, paths, _work):
+            return {path: [(7, 1)] for path in paths}
+
+        mapped_seen = set()
+        with mock.patch.object(
+            helper, "batch_showmap_edges", side_effect=full_batch
+        ):
+            mapped_terminal = invoke(
+                write_mixed,
+                environment_overrides={"SYMCC_BATCH_VERIFY_NEW": "0"},
+                streaming_showmap=BatchMappedTerminalShowmap(),
+                worker_coverage=helper.CoverageBitmap(),
+                worker_seen=mapped_seen,
+                result_max_objects=2,
+                result_max_bytes=64,
+                result_max_hints=1,
+            )
+        self.assertEqual(
+            sorted(
+                (item["content"], item.get("terminal_status"))
+                for item in mapped_terminal[0]
+            ),
             [(b"normal", None), (b"terminal", "crash")],
         )
 
@@ -1862,6 +1950,67 @@ class MpiLifecycleTests(unittest.TestCase):
             Path(store.object_path(object_id)).write_bytes(b"wrong")
             with self.assertRaisesRegex(ValueError, "failed verification"):
                 helper._validate_hybrid_worker_result(result, **limits)
+
+    def test_hybrid_result_object_gc_preserves_pending_and_young_objects(self):
+        helper = importlib.import_module("mpi_fuzzing_helper")
+        with tempfile.TemporaryDirectory() as tmp:
+            store = helper.ContentAddressedInputStore(
+                str(Path(tmp) / "result-objects"), 1024
+            )
+            old_id, old_path = store.put(b"old-result")
+            protected_id, protected_path = store.put(b"protected-result")
+            young_id, _young_path = store.put(b"young-result")
+            old_ns = time.time_ns() - 120_000_000_000
+            os.utime(old_path, ns=(old_ns, old_ns))
+            os.utime(protected_path, ns=(old_ns, old_ns))
+
+            service = helper._HybridResultAdmissionService(
+                max_workers=1,
+                capacity=1,
+                max_objects=1,
+                max_bytes=1024,
+                max_object_bytes=1024,
+                max_hints=1,
+                max_timeout_sites=1,
+                max_schedule_trace_bytes=1,
+                result_object_store=store,
+            )
+            try:
+                service.submit_many(
+                    [
+                        (
+                            1,
+                            "dispatch",
+                            {
+                                "new_tests": [
+                                    {
+                                        "object_id": protected_id,
+                                        "object_size": len(b"protected-result"),
+                                    }
+                                ],
+                                "total_generated": 1,
+                                "retcode": 0,
+                                "elapsed": 0.1,
+                                "killed": False,
+                            },
+                        )
+                    ]
+                )
+                stats = helper._collect_hybrid_result_objects(
+                    store,
+                    protected_object_ids=service.protected_object_ids(),
+                    max_entries=100,
+                    min_age_seconds=60.0,
+                )
+            finally:
+                service.close()
+
+            self.assertEqual(stats["deleted"], 1)
+            self.assertEqual(stats["skipped_protected"], 1)
+            self.assertEqual(stats["skipped_young"], 1)
+            self.assertFalse(Path(store.object_path(old_id)).exists())
+            self.assertTrue(Path(store.object_path(protected_id)).exists())
+            self.assertTrue(Path(store.object_path(young_id)).exists())
 
     def test_hybrid_input_admission_refreshes_identity_and_fences_cache(self):
         helper = importlib.import_module("mpi_fuzzing_helper")
@@ -2160,6 +2309,33 @@ class MpiLifecycleTests(unittest.TestCase):
         self.assertEqual(coverage.count_delta(rows), 3)
         self.assertEqual(coverage.merge_delta(rows), 3)
         self.assertEqual(coverage.count_delta(rows), 0)
+
+    def test_coverage_bitmap_ignores_zero_hit_sparse_rows(self):
+        helper = importlib.import_module("mpi_fuzzing_helper")
+        coverage = helper.CoverageBitmap()
+
+        self.assertEqual(coverage.merge_delta([(7, 0), (9, 0)]), 0)
+        self.assertEqual(coverage.feature_count, 0)
+        self.assertEqual(coverage.edges, set())
+
+    def test_coverage_bitmap_dense_merge_preserves_chunk_boundaries(self):
+        helper = importlib.import_module("mpi_fuzzing_helper")
+        coverage = helper.CoverageBitmap()
+        chunk = helper._COVERAGE_BITMAP_CHUNK_BYTES
+        first = bytearray(chunk * 2 + 9)
+        first[chunk - 1] = 1
+        first[chunk] = 2
+        first[-1] = 4
+
+        self.assertEqual(coverage.merge_delta(bytes(first)), 3)
+        second = bytearray(first)
+        second[chunk - 1] |= 8
+        second[chunk] |= 4
+        second[-1] |= 1
+        self.assertEqual(coverage.count_delta(bytes(second)), 3)
+        self.assertEqual(coverage.merge_delta(bytes(second)), 3)
+        self.assertEqual(coverage.count_delta(bytes(second)), 0)
+        self.assertEqual(coverage.feature_count, 6)
 
     def test_afl_coverage_bridge_retries_failed_entries(self):
         helper = importlib.import_module("mpi_fuzzing_helper")

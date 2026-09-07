@@ -1,0 +1,26 @@
+; RUN: %symcc -O0 %s -o %t
+; RUN: printf '\101' | %t 2>&1 | %filecheck %s
+
+@.done = private unnamed_addr constant [6 x i8] c"done\0A\00", align 1
+
+define i32 @main() {
+entry:
+  %input = alloca i8, align 1
+  %read = call i64 @read(i32 0, i8* %input, i64 1)
+  %value = load i8, i8* %input, align 1
+  %wide = zext i8 %value to i24
+
+  %agg0 = insertvalue {i24, i8} undef, i24 %wide, 0
+  %agg1 = insertvalue {i24, i8} %agg0, i8 7, 1
+  %field = extractvalue {i24, i8} %agg1, 0
+  %ok = icmp eq i24 %field, 65
+  br i1 %ok, label %finish, label %finish
+
+finish:
+  ; ANY: done
+  %written = call i64 @write(i32 2, i8* getelementptr inbounds ([6 x i8], [6 x i8]* @.done, i64 0, i64 0), i64 5)
+  ret i32 0
+}
+
+declare i64 @read(i32, i8* nocapture, i64)
+declare i64 @write(i32, i8* nocapture readonly, i64)

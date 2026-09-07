@@ -3228,10 +3228,6 @@ class QueryStore:
                 f"lease_seconds must not exceed {_MAX_QUERY_LEASE_SECONDS}"
             )
         lease_duration = max(0.001, lease_duration)
-        now = time.time()
-        lease_until = now + lease_duration
-        if not math.isfinite(lease_until):
-            raise ValueError("lease deadline must be finite")
         if traversal not in {"dfs", "bfs", "priority", "structural"}:
             raise ValueError("traversal must be dfs, bfs, priority, or structural")
         shard_count = max(1, int(shard_count))
@@ -3273,18 +3269,25 @@ class QueryStore:
             "OR (q.status = 'leased' AND q.lease_until <= ?)) "
         )
         order_query = f"ORDER BY {order}q.created, q.query_id LIMIT 1"
-        sealed_descriptors: dict[str, int] = {}
+        row: dict[str, Any] | None = None
+        token = 0
+        witness_hex = ""
         with self._connect() as db:
             try:
                 db.execute("BEGIN IMMEDIATE")
+                claim_now = time.time()
+                lease_until = claim_now + lease_duration
+                if not math.isfinite(lease_until):
+                    db.rollback()
+                    raise ValueError("lease deadline must be finite")
                 row = db.execute(
                     select_query
                     + "AND (q.prefix_id % ?) = ? "
                     + order_query,
                     (
-                        (now, shard_count, shard_index, now)
+                        (claim_now, shard_count, shard_index, claim_now)
                         if shape_selection
-                        else (now, shard_count, shard_index)
+                        else (claim_now, shard_count, shard_index)
                     ),
                 ).fetchone()
                 # Prefix affinity keeps a persistent solver's context warm.
@@ -3294,12 +3297,45 @@ class QueryStore:
                 if row is None and shard_count > 1:
                     row = db.execute(
                         select_query + order_query,
-                        (now, now) if shape_selection else (now,),
+                        (claim_now, claim_now) if shape_selection else (claim_now,),
                     ).fetchone()
                 if row is None:
                     db.commit()
                     return None
-                self._verified_query_body(row)
+                token = int(row["lease_token"]) + 1
+                updated = db.execute(
+                    "UPDATE queries SET status = 'leased', lease_owner = ?, "
+                    "lease_until = ?, lease_token = ?, attempts = attempts + 1, "
+                    "updated = ? WHERE query_id = ? AND lease_token = ?",
+                    (
+                        owner,
+                        lease_until,
+                        token,
+                        claim_now,
+                        str(row["query_id"]),
+                        int(row["lease_token"]),
+                    ),
+                )
+                if updated.rowcount != 1:
+                    db.rollback()
+                    return None
+                witness = db.execute(
+                    "SELECT input_hex FROM witnesses WHERE query_id = ? "
+                    "ORDER BY witness_hash LIMIT 1",
+                    (str(row["query_id"]),),
+                ).fetchone()
+                row = dict(row)
+                witness_hex = str(witness["input_hex"]) if witness is not None else ""
+                db.commit()
+            except BaseException:
+                db.rollback()
+                raise
+
+        assert row is not None
+        sealed_descriptors: dict[str, int] = {}
+        try:
+            self._verified_query_body(row)
+            with self._connect() as db:
                 smt2_path, sealed_descriptors["full"] = self._sealed_verified_artifact(
                     db,
                     str(row["smt2_hash"]),
@@ -3319,36 +3355,17 @@ class QueryStore:
                         "target",
                     )
                 )
-                token = int(row["lease_token"]) + 1
-                updated = db.execute(
-                    "UPDATE queries SET status = 'leased', lease_owner = ?, "
-                    "lease_until = ?, lease_token = ?, attempts = attempts + 1, "
-                    "updated = ? WHERE query_id = ? AND lease_token = ?",
-                    (
-                        owner,
-                        lease_until,
-                        token,
-                        now,
-                        str(row["query_id"]),
-                        int(row["lease_token"]),
-                    ),
+        except BaseException:
+            try:
+                self._release_materialization_failed_claim(
+                    str(row["query_id"]),
+                    owner,
+                    token,
                 )
-                if updated.rowcount != 1:
-                    db.rollback()
-                    for descriptor in sealed_descriptors.values():
-                        os.close(descriptor)
-                    sealed_descriptors.clear()
-                    return None
-                witness = db.execute(
-                    "SELECT input_hex FROM witnesses WHERE query_id = ? "
-                    "ORDER BY witness_hash LIMIT 1",
-                    (str(row["query_id"]),),
-                ).fetchone()
-                db.commit()
-            except BaseException:
+            finally:
                 for descriptor in sealed_descriptors.values():
                     os.close(descriptor)
-                raise
+            raise
         bundle = _SealedArtifactBundle(sealed_descriptors)
         return WorkLease(
             query_id=str(row["query_id"]),
@@ -3358,9 +3375,27 @@ class QueryStore:
             prefix_smt2_path=prefix_smt2_path,
             target_smt2_path=target_smt2_path,
             timeout_ms=int(row["timeout_ms"]),
-            input_hex=str(witness["input_hex"]) if witness is not None else "",
+            input_hex=witness_hex,
             _sealed_artifacts=bundle,
         )
+
+    def _release_materialization_failed_claim(
+        self,
+        query_id: str,
+        owner: str,
+        token: int,
+    ) -> None:
+        with self._connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            db.execute(
+                "UPDATE queries SET status = 'pending', lease_owner = NULL, "
+                "lease_until = NULL, attempts = CASE WHEN attempts > 0 "
+                "THEN attempts - 1 ELSE 0 END, updated = ? "
+                "WHERE query_id = ? AND status = 'leased' "
+                "AND lease_owner = ? AND lease_token = ?",
+                (time.time(), query_id, owner, token),
+            )
+            db.commit()
 
     def query_lease_is_active(self, lease_id: str) -> bool:
         """Report whether an exact ``query_id:token`` lease still fences work."""
@@ -9357,6 +9392,8 @@ class PersistentSubprocessSolver:
 class PortfolioSolver:
     """Run a bounded exact-solver portfolio and keep attempt telemetry."""
 
+    _COOPERATIVE_CANCEL_CLEANUP_SECONDS = 1.0
+
     def __init__(
         self,
         solvers: Sequence[tuple[str, Callable[[WorkLease], Mapping[str, Any]]]],
@@ -9507,6 +9544,9 @@ class PortfolioSolver:
                 future_metadata[future] = (index, name, solver)
             pending = set(future_metadata)
             cancellation_deadline: float | None = None
+            cooperative_cleanup: set[
+                Future[tuple[int, dict[str, Any], dict[str, Any] | None]]
+            ] = set()
             try:
                 while pending:
                     timeout = None
@@ -9576,25 +9616,54 @@ class PortfolioSolver:
                                 cancel_method(lease)
                             except Exception:
                                 pass
+                            cooperative_cleanup.add(future)
+                        if attempts_by_index[index] is None:
+                            attempts_by_index[index] = self._cancelled_attempt(
+                                index,
+                                name,
+                                reason="portfolio-sat-winner",
+                            )[1]
 
-                for future in sorted(
-                    pending,
-                    key=lambda item: future_metadata[item][0],
-                ):
-                    index, name, _ = future_metadata[future]
-                    try:
-                        result_index, attempt, result = future.result()
-                    except CancelledError:
-                        result_index, attempt, result = self._cancelled_attempt(
-                            index,
-                            name,
-                            reason="portfolio-sat-winner",
+                    if cooperative_cleanup:
+                        done, _unfinished = wait(
+                            cooperative_cleanup,
+                            timeout=self._COOPERATIVE_CANCEL_CLEANUP_SECONDS,
                         )
-                    attempts_by_index[result_index] = attempt
-                    if result is not None:
-                        terminal.append(result)
+                        for future in done:
+                            index, name, _ = future_metadata[future]
+                            try:
+                                result_index, attempt, result = future.result()
+                            except CancelledError:
+                                result_index, attempt, result = self._cancelled_attempt(
+                                    index,
+                                    name,
+                                    reason="portfolio-sat-winner",
+                                )
+                            except BaseException:
+                                continue
+                            attempts_by_index[result_index] = attempt
+                            if result is not None:
+                                terminal.append(result)
+
+                if not cancel_requested:
+                    for future in sorted(
+                        pending,
+                        key=lambda item: future_metadata[item][0],
+                    ):
+                        index, name, _ = future_metadata[future]
+                        try:
+                            result_index, attempt, result = future.result()
+                        except CancelledError:
+                            result_index, attempt, result = self._cancelled_attempt(
+                                index,
+                                name,
+                                reason="portfolio-sat-winner",
+                            )
+                        attempts_by_index[result_index] = attempt
+                        if result is not None:
+                            terminal.append(result)
             finally:
-                executor.shutdown(wait=True, cancel_futures=True)
+                executor.shutdown(wait=not cancel_requested, cancel_futures=True)
 
         attempts = [attempt for attempt in attempts_by_index if attempt is not None]
         terminal.sort(key=lambda result: int(result.get("_portfolio_index", 0)))

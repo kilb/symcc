@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from xml.etree import ElementTree
 
 
@@ -179,6 +180,24 @@ class CurrentEvaluationAnalysisTests(unittest.TestCase):
             self.assertEqual(row["coverage_sampled_cases"], "13")
             self.assertEqual(row["coverage_total_cases"], "21")
             self.assertEqual(row["auxiliary_compute_slots"], "7")
+
+    def test_symcc_cpu_list_uses_current_cpuset(self):
+        specification = importlib.util.spec_from_file_location(
+            "run_benchmark_cpuset", ROOT / "benchmark" / "run_benchmark.py"
+        )
+        module = importlib.util.module_from_spec(specification)
+        specification.loader.exec_module(module)
+
+        with mock.patch.object(
+            module.os,
+            "sched_getaffinity",
+            return_value=set(range(8, 40)),
+            create=True,
+        ), mock.patch.object(module.os, "cpu_count", return_value=192):
+            self.assertEqual(
+                module._compute_symcc_cpu_list(afl_instances=16, symcc_np=8),
+                "32,33,34,35,36,37,38,39",
+            )
 
     def test_report_does_not_compare_incompatible_throughput_units(self):
         specification = importlib.util.spec_from_file_location(

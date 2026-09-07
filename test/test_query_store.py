@@ -959,6 +959,101 @@ class QueryStoreTest(unittest.TestCase):
                 ))
             self.assertEqual(store.stats()["done"], 1)
 
+    def test_claim_deadline_is_measured_after_write_lock(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            store = QueryStore(temporary)
+            store.ingest(_envelope())
+            writer = store._connect()
+            writer.execute("BEGIN IMMEDIATE")
+            started = threading.Event()
+            leases: list[WorkLease | None] = []
+            errors: list[BaseException] = []
+
+            def blocked_claim() -> None:
+                started.set()
+                try:
+                    leases.append(store.claim("blocked-worker", lease_seconds=0.25))
+                except BaseException as error:
+                    errors.append(error)
+
+            worker = threading.Thread(target=blocked_claim)
+            worker.start()
+            try:
+                self.assertTrue(started.wait(timeout=1.0))
+                time.sleep(0.35)
+                self.assertTrue(worker.is_alive())
+                writer.commit()
+            finally:
+                writer.close()
+            worker.join(timeout=2.0)
+
+            self.assertFalse(worker.is_alive())
+            self.assertEqual(errors, [])
+            self.assertEqual(len(leases), 1)
+            lease = leases[0]
+            self.assertIsNotNone(lease)
+            assert lease is not None
+            try:
+                self.assertTrue(
+                    store.query_lease_is_active(f"{lease.query_id}:{lease.token}")
+                )
+                self.assertIsNone(store.claim("second-worker", lease_seconds=0.25))
+            finally:
+                lease.close_artifacts()
+
+    def test_claim_materializes_artifacts_outside_write_transaction(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            store = QueryStore(temporary)
+            store.ingest(_envelope(target_value=66, source="first"))
+            store.ingest(_envelope(target_value=67, source="second"))
+            physical_store = store._artifact_stores["smt2"]
+            original_snapshot = physical_store.snapshot
+            first_snapshot_barrier = threading.Barrier(2, timeout=2.0)
+            seen_threads: set[int] = set()
+            seen_lock = threading.Lock()
+            leases: list[WorkLease | None] = []
+            errors: list[BaseException] = []
+
+            def synchronized_snapshot(object_id: str, *, retain_content: bool = False):
+                thread_id = threading.get_ident()
+                with seen_lock:
+                    first_for_thread = thread_id not in seen_threads
+                    if first_for_thread:
+                        seen_threads.add(thread_id)
+                if first_for_thread:
+                    first_snapshot_barrier.wait()
+                return original_snapshot(object_id, retain_content=retain_content)
+
+            def claim(owner: str) -> None:
+                try:
+                    leases.append(store.claim(owner, lease_seconds=5.0))
+                except BaseException as error:
+                    errors.append(error)
+
+            with mock.patch.object(
+                physical_store,
+                "snapshot",
+                side_effect=synchronized_snapshot,
+            ):
+                workers = [
+                    threading.Thread(target=claim, args=(f"worker-{index}",))
+                    for index in range(2)
+                ]
+                for worker in workers:
+                    worker.start()
+                for worker in workers:
+                    worker.join(timeout=3.0)
+
+            try:
+                self.assertTrue(all(not worker.is_alive() for worker in workers))
+                self.assertEqual(errors, [])
+                self.assertEqual(len(leases), 2)
+                self.assertTrue(all(lease is not None for lease in leases))
+            finally:
+                for lease in leases:
+                    if lease is not None:
+                        lease.close_artifacts()
+
     def test_result_publication_outbox_recovers_post_commit_failure(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -2324,6 +2419,105 @@ class QueryStoreTest(unittest.TestCase):
         self.assertTrue(result["portfolio"]["disagreement"])
         self.assertEqual(result["portfolio"]["cancelled_attempts"], 0)
         self.assertTrue(result["portfolio"]["consensus_complete"])
+
+    def test_portfolio_cancel_grace_does_not_wait_for_uncancellable_tail(self):
+        lease = WorkLease(
+            "bounded-cancel-query",
+            1,
+            Path("query.smt2"),
+            "prefix",
+            Path("prefix.smt2"),
+            Path("target.smt2"),
+            1000,
+        )
+        slow_started = threading.Event()
+
+        def slow(_lease: WorkLease) -> dict:
+            slow_started.set()
+            time.sleep(0.4)
+            return {
+                "status": "unknown",
+                "assignments": {},
+                "solver": "slow",
+            }
+
+        def fast(_lease: WorkLease) -> dict:
+            self.assertTrue(slow_started.wait(timeout=1.0))
+            return {
+                "status": "sat",
+                "assignments": {"0": 66},
+                "solver": "fast",
+            }
+
+        started = time.monotonic()
+        result = PortfolioSolver(
+            (
+                ("slow", slow),
+                ("fast", fast),
+            ),
+            parallelism=2,
+            cancel_grace_ms=5,
+        )(lease)
+        self.assertLess(time.monotonic() - started, 0.25)
+        self.assertEqual(result["status"], "sat")
+        self.assertTrue(result["portfolio"]["cancel_requested"])
+        self.assertEqual(result["portfolio"]["cancelled_attempts"], 1)
+        self.assertTrue(result["portfolio"]["attempts"][0]["cancelled"])
+
+    def test_portfolio_cooperative_cancel_cleanup_replaces_placeholder(self):
+        lease = WorkLease(
+            "cooperative-cancel-query",
+            1,
+            Path("query.smt2"),
+            "prefix",
+            Path("prefix.smt2"),
+            Path("target.smt2"),
+            1000,
+        )
+        slow_started = threading.Event()
+        release_slow = threading.Event()
+
+        class CooperativeSolver:
+            def __call__(self, _lease: WorkLease) -> dict:
+                slow_started.set()
+                self.assert_released()
+                return {
+                    "status": "sat",
+                    "assignments": {"0": 67},
+                    "solver": "cooperative",
+                }
+
+            def assert_released(self) -> None:
+                if not release_slow.wait(timeout=1.0):
+                    raise RuntimeError("cooperative cancel was not delivered")
+
+            def cancel(self, _lease: WorkLease) -> bool:
+                release_slow.set()
+                return True
+
+        cooperative = CooperativeSolver()
+
+        def fast(_lease: WorkLease) -> dict:
+            self.assertTrue(slow_started.wait(timeout=1.0))
+            return {
+                "status": "sat",
+                "assignments": {"0": 66},
+                "solver": "fast",
+            }
+
+        result = PortfolioSolver(
+            (
+                ("cooperative", cooperative),
+                ("fast", fast),
+            ),
+            parallelism=2,
+            cancel_grace_ms=0,
+        )(lease)
+        self.assertEqual(result["status"], "sat")
+        self.assertTrue(result["portfolio"]["cancel_requested"])
+        self.assertEqual(result["portfolio"]["cancelled_attempts"], 0)
+        self.assertFalse(result["portfolio"]["attempts"][0]["cancelled"])
+        self.assertFalse(result["portfolio"]["attempts"][1]["cancelled"])
 
     def test_cancelled_persistent_helper_restarts_cold(self):
         with tempfile.TemporaryDirectory() as temporary:

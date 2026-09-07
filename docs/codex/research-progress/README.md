@@ -14,6 +14,9 @@
 
 | 截止日期 | 范围 | 文档 |
 | --- | --- | --- |
+| 2026-09-05 | F467：F466反例驱动修复闭环，完成runtime位向量语义、QueryStore租约、portfolio取消、hybrid结果准入、AFL终止状态、result-object GC、coverage合并、CPU placement与规模证据门禁验证 | [`Seventh_Deep_Review_Remediation_F467_2026-09-05.md`](Seventh_Deep_Review_Remediation_F467_2026-09-05.md) |
+| 2026-09-04 | F466：运行时intrinsic语义、QueryStore租约/写锁、MPI结果准入、AFL终止状态、CPU placement与规模证据的反例驱动深度审查 | [`Sixth_Deep_Review_Runtime_Scaling_and_Experimental_Validity_F466_2026-09-04.md`](Sixth_Deep_Review_Runtime_Scaling_and_Experimental_Validity_F466_2026-09-04.md) |
+| 2026-09-04 | F465：热点prefix窃取、短租约续期、QF_BV除零语义、饱和算术与data coverage构建闭合 | [`Fifth_Deep_Review_Query_Parallelism_and_Bitvector_Semantics_F465_2026-09-04.md`](Fifth_Deep_Review_Query_Parallelism_and_Bitvector_Semantics_F465_2026-09-04.md) |
 | 2026-09-03 | 最近两周：并行规模决策、连续故障恢复、可认证QF_BV分区、Agentic Concolic、POSE-C、覆盖收敛、深度审查与证据边界 | [`Latest_Two_Week_Research_Progress_2026-09-03.md`](Latest_Two_Week_Research_Progress_2026-09-03.md) |
 | 2026-09-03 | F464：修正GEP位宽/布局语义，闭合RESULT内容寻址、统一coverage预算与批次状态，增强AFL覆盖重试/data-map并发，修复启动失败状态并收紧辅助槽规模模型 | [`Fourth_Deep_Review_Semantic_Transport_Scaling_F464_2026-09-03.md`](Fourth_Deep_Review_Semantic_Transport_Scaling_F464_2026-09-03.md) |
 | 2026-08-31 | F463：闭合manifest异常可见性、并发outbox与terminal query事务、AFL失败基线重试和query-service进程组；修正规模horizon、零方差、retention口径与大整数计数 | [`Third_Deep_Review_and_Failure_Atomic_Closure_F463_2026-08-31.md`](Third_Deep_Review_and_Failure_Atomic_Closure_F463_2026-08-31.md) |

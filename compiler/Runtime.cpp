@@ -39,12 +39,15 @@ Runtime::Runtime(Module &M) {
   auto *intPtrType = M.getDataLayout().getIntPtrType(M.getContext());
   auto *ptrT = IRB.getInt8Ty()->getPointerTo();
   auto *int8T = IRB.getInt8Ty();
+  auto *int32T = IRB.getInt32Ty();
   auto *int1T = IRB.getInt1Ty();
   auto *voidT = IRB.getVoidTy();
 
   buildInteger = import(M, "_sym_build_integer", ptrT, IRB.getInt64Ty(), int8T);
   buildInteger128 = import(M, "_sym_build_integer128", ptrT, IRB.getInt64Ty(),
                            IRB.getInt64Ty());
+  buildIntegerFromBuffer =
+      import(M, "_sym_build_integer_from_buffer", ptrT, ptrT, int32T);
   buildFloat = import(M, "_sym_build_float", ptrT, IRB.getDoubleTy(), int1T);
   buildNullPointer = import(M, "_sym_build_null_pointer", ptrT);
   buildTrue = import(M, "_sym_build_true", ptrT);

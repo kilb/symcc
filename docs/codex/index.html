@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SymCC-Parallel 项目汇报（更新至 2026-08-26）</title>
+<title>SymCC-Parallel 项目汇报（更新至 2026-09-05）</title>
 <style>
 :root{--bg:#fff;--fg:#17212b;--mut:#64748b;--line:#cbd5e1;--panel:#f8fafc;--acc:#2563eb;--ok:#15803d;--warn:#b45309}
 @media(prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#e4e6eb;--mut:#a0a7b2;--line:#3b4149;--panel:#1e2329;--acc:#74b5ff;--ok:#5bd486;--warn:#f5b94c}}
@@ -28,11 +28,14 @@ code{background:var(--panel);padding:.1rem .35rem;border-radius:3px}
 <body><main class="wrap">
 <h1>SymCC-Parallel 项目汇报</h1>
 <p class="sub">并行符号执行驱动的混合模糊测试框架：架构、关键技术、SOTA 落地边界与实验进展</p>
-<div class="status">2026-08-26：更新至 F457。全局覆盖收敛、长队列准入、worker覆盖刷新、多主批量裁决、并行规模switchback比较和实验收尾证据已完成实现与回归</div>
+<div class="status">2026-09-05：更新至 F467。完成 F466 反例驱动修复闭环，覆盖 runtime 位向量语义、QueryStore 租约、portfolio 取消、hybrid 结果准入、AFL 终止状态、result-object GC、coverage 合并、CPU placement 与规模证据门禁</div>
 
 <h2>下载</h2>
 <div class="table"><table>
 <tr><th>文件</th><th>说明</th></tr>
+<tr><td><a href="research-progress/Seventh_Deep_Review_Remediation_F467_2026-09-05.md">F467 第七轮深度审查修复闭环</a></td><td>将 F466 反例推进为代码修复、测试闭合与文档记录，包含 runtime、QueryStore、portfolio、MPI hybrid、coverage、GC、CPU placement 和规模模型证据门禁</td></tr>
+<tr><td><a href="research-progress/Sixth_Deep_Review_Runtime_Scaling_and_Experimental_Validity_F466_2026-09-04.md">F466 第六轮深度审查</a></td><td>运行时intrinsic语义、租约与写锁、结果准入、终止状态、资源绑核和规模模型证据边界</td></tr>
+<tr><td><a href="research-progress/Fifth_Deep_Review_Query_Parallelism_and_Bitvector_Semantics_F465_2026-09-04.md">F465 第五轮深度审查与修复</a></td><td>热点prefix并行领取、短租约续期、QF_BV除零、饱和算术和data coverage构建闭合</td></tr>
 <tr><td><a href="research-progress/Global_Coverage_Convergence_and_Parallel_Conversion_F457_2026-08-26.md">F457 全局覆盖收敛与并行有效产出优化</a></td><td>AFL/SymCC统一novelty、启动及增量回放、busy-worker原子快照、owner claim_many、A-B-A并行控制和可测量AFL drain</td></tr>
 <tr><td><a href="Parallel_Symbolic_Execution_Update_Report_2026-08-20.html">并行符号执行项目进展汇报（HTML，8 月 26 日更新）</a></td><td>总体架构、执行闭环、SOTA 技术、跨节点恢复、规模实验和查询内认证并行；HTML汇报主体保持阶段快照，最新专项见F457报告</td></tr>
 <tr><td><a href="research-progress/Solver_Native_Clause_Sharing_PalRUP_Production_F454_2026-08-26.md">F454 Solver-native PalRUP 生产闭环</a></td><td>真实多rank CaDiCaL证明生成、有界子句共享、官方三阶段全局确认、耐久发布和1/2/4 rank机制数据</td></tr>

@@ -1504,22 +1504,26 @@ def benchmark_matrix_exit_code(results: list[dict]) -> int:
 
 
 def _compute_symcc_cpu_list(afl_instances: int, symcc_np: int) -> "str | None":
-    """高并行度下为 MPI SymCC 作业计算与 AFL 自动绑核互斥的保留核段（逻辑核高位）。
+    """高并行度下为 MPI SymCC 作业计算与 AFL 自动绑核互斥的保留核段（可用核高位）。
 
     AFL 默认自低位向上把每个实例绑到空闲核 [0, afl_instances)；把 symcc_np 个 MPI rank
     钉到高位 [total-symcc_np, total)，两者互不重叠，消除 SymCC 子进程在 AFL 已绑核上
     漂移造成的核争用与迁移（本机单 NUMA，无跨节点局部性考量）。低并行度核充裕、钉核反而
     妨碍调度器均衡，返回 None 表示不钉核（保持默认 oversubscribe + 自动绑核行为）。
     传给 mpi_fuzzing_helper 的 SYMCC_CPU_LIST，由各 rank 自钉（覆盖 OpenMPI 启动绑核）。"""
-    total = os.cpu_count() or 0
+    available_cpus = (
+        sorted(os.sched_getaffinity(0))
+        if hasattr(os, "sched_getaffinity")
+        else list(range(os.cpu_count() or 0))
+    )
+    total = len(available_cpus)
     # 门槛：AFL 实例 < 16（并行度低）时核充裕、无争用 → 不钉核
     if total < 8 or symcc_np <= 0 or afl_instances < 16:
         return None
     # 需容纳 AFL[0,afl_instances) 与 SymCC[total-symcc_np,total) 互斥布局
     if afl_instances + symcc_np > total:
         return None
-    base = total - symcc_np
-    return ",".join(str(c) for c in range(base, total))
+    return ",".join(str(cpu) for cpu in available_cpus[-symcc_np:])
 
 
 _shmem_detect_cache: "dict[tuple[str, float, int], bool]" = {}
@@ -2715,6 +2719,7 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
     mpi_env["PYTHONUNBUFFERED"] = "1"
     mpi_env.setdefault("SYMCC_WORKER_POSTPROCESS_BUDGET_SEC", "2.0")
     mpi_env.setdefault("SYMCC_BATCH_VERIFY_NEW", "0")
+    mpi_env.setdefault("SYMCC_BATCH_VERIFY_STATUS", "1")
     mpi_env.setdefault("SYMCC_COVERAGE_GOSSIP", "0")
     mpi_env.setdefault("SYMCC_QUEUE_SCAN_BUDGET_SEC", "0.5")
     mpi_env.setdefault("SYMCC_QUEUE_SCAN_MAX", "4096")
@@ -2950,6 +2955,16 @@ def run_hybrid(symcc_binary: str, afl_binary: str, target_name: str,
     symcc_interesting = _parse_symcc_interesting(mpi_stdout)
     symcc_generated = _parse_symcc_generated(mpi_stdout)
     auxiliary_compute_slots = _parse_auxiliary_compute_slots(mpi_stdout)
+    external_auxiliary_slots = (
+        (2 if honggfuzz_proc is not None else 0)
+        + (1 if grimoire_proc is not None else 0)
+    )
+    if auxiliary_compute_slots is None:
+        auxiliary_compute_slots = (
+            external_auxiliary_slots if external_auxiliary_slots else None
+        )
+    else:
+        auxiliary_compute_slots += external_auxiliary_slots
     stats_snapshot = _read_symcc_stats(symcc_dir)
     if stats_snapshot is not None:
         symcc_interesting = max(symcc_interesting, stats_snapshot[0])

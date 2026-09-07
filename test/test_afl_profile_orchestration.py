@@ -613,6 +613,56 @@ class AflProfileOrchestrationTests(unittest.TestCase):
             self.assertIsNone(admitted[0][3])
             service.close()
 
+    def test_master_result_admission_collects_ready_tail_without_hol_blocking(self):
+        helper = importlib.import_module("util.mpi_fuzzing_helper")
+        limits = {
+            "max_objects": 2,
+            "max_bytes": 8,
+            "max_object_bytes": 4,
+            "max_hints": 2,
+            "max_timeout_sites": 2,
+            "max_schedule_trace_bytes": 32,
+        }
+        slow = {"new_tests": [], "total_generated": 0}
+        fast = {"new_tests": [], "total_generated": 0}
+        slow_started = threading.Event()
+        release_slow = threading.Event()
+        original = helper._validate_hybrid_worker_result
+
+        def delayed(result, **kwargs):
+            if result is slow:
+                slow_started.set()
+                release_slow.wait(timeout=2.0)
+            return original(result, **kwargs)
+
+        with mock.patch.object(
+            helper, "_validate_hybrid_worker_result", side_effect=delayed,
+        ):
+            service = helper._HybridResultAdmissionService(
+                max_workers=2, capacity=2, **limits
+            )
+            slow_dispatch = object()
+            fast_dispatch = object()
+            service.submit_many([
+                (1, slow_dispatch, slow),
+                (2, fast_dispatch, fast),
+            ])
+            self.assertTrue(slow_started.wait(timeout=1.0))
+            deadline = time.monotonic() + 1.0
+            admitted = []
+            while not admitted and time.monotonic() < deadline:
+                admitted = service.collect_ready()
+                if not admitted:
+                    time.sleep(0.001)
+            self.assertEqual(len(admitted), 1)
+            self.assertEqual(admitted[0][:2], (2, fast_dispatch))
+            self.assertEqual(service.available_capacity, 1)
+            release_slow.set()
+            remaining = service.collect_ready(wait=True)
+            self.assertEqual(len(remaining), 1)
+            self.assertEqual(remaining[0][:2], (1, slow_dispatch))
+            service.close()
+
     def test_master_result_receive_capacity_counts_quarantined_messages(self):
         helper = importlib.import_module("util.mpi_fuzzing_helper")
 
@@ -2723,6 +2773,8 @@ class AflProfileOrchestrationTests(unittest.TestCase):
                 directory.mkdir(parents=True)
             source = root / "id:000123,orig:seed"
             source.write_bytes(b"seed")
+            signaled_source = root / "id:000124,orig:abort"
+            signaled_source.write_bytes(b"signal-seed")
             queue_ids = [0]
             crash_ids = [0]
             hang_ids = [0]
@@ -2733,6 +2785,19 @@ class AflProfileOrchestrationTests(unittest.TestCase):
                 [
                     (1, str(source), [], 137, 0.01, True, "exact", None, (), "", {}),
                     (2, str(source), [], 139, 0.01, False, "exact", None, (), "", {}),
+                    (
+                        4,
+                        str(signaled_source),
+                        [],
+                        -6,
+                        0.01,
+                        False,
+                        "exact",
+                        None,
+                        (),
+                        "",
+                        {},
+                    ),
                     (
                             3,
                             str(source),
@@ -2783,13 +2848,13 @@ class AflProfileOrchestrationTests(unittest.TestCase):
             )
             self.assertEqual(
                 sorted(path.read_bytes() for path in crashes.iterdir()),
-                [b"child-crash", b"seed"],
+                [b"child-crash", b"seed", b"signal-seed"],
             )
             self.assertEqual(
                 sorted(path.read_bytes() for path in hangs.iterdir()),
                 [b"child-timeout", b"seed"],
             )
-            self.assertEqual((queue_ids, crash_ids, hang_ids), ([1], [2], [2]))
+            self.assertEqual((queue_ids, crash_ids, hang_ids), ([1], [3], [2]))
             digests = {
                 hashlib.sha256(content).hexdigest()
                 for content in (b"candidate", b"child-crash", b"child-timeout")

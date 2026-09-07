@@ -88,6 +88,7 @@ from distributed_state import (
     LiveContinuationDescriptor,
     LiveStateStore,
     WorkLeaseJournal,
+    durable_unlink,
     merge_shared_filesystem_requirements,
     probe_shared_state_filesystem,
     stable_regular_file_snapshot,
@@ -1329,10 +1330,16 @@ def _pin_self_to_reserved_core(rank: int) -> None:
         return
     if not cores:
         return
+    assigned = set(cores) if rank == 0 else {cores[rank % len(cores)]}
     try:
-        os.sched_setaffinity(0, {cores[rank % len(cores)]})
-    except OSError:
-        pass  # 核号无效/平台不支持 → 退回默认调度，不影响正确性
+        os.sched_setaffinity(0, assigned)
+    except OSError as error:
+        print(
+            f"[Rank {rank}] CPU affinity setup failed for "
+            f"{sorted(assigned)}: {error}",
+            file=sys.stderr,
+            flush=True,
+        )
 
 
 def _balanced_regions(density: "list[int]", per: int) -> "list[tuple[int, int]]":
@@ -1821,8 +1828,39 @@ class AflConfig:
             return "error", None
 
 
+_COVERAGE_BITMAP_CHUNK_BYTES = 16 * 1024
+
+
+def _count_bitmap_bits(data: bytes | bytearray | memoryview) -> int:
+    view = memoryview(data)
+    total = 0
+    for offset in range(0, len(view), _COVERAGE_BITMAP_CHUNK_BYTES):
+        chunk = view[offset : offset + _COVERAGE_BITMAP_CHUNK_BYTES]
+        total += int.from_bytes(chunk, "little").bit_count()
+    return total
+
+
+def _count_bitmap_delta_bits(
+    old_data: bytes | bytearray | memoryview,
+    new_data: bytes | bytearray | memoryview,
+    *,
+    overlap: int,
+) -> int:
+    old_view = memoryview(old_data)
+    new_view = memoryview(new_data)
+    delta = 0
+    for offset in range(0, overlap, _COVERAGE_BITMAP_CHUNK_BYTES):
+        end = min(overlap, offset + _COVERAGE_BITMAP_CHUNK_BYTES)
+        old_int = int.from_bytes(old_view[offset:end], "little")
+        new_int = int.from_bytes(new_view[offset:end], "little")
+        delta += (new_int & ~old_int).bit_count()
+    if len(new_view) > overlap:
+        delta += _count_bitmap_bits(new_view[overlap:])
+    return delta
+
+
 class CoverageBitmap:
-    """使用边集合追踪覆盖率，merge 操作 O(新边数) 而非 O(bitmap大小)。"""
+    """Track AFL bitmap buckets with sparse and chunked dense merge paths."""
 
     def __init__(self) -> None:
         self.data: bytearray | None = None
@@ -1903,16 +1941,13 @@ class CoverageBitmap:
             return delta
 
         if self.data is None:
-            return sum(byte.bit_count() for byte in new_data)
+            return _count_bitmap_bits(new_data)
         overlap = min(len(self.data), len(new_data))
-        delta = sum(
-            (new_data[index] & ~self.data[index]).bit_count()
-            for index in range(overlap)
+        delta = _count_bitmap_delta_bits(
+            self.data,
+            new_data,
+            overlap=overlap,
         )
-        # AFL++ may negotiate a map larger than the conservative sparse-map
-        # baseline. Missing bytes on either side mean zero, not an
-        # incompatible coverage domain.
-        delta += sum(byte.bit_count() for byte in new_data[overlap:])
         return delta
 
     def merge_delta(self, new_data: "bytes | list[tuple[int, int]]") -> int:
@@ -1927,33 +1962,37 @@ class CoverageBitmap:
                 if b:
                     self.edges.add(i)
                     self._pending_delta[i] = b
-            delta = sum(byte.bit_count() for byte in new_data)
+            delta = _count_bitmap_bits(new_data)
             self.feature_count = delta
             return delta
 
         if len(new_data) > len(self.data):
             self.data.extend(b"\x00" * (len(new_data) - len(self.data)))
 
-        # 完整 bitmap：用大整数快速检查
-        old_int = int.from_bytes(self.data, "little")
-        new_int = int.from_bytes(new_data, "little")
-        diff = new_int & ~old_int
-        delta = diff.bit_count()
-        if delta:
+        new_view = memoryview(new_data)
+        overlap = len(new_view)
+        delta = 0
+        for offset in range(0, overlap, _COVERAGE_BITMAP_CHUNK_BYTES):
+            end = min(overlap, offset + _COVERAGE_BITMAP_CHUNK_BYTES)
+            old_int = int.from_bytes(self.data[offset:end], "little")
+            new_int = int.from_bytes(new_view[offset:end], "little")
+            diff = new_int & ~old_int
+            if not diff:
+                continue
+            delta += diff.bit_count()
             merged = old_int | new_int
-            self.data[:] = merged.to_bytes(len(self.data), "little")
-            # 仅将新增边加入集合：从位差 diff 中提取置位所在字节索引，
-            # O(新增位数) 而非每次 O(map_size) 全字节扫描。已在集合中的字节
-            # （旧数据非零处）无需重加，集合去重保证正确。
+            self.data[offset:end] = merged.to_bytes(end - offset, "little")
+            # 仅将新增边加入集合：从位差 diff 中提取置位所在字节索引。
             while diff:
                 lsb = diff & -diff
                 bit = lsb.bit_length() - 1
-                index = bit // 8
+                index = offset + bit // 8
                 self.edges.add(index)
                 self._pending_delta[index] = self._pending_delta.get(index, 0) | (
                     1 << (bit % 8)
                 )
                 diff &= diff - 1
+        if delta:
             self.feature_count += delta
         return delta
 
@@ -1975,6 +2014,8 @@ class CoverageBitmap:
             if edge_id < 0:
                 continue
             hit &= 0xFF
+            if hit == 0:
+                continue
             if edge_id >= len(self.data):  # 目标 map 大于初值 → 增长以容纳
                 self.data.extend(b"\x00" * (edge_id + 1 - len(self.data)))
             old = self.data[edge_id]
@@ -2869,6 +2910,32 @@ def _live_state_graph_limits(env: dict[str, str]) -> dict[str, int]:
     }
 
 
+def _returncode_indicates_timeout(retcode: int) -> bool:
+    return retcode in (124, 137, -signal.SIGKILL)
+
+
+_CRASH_SIGNALS = frozenset(
+    int(signum)
+    for signum in (
+        getattr(signal, "SIGABRT", None),
+        getattr(signal, "SIGBUS", None),
+        getattr(signal, "SIGFPE", None),
+        getattr(signal, "SIGILL", None),
+        getattr(signal, "SIGSEGV", None),
+        getattr(signal, "SIGTRAP", None),
+    )
+    if signum is not None
+)
+
+
+def _returncode_indicates_crash(retcode: int, killed: bool = False) -> bool:
+    if killed or retcode in (0, -1, 124, 137, -signal.SIGKILL):
+        return False
+    if retcode < 0:
+        return -retcode in _CRASH_SIGNALS
+    return retcode > 128 and retcode - 128 in _CRASH_SIGNALS
+
+
 @dataclass(frozen=True)
 class _WorkerFileIdentity:
     device: int
@@ -2987,6 +3054,70 @@ def _hybrid_candidate_content(
     ):
         raise ValueError("hybrid result object changed after admission")
     return snapshot.content
+
+
+def _is_sha256_text(value: typing.Any) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 64
+        and all(char in "0123456789abcdef" for char in value)
+    )
+
+
+def _hybrid_result_object_ids(result: typing.Any) -> set[str]:
+    if not isinstance(result, dict):
+        return set()
+    object_ids: set[str] = set()
+    proposal_object_id = result.get("proposal_object_id")
+    if _is_sha256_text(proposal_object_id):
+        object_ids.add(proposal_object_id)
+    for candidate in result.get("new_tests", ()):
+        if not isinstance(candidate, dict):
+            continue
+        object_id = candidate.get("object_id")
+        if _is_sha256_text(object_id):
+            object_ids.add(object_id)
+    return object_ids
+
+
+def _collect_hybrid_result_objects(
+    object_store: ContentAddressedInputStore,
+    *,
+    protected_object_ids: set[str],
+    max_entries: int,
+    min_age_seconds: float,
+) -> dict[str, int | bool]:
+    inventory = object_store.scan_objects(max_entries=max_entries)
+    now_ns = time.time_ns()
+    min_age_ns = int(max(0.0, min_age_seconds) * 1_000_000_000)
+    deleted = 0
+    failed = 0
+    skipped_protected = 0
+    skipped_young = 0
+    for observation in inventory.objects:
+        object_id = observation.object_id
+        if object_id in protected_object_ids:
+            skipped_protected += 1
+            continue
+        if now_ns - observation.identity.mtime_ns < min_age_ns:
+            skipped_young += 1
+            continue
+        try:
+            durable_unlink(object_store.object_path(object_id))
+        except FileNotFoundError:
+            continue
+        except OSError:
+            failed += 1
+        else:
+            deleted += 1
+    return {
+        "scanned": inventory.scanned_entries,
+        "deleted": deleted,
+        "failed": failed,
+        "skipped_protected": skipped_protected,
+        "skipped_young": skipped_young,
+        "complete": inventory.complete,
+    }
 
 
 def _validate_hybrid_worker_result(
@@ -3437,7 +3568,7 @@ def _validate_hybrid_worker_result(
 
 
 class _HybridResultAdmissionService:
-    """Bounded, ordered, non-blocking master-side validation pipeline."""
+    """Bounded, non-blocking master-side validation pipeline."""
 
     def __init__(
         self,
@@ -3483,7 +3614,7 @@ class _HybridResultAdmissionService:
         )
         self._closed = False
         self._pending: deque[
-            tuple[int, typing.Any, Future, float]
+            tuple[int, typing.Any, Future, float, set[str]]
         ] = deque()
         self._metrics_lock = threading.Lock()
         self._active_validations = 0
@@ -3563,13 +3694,28 @@ class _HybridResultAdmissionService:
                 result,
                 submitted_at,
             )
-            self._pending.append((worker, dispatch, future, submitted_at))
+            self._pending.append((
+                worker,
+                dispatch,
+                future,
+                submitted_at,
+                _hybrid_result_object_ids(result),
+            ))
         self._batches += 1
         self._submitted += len(records)
         self._maximum_batch = max(self._maximum_batch, len(records))
 
     def has_ready(self) -> bool:
-        return bool(self._pending and self._pending[0][2].done())
+        return any(
+            future.done()
+            for _worker, _dispatch, future, _submitted, _objects in self._pending
+        )
+
+    def protected_object_ids(self) -> set[str]:
+        protected: set[str] = set()
+        for _worker, _dispatch, _future, _submitted, object_ids in self._pending:
+            protected.update(object_ids)
+        return protected
 
     def collect_ready(
         self,
@@ -3578,13 +3724,22 @@ class _HybridResultAdmissionService:
     ) -> list[
         tuple[int, typing.Any, dict[str, typing.Any] | None, ValueError | None]
     ]:
-        """Return the completed ordered prefix without head-of-loop waiting."""
+        """Return completed validations without waiting behind a slow head item."""
         admitted = []
+        remaining: deque[
+            tuple[int, typing.Any, Future, float, set[str]]
+        ] = deque()
         while self._pending:
-            worker, dispatch, future, submitted_at = self._pending[0]
+            worker, dispatch, future, submitted_at, object_ids = self._pending.popleft()
             if not wait and not future.done():
-                break
-            self._pending.popleft()
+                remaining.append((
+                    worker,
+                    dispatch,
+                    future,
+                    submitted_at,
+                    object_ids,
+                ))
+                continue
             result, error, finished_at = future.result()
             if error is not None:
                 self._invalid += 1
@@ -3594,6 +3749,7 @@ class _HybridResultAdmissionService:
             self._validation_ordered_commit_seconds += max(
                 0.0, time.monotonic() - finished_at
             )
+        self._pending = remaining
         return admitted
 
     def validate_many(
@@ -4161,7 +4317,7 @@ def run_symcc_worker(
         retcode = -1
 
     elapsed = time.monotonic() - start
-    killed = retcode in (124, -9, 137)  # timeout codes
+    killed = _returncode_indicates_timeout(retcode)
 
     # Coverage may advance while this worker is blocked inside the concolic
     # target.  Refresh immediately before showmap/dedup so those intervening
@@ -4220,6 +4376,12 @@ def run_symcc_worker(
         else None
     )
     verify_batch_new = env.get("SYMCC_BATCH_VERIFY_NEW", "0").lower() not in {
+        "0",
+        "false",
+        "off",
+        "no",
+    }
+    verify_batch_status = env.get("SYMCC_BATCH_VERIFY_STATUS", "1").lower() not in {
         "0",
         "false",
         "off",
@@ -4400,17 +4562,20 @@ def run_symcc_worker(
                     terminal_detail = 0
                     if use_batch:
                         edges = batch_edges.get(candidate.path)
-                        # -I does not expose a per-input terminal status. Only
-                        # optionally verify candidates that could mutate the
-                        # bitmap. Verification is opt-in because stdin
-                        # persistent targets can make streaming/one-shot
-                        # fallbacks cost seconds per candidate, drowning short
-                        # hybrid campaigns.
+                        # -I does not expose a per-input terminal status.
+                        # Production hybrid runs enable status verification for
+                        # every batch candidate; the separate novelty-only knob
+                        # is retained for diagnostic campaigns where replay
+                        # cost dominates the measurement.
                         if (
-                            (edges is None or (
-                                verify_batch_new
-                                and worker_coverage.count_delta(edges) > 0
-                            ))
+                            (
+                                edges is None
+                                or verify_batch_status
+                                or (
+                                    verify_batch_new
+                                    and worker_coverage.count_delta(edges) > 0
+                                )
+                            )
                             and streaming_showmap is not None
                             and not postprocess_budget_exhausted()
                         ):
@@ -4418,13 +4583,12 @@ def run_symcc_worker(
                             if result is not None and result.status != "ok":
                                 terminal_status = result.status
                                 terminal_detail = int(result.status_detail)
-                            edges = (
-                                list(result.edges)
-                                if result is not None
+                            elif (
+                                result is not None
                                 and result.status == "ok"
                                 and result.edges
-                                else None
-                            )
+                            ):
+                                edges = list(result.edges)
                     else:
                         result = streaming_result(content)
                         if result is not None and result.status != "ok":
@@ -5533,7 +5697,7 @@ def _batch_triage(
                 hang_id += 1
             except (IOError, OSError):
                 pass
-        elif retcode > 128 and retcode != 137:
+        elif _returncode_indicates_crash(retcode, killed):
             # 目标在 timeout 包装下被致命信号终止（SIGSEGV=139/SIGABRT=134/
             # SIGFPE=136 等；排除超时的 SIGKILL=137，那已由 killed 归入 hangs）
             # → 保存触发崩溃的输入供分析，否则 concolic 发现的崩溃种子被静默丢弃。
@@ -5950,6 +6114,27 @@ def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> bool:
         max_timeout_sites=master_timeout_sites_max,
         max_schedule_trace_bytes=master_schedule_trace_max_bytes,
         result_object_store=result_object_store,
+    )
+    result_object_gc_interval = _bounded_env_float(
+        os.environ,
+        "SYMCC_RESULT_OBJECT_GC_INTERVAL_SEC",
+        30.0,
+        0.0,
+        3600.0,
+    )
+    result_object_gc_grace = _bounded_env_float(
+        os.environ,
+        "SYMCC_RESULT_OBJECT_GC_GRACE_SEC",
+        300.0,
+        0.0,
+        30 * 24 * 3600.0,
+    )
+    result_object_gc_max_entries = _bounded_env_int(
+        os.environ,
+        "SYMCC_RESULT_OBJECT_GC_MAX_ENTRIES",
+        4096,
+        1,
+        1_000_000,
     )
     object_store = ContentAddressedInputStore(
         os.path.join(symcc_dir, ".objects"), max_object_bytes
@@ -7192,6 +7377,7 @@ def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> bool:
     )
     last_shared_heartbeat = 0.0
     last_proposal_scan = 0.0
+    last_result_object_gc = time.monotonic()
 
     # SymCC 产生的有趣测试用例队列，会被重新分发给 workers
     # 每个元素是 (path, generation_depth)，depth=0 为 AFL 种子，depth=N 为第 N 代 SymCC 输出
@@ -7416,7 +7602,7 @@ def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> bool:
             run,
             generated_coverage[:topseed_selector.max_features],
             path_condition=condition,
-            triggers_bug=bool(not killed and retcode > 128 and retcode != 137),
+            triggers_bug=_returncode_indicates_crash(retcode, killed),
             failed=bool(killed or retcode == -1),
         )
         _save_topseed()
@@ -8240,6 +8426,23 @@ def master(comm: "MPI.Intracomm", args: argparse.Namespace) -> bool:
                             f"已渐进裁剪 {removed} 条以限制内存",
                             flush=True,
                         )
+                if (
+                    result_object_gc_interval > 0.0
+                    and _now - last_result_object_gc >= result_object_gc_interval
+                ):
+                    gc_stats = _collect_hybrid_result_objects(
+                        result_object_store,
+                        protected_object_ids=result_admission.protected_object_ids(),
+                        max_entries=result_object_gc_max_entries,
+                        min_age_seconds=result_object_gc_grace,
+                    )
+                    if gc_stats["deleted"] or gc_stats["failed"]:
+                        print(
+                            "[Master] result-object GC: "
+                            f"{json.dumps(gc_stats, sort_keys=True)}",
+                            flush=True,
+                        )
+                    last_result_object_gc = _now
             if component_policy is not None:
                 component_choices = component_policy.select(now=_now)
             if agentic_backends is not None:
